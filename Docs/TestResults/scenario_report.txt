@@ -1,4 +1,4 @@
-Gloomdelve in-game scenario tests 2026-11-16 15:51:49
+Gloomdelve in-game scenario tests 2026-11-16 16:20:08
 PASS  whip kills an approaching snake  
 PASS  stomping a snake kills it and bounces  
 PASS  snake on a single tile stands still instead of flipping left-right  
@@ -22,6 +22,11 @@ PASS  bomb gate: one bomb clears the rubble, bedrock stays
 PASS  glider: gliding crosses a 6-wide thorn chasm  
 PASS  glider gate: without the glider the chasm is deadly  
 PASS  gliding down from high up causes no fall damage  
+PASS  penguin slides at the player and hits a wall  
+PASS  yeti snowball shoves the player without damage  
+PASS  frost bat drops an ice chunk that can be thrown and shatters  
+PASS  equipment: slots, wearing and taking off; ice cleats stop the slide  
+PASS  fur coat: a snowball no longer freezes the wearer  
 PASS  hawk dives at the player below it  
 PASS  ledge grab and climb (real controller)  
 PASS  ladder climb to the top  
@@ -42,4 +47,4 @@ PASS  time-pressure wraith spawns and its touch is fatal
 PASS  carrying a golden idol out pays gold  
 PASS  exit door ends the level  
 
-42 passed, 0 failed
+47 passed, 0 failed

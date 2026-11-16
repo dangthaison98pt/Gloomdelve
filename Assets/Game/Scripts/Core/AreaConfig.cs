@@ -86,5 +86,7 @@ namespace Gloomdelve
         [Header("Shop")]
         [Tooltip("Chance of a shop on level 1,2,3 of this area.")]
         public float[] shopChanceByLevel = { 0f, 1f, 0.4f };
+        [Tooltip("Upgrade ids every shop of this area stocks first (e.g. ice cleats in the frozen caves). The rest of the shelf is random.")]
+        public string[] shopFeatured = new string[0];
     }
 }

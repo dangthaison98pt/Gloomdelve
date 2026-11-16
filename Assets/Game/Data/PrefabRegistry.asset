@@ -26,6 +26,16 @@ MonoBehaviour:
     prefab: {fileID: 7307930703589476578, guid: 28524312e246049468d29d9a383dd749, type: 3}
   - id: brute
     prefab: {fileID: 7280242137149766647, guid: 29b64a180a3739446bc3183dbb52a9b9, type: 3}
+  - id: penguin
+    prefab: {fileID: 6513553354772048453, guid: 14e1dd019b2c8a04a93f1feb39488ef7, type: 3}
+  - id: yeti
+    prefab: {fileID: 2767522028718945156, guid: de48e29e28071a1439e69c5dc8cbd504, type: 3}
+  - id: frostbat
+    prefab: {fileID: 7311848835817986893, guid: 58bf73c9a8a71f04aa0c67c3bb5ecea1, type: 3}
+  - id: snowball
+    prefab: {fileID: 2113863251027895771, guid: 562f1e798aaa281479aa2992449f5d6f, type: 3}
+  - id: icechunk
+    prefab: {fileID: 4421726030908069735, guid: b2c8ae4991401ab4eaf60ad9a10291e7, type: 3}
   - id: hawk
     prefab: {fileID: 282029270680871591, guid: 864923d5074fbb4498626ef3dcbdef4b, type: 3}
   - id: tree

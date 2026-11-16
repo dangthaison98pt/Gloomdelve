@@ -1,6 +1,6 @@
 # Báo cáo kiểm thử – Gloomdelve v0.1.0 (cập nhật 16/11/2026)
 
-> **Cập nhật 16/11 (thêm khu băng Frostdeep Hollows, 12 màn sinh ngẫu nhiên):** quét 150 seed = **1800 màn, 0 lỗi, 0 vấn đề an toàn, 569 lần sinh lại**; bot chơi trọn 3 lượt = **39/39 màn**; 42/42 kịch bản; 34/34 test logic. Các bảng bên dưới là số liệu của đợt trước (9 màn/lượt, chưa có khu băng); khu băng không có chướng ngại bắt buộc theo trang bị.
+> **Cập nhật 16/11 (thêm khu băng Frostdeep Hollows, 12 màn sinh ngẫu nhiên):** quét 150 seed = **1800 màn, 0 lỗi, 0 vấn đề an toàn, 561 lần sinh lại**; bot chơi trọn 3 lượt = **39/39 màn**; 47/47 kịch bản (thêm 3 kịch bản quái băng, 2 kịch bản trang bị); 34/34 test logic. Các bảng bên dưới là số liệu của đợt trước (9 màn/lượt, chưa có khu băng); khu băng không có chướng ngại bắt buộc theo trang bị.
 
 Môi trường: Windows 11, Unity 6000.3.12f1, URP 17.3, Input System 1.19. Tất cả kết quả dưới đây là từ các lần chạy **thật**; file kết quả gốc nằm trong `Docs/TestResults/`.
 

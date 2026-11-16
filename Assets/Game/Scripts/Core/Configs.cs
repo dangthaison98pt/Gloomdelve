@@ -60,15 +60,23 @@ namespace Gloomdelve
         [Tooltip("Added to whip damage.")] public int whipDamageBonus;
         [Tooltip("Added to whip reach (tiles).")] public float whipRangeBonus;
         [Tooltip("Added to bomb blast radius (tiles).")] public float blastRadiusBonus;
+        [Tooltip("Footing on ice: 1 = never slides (the ground grip of the level is raised to at least this).")] public float iceGrip;
+        [Tooltip("Above 0: snowballs and other cold attacks cannot freeze the wearer.")] public float coldResist;
 
         public void Add(StatModifiers o)
         {
             if (o == null) return;
             jumpBonus += o.jumpBonus; whipDamageBonus += o.whipDamageBonus;
             whipRangeBonus += o.whipRangeBonus; blastRadiusBonus += o.blastRadiusBonus;
+            iceGrip = Mathf.Max(iceGrip, o.iceGrip); coldResist += o.coldResist;
         }
 
-        public bool IsZero => jumpBonus == 0f && whipDamageBonus == 0 && whipRangeBonus == 0f && blastRadiusBonus == 0f;
+        public void Clear()
+        {
+            jumpBonus = 0f; whipDamageBonus = 0; whipRangeBonus = 0f; blastRadiusBonus = 0f; iceGrip = 0f; coldResist = 0f;
+        }
+
+        public bool IsZero => jumpBonus == 0f && whipDamageBonus == 0 && whipRangeBonus == 0f && blastRadiusBonus == 0f && iceGrip == 0f && coldResist == 0f;
     }
 
     /// <summary>
@@ -85,7 +93,9 @@ namespace Gloomdelve
         public string resource;
         public int amount = 1;
         public bool isUpgrade;
-        [Tooltip("Passive bonuses while this upgrade is owned (upgrades only).")]
+        [Tooltip("Where an upgrade is worn: feet / body / hand / charm (two charms fit). Only worn items have an effect; the player swaps them on the equipment screen. Empty = always on.")]
+        public string slot;
+        [Tooltip("Passive bonuses while this upgrade is worn (upgrades only).")]
         public StatModifiers modifiers = new StatModifiers();
         public Sprite icon;
         [TextArea] public string description;

@@ -85,7 +85,10 @@ namespace Gloomdelve
             Sfx.Play("buy", pos);
             Fx.Sparks(Center, new Color(1f, 0.9f, 0.4f), 10, 4f);
             Fx.Text(Center + Vector2.up * 0.8f, offer.displayName.ToUpperInvariant(), new Color(0.6f, 1f, 0.6f), 1.4f);
-            if (GameDirector.Instance != null && offer.isUpgrade) GameDirector.Instance.ShowMessage($"{offer.displayName}: {offer.description}");
+            if (GameDirector.Instance != null && offer.isUpgrade)
+                GameDirector.Instance.ShowMessage(run.IsWorn(offer.id)
+                    ? $"{offer.displayName}: {offer.description}"
+                    : $"{offer.displayName} is in your bag ({InventoryScreen.SlotLabel(offer.slot).ToLowerInvariant()} slot is taken). Press [inventory] to wear it.");
             Despawn();
         }
 

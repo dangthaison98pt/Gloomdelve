@@ -51,6 +51,10 @@ namespace Gloomdelve
         public string Prompt { get; private set; }
         public float InvulnTime => invuln;
         public bool IsStunned => stunTimer > 0f;
+        /// <summary>Encased in ice (snowball without a fur coat): cannot act until it wears off.</summary>
+        public bool Frozen => frozen > 0f;
+        float frozen;
+        bool frozenTint;
 
         float whipTimer = -1f, whipCooldown, invuln, stunTimer, lookTimer, throwAnimTimer;
         readonly HashSet<Entity> whipHits = new HashSet<Entity>();
@@ -86,7 +90,7 @@ namespace Gloomdelve
             if (IsDead) { TickCorpse(dt); return; }
 
             FrameInput fi = bot != null ? bot.Next() : (input != null ? input.Consume() : default);
-            invuln -= dt; stunTimer -= dt; whipCooldown -= dt; throwAnimTimer -= dt;
+            invuln -= dt; stunTimer -= dt; whipCooldown -= dt; throwAnimTimer -= dt; frozen -= dt;
             bool stunned = stunTimer > 0f;
 
             var mi = new MotorInput
@@ -95,7 +99,7 @@ namespace Gloomdelve
                 stunned = stunned,
                 speedMult = held != null && held.heavy ? cfg.heavyCarrySpeed : 1f,
                 jumpMult = Run != null ? 1f + Run.stats.jumpBonus : 1f,
-                grip = World.Level != null ? World.Level.grip : 1f,
+                grip = Mathf.Max(World.Level != null ? World.Level.grip : 1f, Run != null ? Run.stats.iceGrip : 0f),
             };
             EquippedGear?.ModifyMotor(this, ref mi);
             var prevMode = motor.mode;
@@ -370,6 +374,29 @@ namespace Gloomdelve
             return true;
         }
 
+        /// <summary>Pushed without being hurt (snowballs): a short stagger and a knockback, no damage, no invulnerability.</summary>
+        public void Shove(Vector2 knockback, float stun)
+        {
+            if (IsDead || godMode) return;
+            stunTimer = Mathf.Max(stunTimer, stun);
+            motor.mode = MotorMode.Normal;
+            motor.vel = knockback;
+            motor.grounded = false;
+            motor.jumping = false;
+            vel = motor.vel;
+            Fx.Shake(0.15f);
+        }
+
+        /// <summary>Frozen solid for a moment: no damage, but no control either.</summary>
+        public void Freeze(float seconds)
+        {
+            if (IsDead || godMode) return;
+            frozen = Mathf.Max(frozen, seconds);
+            stunTimer = Mathf.Max(stunTimer, seconds);
+            Fx.Text(Center + Vector2.up * 0.9f, "FROZEN", new Color(0.7f, 0.9f, 1f), 1f);
+            Sfx.Play("shatter", pos, 0.6f, 1.4f);
+        }
+
         public override void OnExplosion(Vector2 center, float radius, Entity source, int generation, int damage)
         {
             Vector2 d = Center - center;
@@ -430,6 +457,11 @@ namespace Gloomdelve
         protected override void LateUpdate()
         {
             base.LateUpdate();
+            if (sr != null && frozenTint != Frozen)
+            {
+                frozenTint = Frozen;
+                sr.color = frozenTint ? new Color(0.55f, 0.82f, 1f) : Color.white;
+            }
             if (sr != null)
             {
                 squash = Vector2.Lerp(squash, Vector2.one, 1f - Mathf.Exp(-14f * Time.deltaTime));
@@ -472,12 +504,12 @@ namespace Gloomdelve
                     bool back = whipTimer < cfg.whipBackEnd;
                     whipRenderer.sprite = back ? whipBackSprite : whipFrontSprite;
                     whipRenderer.flipX = facing < 0;
-                    float ext = Run != null && Run.HasUpgrade(UpgradeIds.IronWhip) ? 1.15f : 1f;
+                    float ext = Run != null && Run.HasActive(UpgradeIds.IronWhip) ? 1.15f : 1f;
                     whipRenderer.transform.localScale = new Vector3(back ? 1f : ext, 1f, 1f);
                     whipRenderer.transform.localPosition = back
                         ? new Vector3(-facing * 0.45f, 0.75f, 0f)
                         : new Vector3(facing * (0.3f + 0.65f * ext), 0.42f, 0f);
-                    whipRenderer.color = Run != null && Run.HasUpgrade(UpgradeIds.IronWhip) ? new Color(0.8f, 0.85f, 1f) : Color.white;
+                    whipRenderer.color = Run != null && Run.HasActive(UpgradeIds.IronWhip) ? new Color(0.8f, 0.85f, 1f) : Color.white;
                 }
             }
         }

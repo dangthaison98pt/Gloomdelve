@@ -21,6 +21,7 @@ namespace Gloomdelve
         public ResultsScreen results;
         public TransitionScreen transition;
         public EquipmentWheel gearWheel;
+        public InventoryScreen inventory;
         public SkyBackdrop sky;
         public CaveBackdrop caveBackdrop;
 
@@ -247,6 +248,21 @@ namespace Gloomdelve
         void Update()
         {
             if (linkPending && world.Frame > 0) { LevelFactory.LinkShops(world, Level); linkPending = false; }
+            // equipment screen: its own button opens it, the same button or Pause closes it
+            if (inventory != null && !Paused)
+            {
+                if (inventory.IsOpen)
+                {
+                    if (Ended || input == null || input.InventoryPressed || input.PausePressed) inventory.Close();
+                    return;
+                }
+                if (!Ended && !AutoTest.Active && input != null && input.InventoryPressed && Player != null && !Player.IsDead &&
+                    (gearWheel == null || !gearWheel.IsOpen))
+                {
+                    inventory.Open();
+                    return;
+                }
+            }
             if (!Ended && !AutoTest.Active && input != null && input.PausePressed && (gearWheel == null || !gearWheel.IsOpen))
             {
                 if (Paused) { if (!pauseMenu.HandleBack()) SetPaused(false); }

@@ -236,7 +236,7 @@ namespace Gloomdelve.EditorTools
             var actions = new List<string>
             {
                 A("Move", "Value", "Vector2"), A("Jump", "Button", "Button"), A("Attack", "Button", "Button"), A("Use", "Button", "Button"),
-                A("Swap", "Button", "Button"), A("Interact", "Button", "Button"), A("Walk", "Button", "Button"), A("Pause", "Button", "Button"),
+                A("Swap", "Button", "Button"), A("Interact", "Button", "Button"), A("Walk", "Button", "Button"), A("Pause", "Button", "Button"), A("Inventory", "Button", "Button"),
             };
             var bindings = new List<string>
             {
@@ -250,6 +250,7 @@ namespace Gloomdelve.EditorTools
                 B("Interact", "<Keyboard>/a"), B("Interact", "<Gamepad>/buttonNorth"),
                 B("Walk", "<Keyboard>/leftShift"), B("Walk", "<Keyboard>/rightShift"), B("Walk", "<Gamepad>/leftTrigger"),
                 B("Pause", "<Keyboard>/escape"), B("Pause", "<Keyboard>/p"), B("Pause", "<Gamepad>/start"),
+                B("Inventory", "<Keyboard>/tab"), B("Inventory", "<Keyboard>/i"), B("Inventory", "<Gamepad>/select"),
             };
             string json = "{\n\"name\":\"GameInput\",\n\"maps\":[{\"name\":\"Player\",\"id\":\"" + Guid.NewGuid() + "\",\"actions\":[" +
                           string.Join(",", actions) + "],\"bindings\":[" + string.Join(",", bindings) + "]}],\n\"controlSchemes\":[]\n}";
@@ -301,6 +302,9 @@ namespace Gloomdelve.EditorTools
             Anim("toad_idle", F(e + "toad_0"), 1); Anim("toad_jump", F(e + "toad_1"), 1);
             Anim("brute_walk", F(e + "brute_0", e + "brute_1"), 4f); Anim("brute_charge", F(e + "brute_2"), 1); Anim("brute_dazed", F(e + "brute_3"), 1);
             Anim("wraith_float", ArtGenerator.Frames(e + "wraith", 2), 3f);
+            Anim("frostbat_hang", F(e + "frostbat_2"), 1); Anim("frostbat_fly", F(e + "frostbat_0", e + "frostbat_1"), 10f);
+            Anim("penguin_idle", F(e + "penguin_0"), 1); Anim("penguin_windup", F(e + "penguin_1"), 1); Anim("penguin_slide", F(e + "penguin_2"), 1);
+            Anim("yeti_idle", F(e + "yeti_0"), 1); Anim("yeti_throw", F(e + "yeti_1"), 1);
             Anim("hawk_fly", F(e + "hawk_0", e + "hawk_1"), 7f);
             Anim("hawk_dive", F(e + "hawk_2"), 1);
             Anim("keeper_idle", ArtGenerator.Frames("Sprites/Shopkeeper/idle", 2), 1.5f);
@@ -432,8 +436,21 @@ namespace Gloomdelve.EditorTools
                     else if (o.id == "blastpowder") o.modifiers.blastRadiusBonus = 0.9f;
                 }
             }
+            // Wearable equipment: every upgrade has a slot, and the frozen caves get their own two pieces.
+            if (shop.Find("iceboots") == null)
+                shop.offers.Add(new ShopOffer { id = "iceboots", displayName = "Ice Cleats", price = 600, isUpgrade = true, slot = "feet",
+                    description = "spiked soles: no sliding on ice", modifiers = new StatModifiers { iceGrip = 1f } });
+            if (shop.Find("warmcoat") == null)
+                shop.offers.Add(new ShopOffer { id = "warmcoat", displayName = "Fur Coat", price = 650, isUpgrade = true, slot = "body",
+                    description = "snowballs cannot freeze you", modifiers = new StatModifiers { coldResist = 1f } });
+            foreach (var o in shop.offers)
+            {
+                if (!o.isUpgrade || !string.IsNullOrEmpty(o.slot)) continue;
+                o.slot = o.id == "springboots" ? "feet" : o.id == "ironwhip" ? "hand" : "charm";
+            }
             var icons = new Dictionary<string, string>
             {
+                ["iceboots"] = "Sprites/Items/iceboots", ["warmcoat"] = "Sprites/Items/warmcoat",
                 ["bombs"] = "Sprites/Items/bombbag", ["ropes"] = "Sprites/Items/ropepile", ["heart"] = "Sprites/Items/heart",
                 ["springboots"] = "Sprites/Items/springboots", ["ironwhip"] = "Sprites/Items/ironwhip", ["compass"] = "Sprites/Items/compass",
                 ["blastpowder"] = "Sprites/Items/blastpowder",
@@ -527,6 +544,18 @@ namespace Gloomdelve.EditorTools
                 frost.torchColor = new Color(1f, 0.78f, 0.5f); frost.torchChance = 0.05f;
                 frost.ambientParticles = AmbientParticles.Snow; frost.ambientParticleCount = 55;
                 frost.backdropTint = new Color(0.4f, 0.52f, 0.72f);
+            }
+            // its own creatures (also upgrades a Frost area saved before they existed)
+            if (!System.Array.Exists(frost.groundEnemies, w => w.id == "penguin"))
+            {
+                frost.groundEnemies = new[] { new WeightedId("penguin", 2f), new WeightedId("yeti", 1f), new WeightedId("snake", 1f) };
+                frost.ceilingEnemies = new[] { new WeightedId("frostbat", 2f), new WeightedId("spider", 1f) };
+            }
+            // shops in the cold sell what the cold calls for, and the first frozen level always has one
+            if (frost.shopFeatured == null || frost.shopFeatured.Length == 0)
+            {
+                frost.shopFeatured = new[] { "iceboots", "warmcoat" };
+                frost.shopChanceByLevel = new[] { 1f, 1f, 0.5f };
             }
             frost.tiles = ts["Frost"];
             EditorUtility.SetDirty(frost);
@@ -781,6 +810,17 @@ namespace Gloomdelve.EditorTools
                 (e, go, sr) => { e.animIdle = anims["toad_idle"]; e.animJump = anims["toad_jump"]; e.bloodColor = new Color(0.9f, 0.5f, 0.2f); }));
             Reg("brute", Make<Brute>("Brute", "Enemies", "mole brute", new Vector2(0.85f, 0.9f), ArtGenerator.S("Sprites/Enemies/brute_0"), anims["brute_walk"], 14,
                 (e, go, sr) => { e.maxHealth = 3; e.knockbackScale = 1.6f; e.goldDrop = 100; e.animWalk = anims["brute_walk"]; e.animCharge = anims["brute_charge"]; e.animDazed = anims["brute_dazed"]; }));
+            // frozen caves
+            Reg("penguin", Make<Penguin>("Penguin", "Enemies", "penguin", new Vector2(0.65f, 0.6f), ArtGenerator.S("Sprites/Enemies/penguin_0"), anims["penguin_idle"], 14,
+                (e, go, sr) => { e.animIdle = anims["penguin_idle"]; e.animWindup = anims["penguin_windup"]; e.animSlide = anims["penguin_slide"]; e.bloodColor = new Color(0.8f, 0.9f, 1f); }));
+            Reg("yeti", Make<Yeti>("Yeti", "Enemies", "yeti", new Vector2(0.8f, 1.0f), ArtGenerator.S("Sprites/Enemies/yeti_0"), anims["yeti_idle"], 14,
+                (e, go, sr) => { e.maxHealth = 2; e.goldDrop = 50; e.animIdle = anims["yeti_idle"]; e.animThrow = anims["yeti_throw"]; e.bloodColor = new Color(0.85f, 0.92f, 1f); }));
+            Reg("frostbat", Make<FrostBat>("FrostBat", "Enemies", "frost bat", new Vector2(0.6f, 0.5f), ArtGenerator.S("Sprites/Enemies/frostbat_2"), anims["frostbat_hang"], 14,
+                (e, go, sr) => { e.animHang = anims["frostbat_hang"]; e.animFly = anims["frostbat_fly"]; e.speed = 3.9f; e.bloodColor = new Color(0.7f, 0.88f, 1f); }));
+            Reg("snowball", Make<Snowball>("Snowball", "Enemies", "snowball", new Vector2(0.3f, 0.3f), ArtGenerator.S(I("snowball")), null, 16,
+                (e, go, sr) => { e.flipWithFacing = false; }));
+            Reg("icechunk", Make<IceChunk>("IceChunk", "Items", "ice chunk", new Vector2(0.45f, 0.4f), ArtGenerator.S(I("icechunk")), null, 12,
+                (e, g, s) => { e.flipWithFacing = false; e.impactSfx = "thud"; }));
             Reg("hawk", Make<Hawk>("Hawk", "Enemies", "hawk", new Vector2(0.6f, 0.5f), ArtGenerator.S("Sprites/Enemies/hawk_0"), anims["hawk_fly"], 14,
                 (e, go, sr) => { e.animFly = anims["hawk_fly"]; e.animDive = anims["hawk_dive"]; e.bloodColor = new Color(0.6f, 0.2f, 0.15f); }));
             Reg("tree", Make<Scenery>("Tree", "Level", "tree", new Vector2(1f, 2.5f), ArtGenerator.S("Sprites/Props/tree_0"), null, -6,
@@ -1108,17 +1148,23 @@ namespace Gloomdelve.EditorTools
             hud.upgradesText.rectTransform.pivot = new Vector2(0f, 1f);
             hud.upgradesText.rectTransform.anchoredPosition = new Vector2(28, -216);
 
-            var gearBox = UIBuilder.Panel(hudGo.transform, "Gear", new Vector2(0f, 1f), new Vector2(16, -108), new Vector2(420, 96));
-            gearBox.rectTransform.pivot = new Vector2(0f, 1f);
-            var gframe = UIBuilder.Img(gearBox.transform, "IconFrame", UIBuilder.slotSprite, new Color(1f, 0.8f, 0.35f), new Vector2(0f, 0.5f), new Vector2(18, 0), new Vector2(58, 58), true);
-            gframe.rectTransform.pivot = new Vector2(0f, 0.5f);
-            hud.equipIcon = UIBuilder.Img(gframe.transform, "Icon", ArtGenerator.S("UI/icon_bomb"), Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(44, 44));
-            hud.equipName = UIBuilder.Label(gearBox.transform, "Name", "BOMBS", 30, gold, TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(86, 13), new Vector2(200, 36), true, FontStyle.Bold);
-            hud.equipName.rectTransform.pivot = new Vector2(0f, 0.5f);
-            hud.equipAmmo = UIBuilder.Label(gearBox.transform, "Ammo", "x4", 30, Color.white, TextAnchor.MiddleRight, new Vector2(1f, 0.5f), new Vector2(-22, 13), new Vector2(100, 36), true, FontStyle.Bold);
-            hud.equipAmmo.rectTransform.pivot = new Vector2(1f, 0.5f);
-            var ghint = UIBuilder.Label(gearBox.transform, "Hint", "[use] use     hold [gear] to change", 18, new Color(1, 1, 1, 0.6f), TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(86, -17), new Vector2(316, 22), false);
-            ghint.rectTransform.pivot = new Vector2(0f, 0.5f);
+            // Item in hand: just the icon with its count in the corner, the button that changes it on top and the
+            // button that uses it underneath. Its name pops up over the player when it is switched.
+            var gearBox = UIBuilder.Node(hudGo.transform, "Gear");
+            UIBuilder.Place(UIBuilder.Rect(gearBox), new Vector2(0f, 1f), new Vector2(24, -110), new Vector2(104, 172));
+            var gframe = UIBuilder.Img(gearBox.transform, "IconFrame", UIBuilder.slotSprite, new Color(1f, 0.8f, 0.35f), new Vector2(0.5f, 1f), new Vector2(0, -34), new Vector2(104, 104), true);
+            hud.equipIcon = UIBuilder.Img(gframe.transform, "Icon", ArtGenerator.S("UI/icon_bomb"), Color.white, new Vector2(0.5f, 0.5f), new Vector2(0, 4), new Vector2(76, 76));
+            hud.equipName = null;
+            hud.equipAmmo = UIBuilder.Label(gframe.transform, "Ammo", "4", 30, Color.white, TextAnchor.LowerRight, new Vector2(1f, 0f), new Vector2(-12, 8), new Vector2(90, 36), true, FontStyle.Bold);
+            UIBuilder.Label(gearBox.transform, "ChangeKey", "[gear]", 24, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), Vector2.zero, new Vector2(104, 32), false);
+            UIBuilder.Label(gearBox.transform, "UseKey", "[use]", 24, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), Vector2.zero, new Vector2(104, 32), false);
+            // equipment being worn: a row of small icons next to it
+            hud.wornIcons = new Image[5];
+            for (int wi = 0; wi < hud.wornIcons.Length; wi++)
+            {
+                hud.wornIcons[wi] = UIBuilder.Img(hudGo.transform, "Worn" + wi, null, Color.white, new Vector2(0f, 1f), new Vector2(144 + wi * 54, -146), new Vector2(46, 46));
+                hud.wornIcons[wi].enabled = false;
+            }
 
             // Rows are placed by their vertical centre (pivot y = 0.5) so everything stays inside the frame.
             var tr = UIBuilder.Panel(hudGo.transform, "TopRight", new Vector2(1f, 1f), new Vector2(-16, -16), new Vector2(460, 150));
@@ -1199,6 +1245,31 @@ namespace Gloomdelve.EditorTools
             wheel.input = reader;
             wheel.director = dir;
             dir.gearWheel = wheel;
+
+            // equipment screen (Tab / Select)
+            var invGo = UIBuilder.Node(t, "Inventory");
+            UIBuilder.Stretch(UIBuilder.Rect(invGo));
+            var inv = invGo.AddComponent<InventoryScreen>();
+            var iroot = UIBuilder.Img(invGo.transform, "Root", null, new Color(0f, 0f, 0f, 0.55f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+            UIBuilder.Stretch(iroot.rectTransform);
+            inv.root = iroot.gameObject;
+            var ipanel = UIBuilder.Panel(iroot.transform, "Panel", new Vector2(0.5f, 0.5f), new Vector2(0, 20), new Vector2(1040, 680));
+            UIBuilder.Label(ipanel.transform, "Title", "EQUIPMENT", 40, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -34), new Vector2(800, 50), true, FontStyle.Bold);
+            var igrid = UIBuilder.Node(ipanel.transform, "Grid");
+            UIBuilder.Place(UIBuilder.Rect(igrid), new Vector2(0.5f, 1f), new Vector2(0, -190), new Vector2(900, 10), new Vector2(0.5f, 0.5f));
+            inv.grid = (RectTransform)igrid.transform;
+            var cell = UIBuilder.Img(igrid.transform, "CellTemplate", UIBuilder.slotSprite, Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(116, 116), true);
+            UIBuilder.Img(cell.transform, "Icon", ArtGenerator.S("Sprites/Items/springboots"), Color.white, new Vector2(0.5f, 0.5f), new Vector2(0, 4), new Vector2(84, 84));
+            UIBuilder.Label(cell.transform, "Slot", "FEET", 18, new Color(1f, 1f, 1f, 0.7f), TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0, -26), new Vector2(150, 24), false);
+            var wornMark = UIBuilder.Img(cell.transform, "Worn", UIBuilder.buttonSprite, new Color(1f, 0.82f, 0.3f), new Vector2(1f, 1f), new Vector2(-8, -8), new Vector2(22, 22), true);
+            inv.cellTemplate = cell.gameObject;
+            inv.emptyText = UIBuilder.Label(ipanel.transform, "Empty", "Nothing to wear yet. Shops sell boots, coats and charms.", 26, new Color(1f, 1f, 1f, 0.7f), TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), new Vector2(0, 60), new Vector2(900, 60));
+            inv.nameText = UIBuilder.Label(ipanel.transform, "Name", "", 32, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0, 150), new Vector2(940, 44), true, FontStyle.Bold);
+            inv.descText = UIBuilder.Label(ipanel.transform, "Desc", "", 24, new Color(1f, 1f, 1f, 0.85f), TextAnchor.UpperCenter, new Vector2(0.5f, 0f), new Vector2(0, 86), new Vector2(940, 60));
+            inv.hintText = UIBuilder.Label(ipanel.transform, "Hint", "", 22, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0, 26), new Vector2(960, 34), false);
+            inv.input = reader;
+            inv.director = dir;
+            dir.inventory = inv;
 
             // transition
             var trGo = UIBuilder.Node(t, "Transition");

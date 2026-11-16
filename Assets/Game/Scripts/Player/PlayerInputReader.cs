@@ -26,7 +26,7 @@ namespace Gloomdelve
         public InputActionAsset actions;
 
         InputActionMap map;
-        InputAction move, jump, attack, use, swap, interact, walk, pause;
+        InputAction move, jump, attack, use, swap, interact, walk, pause, inventory;
         bool jumpL, attackL, useL, interactL, upL, prevUp;
 
         public InputAction PauseAction => pause;
@@ -43,6 +43,7 @@ namespace Gloomdelve
             interact = map.FindAction("Interact", true);
             walk = map.FindAction("Walk", true);
             pause = map.FindAction("Pause", true);
+            inventory = map.FindAction("Inventory", false);
             map.Enable();
         }
 
@@ -73,6 +74,12 @@ namespace Gloomdelve
         }
 
         public bool PausePressed => pause != null && pause.WasPressedThisFrame();
+        /// <summary>Equipment screen button (Tab / Select). Works while the game is frozen.</summary>
+        public bool InventoryPressed => inventory != null && inventory.WasPressedThisFrame();
+        /// <summary>Jump or Interact pressed this frame (menu confirm), readable while frozen.</summary>
+        public bool ConfirmPressed => (jump != null && jump.WasPressedThisFrame()) || (interact != null && interact.WasPressedThisFrame());
+        /// <summary>-1 / 0 / 1 vertical direction (stick or arrows), readable while frozen.</summary>
+        public int MoveY { get { var v = MoveValue; return v.y > 0.5f ? 1 : (v.y < -0.5f ? -1 : 0); } }
 
         public FrameInput Consume()
         {

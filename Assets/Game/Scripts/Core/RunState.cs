@@ -22,7 +22,7 @@ namespace Gloomdelve
 
         /// <summary>Owned upgrade ids (ShopOffer.id), in purchase order.</summary>
         public readonly List<string> upgrades = new List<string>();
-        /// <summary>Sum of the modifiers of every owned upgrade.</summary>
+        /// <summary>Sum of the modifiers of every worn upgrade.</summary>
         public readonly StatModifiers stats = new StatModifiers();
         /// <summary>Custom resources (ammo of new gear, keys, ...) by id.</summary>
         public readonly Dictionary<string, int> counters = new Dictionary<string, int>();
@@ -62,14 +62,72 @@ namespace Gloomdelve
         /// <summary>Remaining uses of a piece of gear, or -1 for gear that is never used up (glider).</summary>
         public int Ammo(string gearId) => GearRegistry.Get(gearId)?.Ammo(this) ?? -1;
 
+        /// <summary>Owned (in the bag or worn).</summary>
         public bool HasUpgrade(string id) => upgrades.Contains(id);
 
-        /// <summary>Owns the upgrade from now on and applies its stat modifiers (once).</summary>
+        /// <summary>Ids of the upgrades being worn: only these have an effect.</summary>
+        public readonly List<string> worn = new List<string>();
+        readonly Dictionary<string, ShopOffer> owned = new Dictionary<string, ShopOffer>();
+
+        /// <summary>How many items of one slot can be worn at once.</summary>
+        public static int SlotCapacity(string slot) => slot == "charm" ? 2 : 1;
+
+        public ShopOffer Owned(string id) => id != null && owned.TryGetValue(id, out var o) ? o : null;
+        public bool IsWorn(string id) => worn.Contains(id);
+        /// <summary>Owned and in effect (worn). Use this for behaviour, HasUpgrade for ownership.</summary>
+        public bool HasActive(string id) => worn.Contains(id);
+
+        int WornInSlot(string slot)
+        {
+            int n = 0;
+            foreach (var id in worn) { var o = Owned(id); if (o != null && o.slot == slot) n++; }
+            return n;
+        }
+
+        /// <summary>Owns the upgrade from now on. It is put on straight away when its slot is free, else it goes in the bag.</summary>
         public void AddUpgrade(ShopOffer o)
         {
             if (o == null || string.IsNullOrEmpty(o.id) || upgrades.Contains(o.id)) return;
             upgrades.Add(o.id);
-            stats.Add(o.modifiers);
+            owned[o.id] = o;
+            if (string.IsNullOrEmpty(o.slot) || WornInSlot(o.slot) < SlotCapacity(o.slot)) worn.Add(o.id);
+            RecomputeStats();
+        }
+
+        /// <summary>Removes an owned upgrade completely (tests, curses...).</summary>
+        public void RemoveUpgrade(string id)
+        {
+            upgrades.Remove(id); worn.Remove(id); owned.Remove(id);
+            RecomputeStats();
+        }
+
+        /// <summary>Puts an owned item on; whatever fills its slot goes back in the bag.</summary>
+        public bool Wear(string id)
+        {
+            var o = Owned(id);
+            if (o == null || worn.Contains(id)) return false;
+            if (!string.IsNullOrEmpty(o.slot))
+                while (WornInSlot(o.slot) >= SlotCapacity(o.slot))
+                    worn.Remove(worn.Find(w => Owned(w) != null && Owned(w).slot == o.slot));
+            worn.Add(id);
+            RecomputeStats();
+            return true;
+        }
+
+        public bool TakeOff(string id)
+        {
+            var o = Owned(id);
+            if (o == null || string.IsNullOrEmpty(o.slot) || !worn.Remove(id)) return false;   // slot-less upgrades are always on
+            RecomputeStats();
+            return true;
+        }
+
+        public bool ToggleWorn(string id) => worn.Contains(id) ? TakeOff(id) : Wear(id);
+
+        void RecomputeStats()
+        {
+            stats.Clear();
+            foreach (var id in worn) stats.Add(Owned(id)?.modifiers);
         }
 
         public int GetResource(string id)

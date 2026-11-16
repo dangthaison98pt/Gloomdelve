@@ -47,6 +47,7 @@ namespace Gloomdelve
         public Image equipIcon;
         public Text equipName;
         public Text equipAmmo;
+        [Tooltip("Small icons of the equipment being worn.")] public Image[] wornIcons;
 
         GameDirector dir;
         float bannerT, msgT, hurtT, vignette;
@@ -96,9 +97,9 @@ namespace Gloomdelve
             {
                 equipIcon.enabled = gear != null && gear.icon != null;
                 if (gear != null) equipIcon.sprite = gear.icon;
-                equipName.text = gear != null ? gear.displayName.ToUpperInvariant() : "-";
+                if (equipName != null) equipName.text = gear != null ? gear.displayName.ToUpperInvariant() : "-";
                 int ammo = gear != null ? run.Ammo(gear.id) : 0;
-                equipAmmo.text = gear != null && ammo >= 0 ? "x" + ammo : "";
+                equipAmmo.text = gear != null && ammo >= 0 ? ammo.ToString() : "";
                 equipAmmo.color = ammo > 0 ? Color.white : new Color(1f, 0.4f, 0.4f);
             }
             shownGold = Mathf.MoveTowards(shownGold, run.gold, Mathf.Max(60f, Mathf.Abs(run.gold - shownGold) * 4f) * dt);
@@ -112,14 +113,20 @@ namespace Gloomdelve
             else timeText.color = Color.white;
             totalTimeText.text = "TOTAL " + UIUtil.FormatTime(run.totalTime);
 
-            var sb = new StringBuilder();
-            var shop = dir.config != null ? dir.config.shop : null;
-            foreach (var id in run.upgrades)
+            if (upgradesText != null) upgradesText.text = "";
+            if (wornIcons != null)
             {
-                var offer = shop != null ? shop.Find(id) : null;
-                sb.Append(offer != null ? offer.displayName : id).Append("   ");
+                int k = 0;
+                foreach (var id in run.worn)
+                {
+                    var offer = run.Owned(id);
+                    if (offer == null || offer.icon == null || k >= wornIcons.Length) continue;
+                    wornIcons[k].sprite = offer.icon;
+                    wornIcons[k].enabled = true;
+                    k++;
+                }
+                for (; k < wornIcons.Length; k++) wornIcons[k].enabled = false;
             }
-            upgradesText.text = sb.ToString().TrimEnd();
 
             var p = dir.Player;
             string prompt = p != null && !p.IsDead && !dir.Ended ? p.Prompt : null;
@@ -141,7 +148,7 @@ namespace Gloomdelve
         // screen edge with a chevron pointing towards it. Distance in tiles ("m").
         void UpdateWaypoint(RunState run, PlayerController p, float dt)
         {
-            bool show = run.HasUpgrade(UpgradeIds.Compass) && p != null && !p.IsDead && dir.Level != null && dir.cam != null && wpMarker != null;
+            bool show = run.HasActive(UpgradeIds.Compass) && p != null && !p.IsDead && dir.Level != null && dir.cam != null && wpMarker != null;
             WaypointVisible = show;
             compassRoot.SetActive(show);
             if (!show) { wpSnapped = false; return; }

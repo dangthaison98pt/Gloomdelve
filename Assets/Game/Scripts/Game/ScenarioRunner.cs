@@ -182,6 +182,21 @@ namespace Gloomdelve
             new Scenario { name = "gliding down from high up causes no fall damage", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => GlideFallCase(c) },
 
+            new Scenario { name = "penguin slides at the player and hits a wall", map = m => { Set(m, 3, 1, 'S'); Set(m, 2, 1, '#'); Set(m, 2, 2, '#'); },
+                run = c => PenguinCase(c) },
+
+            new Scenario { name = "yeti snowball shoves the player without damage", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => YetiCase(c) },
+
+            new Scenario { name = "frost bat drops an ice chunk that can be thrown and shatters", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => FrostBatCase(c) },
+
+            new Scenario { name = "equipment: slots, wearing and taking off; ice cleats stop the slide", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => EquipmentCase(c) },
+
+            new Scenario { name = "fur coat: a snowball no longer freezes the wearer", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => FurCoatCase(c) },
+
             new Scenario { name = "hawk dives at the player below it", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => HawkCase(c) },
 
@@ -520,6 +535,153 @@ namespace Gloomdelve
             }
             c.Expect(glided, "glided");
             c.Expect(c.run.health == 4 && !stunned && Mathf.Abs(c.p.pos.y - 1f) < 0.01f, $"landed safely (health {c.run.health}, stunned {stunned}, pos {c.p.pos})");
+        }
+
+        static IEnumerator PenguinCase(Ctx c)
+        {
+            c.Teleport(5.5f, 1f);
+            var pg = c.Spawn<Penguin>("penguin", 12, 1);
+            c.Expect(pg != null, "penguin spawned");
+            if (pg == null) yield break;
+            c.Bot(Seq((400, F())));
+            bool slid = false, hit = false;
+            for (int i = 0; i < 300 && !hit; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (pg.Sliding) slid = true;
+                if (c.run.health < 4) hit = true;
+            }
+            c.Expect(slid, "the penguin started a belly slide");
+            c.Expect(hit, "the sliding penguin hit the player");
+            // A slide ends at the first wall, where the penguin is dazed. The player is taken out of the way
+            // (the knocked-back player may land on the first penguin and stomp it, which is fair play).
+            c.p.godMode = true;
+            if (pg.Dead || !pg.Sliding) pg = c.Spawn<Penguin>("penguin", 14, 1);
+            bool dazed = false;
+            for (int i = 0; i < 420 && !dazed && !pg.Dead; i++) { yield return new WaitForFixedUpdate(); if (pg.stunTimer > 0.5f && !pg.Sliding) dazed = true; }
+            c.p.godMode = false;
+            c.Expect(dazed, "a sliding penguin slams into the wall and is dazed");
+        }
+
+        static IEnumerator YetiCase(Ctx c)
+        {
+            c.Teleport(6.5f, 1f);
+            var yt = c.Spawn<Yeti>("yeti", 13, 1);
+            c.Expect(yt != null, "yeti spawned");
+            if (yt == null) yield break;
+            c.Bot(Seq((500, F())));
+            float x0 = 6.5f;
+            bool thrown = false, shoved = false;
+            for (int i = 0; i < 420 && !shoved; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (c.Count<Snowball>() > 0) thrown = true;
+                if (c.p.pos.x < x0 - 0.6f) shoved = true;
+            }
+            c.Expect(thrown, "the yeti threw a snowball");
+            c.Expect(shoved, $"the snowball pushed the player away from the yeti (x {c.p.pos.x:0.00})");
+            c.Expect(c.run.health == 4, "no damage from the snowball (health " + c.run.health + ")");
+            c.Expect(c.p.Frozen, "without a fur coat the snowball freezes the player");
+        }
+
+        static IEnumerator SlideAfterRun(Ctx c, System.Action<float> result)
+        {
+            c.Teleport(4.5f, 1f);
+            c.Bot(Seq((45, F(x: 1)), (90, F())));
+            yield return c.Frames(45);
+            float x = c.p.pos.x;
+            yield return c.Frames(90);
+            result(c.p.pos.x - x);
+        }
+
+        static IEnumerator EquipmentCase(Ctx c)
+        {
+            var run = c.run;
+            var shop = c.dir.config.shop;
+            foreach (var id in new[] { "springboots", "iceboots", "warmcoat" }) run.RemoveUpgrade(id);
+            run.AddUpgrade(shop.Find("springboots"));
+            c.Expect(run.IsWorn("springboots") && run.stats.jumpBonus > 0f, "the first boots are put on at once");
+            run.AddUpgrade(shop.Find("iceboots"));
+            c.Expect(run.HasUpgrade("iceboots") && !run.IsWorn("iceboots") && run.stats.iceGrip == 0f, "a second pair goes in the bag, with no effect");
+            run.Wear("iceboots");
+            c.Expect(run.IsWorn("iceboots") && !run.IsWorn("springboots") && run.stats.jumpBonus == 0f && run.stats.iceGrip > 0f,
+                "wearing the cleats takes the spring boots off (one pair of feet)");
+
+            // on ice: cleats on -> stops quickly; cleats off -> slides
+            float old = c.world.Level.grip;
+            c.world.Level.grip = 0.3f;
+            float slideOn = 0f, slideOff = 0f;
+            yield return SlideAfterRun(c, v => slideOn = v);
+            run.TakeOff("iceboots");
+            c.Expect(!run.IsWorn("iceboots") && run.stats.iceGrip == 0f, "taken off: back in the bag");
+            yield return SlideAfterRun(c, v => slideOff = v);
+            c.world.Level.grip = old;
+            c.Expect(slideOff > slideOn * 1.8f && slideOff > 0.6f, $"slide after releasing: {slideOff:0.00} tiles on bare ice, {slideOn:0.00} with cleats");
+
+            // the screen itself: open freezes the game, toggle wears, close resumes
+            var inv = c.dir.inventory;
+            c.Expect(inv != null, "equipment screen exists");
+            if (inv != null)
+            {
+                float scale = Time.timeScale;
+                inv.Open();
+                c.Expect(inv.IsOpen && Time.timeScale == 0f, "open + frozen");
+                yield return new WaitForSecondsRealtime(0.3f);
+                ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "inventory.png"));
+                yield return new WaitForSecondsRealtime(0.3f);
+                int idx = run.upgrades.IndexOf("iceboots");
+                inv.Move(idx - inv.Selected);
+                inv.Toggle();
+                c.Expect(run.IsWorn("iceboots"), "toggle on the screen wears the selected item");
+                inv.Close();
+                c.Expect(!inv.IsOpen && Mathf.Approximately(Time.timeScale, scale), "closed + resumed");
+            }
+            foreach (var id in new[] { "springboots", "iceboots", "warmcoat" }) run.RemoveUpgrade(id);
+        }
+
+        static IEnumerator FurCoatCase(Ctx c)
+        {
+            c.run.RemoveUpgrade("warmcoat");
+            c.run.AddUpgrade(c.dir.config.shop.Find("warmcoat"));
+            c.Expect(c.run.IsWorn("warmcoat") && c.run.stats.coldResist > 0f, "the coat is worn");
+            c.Teleport(6.5f, 1f);
+            var yt = c.Spawn<Yeti>("yeti", 13, 1);
+            c.Bot(Seq((500, F())));
+            bool thrown = false, gone = false, frozen = false;
+            for (int i = 0; i < 420 && !gone; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (c.Count<Snowball>() > 0) thrown = true;
+                else if (thrown) gone = true;
+                if (c.p.Frozen) frozen = true;
+            }
+            yield return c.Frames(10);
+            c.Expect(thrown && gone, "the yeti's snowball flew and burst");
+            c.Expect(!frozen && !c.p.Frozen && !c.p.IsStunned, "the wearer is not frozen or stunned");
+            c.Expect(c.run.health == 4, "and takes no damage");
+            if (yt != null) yt.Despawn();
+            c.run.RemoveUpgrade("warmcoat");
+        }
+
+        static IEnumerator FrostBatCase(Ctx c)
+        {
+            c.Teleport(6.5f, 1f);
+            var bat = c.Spawn<FrostBat>("frostbat", 12, 5);
+            c.Expect(bat != null, "frost bat spawned");
+            if (bat == null) yield break;
+            bat.TakeDamage(new DamageInfo(99, DamageType.Whip, c.p, Vector2.zero, "test"));
+            yield return c.Frames(90);
+            IceChunk chunk = null;
+            foreach (var e in c.world.Entities) if (e is IceChunk ic && !ic.Dead) chunk = ic;
+            c.Expect(bat.Dead && chunk != null, "the dead frost bat left an ice chunk");
+            if (chunk == null) yield break;
+            c.Expect(chunk.CanPickUp && c.run.health == 4, "the chunk survived the fall, can be picked up, and hurt nobody");
+            var snake = c.Spawn<Snake>("snake", 16, 1);
+            chunk.pos = chunk.prevPos = new Vector2(15.1f, 1.3f);
+            chunk.Throw(c.p, new Vector2(12f, 2f));
+            yield return c.Frames(60);
+            c.Expect(snake.Dead, "thrown ice chunk kills a snake");
+            c.Expect(chunk.Dead, "and shatters on the hit");
         }
 
         static IEnumerator HawkCase(Ctx c)

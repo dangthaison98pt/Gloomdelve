@@ -998,6 +998,8 @@ namespace Gloomdelve.EditorTools
             BatArt(d + "bat", C(112, 72, 112), C(78, 48, 88), C(255, 60, 60), pv18);
             BatArt(d + "emberbat", C(170, 70, 40), C(110, 40, 30), C(255, 220, 80), pv18);
             HawkArt(pv18);
+            BatArt(d + "frostbat", C(150, 202, 238), C(92, 148, 204), C(255, 255, 255), pv18);
+            FrostEnemyArt(pv18);
             TreeArt();
             // Spider
             {
@@ -1090,6 +1092,60 @@ namespace Gloomdelve.EditorTools
                 p.Ellipse(12.5f, 9.5f, 2f, 1.6f + f * 0.4f, hole);
                 p.Outline(C(80, 120, 160, 160));
                 Save(p, d + $"wraith_{f}", new Vector2(0.5f, 0f));
+            }
+        }
+
+        /// <summary>Enemies of the frozen caves: penguin (stand, hop, belly slide) and yeti (idle, arm raised to throw).</summary>
+        static void FrostEnemyArt(Vector2 pv)
+        {
+            const string d = "Sprites/Enemies/";
+            Color32 navy = C(44, 54, 92), navyL = C(78, 94, 140), white = C(240, 246, 252), shade = C(190, 208, 230), orange = C(246, 160, 50);
+            for (int f = 0; f < 3; f++)
+            {
+                var p = new Px(18, 18);
+                if (f < 2)
+                {
+                    int lean = f;                        // frame 1 leans forward, flippers up
+                    p.Ellipse(9 + lean, 6.5f, 4f, 6f, navy);
+                    p.Ellipse(10 + lean, 5.5f, 2.6f, 4.4f, white);
+                    p.Set(8 + lean, 11, navyL); p.Set(7 + lean, 10, navyL);
+                    if (f == 0) { p.Rect(4, 4, 1, 4, navy); p.Rect(13, 4, 1, 4, navy); }
+                    else { p.Rect(4, 8, 2, 1, navy); p.Rect(3, 9, 2, 1, navy); p.Rect(14, 8, 2, 1, navy); p.Rect(15, 9, 2, 1, navy); }
+                    p.Set(11 + lean, 10, C(20, 20, 30)); p.Set(11 + lean, 11, white);
+                    p.Rect(13 + lean, 9, 2, 1, orange);
+                    p.Rect(6, 0, 3, 1, orange); p.Rect(10, 0, 3, 1, orange);
+                }
+                else
+                {
+                    // belly slide, head first
+                    p.Ellipse(8, 3.2f, 7f, 3f, navy);
+                    p.Ellipse(8, 2.2f, 5.4f, 1.6f, white);
+                    p.Disc(14f, 4.6f, 2.6f, navy);
+                    p.Set(15, 5, C(20, 20, 30)); p.Set(15, 6, white);
+                    p.Rect(16, 4, 2, 1, orange);
+                    p.Rect(0, 2, 2, 1, orange); p.Rect(0, 4, 2, 1, orange);
+                    p.Rect(5, 6, 4, 1, navyL);
+                }
+                p.Outline(C(18, 22, 44));
+                Save(p, d + $"penguin_{f}", pv);
+            }
+            Color32 fur = C(232, 240, 250), furD = C(178, 198, 224), face = C(104, 134, 178), dark = C(26, 32, 56);
+            for (int f = 0; f < 2; f++)
+            {
+                var p = new Px(20, 20);
+                p.Rect(5, 0, 4, 2, furD); p.Rect(11, 0, 4, 2, furD);
+                p.Ellipse(10, 8f, 6f, 7.5f, fur);
+                p.Ellipse(10, 4.5f, 5f, 3.5f, furD);
+                p.Ellipse(10, 6.5f, 4.6f, 3.6f, fur);
+                p.Rect(3, 4, 2, 6, fur); p.Rect(3, 4, 2, 1, furD);
+                if (f == 0) { p.Rect(15, 4, 2, 6, fur); p.Rect(15, 4, 2, 1, furD); }
+                else { p.Rect(15, 10, 2, 6, fur); p.Disc(16f, 17f, 1.8f, C(250, 252, 255)); }
+                p.Ellipse(11, 11f, 3f, 2.4f, face);
+                p.Set(10, 12, dark); p.Set(12, 12, dark);
+                p.Rect(10, 10, 3, 1, dark); p.Set(10, 9, C(250, 250, 250)); p.Set(12, 9, C(250, 250, 250));
+                p.Set(7, 15, furD); p.Set(13, 15, furD);
+                p.Outline(C(40, 56, 92));
+                Save(p, d + $"yeti_{f}", new Vector2(0.5f, 1f / 20f));
             }
         }
 
@@ -1195,6 +1251,23 @@ namespace Gloomdelve.EditorTools
             Color32 ol = C(30, 22, 22);
             { var p = ItemCanvas(); p.Ellipse(8, 3.5f, 3.6f, 2.6f, C(124, 118, 112)); p.Set(6, 5, C(176, 170, 162)); p.Set(7, 5, C(176, 170, 162)); p.Set(10, 2, C(86, 82, 78)); p.Set(9, 1, C(86, 82, 78)); p.Outline(ol); Save(p, d + "rock", PItem); }
             {
+                // ice chunk left by a frost bat
+                var p = ItemCanvas();
+                p.Ellipse(8, 4f, 4.2f, 3.4f, C(150, 206, 240));
+                p.Rect(5, 5, 3, 2, C(206, 236, 252)); p.Set(6, 6, C(255, 255, 255)); p.Set(5, 6, C(255, 255, 255));
+                p.Rect(9, 1, 3, 2, C(98, 152, 204)); p.Set(11, 3, C(98, 152, 204));
+                p.Line(7, 2, 9, 5, C(206, 236, 252));
+                p.Outline(C(40, 72, 116));
+                Save(p, d + "icechunk", PItem);
+            }
+            {
+                var p = ItemCanvas();
+                p.Disc(8f, 4f, 2.8f, C(244, 250, 255));
+                p.Set(7, 2, C(196, 214, 238)); p.Set(8, 2, C(196, 214, 238)); p.Set(9, 2, C(196, 214, 238)); p.Set(10, 3, C(196, 214, 238));
+                p.Outline(C(96, 126, 170));
+                Save(p, d + "snowball", PItem);
+            }
+            {
                 var p = ItemCanvas(); Color32 cl = C(182, 108, 66), cd = C(128, 70, 42), cll = C(220, 150, 100);
                 p.Ellipse(8, 4.5f, 4.2f, 4f, cl); p.Rect(6, 8, 4, 2, cl); p.Rect(5, 10, 6, 1, cll);
                 for (int x = 4; x < 13; x++) if (x % 2 == 0) p.Set(x, 4, cd);
@@ -1257,6 +1330,23 @@ namespace Gloomdelve.EditorTools
                 p.Outline(C(255, 120, 140, 160)); Save(p, d + "heartstone", PItem);
             }
             // upgrade icons
+            {
+                // ice cleats: a fur-lined boot with steel spikes under the sole
+                var p = ItemCanvas(); Color32 b = C(84, 110, 156), bd = C(52, 70, 108), fur = C(236, 244, 252), sp = C(206, 214, 226);
+                p.Rect(5, 5, 4, 7, b); p.Rect(5, 3, 8, 3, b); p.Rect(5, 3, 8, 1, bd); p.Rect(5, 11, 4, 2, fur);
+                p.Set(9, 5, bd); p.Set(12, 5, bd);
+                p.Set(6, 2, sp); p.Set(8, 2, sp); p.Set(10, 2, sp); p.Set(12, 2, sp); p.Set(6, 1, sp); p.Set(10, 1, sp);
+                p.Outline(ol); Save(p, d + "iceboots", PItem);
+            }
+            {
+                // fur coat
+                var p = ItemCanvas(); Color32 c = C(150, 96, 56), cd = C(104, 62, 36), fur = C(240, 236, 224), furD = C(200, 194, 178);
+                p.Rect(5, 1, 6, 9, c); p.Rect(3, 4, 2, 6, c); p.Rect(11, 4, 2, 6, c);
+                p.Rect(5, 10, 6, 2, fur); p.Rect(6, 12, 4, 1, furD);
+                p.Rect(3, 3, 2, 1, fur); p.Rect(11, 3, 2, 1, fur); p.Rect(5, 1, 6, 1, furD);
+                p.Rect(8, 2, 1, 8, cd); p.Set(7, 5, C(230, 190, 90)); p.Set(7, 8, C(230, 190, 90));
+                p.Outline(ol); Save(p, d + "warmcoat", PItem);
+            }
             {
                 var p = ItemCanvas(); Color32 b = C(140, 86, 46), bd = C(90, 52, 26), sp = C(190, 190, 200);
                 p.Rect(5, 6, 4, 6, b); p.Rect(5, 5, 7, 2, b); p.Rect(5, 11, 4, 1, bd);
@@ -1646,7 +1736,7 @@ namespace Gloomdelve.EditorTools
 
         /// <summary>Every input token that has a keyboard and a gamepad picture (UI/Glyphs/kb_x, pad_x).</summary>
         public static readonly string[] GlyphTokens =
-            { "jump", "whip", "use", "gear", "enter", "walk", "pause", "confirm", "up", "down", "left", "right", "move" };
+            { "jump", "whip", "use", "gear", "enter", "walk", "pause", "confirm", "up", "down", "left", "right", "move", "inventory" };
 
         static readonly Color32 KeyFace = C(236, 232, 224), KeyLip = C(150, 144, 150), KeyInk = C(44, 36, 48), KeyLine = C(30, 24, 32);
         static readonly Color32 PadBody = C(86, 82, 100), PadLight = C(132, 128, 150), PadInk = C(246, 242, 234);
@@ -1742,7 +1832,7 @@ namespace Gloomdelve.EditorTools
         {
             // keyboard
             SaveKey("jump", "Z"); SaveKey("whip", "X"); SaveKey("use", "C"); SaveKey("gear", "D"); SaveKey("enter", "A");
-            SaveKey("walk", "SHIFT"); SaveKey("pause", "ESC"); SaveKey("confirm", "ENTER");
+            SaveKey("walk", "SHIFT"); SaveKey("pause", "ESC"); SaveKey("confirm", "ENTER"); SaveKey("inventory", "TAB");
             SaveKey("up", null, 0); SaveKey("right", null, 1); SaveKey("down", null, 2); SaveKey("left", null, 3);
             {
                 // the arrow-key cluster
@@ -1767,7 +1857,7 @@ namespace Gloomdelve.EditorTools
             SavePadFace("whip", "X", C(74, 124, 222), PadInk);
             SavePadFace("use", "B", C(214, 74, 74), PadInk);
             SavePadFace("enter", "Y", C(236, 190, 56), KeyInk);
-            SavePadPill("gear", "R1", true); SavePadPill("walk", "LT", true);
+            SavePadPill("gear", "R1", true); SavePadPill("walk", "LT", true); SavePadPill("inventory", "SEL", false);
             {
                 var p = new Px(15, 11);
                 p.Rect(1, 1, 13, 8, PadBody); p.Rect(2, 8, 11, 1, PadLight);

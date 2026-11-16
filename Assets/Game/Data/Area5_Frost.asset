@@ -24,12 +24,14 @@ MonoBehaviour:
   treeChance: 0.25
   groundGrip: 0.3
   groundEnemies:
+  - id: penguin
+    weight: 2
+  - id: yeti
+    weight: 1
   - id: snake
     weight: 1
-  - id: brute
-    weight: 1
   ceilingEnemies:
-  - id: bat
+  - id: frostbat
     weight: 2
   - id: spider
     weight: 1
@@ -76,6 +78,9 @@ MonoBehaviour:
   ambientParticleCount: 55
   backdropTint: {r: 0.4, g: 0.52, b: 0.72, a: 1}
   shopChanceByLevel:
-  - 0
   - 1
-  - 0.4
+  - 1
+  - 0.5
+  shopFeatured:
+  - iceboots
+  - warmcoat

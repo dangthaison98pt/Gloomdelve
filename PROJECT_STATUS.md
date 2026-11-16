@@ -15,7 +15,7 @@ Cập nhật: 16/11/2026 · Phiên bản 0.1.0 · Unity 6000.3.12f1
 - UI: menu chính, hướng dẫn điều khiển, cài đặt (âm lượng tổng/nhạc/hiệu ứng, toàn màn hình, rung màn hình), tạm dừng, HUD đầy đủ, thẻ chuyển màn, màn kết quả (R chơi lại nhanh, chơi lại seed), kỷ lục.
 - Lưu cài đặt + kỷ lục (JSON), ghi log seed.
 - Art pixel 397 sprite + 42 SFX + 4 nhạc, tất cả sinh bằng code (Editor).
-- Kiểm thử (số liệu mới nhất, chi tiết trong `Docs/TEST_REPORT.md`): 34 test logic, quét 150 seed (1800 màn, 0 lỗi), 42 kịch bản tương tác trong build, bot chơi trọn 3 lượt (39 màn) trong build, kiểm tra không rò rỉ trạng thái giữa lượt. Build Windows chạy được.
+- Kiểm thử (số liệu mới nhất, chi tiết trong `Docs/TEST_REPORT.md`): 34 test logic, quét 150 seed (1800 màn, 0 lỗi), 47 kịch bản tương tác trong build, bot chơi trọn 3 lượt (39 màn) trong build, kiểm tra không rò rỉ trạng thái giữa lượt. Build Windows chạy được.
 - Tài liệu: README, DESIGN, REFERENCE, TEST_REPORT.
 
 ## Thay đổi theo phản hồi (14/11)
@@ -58,6 +58,9 @@ Cập nhật: 16/11/2026 · Phiên bản 0.1.0 · Unity 6000.3.12f1
 - Giao diện: khung bảng viền đồng bo góc có đinh vàng, nút bấm nổi khối, ô trang bị chỉ đổi màu viền, logo GLOOMDELVE bằng chữ pixel, màn hình chính có tranh nền miệng hang lúc hoàng hôn (ArtGenerator.MenuArt). Chữ trong menu/HUD vẫn là Arial.
 - Lời nhắc phím bấm hiện bằng hình nút và đổi theo thiết bị dùng gần nhất (bàn phím / tay cầm): viết token như `[jump]`, `[use]`, `[gear]` trong bất kỳ chữ UI nào (GlyphText + Data/InputGlyphs.asset, hình sinh bởi ArtGenerator.GlyphArt).
 - Khu băng **Frostdeep Hollows** (màn 3-1..3-3, sau khu mỏ; khu vách núi thành 4-x): sàn trơn (`AreaConfig.groundGrip`, bộ kiểm tra màn và bot trượt giống hệt người chơi), tile băng tuyết, tuyết rơi, nhạc `area4`. Lượt chơi giờ có 12 màn + màn cuối.
+- Quái riêng của khu băng: **chim cánh cụt** (thấy người chơi thì trượt bụng tới khi đâm tường, bị choáng), **yêu tuyết** (ném cầu tuyết theo vòng cung, đẩy lùi chứ không gây sát thương, `PlayerController.Shove`), **dơi băng** (chết rơi thành cục băng `icechunk`, nhặt ném được, vỡ sau cú va đầu tiên). 3 kịch bản kiểm thử mới (45/45).
+- **Túi đồ / trang bị** (Tab hoặc Select): mỗi nâng cấp có ô mặc (`ShopOffer.slot`: feet / body / hand / charm, charm mặc được 2), chỉ món đang mặc mới có tác dụng (`RunState.worn`, `HasActive`). Món mới: **Ice Cleats** (không trượt trên băng) và **Fur Coat** (cầu tuyết không đóng băng được); shop khu băng luôn bán hai món này (`AreaConfig.shopFeatured`) và màn băng đầu luôn có shop. Cầu tuyết giờ đóng băng người chơi 1,1 giây nếu không có áo.
+- HUD: ô vật phẩm gọn (biểu tượng, số lượng ở góc, nút đổi phía trên, nút dùng phía dưới) thay cho khung chữ; hàng biểu tượng nhỏ cho đồ đang mặc. Kiểm thử: 47/47 kịch bản, bot 39/39, quét 1800 màn 0 lỗi.
 
 ## Đang làm
 - Không có hạng mục dở dang.

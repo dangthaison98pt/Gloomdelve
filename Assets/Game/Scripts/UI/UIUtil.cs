@@ -43,6 +43,7 @@ Hold [gear]  -  GEAR WHEEL: the game freezes, [left] [right] choose, release to 
 [up] / [down]  -  climb ladders and ropes;  [down]  -  crouch, crawl off a ledge to hang
 Ledges are grabbed automatically when you fall past them:  [up] or [jump] climbs, [down] lets go
 [down] + [jump]  -  drop through a wooden platform;  hold [up] / [down] standing still  -  look
+[inventory]  -  equipment: wear or take off what you own (boots, coat, charms...)
 [pause]  -  pause          F11  -  fullscreen
 The buttons shown follow the device you used last: keyboard or gamepad.";
     }

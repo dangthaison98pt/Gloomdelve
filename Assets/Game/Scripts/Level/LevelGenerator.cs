@@ -356,7 +356,7 @@ namespace Gloomdelve
                 }
 
             // ---------------------------------------------------------------- 9. enemies, items, treasure, shop, idol
-            var shopOffers = BuildShopOffers(cfg, rng);
+            var shopOffers = BuildShopOffers(cfg, rng, area);
             int shopSlot = 0;
             var shopSpots = new List<Marker>();
             foreach (var m in markers)
@@ -519,12 +519,16 @@ namespace Gloomdelve
             return false;
         }
 
-        static List<string> BuildShopOffers(GameConfig cfg, Rng rng)
+        static List<string> BuildShopOffers(GameConfig cfg, Rng rng, AreaConfig area)
         {
             var list = new List<string> { "bombs", "ropes", "heart" };
             var ups = new List<string>();
             if (cfg.shop != null) foreach (var o in cfg.shop.offers) if (o.isUpgrade) ups.Add(o.id);
-            for (int i = 0; i < 2 && ups.Count > 0; i++)
+            int want = 2;
+            if (area != null && area.shopFeatured != null)
+                foreach (var f in area.shopFeatured)
+                    if (want > 0 && ups.Remove(f)) { list.Add(f); want--; }
+            for (int i = 0; i < want && ups.Count > 0; i++)
             {
                 int k = rng.Range(0, ups.Count);
                 list.Add(ups[k]);
