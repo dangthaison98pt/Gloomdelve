@@ -24,7 +24,42 @@ namespace Gloomdelve
             var d = HandcraftedLevel.Parse(stage.handcrafted.text, stage.displayName, stage.kind, seed, cfg.customMarkers);
             if (stage.kind == LevelKind.Final)
                 d.validation = LevelValidator.Validate(d, LevelValidator.DefaultOptions(cfg.player));
+            if (stage.kind == LevelKind.Boss || stage.kind == LevelKind.Rest)
+            {
+                if (stage.area != null) d.grip = stage.area.groundGrip;   // an ice boss is fought on ice
+                StockShop(d, cfg, seed);
+            }
             return d;
+        }
+
+        /// <summary>Hand-made shop (M markers): supplies first, then random equipment; the shopkeeper guards the row.</summary>
+        static void StockShop(LevelData d, GameConfig cfg, int seed)
+        {
+            var idx = new System.Collections.Generic.List<int>();
+            for (int i = 0; i < d.spawns.Count; i++) if (d.spawns[i].id == "shopitem") idx.Add(i);
+            if (idx.Count == 0 || cfg.shop == null) return;
+            idx.Sort((a, b) => d.spawns[a].cell.x.CompareTo(d.spawns[b].cell.x));
+            var offers = new System.Collections.Generic.List<string> { "bombs", "ropes", "heart" };
+            var ups = new System.Collections.Generic.List<string>();
+            foreach (var o in cfg.shop.offers) if (o.isUpgrade) ups.Add(o.id);
+            var rng = new Rng(seed + 5);
+            while (offers.Count < idx.Count && ups.Count > 0)
+            {
+                int k = rng.Range(0, ups.Count);
+                offers.Add(ups[k]);
+                ups.RemoveAt(k);
+            }
+            int minX = int.MaxValue, maxX = int.MinValue, y = d.spawns[idx[0]].cell.y;
+            for (int s = 0; s < idx.Count; s++)
+            {
+                var sp = d.spawns[idx[s]];
+                d.spawns[idx[s]] = new SpawnPoint("shopitem", sp.cell, 0, s, offers[Mathf.Min(s, offers.Count - 1)]);
+                minX = Mathf.Min(minX, sp.cell.x); maxX = Mathf.Max(maxX, sp.cell.x);
+            }
+            foreach (var sp in d.spawns)
+                if (sp.id == "shopkeeper") { minX = Mathf.Min(minX, sp.cell.x); maxX = Mathf.Max(maxX, sp.cell.x); }
+            d.shopRects.Add(new RectInt(minX - 1, y, maxX - minX + 3, 3));
+            d.hasShop = true;
         }
 
         public static void SpawnAll(World world, LevelData d, PrefabRegistry reg)

@@ -320,6 +320,12 @@ namespace Gloomdelve.EditorTools
             Anim("frostbat_hang", F(e + "frostbat_2"), 1); Anim("frostbat_fly", F(e + "frostbat_0", e + "frostbat_1"), 10f);
             Anim("penguin_idle", F(e + "penguin_0"), 1); Anim("penguin_windup", F(e + "penguin_1"), 1); Anim("penguin_slide", F(e + "penguin_2"), 1);
             Anim("yeti_idle", F(e + "yeti_0"), 1); Anim("yeti_throw", F(e + "yeti_1"), 1);
+            const string bo = "Sprites/Bosses/";
+            Anim("broodmother_idle", F(bo + "broodmother_0"), 1); Anim("broodmother_jump", F(bo + "broodmother_1"), 1);
+            Anim("forgebrute_walk", F(bo + "forgebrute_0", bo + "forgebrute_1"), 4f); Anim("forgebrute_charge", F(bo + "forgebrute_2"), 1); Anim("forgebrute_dazed", F(bo + "forgebrute_3"), 1);
+            Anim("yetiking_idle", F(bo + "yetiking_0"), 1); Anim("yetiking_throw", F(bo + "yetiking_1"), 1);
+            Anim("stormhawk_fly", F(bo + "stormhawk_0", bo + "stormhawk_1"), 6f); Anim("stormhawk_dive", F(bo + "stormhawk_2"), 1);
+            Anim("warden_float", F(bo + "warden_0", bo + "warden_1"), 3f);
             Anim("hawk_fly", F(e + "hawk_0", e + "hawk_1"), 7f);
             Anim("hawk_dive", F(e + "hawk_2"), 1);
             Anim("keeper_idle", ArtGenerator.Frames("Sprites/Shopkeeper/idle", 2), 1.5f);
@@ -681,6 +687,23 @@ namespace Gloomdelve.EditorTools
                 }
                 cfg.stages = list.ToArray();
             }
+            // Run structure: every area is three levels and a boss arena; after the last area a camp (chest + shop),
+            // then the final vault with its guardian.
+            if (!System.Array.Exists(cfg.stages, st => st.kind == LevelKind.Boss))
+            {
+                TextAsset Lv(string n) => AssetDatabase.LoadAssetAtPath<TextAsset>(G + "Data/Levels/" + n + ".txt");
+                var runList = new List<StageDef>();
+                var order = new (AreaConfig area, string arena)[] { (moss, "Boss_Mossroot"), (ember, "Boss_Emberdeep"), (frost, "Boss_Frost"), (sunfall, "Boss_Sunfall") };
+                for (int a = 0; a < order.Length; a++)
+                {
+                    for (int lv = 1; lv <= 3; lv++)
+                        runList.Add(new StageDef { displayName = $"{a + 1}-{lv}", kind = LevelKind.Area, area = order[a].area, levelNumber = lv });
+                    runList.Add(new StageDef { displayName = $"{a + 1}-4", kind = LevelKind.Boss, area = order[a].area, levelNumber = 4, handcrafted = Lv(order[a].arena) });
+                }
+                runList.Add(new StageDef { displayName = "THE LAST CAMP", kind = LevelKind.Rest, area = vault, levelNumber = 1, handcrafted = Lv("Camp") });
+                runList.Add(new StageDef { displayName = "THE SUNKEN VAULT", kind = LevelKind.Final, area = vault, levelNumber = 1, handcrafted = final });
+                cfg.stages = runList.ToArray();
+            }
             cfg.tutorial = new StageDef { displayName = "TUTORIAL", kind = LevelKind.Tutorial, area = moss, levelNumber = 1, handcrafted = tut };
             EditorUtility.SetDirty(cfg);
             AssetDatabase.SaveAssets();
@@ -748,6 +771,8 @@ namespace Gloomdelve.EditorTools
             ["Heart"] = (new Color(1f, 0.35f, 0.4f), 2f, 0.6f, 0.2f, true, true, new Vector2(0f, 0.2f)),
             ["EmberBat"] = (new Color(1f, 0.5f, 0.2f), 2.6f, 0.8f, 0.3f, false, true, new Vector2(0f, 0.3f)),
             ["Wraith"] = (new Color(0.5f, 0.85f, 1f), 5f, 1.2f, 0.2f, true, true, new Vector2(0f, 0.5f)),
+            ["Warden"] = (new Color(0.75f, 0.5f, 1f), 6f, 1.3f, 0.2f, true, true, new Vector2(0f, 0.9f)),
+            ["GloomOrb"] = (new Color(0.75f, 0.5f, 1f), 2.4f, 1f, 0.2f, false, true, new Vector2(0f, 0.15f)),
             ["Shopkeeper"] = (new Color(1f, 0.8f, 0.5f), 7f, 0.9f, 0.08f, false, true, new Vector2(0f, 1.5f)),
             ["DoorExit"] = (new Color(0.6f, 0.9f, 1f), 3.6f, 0.8f, 0.15f, true, true, new Vector2(0f, 0.7f)),
         };
@@ -836,6 +861,22 @@ namespace Gloomdelve.EditorTools
                 (e, go, sr) => { e.flipWithFacing = false; }));
             Reg("icechunk", Make<IceChunk>("IceChunk", "Items", "ice chunk", new Vector2(0.45f, 0.4f), ArtGenerator.S(I("icechunk")), null, 12,
                 (e, g, s) => { e.flipWithFacing = false; e.impactSfx = "thud"; }));
+            // bosses (one per area + the final guardian), their projectile, and the treasure chest
+            Sprite BS(string n) => ArtGenerator.S("Sprites/Bosses/" + n);
+            Reg("broodmother", Make<Broodmother>("Broodmother", "Enemies", "Broodmother", new Vector2(1.5f, 1.0f), BS("broodmother_0"), anims["broodmother_idle"], 15,
+                (e, go, sr) => { e.maxHealth = 14; e.animIdle = anims["broodmother_idle"]; e.animJump = anims["broodmother_jump"]; e.bloodColor = new Color(0.5f, 0.3f, 0.6f); }));
+            Reg("forgebrute", Make<ForgeBrute>("ForgeBrute", "Enemies", "Forge Brute", new Vector2(1.6f, 1.7f), BS("forgebrute_0"), anims["forgebrute_walk"], 15,
+                (e, go, sr) => { e.maxHealth = 16; e.animWalk = anims["forgebrute_walk"]; e.animCharge = anims["forgebrute_charge"]; e.animDazed = anims["forgebrute_dazed"]; e.bloodColor = new Color(0.9f, 0.4f, 0.2f); }));
+            Reg("yetiking", Make<YetiKing>("YetiKing", "Enemies", "Yeti King", new Vector2(1.5f, 1.9f), BS("yetiking_0"), anims["yetiking_idle"], 15,
+                (e, go, sr) => { e.maxHealth = 16; e.animIdle = anims["yetiking_idle"]; e.animThrow = anims["yetiking_throw"]; e.bloodColor = new Color(0.85f, 0.92f, 1f); }));
+            Reg("stormhawk", Make<StormHawk>("StormHawk", "Enemies", "Storm Hawk", new Vector2(1.3f, 0.9f), BS("stormhawk_0"), anims["stormhawk_fly"], 15,
+                (e, go, sr) => { e.maxHealth = 12; e.animFly = anims["stormhawk_fly"]; e.animDive = anims["stormhawk_dive"]; e.bloodColor = new Color(0.5f, 0.6f, 0.9f); }));
+            Reg("warden", Make<Warden>("Warden", "Enemies", "Hollow Warden", new Vector2(1.4f, 1.8f), BS("warden_0"), anims["warden_float"], 31,
+                (e, go, sr) => { e.maxHealth = 24; e.stompable = false; e.animFloat = anims["warden_float"]; e.bloodColor = new Color(0.7f, 0.4f, 1f); }));
+            Reg("gloomorb", Make<BossShot>("GloomOrb", "Enemies", "gloom orb", new Vector2(0.35f, 0.35f), BS("orb"), null, 32,
+                (e, go, sr) => { e.flipWithFacing = false; }));
+            Reg("chest", Make<Chest>("Chest", "Level", "chest", new Vector2(1.0f, 0.8f), ArtGenerator.S("Sprites/Props/chest_0"), null, 4,
+                (e, g, s) => { e.flipWithFacing = false; e.openSprite = ArtGenerator.S("Sprites/Props/chest_1"); }));
             Reg("hawk", Make<Hawk>("Hawk", "Enemies", "hawk", new Vector2(0.6f, 0.5f), ArtGenerator.S("Sprites/Enemies/hawk_0"), anims["hawk_fly"], 14,
                 (e, go, sr) => { e.animFly = anims["hawk_fly"]; e.animDive = anims["hawk_dive"]; e.bloodColor = new Color(0.6f, 0.2f, 0.15f); }));
             Reg("tree", Make<Scenery>("Tree", "Level", "tree", new Vector2(1f, 2.5f), ArtGenerator.S("Sprites/Props/tree_0"), null, -6,
@@ -1174,6 +1215,14 @@ namespace Gloomdelve.EditorTools
             // arrows either side of the button say "this one switches"
             UIBuilder.Label(gearBox.transform, "ChangeKey", "\u25C4 [gear] \u25BA", 22, new Color(1f, 0.84f, 0.38f), TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), Vector2.zero, new Vector2(150, 32), false);
             UIBuilder.Label(gearBox.transform, "UseKey", "[use]", 24, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), Vector2.zero, new Vector2(104, 32), false);
+            // boss health bar (top centre, only during a boss fight)
+            var bossBar = UIBuilder.Panel(hudGo.transform, "BossBar", new Vector2(0.5f, 1f), new Vector2(0, -112), new Vector2(600, 76));
+            hud.bossRoot = bossBar.gameObject;
+            hud.bossName = UIBuilder.Label(bossBar.transform, "Name", "", 24, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -8), new Vector2(560, 28), true, FontStyle.Bold);
+            var bossBack = UIBuilder.Img(bossBar.transform, "Back", UIBuilder.buttonSprite, new Color(0.12f, 0.08f, 0.1f), new Vector2(0.5f, 0f), new Vector2(0, 14), new Vector2(544, 22), true);
+            hud.bossFill = UIBuilder.Img(bossBack.transform, "Fill", ArtGenerator.S("Center/pixel"), new Color(0.86f, 0.2f, 0.24f), new Vector2(0f, 0.5f), new Vector2(6, 0), new Vector2(532, 12));
+            hud.bossFillWidth = 532f;
+            bossBar.gameObject.SetActive(false);
             // equipment being worn: a row of small icons next to it
             hud.wornIcons = new Image[5];
             for (int wi = 0; wi < hud.wornIcons.Length; wi++)

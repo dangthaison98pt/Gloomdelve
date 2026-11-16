@@ -10,6 +10,7 @@ namespace Gloomdelve
     /// Legend: . empty  # dirt  X bedrock  B brick  = platform  H ladder  ^ spikes  A arrow trap  f flame vent
     ///         v stalactite  w crusher  $ gold vein  T gold  * gem  S entrance  G exit  Y Heartstone on altar
     ///         s snake  b bat  x spider  t toad  r brute  e ember bat  o rock  u pot  c crate  k bomb bag  q rope pile
+    ///         Z boss (id from the header line "boss: id")  h treasure chest  K shopkeeper  M shop item
     ///         1-9 signs   + any symbol from GameConfig.customMarkers
     /// </summary>
     public static class HandcraftedLevel
@@ -80,6 +81,10 @@ namespace Gloomdelve
                         case 'c': d.spawns.Add(new SpawnPoint("crate", cell)); break;
                         case 'k': d.spawns.Add(new SpawnPoint("bombbag", cell)); break;
                         case 'q': d.spawns.Add(new SpawnPoint("ropepile", cell)); break;
+                        case 'Z': if (header.TryGetValue("boss", out var bossId) && bossId.Length > 0) d.spawns.Add(new SpawnPoint(bossId, cell, -1)); break;
+                        case 'h': d.spawns.Add(new SpawnPoint("chest", cell)); break;
+                        case 'K': d.spawns.Add(new SpawnPoint("shopkeeper", cell, -1)); break;
+                        case 'M': d.spawns.Add(new SpawnPoint("shopitem", cell)); break;
                         default:
                             if (ch >= '1' && ch <= '9')
                             {

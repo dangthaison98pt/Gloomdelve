@@ -48,6 +48,11 @@ namespace Gloomdelve
         public Text equipName;
         public Text equipAmmo;
         [Tooltip("Small icons of the equipment being worn.")] public Image[] wornIcons;
+        [Header("Boss health bar")]
+        public GameObject bossRoot;
+        public Text bossName;
+        public Image bossFill;
+        public float bossFillWidth = 752f;
 
         GameDirector dir;
         float bannerT, msgT, hurtT, vignette;
@@ -106,7 +111,7 @@ namespace Gloomdelve
             goldText.text = "$" + Mathf.RoundToInt(shownGold);
 
             if (dir.Stage != null)
-                stageText.text = dir.Stage.kind == LevelKind.Area ? $"{dir.Stage.displayName}  {dir.Stage.area.displayName}" : dir.Stage.displayName;
+                stageText.text = dir.Stage.kind == LevelKind.Area || dir.Stage.kind == LevelKind.Boss ? $"{dir.Stage.displayName}  {dir.Stage.area.displayName}" : dir.Stage.displayName;
             timeText.text = UIUtil.FormatTime(run.levelTime);
             if (dir.WraithActive) timeText.color = Color.Lerp(new Color(1f, 0.2f, 0.2f), Color.white, Mathf.PingPong(Time.unscaledTime * 3f, 1f) * 0.4f);
             else if (dir.PressureWarned) timeText.color = new Color(1f, 0.6f, 0.2f);
@@ -140,6 +145,18 @@ namespace Gloomdelve
             vignette = Mathf.Max(0f, vignette - dt * 0.8f);
             if (p != null && p.IsDead) vignette = Mathf.Max(vignette, 0.35f);
             damageVignette.color = new Color(0.8f, 0f, 0f, vignette);
+
+            if (bossRoot != null)
+            {
+                var boss = dir.Boss;
+                bool showBoss = boss != null && !boss.Dead && !dir.Ended;
+                if (bossRoot.activeSelf != showBoss) bossRoot.SetActive(showBoss);
+                if (showBoss)
+                {
+                    bossName.text = boss.displayName.ToUpperInvariant();
+                    bossFill.rectTransform.sizeDelta = new Vector2(bossFillWidth * boss.HealthFraction, bossFill.rectTransform.sizeDelta.y);
+                }
+            }
 
             UpdateWaypoint(run, p, dt);
         }

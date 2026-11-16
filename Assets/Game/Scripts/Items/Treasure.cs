@@ -16,6 +16,10 @@ namespace Gloomdelve
         bool lifted;
         float sparkle;
 
+        /// <summary>The Heartstone cannot be lifted while its guardian lives.</summary>
+        public override bool CanPickUp => base.CanPickUp &&
+            !(isHeartstone && GameDirector.Instance != null && GameDirector.Instance.BossAlive);
+
         public override void OnPickedUp(PlayerController p)
         {
             base.OnPickedUp(p);

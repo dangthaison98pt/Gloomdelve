@@ -312,6 +312,7 @@ namespace Gloomdelve
             IInteractable best = null; float bd = float.MaxValue;
             foreach (var e in tmp)
             {
+                if (((IInteractable)e).GetPrompt(this) == null) continue;   // nothing to do with it (opened chest, entrance door)
                 float d = Mathf.Abs(e.pos.x - pos.x);
                 if (d < bd) { bd = d; best = (IInteractable)e; }
             }

@@ -36,6 +36,20 @@ MonoBehaviour:
     prefab: {fileID: 2113863251027895771, guid: 562f1e798aaa281479aa2992449f5d6f, type: 3}
   - id: icechunk
     prefab: {fileID: 4421726030908069735, guid: b2c8ae4991401ab4eaf60ad9a10291e7, type: 3}
+  - id: broodmother
+    prefab: {fileID: 289697368288821971, guid: 1e9d6fe5c5bb48c46981c3c0a7d7553c, type: 3}
+  - id: forgebrute
+    prefab: {fileID: 2000183930334019403, guid: 77cac32e53e090144b1cd8a1945a208f, type: 3}
+  - id: yetiking
+    prefab: {fileID: 9060751091563762651, guid: 9496ee8d8098f3f48bff0befc595892a, type: 3}
+  - id: stormhawk
+    prefab: {fileID: 3770287293338161348, guid: b30f8b621e349ef41892d3380f2663be, type: 3}
+  - id: warden
+    prefab: {fileID: 1924136200737026320, guid: 7288a4b403e39ce4493b5a4d510a4ca7, type: 3}
+  - id: gloomorb
+    prefab: {fileID: 7832127820332425931, guid: 767c7e73031f16d4a95cceec37d7850a, type: 3}
+  - id: chest
+    prefab: {fileID: 8579868136437712267, guid: 25883a24c04f43d459b04156c7a984b5, type: 3}
   - id: hawk
     prefab: {fileID: 282029270680871591, guid: 864923d5074fbb4498626ef3dcbdef4b, type: 3}
   - id: tree

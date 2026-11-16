@@ -36,6 +36,9 @@ namespace Gloomdelve
         public PlayerController Player { get; private set; }
         public bool Ended { get; private set; }
         public bool Paused { get; private set; }
+        /// <summary>The boss of this level, if any (boss arenas and the final vault).</summary>
+        public Boss Boss { get; private set; }
+        public bool BossAlive => Boss != null && !Boss.Dead;
         public bool PressureWarned => warned;
         public bool WraithActive => wraiths > 0;
         public bool Collapsing => collapsing;
@@ -110,13 +113,20 @@ namespace Gloomdelve
 
             foreach (var d in FindObjectsByType<Door>(FindObjectsSortMode.None)) if (d.isExit) exitDoor = d;
             if (Stage.kind == LevelKind.Final && exitDoor != null) exitDoor.SetLocked(true);
+            if (Stage.kind == LevelKind.Boss && BossAlive && exitDoor != null)
+            {
+                exitDoor.lockedPrompt = "Sealed. It opens when the boss falls.";
+                exitDoor.SetLocked(true);
+            }
             linkPending = true;
             nextWraith = config.pressureSpawnTime;
 
             if (AudioManager.Instance != null && Stage.area != null)
-                AudioManager.Instance.PlayMusic(Stage.kind == LevelKind.Final ? "final" : Stage.area.musicId);
+                AudioManager.Instance.PlayMusic(Stage.kind == LevelKind.Final || Stage.kind == LevelKind.Boss ? "final" : Stage.area.musicId);
 
-            string sub = Stage.kind == LevelKind.Final ? "Find the Heartstone and carry it out!"
+            string sub = Stage.kind == LevelKind.Final ? (BossAlive ? "Defeat the Warden, then carry the Heartstone out!" : "Find the Heartstone and carry it out!")
+                       : Stage.kind == LevelKind.Boss ? "Defeat it to open the way on."
+                       : Stage.kind == LevelKind.Rest ? "Open the chest and spend your gold. The Warden waits below."
                        : Stage.kind == LevelKind.Tutorial ? "Learn the ropes. Read the signs."
                        : Stage.levelNumber == 1 ? "A new area. Watch for new dangers." : $"Level {Stage.levelNumber} of 3";
             hud.Bind(this);
@@ -125,7 +135,9 @@ namespace Gloomdelve
                 sub = string.IsNullOrEmpty(gateGear.gateBanner)
                     ? $"Obstacles ahead ({Level.gateCount}) - you will need your {gateGear.displayName.ToUpperInvariant()}.  Hold [gear] to change gear."
                     : string.Format(gateGear.gateBanner, Level.gateCount);
-            hud.ShowBanner(Stage.kind == LevelKind.Area ? $"{Stage.displayName}  {Stage.area.displayName}" : Stage.displayName, sub, gateGear != null ? 5f : 3.5f);
+            string title = Stage.kind == LevelKind.Area ? $"{Stage.displayName}  {Stage.area.displayName}"
+                         : Stage.kind == LevelKind.Boss && Boss != null ? Boss.displayName.ToUpperInvariant() : Stage.displayName;
+            hud.ShowBanner(title, sub, gateGear != null || Stage.kind == LevelKind.Boss ? 5f : 3.5f);
             if (gateGear != null && !ScenarioRunner.Active && !AutoTest.Active) SupplyCache(gateGear, run);
             if (Level.grip < 1f && Stage.levelNumber == 1 && !grantedGear)
                 hud.ShowMessage("The ground is frozen: you slide before you stop. Slow down before a ledge - hold [walk] to walk.", 7f);
@@ -206,7 +218,7 @@ namespace Gloomdelve
             var opts = LevelValidator.DefaultOptions(config.player);
             List<FrameInput> plan = null;
             if (Stage.kind == LevelKind.Final) plan = LevelValidator.PlanFinal(Level, opts, out _);
-            else if (Stage.kind == LevelKind.Area) plan = LevelValidator.PlanToExit(Level, opts);
+            else if (Stage.kind == LevelKind.Area || Stage.kind == LevelKind.Boss || Stage.kind == LevelKind.Rest) plan = LevelValidator.PlanToExit(Level, opts);
             Player.godMode = true;
             if (plan == null)
             {
@@ -285,6 +297,7 @@ namespace Gloomdelve
         {
             var run = Run;
             if (!config.pressureEnabled || run.isTutorial || AutoTest.Active || Player == null || Player.IsDead) return;
+            if (Stage.kind == LevelKind.Boss || Stage.kind == LevelKind.Rest) return;   // no clock in a boss fight or at the camp
             if (!warned && run.levelTime >= config.pressureWarnTime)
             {
                 warned = true;
@@ -349,6 +362,18 @@ namespace Gloomdelve
             if (AudioManager.Instance != null) AudioManager.Instance.SetMusicPitch(1.12f);
         }
 
+        public void RegisterBoss(Boss b) { Boss = b; }
+
+        public void OnBossDefeated(Boss b)
+        {
+            if (b != Boss) return;
+            bool final = Stage != null && Stage.kind == LevelKind.Final;
+            if (!final && exitDoor != null) exitDoor.SetLocked(false);
+            hud.ShowBanner($"{b.displayName.ToUpperInvariant()} DEFEATED", final ? "The Heartstone is yours. Lift it and run!" : "The way on is open.", 4.5f);
+            Sfx.PlayUI("victory");
+            if (AudioManager.Instance != null) AudioManager.Instance.SetMusicPitch(1f);
+        }
+
         public void OnPlayerHurt(in DamageInfo d, string description)
         {
             hud.ShowHurt(description, d.amount);
@@ -360,6 +385,12 @@ namespace Gloomdelve
         {
             if (Ended || p.IsDead) return;
             var run = Run;
+            if (Stage.kind == LevelKind.Boss && door.locked)
+            {
+                hud.ShowMessage("The gate is sealed until the boss falls!");
+                Sfx.Play("error", p.pos);
+                return;
+            }
             if (Stage.kind == LevelKind.Final)
             {
                 if (!(p.held is Treasure t && t.isHeartstone))

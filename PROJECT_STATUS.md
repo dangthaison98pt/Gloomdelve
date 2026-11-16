@@ -15,7 +15,7 @@ Cập nhật: 16/11/2026 · Phiên bản 0.1.0 · Unity 6000.3.12f1
 - UI: menu chính, hướng dẫn điều khiển, cài đặt (âm lượng tổng/nhạc/hiệu ứng, toàn màn hình, rung màn hình), tạm dừng, HUD đầy đủ, thẻ chuyển màn, màn kết quả (R chơi lại nhanh, chơi lại seed), kỷ lục.
 - Lưu cài đặt + kỷ lục (JSON), ghi log seed.
 - Art pixel 397 sprite + 42 SFX + 4 nhạc, tất cả sinh bằng code (Editor).
-- Kiểm thử (số liệu mới nhất, chi tiết trong `Docs/TEST_REPORT.md`): 34 test logic, quét 150 seed (1800 màn, 0 lỗi), 47 kịch bản tương tác trong build, bot chơi trọn 3 lượt (39 màn) trong build, kiểm tra không rò rỉ trạng thái giữa lượt. Build Windows chạy được.
+- Kiểm thử (số liệu mới nhất, chi tiết trong `Docs/TEST_REPORT.md`): 34 test logic, quét 150 seed (1800 màn, 0 lỗi), 50 kịch bản tương tác trong build, bot chơi trọn 3 lượt (54 chặng) trong build, kiểm tra không rò rỉ trạng thái giữa lượt. Build Windows chạy được.
 - Tài liệu: README, DESIGN, REFERENCE, TEST_REPORT.
 
 ## Thay đổi theo phản hồi (14/11)
@@ -62,6 +62,7 @@ Cập nhật: 16/11/2026 · Phiên bản 0.1.0 · Unity 6000.3.12f1
 - **Túi đồ / trang bị** (Tab hoặc Select): mỗi nâng cấp có ô mặc (`ShopOffer.slot`: feet / body / hand / charm, charm mặc được 2), chỉ món đang mặc mới có tác dụng (`RunState.worn`, `HasActive`). Món mới: **Ice Cleats** (không trượt trên băng) và **Fur Coat** (cầu tuyết không đóng băng được); shop khu băng luôn bán hai món này (`AreaConfig.shopFeatured`) và màn băng đầu luôn có shop. Cầu tuyết giờ đóng băng người chơi 1,1 giây nếu không có áo.
 - HUD: ô vật phẩm gọn (biểu tượng, số lượng ở góc, nút đổi phía trên, nút dùng phía dưới) thay cho khung chữ; hàng biểu tượng nhỏ cho đồ đang mặc. Kiểm thử: 47/47 kịch bản, bot 39/39, quét 1800 màn 0 lỗi.
 - Chữ: nhãn trên hình nút (Z, Shift, R1...) và chữ nổi trong màn chơi (giá shop, +vàng, FROZEN) vẽ bằng font thường thay cho font pixel để luôn nét (`GlyphText` viết nhãn lên hình nút trống, `PixelText` dùng TextMesh). Nút đổi đồ trên HUD có hai mũi tên hai bên. Logo GLOOMDELVE vẫn là hình pixel.
+- **Cấu trúc lượt chơi mới (18 chặng):** mỗi bio = 3 màn sinh ngẫu nhiên + 1 đấu trường boss (N-4, `LevelKind.Boss`, cửa ra khoá tới khi hạ boss), sau bio 4 là **The Last Camp** (`LevelKind.Rest`: rương 3 món miễn phí + shop 5 món), rồi **The Sunken Vault** với trùm cuối canh viên đá. Boss: Broodmother (rêu), Forge Brute (mỏ), Yeti King (băng), Storm Hawk (vách núi), Hollow Warden (cuối). Khung chung ở `Scripts/Bosses/Boss.cs`; đấu trường là file chữ `Data/Levels/Boss_*.txt` (dòng `boss: id`, ký hiệu `Z`). Thanh máu boss trên HUD. Hình boss hiện là quái của bio phóng to gấp đôi và đổi màu. Kiểm thử: 50/50 kịch bản, bot 54/54 chặng (bot không đánh boss), quét 1800 màn 0 lỗi.
 
 ## Đang làm
 - Không có hạng mục dở dang.

@@ -1,4 +1,4 @@
-Gloomdelve in-game scenario tests 2026-11-16 16:35:46
+Gloomdelve in-game scenario tests 2026-11-16 17:09:03
 PASS  whip kills an approaching snake  
 PASS  stomping a snake kills it and bounces  
 PASS  snake on a single tile stands still instead of flipping left-right  
@@ -27,6 +27,9 @@ PASS  yeti snowball shoves the player without damage
 PASS  frost bat drops an ice chunk that can be thrown and shatters  
 PASS  equipment: slots, wearing and taking off; ice cleats stop the slide  
 PASS  fur coat: a snowball no longer freezes the wearer  
+PASS  boss: registered, damage capped per hit, defeat is reported  
+PASS  all five bosses run their attack patterns  
+PASS  treasure chest lays out three free items  
 PASS  hawk dives at the player below it  
 PASS  ledge grab and climb (real controller)  
 PASS  ladder climb to the top  
@@ -47,4 +50,4 @@ PASS  time-pressure wraith spawns and its touch is fatal
 PASS  carrying a golden idol out pays gold  
 PASS  exit door ends the level  
 
-47 passed, 0 failed
+50 passed, 0 failed

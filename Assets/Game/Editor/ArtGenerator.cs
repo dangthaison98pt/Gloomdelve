@@ -141,6 +141,7 @@ namespace Gloomdelve.EditorTools
             EnemyArt();
             ItemArt();
             TrapAndPropArt();
+            BossArt();
             FxArt();
             UiArt();
             FontArt();
@@ -1146,6 +1147,84 @@ namespace Gloomdelve.EditorTools
                 p.Set(7, 15, furD); p.Set(13, 15, furD);
                 p.Outline(C(40, 56, 92));
                 Save(p, d + $"yeti_{f}", new Vector2(0.5f, 1f / 20f));
+            }
+        }
+
+        static Px Scale(Px s, int n)
+        {
+            var p = new Px(s.w * n, s.h * n);
+            for (int y = 0; y < p.h; y++)
+                for (int x = 0; x < p.w; x++) p.c[y * p.w + x] = s.c[(y / n) * s.w + x / n];
+            return p;
+        }
+
+        static void Tint(Px p, float r, float g, float b)
+        {
+            for (int i = 0; i < p.c.Length; i++)
+            {
+                var c = p.c[i];
+                if (c.a == 0) continue;
+                p.c[i] = new Color32((byte)Mathf.Min(255, c.r * r), (byte)Mathf.Min(255, c.g * g), (byte)Mathf.Min(255, c.b * b), c.a);
+            }
+        }
+
+        /// <summary>
+        /// Bosses are the area's signature creature at double size with their own colours (and a crown for the
+        /// yeti king). Also the boss projectile and the treasure chest.
+        /// </summary>
+        static void BossArt()
+        {
+            const string e = "Sprites/Enemies/", o = "Sprites/Bosses/";
+            void Big(string src, string dst, float r, float g, float b, System.Action<Px> extra = null, bool centre = false)
+            {
+                var p = Scale(LoadPx(e + src), 2);
+                Tint(p, r, g, b);
+                extra?.Invoke(p);
+                Save(p, o + dst, centre ? PCenter : new Vector2(0.5f, 2f / p.h));
+            }
+            Big("spider_0", "broodmother_0", 1.9f, 1.35f, 2.1f); Big("spider_1", "broodmother_1", 1.9f, 1.35f, 2.1f);
+            for (int f = 0; f < 4; f++) Big($"brute_{f}", $"forgebrute_{f}", 1.25f, 0.72f, 0.6f);
+            void Crown(Px p)
+            {
+                int top = 0;
+                for (int y = p.h - 1; y >= 0 && top == 0; y--)
+                    for (int x = 14; x < 26; x++) if (p.Opaque(x, y)) { top = y; break; }
+                Color32 gold = C(250, 204, 70), goldD = C(190, 136, 36);
+                p.Rect(13, top - 1, 14, 3, gold); p.Rect(13, top - 1, 14, 1, goldD);
+                p.Rect(13, top + 2, 2, 3, gold); p.Rect(19, top + 2, 2, 4, gold); p.Rect(25, top + 2, 2, 3, gold);
+                p.Set(20, top, C(220, 60, 80)); p.Set(19, top, C(220, 60, 80));
+            }
+            Big("yeti_0", "yetiking_0", 0.92f, 0.96f, 1.08f, Crown); Big("yeti_1", "yetiking_1", 0.92f, 0.96f, 1.08f, Crown);
+            Big("hawk_0", "stormhawk_0", 0.8f, 0.85f, 1.2f); Big("hawk_1", "stormhawk_1", 0.8f, 0.85f, 1.2f);
+            Big("hawk_2", "stormhawk_2", 0.8f, 0.85f, 1.2f, null, true);
+            Big("wraith_0", "warden_0", 1.25f, 0.75f, 1.3f); Big("wraith_1", "warden_1", 1.25f, 0.75f, 1.3f);
+            {
+                var p = new Px(9, 9);
+                p.Disc(4f, 4f, 3.4f, C(150, 90, 230)); p.Disc(4f, 4f, 2f, C(214, 170, 255)); p.Set(4, 4, C(255, 255, 255));
+                Save(p, o + "orb", PCenter);
+            }
+            for (int f = 0; f < 2; f++)
+            {
+                // treasure chest: closed / open
+                var p = new Px(18, 16);
+                Color32 wood = C(150, 96, 50), woodD = C(100, 62, 32), woodL = C(190, 132, 74), gold = C(246, 204, 80), goldD = C(176, 126, 36);
+                p.Rect(2, 0, 14, 7, wood); p.Rect(2, 0, 14, 1, woodD); p.Rect(2, 0, 1, 7, woodD); p.Rect(15, 0, 1, 7, woodD);
+                p.Rect(5, 0, 1, 7, goldD); p.Rect(12, 0, 1, 7, goldD);
+                if (f == 0)
+                {
+                    p.Rect(2, 7, 14, 4, woodL); p.Rect(2, 10, 14, 1, wood); p.Rect(3, 11, 12, 1, wood);
+                    p.Rect(5, 7, 1, 4, goldD); p.Rect(12, 7, 1, 4, goldD);
+                    p.Rect(8, 5, 2, 3, gold); p.Set(8, 6, goldD);
+                }
+                else
+                {
+                    p.Rect(3, 7, 12, 2, C(40, 26, 16));                                        // dark inside
+                    p.Rect(4, 7, 3, 1, gold); p.Rect(9, 7, 2, 2, gold); p.Set(12, 7, C(120, 230, 160)); // loot glinting
+                    p.Rect(2, 9, 14, 2, woodD);                                                // lid thrown back
+                    p.Rect(2, 11, 14, 3, woodL); p.Rect(5, 11, 1, 3, goldD); p.Rect(12, 11, 1, 3, goldD);
+                }
+                p.Outline(C(40, 24, 12));
+                Save(p, $"Sprites/Props/chest_{f}", new Vector2(0.5f, 1f / 16f));
             }
         }
 

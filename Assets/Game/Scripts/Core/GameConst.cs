@@ -11,7 +11,8 @@ namespace Gloomdelve
         public const string SceneGame = "Game";
     }
 
-    public enum LevelKind { Area, Final, Tutorial }
+    /// <summary>Area: generated level. Boss: hand-made arena, exit sealed until the boss dies. Rest: camp with a chest and a shop.</summary>
+    public enum LevelKind { Area, Final, Tutorial, Boss, Rest }
 
     public enum DamageType { Generic, Whip, Stomp, Thrown, Explosion, Spikes, Arrow, Fall, Crush, Fire, Contact, Wraith, Falling }
 

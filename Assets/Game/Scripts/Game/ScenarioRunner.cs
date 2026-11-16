@@ -197,6 +197,15 @@ namespace Gloomdelve
             new Scenario { name = "fur coat: a snowball no longer freezes the wearer", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => FurCoatCase(c) },
 
+            new Scenario { name = "boss: registered, damage capped per hit, defeat is reported", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => BossCase(c) },
+
+            new Scenario { name = "all five bosses run their attack patterns", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => BossPatternsCase(c) },
+
+            new Scenario { name = "treasure chest lays out three free items", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => ChestCase(c) },
+
             new Scenario { name = "hawk dives at the player below it", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => HawkCase(c) },
 
@@ -682,6 +691,88 @@ namespace Gloomdelve
             yield return c.Frames(60);
             c.Expect(snake.Dead, "thrown ice chunk kills a snake");
             c.Expect(chunk.Dead, "and shatters on the hit");
+        }
+
+        static void ClearFight(Ctx c)
+        {
+            foreach (var e in c.world.Entities)
+                if (!e.Dead && (e is Enemy || e is Snowball || e is BossShot || e is Stalactite || (e is Item it && !(e is Treasure) && it.thrower is Boss)))
+                    e.Despawn();
+        }
+
+        static IEnumerator BossCase(Ctx c)
+        {
+            c.Teleport(4.5f, 1f);
+            c.p.godMode = true;
+            c.Bot(Seq((600, F())));
+            var b = c.Spawn<Broodmother>("broodmother", 16, 1);
+            c.Expect(b != null && c.dir.Boss == b && c.dir.BossAlive, "the boss registered with the director");
+            if (b == null) { c.p.godMode = false; yield break; }
+            int h0 = b.health;
+            b.TakeDamage(new DamageInfo(99, DamageType.Explosion, c.p, new Vector2(20f, 20f), "test"));
+            c.Expect(h0 - b.health == b.maxHitDamage && !b.Dead, $"a 99-damage hit only takes {b.maxHitDamage} (took {h0 - b.health})");
+            c.Expect(Mathf.Abs(b.HealthFraction - b.health / (float)b.maxHealth) < 0.001f && b.HealthFraction < 1f, "health fraction feeds the bar");
+            for (int i = 0; i < 40 && !b.Dead; i++)
+            {
+                b.TakeDamage(new DamageInfo(99, DamageType.Explosion, c.p, Vector2.zero, "test"));
+                yield return c.Frames(2);
+            }
+            c.Expect(b.Dead && !c.dir.BossAlive, "the boss dies and the director knows");
+            yield return c.Frames(10);
+            ClearFight(c);
+            c.p.godMode = false;
+        }
+
+        static IEnumerator BossPatternsCase(Ctx c)
+        {
+            c.p.godMode = true;
+            foreach (var id in new[] { "broodmother", "forgebrute", "yetiking", "stormhawk", "warden" })
+            {
+                c.Teleport(5.5f, 1f);
+                c.Bot(Seq((600, F())));
+                var b = c.Spawn<Boss>(id, 17, 1);
+                c.Expect(b != null, id + " spawned");
+                if (b == null) continue;
+                Vector2 p0 = b.pos;
+                int n0 = c.world.EntityCount;
+                bool acted = false;
+                for (int i = 0; i < 420; i++)
+                {
+                    yield return new WaitForFixedUpdate();
+                    if ((b.pos - p0).sqrMagnitude > 0.5f || c.world.EntityCount > n0) acted = true;
+                    if (i == 200) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_" + id + ".png"));
+                }
+                c.Expect(acted && !b.Dead, id + " moved or attacked within 7 seconds and is still alive");
+                b.Despawn();
+                ClearFight(c);
+                yield return c.Frames(5);
+            }
+            c.p.godMode = false;
+        }
+
+        static IEnumerator ChestCase(Ctx c)
+        {
+            var owned = new System.Collections.Generic.HashSet<string>(c.run.upgrades);
+            c.Teleport(8.5f, 1f);
+            c.Bot(Seq((200, F())));
+            var chest = c.Spawn<Chest>("chest", 10, 1);
+            c.Expect(chest != null && !chest.Opened, "chest spawned closed");
+            if (chest == null) yield break;
+            chest.Interact(c.p);
+            yield return c.Frames(5);
+            var items = new System.Collections.Generic.List<ShopItem>();
+            foreach (var e in c.world.Entities) if (e is ShopItem si && !si.Dead) items.Add(si);
+            c.Expect(chest.Opened && items.Count == 3, $"opening it lays out 3 items (got {items.Count})");
+            bool free = true;
+            foreach (var si in items) { var pr = si.GetPrompt(c.p); if (pr == null || !pr.Contains("free")) free = false; }
+            c.Expect(free, "all three are free to take");
+            int gold = c.run.gold;
+            if (items.Count > 0) items[0].Interact(c.p);
+            yield return c.Frames(3);
+            c.Expect(items.Count > 0 && items[0].Dead && c.run.gold == gold, "taking one costs nothing");
+            foreach (var si in items) if (!si.Dead) si.Despawn();
+            chest.Despawn();
+            foreach (var id in new System.Collections.Generic.List<string>(c.run.upgrades)) if (!owned.Contains(id)) c.run.RemoveUpgrade(id);
         }
 
         static IEnumerator HawkCase(Ctx c)

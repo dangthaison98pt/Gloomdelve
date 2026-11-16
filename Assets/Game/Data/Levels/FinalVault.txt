@@ -1,5 +1,6 @@
 name: The Sunken Vault
-sign1: THE SUNKEN VAULT.  Deep below rests the Heartstone.  Carry it back to this gate to win.
+boss: warden
+sign1: THE SUNKEN VAULT.  Deep below the Warden guards the Heartstone.  Defeat it, then carry the stone back to this gate.
 sign2: The Heartstone!  [down] + [whip] lifts it.  Lifting it wakes the vault - climb the east ladder to the gate, fast!
 ---
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -29,7 +30,7 @@ XB..............BBBBBBBBBBBBBBBBB..H..BX
 XB..........T...BBBBBBBBBBBBBBBBB..H..BX
 XB.....BBBBBBBB.BBBBBBBBBBBBBBBBB..H..BX
 XB..............v.......w....v.....H..BX
-XB.................................H..BX
+XB..........................Z......H..BX
 XB.................................H..BX
 XB.....u.c....T..2..Y....*....t....H..BX
 XBBBBBBBBBBBfBBBBBBBBBBBBBBfBBBBBBBBBBBX

@@ -1,0 +1,11 @@
+name: The Last Camp
+sign1: The last camp.  Open the chest, spend your gold - the Warden guards the Heartstone below.
+---
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBX
+X..................................X
+X..................................X
+X..................................X
+X..S.1...h.........M.M.M.M.M.K..G..X
+XBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBX
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX

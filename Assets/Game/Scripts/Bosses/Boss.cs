@@ -1,0 +1,90 @@
+using UnityEngine;
+
+namespace Gloomdelve
+{
+    /// <summary>
+    /// Base of every boss. A boss registers itself with the GameDirector (health bar, sealed exit), shrugs off
+    /// knockback and stuns, takes at most maxHitDamage per hit (so one bomb never ends the fight) and tells the
+    /// director when it dies. Each boss only writes its own attack pattern in Tick.
+    /// To add one: subclass, make a prefab, register it, and name it in a boss arena file ("boss: id").
+    /// </summary>
+    public abstract class Boss : Enemy
+    {
+        [Header("Boss")]
+        [Tooltip("Largest damage a single hit can do.")] public int maxHitDamage = 3;
+        [Tooltip("Gold chunks dropped on death.")] public int goldChunks = 4;
+
+        public float HealthFraction => maxHealth > 0 ? Mathf.Clamp01(health / (float)maxHealth) : 0f;
+        public override bool IsHazard => true;
+
+        public override void OnSpawn()
+        {
+            base.OnSpawn();
+            if (facing == 0) facing = -1;
+            if (AutoTest.Active) { Despawn(); return; }      // the test bot only walks the arena
+            if (GameDirector.Instance != null) GameDirector.Instance.RegisterBoss(this);
+        }
+
+        public override bool TakeDamage(in DamageInfo d)
+        {
+            return base.TakeDamage(new DamageInfo(Mathf.Min(d.amount, maxHitDamage), d.type, d.source, Vector2.zero, d.cause));
+        }
+
+        protected override void OnHurt(in DamageInfo d) { }
+
+        protected override void Die(in DamageInfo d)
+        {
+            var dir = GameDirector.Instance;
+            var w = World;
+            Vector2 at = Center;
+            Fx.Shake(0.7f);
+            Fx.Debris(at, bloodColor, 16);
+            base.Die(d);
+            if (w != null)
+                for (int i = 0; i < goldChunks; i++)
+                {
+                    var g = w.SpawnById("gold_big", at);
+                    if (g != null) g.vel = new Vector2((i - (goldChunks - 1) * 0.5f) * 2.2f, 6f + i % 2);
+                }
+            if (dir != null) dir.OnBossDefeated(this);
+        }
+
+        protected PlayerController Target
+        {
+            get { var p = Player; return p != null && !p.IsDead ? p : null; }
+        }
+
+        /// <summary>Number of living entities of a type (minions a boss has summoned).</summary>
+        protected int CountAlive<T>() where T : Entity
+        {
+            int n = 0;
+            foreach (var e in World.Entities) if (e is T && !e.Dead && e != this) n++;
+            return n;
+        }
+
+        /// <summary>Makes a rock spike fall from the ceiling above column x (no ceiling there: nothing happens).</summary>
+        protected void DropFromCeiling(int x)
+        {
+            var g = World.Grid;
+            x = Mathf.Clamp(x, 1, g.Width - 2);
+            var prefab = World.config.prefabs.Get("stalactite");
+            if (prefab == null) return;
+            for (int y = Mathf.FloorToInt(pos.y) + 2; y < g.Height - 1; y++)
+            {
+                if (!g.IsEmpty(x, y)) return;
+                if (g.IsSolid(x, y + 1))
+                {
+                    World.Spawn(prefab, new Vector2(x + 0.5f, y), new SpawnPoint("stalactite", new Vector2Int(x, y), 0, 1));
+                    return;
+                }
+            }
+        }
+
+        /// <summary>Launch velocity that lands a thrown object (gravity g) on a point after roughly time t.</summary>
+        protected static Vector2 Lob(Vector2 from, Vector2 to, float gravity, float t)
+        {
+            Vector2 d = to - from;
+            return new Vector2(d.x / t, d.y / t + 0.5f * gravity * t);
+        }
+    }
+}

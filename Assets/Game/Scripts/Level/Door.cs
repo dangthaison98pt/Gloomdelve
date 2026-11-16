@@ -10,6 +10,8 @@ namespace Gloomdelve
         [Tooltip("Stone gatehouse drawn behind the door when it stands in the open (outdoor surface), so it never looks like a door in mid-air.")]
         public Sprite housingSprite;
         [System.NonSerialized] public bool locked;
+        /// <summary>Prompt shown while locked (set by whoever locks it).</summary>
+        [System.NonSerialized] public string lockedPrompt;
 
         public bool UpTriggers => isExit;
 
@@ -41,7 +43,7 @@ namespace Gloomdelve
         public string GetPrompt(PlayerController p)
         {
             if (!isExit) return null;
-            if (locked) return "The gate is sealed. Bring the Heartstone here!";
+            if (locked) return string.IsNullOrEmpty(lockedPrompt) ? "The gate is sealed. Bring the Heartstone here!" : lockedPrompt;
             return "[up] / [enter]  enter the exit";
         }
 
