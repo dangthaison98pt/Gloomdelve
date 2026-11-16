@@ -9,13 +9,13 @@ Cập nhật: 14/11/2026 · Phiên bản 0.1.0 · Unity 6000.3.12f1
 - 7 loại kẻ địch (rắn, dơi, dơi lửa, nhện, cóc lửa, gã húc, chủ tiệm) + hồn ma áp lực thời gian.
 - Bẫy: chông, bẫy tên, thạch nhũ rơi, khối nghiền (rơi + chu kỳ), lỗ phun lửa (chu kỳ); đá sập ở màn cuối.
 - Vật thể: đá, bình, thùng, mũi tên, bom, tượng vàng, Heartstone; vàng, ngọc, túi bom, cuộn dây; mạch vàng/ngọc trong đất.
-- Sinh màn theo seed: lưới phòng + đường giải + 43 mẫu phòng (văn bản sửa được), phòng cửa hàng / tượng vàng / hầm kho báu, rủi ro–phần thưởng theo phòng phụ, lượt an toàn lối vào, **validator dùng chính bộ chuyển động của nhân vật**.
+- Sinh màn theo seed: lưới phòng + đường giải + 60 mẫu phòng (văn bản sửa được), phòng cửa hàng / tượng vàng / hầm kho báu, rủi ro–phần thưởng theo phòng phụ, lượt an toàn lối vào, **validator dùng chính bộ chuyển động của nhân vật**.
 - 2 khu (Mossroot, Emberdeep) khác nhau về hình ảnh, bẫy, quái, nhạc; 3 màn mỗi khu; màn cuối làm tay với điều kiện thắng; màn hướng dẫn 9 biển.
 - Cửa hàng: máu, bom, dây + 4 nâng cấp (Spring Boots, Iron Whip, Compass, Blast Powder); chủ tiệm cảnh báo 2 lần rồi mới nổi giận.
 - UI: menu chính, hướng dẫn điều khiển, cài đặt (âm lượng tổng/nhạc/hiệu ứng, toàn màn hình, rung màn hình), tạm dừng, HUD đầy đủ, thẻ chuyển màn, màn kết quả (R chơi lại nhanh, chơi lại seed), kỷ lục.
 - Lưu cài đặt + kỷ lục (JSON), ghi log seed.
 - Art pixel 397 sprite + 42 SFX + 4 nhạc, tất cả sinh bằng code (Editor).
-- Kiểm thử: 23 test logic, quét 150 seed (900 màn, 0 lỗi), 23 kịch bản tương tác trong build, bot chơi trọn 9 lượt (63 màn) trong build, kiểm tra không rò rỉ trạng thái giữa lượt. Build Windows chạy được.
+- Kiểm thử (số liệu mới nhất, chi tiết trong `Docs/TEST_REPORT.md`): 25 test logic, quét 150 seed (1350 màn, 0 lỗi), 41 kịch bản tương tác trong build, bot chơi trọn lượt 10 màn trong build, kiểm tra không rò rỉ trạng thái giữa lượt. Build Windows chạy được.
 - Tài liệu: README, DESIGN, REFERENCE, TEST_REPORT.
 
 ## Thay đổi theo phản hồi (14/11)
@@ -55,6 +55,7 @@ Cập nhật: 14/11/2026 · Phiên bản 0.1.0 · Unity 6000.3.12f1
 - Font pixel cho UI (đang dùng font hệ thống LegacyRuntime của Unity).
 
 ## Lỗi đã biết
+- Test logic, quét seed và bot chưa chạy lại sau các thay đổi chiều/tối 14/11 (chỉ bộ kịch bản được chạy lại) — xem TEST_REPORT §7.
 - Cột thông tin dùng font proportional nên không thẳng hàng tuyệt đối (đã đổi sang dạng “Nhãn: giá trị”).
 - Giữ nút ↑ ở cạnh thang ngay cạnh cửa: ↑ ưu tiên leo thang (bộ sinh màn không đặt thang ở cửa).
 - Bot kiểm thử chạy god mode, nên độ khó thực tế chưa đo.

@@ -7,7 +7,7 @@ Môi trường: Windows 11, Unity 6000.3.12f1, URP 17.3, Input System 1.19. Tấ
 |---|---|
 | Biên dịch toàn bộ script (runtime + editor) ở batch mode | ✅ 0 lỗi |
 | `Gloomdelve > Build Everything` (art, âm thanh, asset, prefab, 2 scene) | ✅ 397 sprite, 42 SFX, 4 nhạc |
-| Build Windows x64 → `Builds/Windows/Gloomdelve.exe` | ✅ Succeeded, 93 MB, 0 lỗi |
+| Build Windows x64 → `Builds/Windows/Gloomdelve.exe` | ✅ Succeeded, 94 MB, 0 lỗi |
 | Chạy bản build (cửa sổ 1280×720) | ✅ chạy được; 0 exception trong `player.log` của các lần chạy tự động |
 
 ## 2. Test logic (Editor) – `logic_tests.txt`: **25/25 PASS**
@@ -16,13 +16,14 @@ Môi trường: Windows 11, Unity 6000.3.12f1, URP 17.3, Input System 1.19. Tấ
 ## 3. Quét seed tự động – `seed_sweep.txt`
 | Chỉ số | Kết quả |
 |---|---|
-| Seed | 1 … 150 (×6 màn sinh ngẫu nhiên = **900 màn**) |
+| Seed | 1 … 150 (×9 màn sinh ngẫu nhiên = **1350 màn**) |
 | Màn không có đường đi hợp lệ | **0** |
 | Lỗi an toàn lối vào / vị trí spawn | **0** (không bẫy/quái gần lối vào, không bẫy tên nhắm lối vào, không vật rơi trên lối vào, không spawn trong tường) |
-| Sinh lại do validator loại (attempt bị loại) | 242 lần trên 900 màn, tối đa 7 lần/màn (exit/shop unreachable), đều được sinh lại thành công |
-| **Chướng ngại bắt buộc theo trang bị** | **900/900 màn** có chướng ngại (1029 chướng ngại: 509 vách dây, 520 tường đá vụn); mỗi màn được chứng minh *qua được khi có* trang bị và *không qua được khi thiếu*; 0 màn vượt được khi thiếu trang bị |
-| Thời gian sinh + kiểm tra (2 lần tìm đường) | trung bình 70,6 ms/màn, tối đa 208 ms |
-| Cửa hàng | 391 (100% các màn bắt buộc có cửa hàng đều đặt được) |
+| Sinh lại do validator loại (attempt bị loại) | 467 lần trên 1350 màn, tối đa 8 attempt/màn (318 exit unreachable, 145 exit + shop unreachable, 4 shop unreachable), đều được sinh lại thành công |
+| **Chướng ngại bắt buộc theo trang bị** | **1350/1350 màn** có chướng ngại (1522 chướng ngại: 508 vách dây, 520 tường đá vụn, 494 vực gai cần tàu lượn); mỗi màn được chứng minh *qua được khi có* trang bị và *không qua được khi thiếu* |
+| Thời gian sinh + kiểm tra (2 lần tìm đường) | trung bình 77,8 ms/màn, tối đa 289 ms |
+| Cửa hàng | 602 cửa hàng được đặt (450 màn bắt buộc có cửa hàng) |
+| Phòng tượng vàng | 475 |
 | Màn cuối | validator OK, kế hoạch bot 882 frame |
 | Màn hướng dẫn | phân tích OK, 9 biển |
 
@@ -32,11 +33,8 @@ Môi trường: Windows 11, Unity 6000.3.12f1, URP 17.3, Input System 1.19. Tấ
 `Gloomdelve.exe -autotest N -autotestSeed S`: bot phát lại input mà validator tìm được qua **PlayerController thật** (ở màn có chướng ngại, dây được móc sẵn đúng vị trí validator tính và đá vụn được phá trước — việc ném dây/đặt bom thật được kiểm tra riêng bằng kịch bản) (god mode để quái/bẫy không đẩy lệch đường), tự vào cửa, nhặt Heartstone ở màn cuối và mang ra cổng.
 | Lần chạy | Kết quả |
 |---|---|
-| Seed 1–2 (có chụp ảnh) | 14/14 màn PASS, 2/2 lượt **thắng** |
-| Seed 101–106 | 42/42 màn PASS, 6/6 lượt thắng |
-| Seed 7 (chụp ảnh tài liệu) | 7/7 màn PASS, thắng |
-| Seed 300–301 (hồi quy sau khi sửa dây) | 14/14 màn PASS, 2/2 thắng |
-| Kiểm tra lượt mới không giữ trạng thái cũ (máu/bom/dây/vàng/nâng cấp/thời gian/số thực thể) | 9/9 lượt sạch, 0 rò rỉ |
+| Seed 1101 (lần chạy mới nhất, 12:22 ngày 14/11, đủ 3 khu + màn cuối) — file `autotest_report.txt` hiện lưu | 10/10 màn PASS, **thắng**, lượt mới sạch trạng thái, 0 rò rỉ |
+| Các lần chạy trước khi có khu ngoài trời (7 màn/lượt): seed 1–2, 101–106, 7, 300–301 | 77/77 màn PASS, 11/11 lượt thắng — *file kết quả gốc đã bị ghi đè, không còn lưu* |
 
 ## 5. Kịch bản tương tác trong game – `scenario_report.txt`: **41/41 PASS** (14/11, thêm kiểm tra hình móc dây bám mép/vách/trần)
 `Gloomdelve.exe -scenarios` dựng đấu trường nhỏ trong scene Game thật, điều khiển nhân vật bằng input kịch bản rồi kiểm tra kết quả:
@@ -51,6 +49,7 @@ roi giết rắn đang lao tới · giẫm đầu rắn · nhặt đá ném ch�
 Đã xem ảnh chụp thật từ bản build: menu chính, bảng điều khiển, HUD + gameplay khu 1/khu 2/màn cuối, cài đặt, màn kết quả (`Docs/Screenshots`). Đã sửa sau khi xem: viền panel/nút 9-slice quá dày, tiêu đề đè phụ đề, hình trang trí đè nút, banner hiện xuyên menu, banner lặp tên khu, cột số liệu lệch.
 
 ## 7. Chưa kiểm chứng / giới hạn
+- **Test logic, quét seed và bot chạy lần cuối lúc 12:20–12:22 ngày 14/11**; sau đó còn sửa `RopeProjectile`, `RunState`, `EquipmentWheel`, `HUD`, `Highlight`, `MainMenuController`, `UIUtil` và chỉ bộ kịch bản (mục 5) được chạy lại lúc 21:47 trên bản build mới nhất. Ba bộ kia cần chạy lại để xác nhận.
 - **Chưa có người chơi thật bằng bàn phím.** Môi trường làm việc không cho phép tôi điều khiển game bằng tay; “chơi thử” được thay bằng bot phát lại input thật qua controller thật + kịch bản tương tác + xem ảnh chụp. Cảm giác tay (độ nhạy, độ khó, nhịp độ) cần bạn chơi thử và phản hồi.
 - Màn hướng dẫn không được bot chơi trọn (cần bom và dây); các thao tác trong đó được kiểm tra riêng bằng kịch bản. Bố cục đã kiểm tra bằng phân tích + ASCII map.
 - Âm thanh/nhạc chỉ được kiểm tra là tạo file và phát không lỗi; chưa nghe đánh giá chất lượng.
