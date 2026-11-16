@@ -288,7 +288,7 @@ namespace Gloomdelve
             new Scenario { name = "results screen after death", map = m => { Set(m, 3, 1, 'S'); Set(m, 12, 1, '^'); },
                 run = c => ResultsCase(c) },
 
-            new Scenario { name = "time-pressure wraith spawns and its touch is fatal", map = m => { Set(m, 3, 1, 'S'); },
+            new Scenario { name = "the Reaper (time pressure) spawns and its touch is fatal", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => WraithCase(c) },
 
             new Scenario { name = "carrying a golden idol out pays gold", map = m => { Set(m, 3, 1, 'S'); Set(m, 4, 1, 'G'); },
@@ -335,7 +335,7 @@ namespace Gloomdelve
             c.Bot(Seq((90, F())));
             yield return c.Frames(90);
             c.Expect(c.Count<Snake>() == 0, "snake dead");
-            c.Expect(c.run.health == 4, "player unhurt");
+            c.Expect(c.run.health >= 4, "player unhurt");   // 5 when the snake happened to drop a heart
         }
 
         static IEnumerator ChainCase(Ctx c)
@@ -496,7 +496,7 @@ namespace Gloomdelve
             c.Bot(Seq((900, F())));
             for (int i = 0; i < 900 && !c.p.IsDead; i++) yield return new WaitForFixedUpdate();
             c.Expect(c.p.IsDead, "player caught");
-            c.Expect(c.p.DeathCause != null && c.p.DeathCause.Contains("Wraith"), "cause: " + c.p.DeathCause);
+            c.Expect(c.p.DeathCause != null && c.p.DeathCause.Contains("Reaper"), "cause: " + c.p.DeathCause);
         }
 
         static IEnumerator IdolCase(Ctx c)

@@ -791,7 +791,7 @@ namespace Gloomdelve.EditorTools
             ["Heartstone"] = (new Color(1f, 0.35f, 0.5f), 4.8f, 1.4f, 0.25f, true, true, new Vector2(0f, 0.35f)),
             ["Heart"] = (new Color(1f, 0.35f, 0.4f), 2f, 0.6f, 0.2f, true, true, new Vector2(0f, 0.2f)),
             ["EmberBat"] = (new Color(1f, 0.5f, 0.2f), 2.6f, 0.8f, 0.3f, false, true, new Vector2(0f, 0.3f)),
-            ["Wraith"] = (new Color(0.5f, 0.85f, 1f), 5f, 1.2f, 0.2f, true, true, new Vector2(0f, 0.5f)),
+            ["Wraith"] = (new Color(1f, 0.25f, 0.2f), 5f, 1.2f, 0.2f, true, true, new Vector2(0f, 0.5f)),
             ["Warden"] = (new Color(0.75f, 0.5f, 1f), 6f, 1.3f, 0.2f, true, true, new Vector2(0f, 0.9f)),
             ["GloomOrb"] = (new Color(0.75f, 0.5f, 1f), 2.4f, 1f, 0.2f, false, true, new Vector2(0f, 0.15f)),
             ["Shopkeeper"] = (new Color(1f, 0.8f, 0.5f), 7f, 0.9f, 0.08f, false, true, new Vector2(0f, 1.5f)),
@@ -913,7 +913,7 @@ namespace Gloomdelve.EditorTools
                 (e, go, sr) => { e.contactDamage = 2; e.goldDrop = 100; e.animFly = anims["hawk_fly"]; e.animDive = anims["hawk_dive"]; e.bloodColor = new Color(0.6f, 0.2f, 0.15f); }));
             Reg("tree", Make<Scenery>("Tree", "Level", "tree", new Vector2(1f, 2.5f), ArtGenerator.S("Sprites/Props/tree_0"), null, -6,
                 (e, go, sr) => { e.flipWithFacing = false; e.variants = new[] { ArtGenerator.S("Sprites/Props/tree_0"), ArtGenerator.S("Sprites/Props/tree_1") }; }));
-            Reg("wraith", Make<Wraith>("Wraith", "Enemies", "Gloom Wraith", new Vector2(0.8f, 1.0f), ArtGenerator.S("Sprites/Enemies/wraith_0"), anims["wraith_float"], 30,
+            Reg("wraith", Make<Wraith>("Wraith", "Enemies", "the Reaper", new Vector2(0.8f, 1.4f), ArtGenerator.S("Sprites/Enemies/wraith_0"), anims["wraith_float"], 30,
                 (e, go, sr) => { e.contactDamage = 99; e.stompable = false; e.goldDrop = 0; e.heartDropChance = 0f; e.animFloat = anims["wraith_float"]; }));
             Reg("shopkeeper", Make<Shopkeeper>("Shopkeeper", "Enemies", "shopkeeper", new Vector2(0.6f, 0.85f), ArtGenerator.S("Sprites/Shopkeeper/idle_0"), anims["keeper_idle"], 14,
                 (e, go, sr) => { e.maxHealth = 6; e.contactDamage = 3; e.animIdle = anims["keeper_idle"]; e.animAngry = anims["keeper_angry"]; e.goldDrop = 300; e.stompable = true; }));

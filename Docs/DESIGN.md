@@ -80,7 +80,7 @@ Tất cả thực thể kế thừa `Entity` (pos = đáy giữa hitbox) và ch�
 | Lỗ phun lửa | 1 + hất lên | Nhỏ lửa báo trước 0,75 s; châm ngòi bom; đốt vỡ bình |
 | Chông | chết | Chỉ khi rơi vào; đi ngang qua an toàn |
 | Nổ bom | 10 | Bỏ qua thời gian bất tử |
-| Hồn ma Gloom | chết | Xuyên tường, không thể bị hạ |
+| Thần chết (Reaper) | chết | Xuyên tường, không thể bị hạ |
 
 **Bom:** ngòi 2,5 s (nhấp nháy nhanh khi < 0,8 s), bán kính 2,3 ô (Blast Powder +0,9). Phá mọi ô trừ bedrock (khối đá tối có đinh tán — khác biệt rõ về hình), ô có vàng/ngọc rơi ra chiến lợi phẩm, mạnh vỡ bình/thùng, đẩy vật thể, làm kẻ địch/người chơi chết, **kích nổ bom khác** (ngòi rút còn 0,12–0,3 s).
 **Giới hạn dây chuyền:** tối đa 3 vụ nổ xử lý mỗi bước (phần còn lại đợi bước sau), mỗi bom mang “thế hệ”; quá 12 thế hệ bom tự tắt; trần 600 thực thể. Kiểm thử: 37 bom nổ dây chuyền kết thúc gọn.
@@ -106,7 +106,7 @@ Tất cả thực thể kế thừa `Entity` (pos = đáy giữa hitbox) và ch�
 - Cửa hàng (`ShopConfig.asset`): Bomb Bag +3 ($350), Rope Pile +3 ($250), Heart Tonic +1 máu ($500) + 2 nâng cấp ngẫu nhiên (chủ tiệm cảnh báo 2 lần trước khi nổi giận) trong: **Spring Boots** (nhảy cao ~40%), **Iron Whip** (2 sát thương, xa hơn), **Compass** (điểm đánh dấu waypoint chỉ cửa ra/Heartstone, xem dưới), **Blast Powder** (nổ to hơn).
 - HUD: máu, bom, dây, vàng, khu–màn, thời gian màn + tổng, nâng cấp, gợi ý tương tác, waypoint.
 - Waypoint (nâng cấp Compass, `HUD.UpdateWaypoint`): huy hiệu tròn kiểu UI hiện đại (vẽ mượt, không pixel) có icon cửa (hoặc viên ngọc khi mục tiêu là Heartstone), viền màu nhấn (xanh bạc hà = cửa ra, hồng = Heartstone), vòng sóng lan tỏa, số mét bên dưới. Cửa ra trong màn hình → huy hiệu lơ lửng phía trên cửa với mũi nhọn chỉ xuống; ngoài màn hình → bám mép màn hình (chừa vùng HUD trên/dưới) kèm mũi tên chevron chỉ hướng. Chuyển trạng thái mượt, mờ đi khi đứng sát cửa, ẩn khi tạm dừng / mở cửa sổ trang bị / hết màn.
-- Áp lực thời gian (`GameConfig`): cảnh báo 2:30 (đồng hồ chuyển cam + banner + âm), hồn ma xuất hiện 3:00 (đồng hồ đỏ nhấp nháy, nhạc trầm xuống), thêm 1 con mỗi 60 s. Tắt ở màn hướng dẫn.
+- Áp lực thời gian (`GameConfig`): cảnh báo 4:30 (đồng hồ chuyển cam + banner + âm), thần chết xuất hiện 5:00 (đồng hồ đỏ nhấp nháy, nhạc trầm xuống), thêm 1 con mỗi 60 s. Tắt ở màn hướng dẫn.
 - Lưu: `settings.json`, `records.json`, `run_log.txt` (seed mỗi màn) trong `%USERPROFILE%\AppData\LocalLow\Gloomdelve Team\Gloomdelve`.
 
 ## 7. Cấu trúc project

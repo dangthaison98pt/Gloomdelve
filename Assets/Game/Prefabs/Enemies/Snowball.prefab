@@ -146,4 +146,6 @@ MonoBehaviour:
   shove: {x: 7.5, y: 4.5}
   stunTime: 0.35
   freezeTime: 0.5
+  slowAmount: 0.3
+  slowTime: 1
   lifetime: 4

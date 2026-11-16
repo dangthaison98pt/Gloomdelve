@@ -134,8 +134,8 @@ MonoBehaviour:
     tile: 3
     color: {r: 0.7, g: 0.5, b: 0.3, a: 1}
   pressureEnabled: 1
-  pressureWarnTime: 150
-  pressureSpawnTime: 180
+  pressureWarnTime: 270
+  pressureSpawnTime: 300
   pressureRepeat: 60
   explosionDamage: 10
   maxExplosionsPerFrame: 3

@@ -1081,7 +1081,7 @@ namespace Gloomdelve.EditorTools
                     Save(p, d + $"brute_{f}", pv);
                 }
             }
-            // Wraith (24x24)
+            // Specter (24x24): only the source picture of the Hollow Warden, the final boss
             for (int f = 0; f < 2; f++)
             {
                 var p = new Px(24, 24);
@@ -1097,6 +1097,48 @@ namespace Gloomdelve.EditorTools
                 p.Rect(8, 14, 3, 3, hole); p.Rect(14, 14, 3, 3, hole);
                 p.Ellipse(12.5f, 9.5f, 2f, 1.6f + f * 0.4f, hole);
                 p.Outline(C(80, 120, 160, 160));
+                Save(p, d + $"specter_{f}", new Vector2(0.5f, 0f));
+            }
+            // The Reaper (24x32): what comes when the player stays too long. A black hooded robe, a skull with red
+            // eyes, a scythe over the shoulder. The files keep the old "wraith_" names. Art faces right.
+            for (int f = 0; f < 2; f++)
+            {
+                var p = new Px(24, 32);
+                Color32 robe = C(26, 24, 36), fold = C(54, 50, 72), dark = C(8, 8, 14);
+                Color32 bone = C(232, 228, 208), boneD = C(168, 160, 140), eye = C(255, 60, 50);
+                Color32 wood = C(112, 76, 46), woodD = C(72, 48, 28), steel = C(222, 230, 242), steelD = C(132, 142, 166);
+                // scythe first, the robe is drawn over its shaft
+                p.Line(20, 2, 20, 30, wood); p.Line(21, 2, 21, 29, woodD);
+                p.Line(20, 30, 15, 31, steel); p.Line(15, 31, 9, 29, steel); p.Line(9, 29, 5, 25, steel); p.Set(4, 24, steel);
+                p.Line(19, 29, 15, 30, steelD); p.Line(15, 30, 10, 28, steelD); p.Line(10, 28, 6, 25, steelD);
+                p.Line(20, 29, 16, 30, steel);
+                // ragged hem: the two frames make it flutter
+                for (int x = 6; x < 18; x++)
+                {
+                    int t = ((x + f * 2) % 4 < 2) ? 0 : 2;
+                    for (int y = t; y < 4; y++) p.Set(x, y, robe);
+                }
+                // robe: wide at the bottom, narrow at the shoulders
+                for (int y = 4; y < 19; y++)
+                {
+                    int hw = 6 - (y - 4) * 2 / 14;
+                    p.Rect(12 - hw, y, hw * 2, 1, robe);
+                }
+                p.Line(9, 5, 10, 16, fold); p.Line(14, 4, 13, 15, fold); p.Line(16, 5, 15, 12, fold);
+                // hood, the dark inside it, the skull
+                p.Disc(12f, 23f, 5.4f, robe);
+                p.Line(8, 26, 12, 28, fold); p.Line(12, 28, 16, 26, fold);
+                p.Ellipse(12.5f, 22.5f, 3.2f, 3.4f, dark);
+                p.Ellipse(12.5f, 22.6f, 2.4f, 2.6f, bone);
+                p.Rect(11, 19, 3, 2, boneD); p.Set(12, 19, dark); p.Set(11, 20, dark); p.Set(13, 20, dark);
+                p.Rect(10, 22, 2, 2, dark); p.Rect(13, 22, 2, 2, dark);
+                p.Set(f == 0 ? 11 : 10, 22, eye); p.Set(f == 0 ? 14 : 13, 22, eye);
+                p.Set(12, 21, dark);
+                // the sleeve and the bony hand on the shaft
+                p.Rect(15, 13, 4, 3, robe); p.Line(15, 15, 18, 15, fold);
+                p.Set(19, 14, bone); p.Set(20, 14, bone); p.Set(19, 13, boneD); p.Set(20, 15, bone);
+                // a pale rim so the black shape reads against a dark cave
+                p.Outline(C(150, 156, 196, 230));
                 Save(p, d + $"wraith_{f}", new Vector2(0.5f, 0f));
             }
         }
@@ -1202,7 +1244,7 @@ namespace Gloomdelve.EditorTools
             Big("yeti_0", "yetiking_0", 0.92f, 0.96f, 1.08f, Crown); Big("yeti_1", "yetiking_1", 0.92f, 0.96f, 1.08f, Crown);
             Big("hawk_0", "stormhawk_0", 0.8f, 0.85f, 1.2f); Big("hawk_1", "stormhawk_1", 0.8f, 0.85f, 1.2f);
             Big("hawk_2", "stormhawk_2", 0.8f, 0.85f, 1.2f, null, true);
-            Big("wraith_0", "warden_0", 1.25f, 0.75f, 1.3f); Big("wraith_1", "warden_1", 1.25f, 0.75f, 1.3f);
+            Big("specter_0", "warden_0", 1.25f, 0.75f, 1.3f); Big("specter_1", "warden_1", 1.25f, 0.75f, 1.3f);
             {
                 var p = new Px(9, 9);
                 p.Disc(4f, 4f, 3.4f, C(150, 90, 230)); p.Disc(4f, 4f, 2f, C(214, 170, 255)); p.Set(4, 4, C(255, 255, 255));

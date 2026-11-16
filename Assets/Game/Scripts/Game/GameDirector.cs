@@ -294,7 +294,7 @@ namespace Gloomdelve
             if (!warned && run.levelTime >= config.pressureWarnTime)
             {
                 warned = true;
-                hud.ShowBanner("A deep chill fills the cavern...", "Something is coming for you. Find the exit!");
+                hud.ShowBanner("You have lingered too long...", "Death is coming for you. Find the exit!");
                 Sfx.PlayUI("warning");
             }
             if (run.levelTime >= nextWraith)
@@ -313,7 +313,7 @@ namespace Gloomdelve
             p.y = Mathf.Clamp(p.y, 1f, Level.Height - 1f);
             world.SpawnById("wraith", p);
             wraiths++;
-            hud.ShowBanner("THE GLOOM WRAITH HAS COME", "It passes through walls. Do not let it touch you!");
+            hud.ShowBanner("THE REAPER HAS COME", "It passes through walls. Do not let it touch you!");
             Sfx.PlayUI("wraith");
             if (AudioManager.Instance != null) AudioManager.Instance.SetMusicPitch(0.85f);
         }

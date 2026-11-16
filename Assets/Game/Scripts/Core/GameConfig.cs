@@ -20,11 +20,11 @@ namespace Gloomdelve
         [Tooltip("Extra room-template symbols: place any PrefabRegistry id in rooms without code (see Docs/EXTENDING.md).")]
         public List<MarkerDef> customMarkers = new List<MarkerDef>();
 
-        [Header("Time pressure (Gloom Wraith)")]
+        [Header("Time pressure (the Reaper)")]
         public bool pressureEnabled = true;
-        [Tooltip("Seconds in a level before the warning.")] public float pressureWarnTime = 150f;
-        [Tooltip("Seconds in a level before the wraith appears.")] public float pressureSpawnTime = 180f;
-        [Tooltip("Another wraith every N seconds after the first.")] public float pressureRepeat = 60f;
+        [Tooltip("Seconds in a level before the warning.")] public float pressureWarnTime = 270f;
+        [Tooltip("Seconds in a level before the Reaper appears.")] public float pressureSpawnTime = 300f;
+        [Tooltip("Another Reaper every N seconds after the first.")] public float pressureRepeat = 60f;
 
         [Header("Explosions / chain reactions")]
         public int explosionDamage = 10;

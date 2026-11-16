@@ -465,7 +465,7 @@ namespace Gloomdelve
                 case DamageType.Crush: return $"Crushed by a {src}";
                 case DamageType.Falling: return $"Hit by a falling {src}";
                 case DamageType.Fire: return "Burned by a flame vent";
-                case DamageType.Wraith: return "Taken by the Gloom Wraith";
+                case DamageType.Wraith: return "Taken by the Reaper";
                 default: return $"Killed by {src}";
             }
         }

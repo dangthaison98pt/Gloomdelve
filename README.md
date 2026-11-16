@@ -51,7 +51,7 @@ Tất cả nằm trong `Assets/Game/Data`:
 - `PlayerConfig` – tốc độ, nhảy, coyote/bộ đệm, bám mép, kiếm, ném, sát thương rơi, máu/bom/dây khởi đầu.
 - `Gear_Bomb`, `Gear_Rope`, `Gear_Glider` – tên, mô tả, câu thông báo chướng ngại, kho tiếp tế của từng trang bị.
 - `Area1_Mossroot`, `Area2_Emberdeep`, `Area4_Sunfall`, `Area3_Vault` (màn cuối) – kẻ địch, bẫy, mật độ, kho báu, cửa hàng, nhạc, màu nền.
-- `GameConfig` – danh sách màn, áp lực thời gian (2:30 cảnh báo / 3:00 hồn ma), giới hạn nổ dây chuyền, sinh màn.
+- `GameConfig` – danh sách màn, áp lực thời gian (4:30 cảnh báo / 5:00 thần chết), giới hạn nổ dây chuyền, sinh màn.
 - `ShopConfig` – giá, tài nguyên được cộng và chỉ số cộng thêm (`modifiers`) của từng món.
 - `RoomTemplates.txt` – mẫu phòng (sửa bằng **Gloomdelve > Room Template Editor** hoặc sửa tay). `Levels/Tutorial.txt`, `Levels/FinalVault.txt` – màn làm tay.
 - Prefab trong `Assets/Game/Prefabs` (thông số từng quái/bẫy/vật phẩm).
