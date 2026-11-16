@@ -206,6 +206,9 @@ namespace Gloomdelve
             new Scenario { name = "treasure chest lays out three free items", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => ChestCase(c) },
 
+            new Scenario { name = "shopkeeper grudge: robbed -> ambush with two brothers; killed -> no more shopkeepers", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => GrudgeCase(c) },
+
             new Scenario { name = "hawk dives at the player below it", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => HawkCase(c) },
 
@@ -773,6 +776,50 @@ namespace Gloomdelve
             foreach (var si in items) if (!si.Dead) si.Despawn();
             chest.Despawn();
             foreach (var id in new System.Collections.Generic.List<string>(c.run.upgrades)) if (!owned.Contains(id)) c.run.RemoveUpgrade(id);
+        }
+
+        static IEnumerator GrudgeCase(Ctx c)
+        {
+            var run = c.run;
+            run.shopkeeperWanted = false; run.shopkeeperDead = false;
+            c.p.godMode = true;
+            c.Bot(Seq((900, F())));
+            c.Teleport(4.5f, 1f);
+
+            // 1) anger him: the run is marked, he is still alive
+            var k = c.Spawn<Shopkeeper>("shopkeeper", 14, 1, 0, null, -1);
+            for (int i = 0; i < 3; i++)
+            {
+                k.TakeDamage(new DamageInfo(1, DamageType.Whip, c.p, Vector2.zero, "test"));
+                yield return c.Frames(50);
+            }
+            c.Expect(k.angry && run.shopkeeperWanted && !run.shopkeeperDead, "angering the shopkeeper marks the run as wanted");
+            k.Despawn();                       // the player leaves the level; he survives
+            yield return c.Frames(3);
+
+            // 2) the next shop: calm from afar, an ambush with two brothers when you walk in
+            var k2 = c.Spawn<Shopkeeper>("shopkeeper", 21, 1, 0, null, -1);
+            yield return c.Frames(10);
+            c.Expect(!k2.angry && c.Count<Shopkeeper>() == 1, "he waits while the player is far away");
+            c.Teleport(17.5f, 1f);
+            yield return c.Frames(20);
+            c.Expect(k2.angry && c.Count<Shopkeeper>() == 3, $"walking in triggers the ambush: {c.Count<Shopkeeper>()} shopkeepers");
+
+            // 3) kill him: no shopkeeper ever again in this run
+            for (int i = 0; i < 20 && !k2.Dead; i++)
+            {
+                k2.TakeDamage(new DamageInfo(99, DamageType.Explosion, c.p, Vector2.zero, "test"));
+                yield return c.Frames(2);
+            }
+            c.Expect(k2.Dead && run.shopkeeperDead && !run.shopkeeperWanted, "killing him closes the shops for good");
+            foreach (var e in c.world.Entities) if (e is Shopkeeper && !e.Dead) e.Despawn();
+            yield return c.Frames(3);
+            var k3 = c.Spawn<Shopkeeper>("shopkeeper", 14, 1, 0, null, -1);
+            yield return c.Frames(3);
+            c.Expect(k3 == null || k3.Dead, "a later shop has no shopkeeper");
+
+            run.shopkeeperWanted = false; run.shopkeeperDead = false;
+            c.p.godMode = false;
         }
 
         static IEnumerator HawkCase(Ctx c)

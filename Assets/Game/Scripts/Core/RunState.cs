@@ -27,6 +27,11 @@ namespace Gloomdelve
         /// <summary>Custom resources (ammo of new gear, keys, ...) by id.</summary>
         public readonly Dictionary<string, int> counters = new Dictionary<string, int>();
 
+        /// <summary>The player robbed or attacked a shopkeeper who lived: later shops sell nothing and he waits with two brothers.</summary>
+        public bool shopkeeperWanted;
+        /// <summary>The shopkeeper was killed: there are no more shops in this run.</summary>
+        public bool shopkeeperDead;
+
         public int kills;
         public int levelsCompleted;
         public int goldAtLevelStart;

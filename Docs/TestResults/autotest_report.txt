@@ -1,4 +1,4 @@
-Gloomdelve autotest 2026-11-16 17:10:26  seeds 101..103
+Gloomdelve autotest 2026-11-16 17:18:16  seeds 101..103
 seed 101 new run state fresh: OK
 seed 101 1-1      PASS 8.9s game time
 seed 101 1-2      PASS 8.6s game time
@@ -28,13 +28,13 @@ seed 102 2-2      PASS 9.0s game time
 seed 102 2-3      PASS 8.8s game time
 seed 102 2-4      PASS 4.7s game time
 seed 102 3-1      PASS 9.6s game time
-seed 102 3-2      PASS 13.8s game time
+seed 102 3-2      PASS 13.9s game time
 seed 102 3-3      PASS 12.6s game time
 seed 102 3-4      PASS 5.3s game time
-seed 102 4-1      PASS 9.4s game time
+seed 102 4-1      PASS 9.3s game time
 seed 102 4-2      PASS 12.5s game time
-seed 102 4-3      PASS 7.8s game time
-seed 102 4-4      PASS 4.9s game time
+seed 102 4-3      PASS 7.9s game time
+seed 102 4-4      PASS 4.8s game time
 seed 102 THE LAST CAMP PASS 5.4s game time
 seed 102 THE SUNKEN VAULT PASS VICTORY reached
 seed 103 new run state fresh: OK
@@ -48,7 +48,7 @@ seed 103 2-3      PASS 9.1s game time
 seed 103 2-4      PASS 4.7s game time
 seed 103 3-1      PASS 7.5s game time
 seed 103 3-2      PASS 8.8s game time
-seed 103 3-3      PASS 11.9s game time
+seed 103 3-3      PASS 11.8s game time
 seed 103 3-4      PASS 5.3s game time
 seed 103 4-1      PASS 5.4s game time
 seed 103 4-2      PASS 7.6s game time

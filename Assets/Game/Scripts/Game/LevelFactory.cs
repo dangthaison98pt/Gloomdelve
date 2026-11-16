@@ -75,15 +75,21 @@ namespace Gloomdelve
         /// <summary>Connects shop items to their shopkeeper (call after the first simulation step flushed spawns).</summary>
         public static void LinkShops(World world, LevelData d)
         {
+            // A shopkeeper who was robbed or killed earlier in the run sells nothing: clear the shelves.
+            var run = RunSession.Current;
+            bool closed = run != null && (run.shopkeeperDead || run.shopkeeperWanted);
             foreach (var r in d.shopRects)
             {
+                if (closed)
+                    foreach (var e in world.Entities)
+                        if (e is ShopItem && !e.Dead && r.Contains(new Vector2Int(Mathf.FloorToInt(e.pos.x), Mathf.FloorToInt(e.pos.y)))) e.Despawn();
                 Shopkeeper keeper = null;
                 foreach (var e in world.Entities)
-                    if (e is Shopkeeper k && r.Contains(new Vector2Int(Mathf.FloorToInt(e.pos.x), Mathf.FloorToInt(e.pos.y)))) keeper = k;
+                    if (e is Shopkeeper k && !k.Dead && r.Contains(new Vector2Int(Mathf.FloorToInt(e.pos.x), Mathf.FloorToInt(e.pos.y)))) keeper = k;
                 if (keeper == null) continue;
                 keeper.shopRect = r;
                 foreach (var e in world.Entities)
-                    if (e is ShopItem s && r.Contains(new Vector2Int(Mathf.FloorToInt(e.pos.x), Mathf.FloorToInt(e.pos.y)))) keeper.AddWare(s);
+                    if (e is ShopItem s && !s.Dead && r.Contains(new Vector2Int(Mathf.FloorToInt(e.pos.x), Mathf.FloorToInt(e.pos.y)))) keeper.AddWare(s);
             }
         }
     }

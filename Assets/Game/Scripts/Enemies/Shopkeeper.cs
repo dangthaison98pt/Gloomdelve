@@ -7,6 +7,9 @@ namespace Gloomdelve
     /// Peaceful shopkeeper. The first hits by the player (whip, thrown object, bomb, blast on his wares) are only
     /// warnings: no damage, a shout and a message. The hit after the last warning makes him angry: from then on he
     /// takes damage, chases and hurts you, and his wares become free.
+    /// He holds a grudge for the rest of the run (RunState.shopkeeperWanted / shopkeeperDead):
+    ///  - angered but alive: every later shop is closed, and when you walk in he attacks with two brothers;
+    ///  - killed: every later shop is simply gone.
     /// </summary>
     public class Shopkeeper : Enemy
     {
@@ -16,6 +19,11 @@ namespace Gloomdelve
         public SpriteAnim animAngry;
 
         [System.NonSerialized] public bool angry;
+        /// <summary>One of the two brothers called in for an ambush (their deaths do not close the shops).</summary>
+        [System.NonSerialized] public bool brother;
+        [Tooltip("An ambush starts when the player comes this close (or steps into the shop).")] public float ambushRange = 5.5f;
+        bool ambush;
+        static bool spawningBrother;
         [System.NonSerialized] public RectInt shopRect;
         readonly List<ShopItem> wares = new List<ShopItem>();
         float jumpCd;
@@ -37,6 +45,53 @@ namespace Gloomdelve
             base.OnSpawn();
             if (World.config.shop != null) { maxHealth = World.config.shop.shopkeeperHealth; health = maxHealth; }
             anim?.Play(animIdle);
+            var run = RunSession.Current;
+            if (spawningBrother)
+            {
+                brother = true;
+                angry = true;
+                anim?.Play(animAngry);
+            }
+            else if (run != null && run.shopkeeperDead) Despawn();      // he is dead: the shop stays empty
+            else if (run != null && run.shopkeeperWanted) ambush = true; // he remembers
+        }
+
+        bool PlayerInShop(PlayerController p)
+        {
+            if (shopRect.width > 0 && shopRect.Contains(new Vector2Int(Mathf.FloorToInt(p.pos.x), Mathf.FloorToInt(p.pos.y)))) return true;
+            return Mathf.Abs(p.pos.x - pos.x) < ambushRange && Mathf.Abs(p.pos.y - pos.y) < 2.5f;
+        }
+
+        void Ambush()
+        {
+            ambush = false;
+            angry = true;
+            anim?.Play(animAngry);
+            Sfx.Play("shopkeeper_angry", pos);
+            Fx.Text(Center + Vector2.up, "YOU AGAIN!", new Color(1f, 0.3f, 0.3f), 1.5f);
+            if (GameDirector.Instance != null)
+                GameDirector.Instance.ShowMessage("The shopkeeper remembers you. His brothers are with him - and nothing is for sale.");
+            var g = World.Grid;
+            spawningBrother = true;
+            foreach (float dx in new[] { -1.2f, 1.2f })
+            {
+                var at = new Vector2(pos.x + dx, pos.y);
+                if (!g.IsEmpty(Mathf.FloorToInt(at.x), Mathf.FloorToInt(at.y + 0.2f))) at.x = pos.x;
+                World.SpawnById("shopkeeper", at);
+            }
+            spawningBrother = false;
+        }
+
+        protected override void Die(in DamageInfo d)
+        {
+            var run = RunSession.Current;
+            if (!brother && run != null)
+            {
+                run.shopkeeperDead = true;
+                run.shopkeeperWanted = false;
+                if (GameDirector.Instance != null) GameDirector.Instance.ShowMessage("The shopkeeper is dead. No shop will open for you again.");
+            }
+            base.Die(d);
         }
 
         public override void Tick(float dt)
@@ -49,6 +104,7 @@ namespace Gloomdelve
             {
                 if (p != null) facing = p.pos.x >= pos.x ? 1 : -1;
                 vel.x = 0f;
+                if (ambush && p != null && !p.IsDead && PlayerInShop(p)) Ambush();
             }
             else if (stunTimer <= 0f && grounded && p != null && !p.IsDead)
             {
@@ -69,6 +125,7 @@ namespace Gloomdelve
         {
             if (angry || Dead) return;
             angry = true;
+            if (!brother && RunSession.Current != null) RunSession.Current.shopkeeperWanted = true;   // he will not forget
             anim?.Play(animAngry);
             Sfx.Play("shopkeeper_angry", pos);
             Fx.Text(Center + Vector2.up, "THIEF!", new Color(1f, 0.3f, 0.3f), 1.5f);
