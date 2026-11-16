@@ -32,18 +32,18 @@ namespace Gloomdelve
     public static class ControlsText
     {
         public const string Body =
-@"Arrow keys  -  move  (hold SHIFT to walk slowly near edges)
-Z  or  SPACE  -  jump  (hold longer to jump higher)
-X  -  whip;  while holding something: throw it  (UP + X throws high)
-DOWN + X  -  pick up an item / put the held item down
-C  -  use the equipped GEAR:  bombs (DOWN + C places, UP + C throws high)
-         or rope (thrown up, hooks onto a ceiling or wall; DOWN + C at a ledge drops it)
-Hold D  -  GEAR WHEEL: the game freezes, LEFT / RIGHT choose, release to equip  (tap D: swap back to the previous gear)
-A  or  UP  -  enter a door, buy a shop item
-UP / DOWN  -  climb ladders and ropes;  DOWN  -  crouch, crawl off a ledge to hang
-Ledges are grabbed automatically when you fall past them:  UP or JUMP climbs, DOWN lets go
-DOWN + JUMP  -  drop through a wooden platform;  hold UP / DOWN standing still  -  look
-ESC  -  pause          F11  -  fullscreen
-Gamepad: stick / d-pad move, A jump, X whip, B use gear, hold R1 gear wheel (stick left/right), Y enter/buy, LT walk";
+@"[move]  -  move  (hold [walk] to walk slowly near edges)
+[jump]  -  jump  (hold longer to jump higher)
+[whip]  -  whip;  while holding something: throw it  ([up] + [whip] throws high)
+[down] + [whip]  -  pick up an item / put the held item down
+[use]  -  use the equipped GEAR:  bombs ([down] + [use] places, [up] + [use] throws high)
+         or rope (thrown up, hooks onto a ceiling or wall; [down] + [use] at a ledge drops it)
+Hold [gear]  -  GEAR WHEEL: the game freezes, [left] [right] choose, release to equip  (tap [gear]: back to the previous gear)
+[enter]  or  [up]  -  enter a door, buy a shop item
+[up] / [down]  -  climb ladders and ropes;  [down]  -  crouch, crawl off a ledge to hang
+Ledges are grabbed automatically when you fall past them:  [up] or [jump] climbs, [down] lets go
+[down] + [jump]  -  drop through a wooden platform;  hold [up] / [down] standing still  -  look
+[pause]  -  pause          F11  -  fullscreen
+The buttons shown follow the device you used last: keyboard or gamepad.";
     }
 }

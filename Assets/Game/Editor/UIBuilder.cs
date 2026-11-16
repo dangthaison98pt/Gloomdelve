@@ -10,6 +10,8 @@ namespace Gloomdelve.EditorTools
     {
         public static Font font;
         public static Sprite panelSprite, buttonSprite, slotSprite;
+        /// <summary>When set, every label can show button pictures for input tokens such as "[jump]" (GlyphText).</summary>
+        public static InputGlyphSet glyphSet;
 
         static readonly Color Gold = new Color(1f, 0.84f, 0.38f);
         static readonly Color Dim = new Color(0f, 0f, 0f, 0.62f);
@@ -51,6 +53,7 @@ namespace Gloomdelve.EditorTools
             t.horizontalOverflow = HorizontalWrapMode.Wrap; t.verticalOverflow = VerticalWrapMode.Overflow;
             t.raycastTarget = false;
             Place(Rect(go), anchor, pos, box);
+            if (glyphSet != null) go.AddComponent<GlyphText>().set = glyphSet;
             if (shadow)
             {
                 var o = go.AddComponent<Outline>();
@@ -199,7 +202,7 @@ namespace Gloomdelve.EditorTools
             var p = Panel(parent, "ControlsPanel", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1240, 900));
             Label(p.transform, "Title", "CONTROLS", 46, Gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -50), new Vector2(1000, 70));
             body = Label(p.transform, "Body", ControlsText.Body, 27, Color.white, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(0, -110), new Vector2(1140, 680));
-            body.lineSpacing = 1.1f;
+            body.lineSpacing = 1.3f;
             back = Button(p.transform, "Back", "BACK", new Vector2(0.5f, 0f), new Vector2(0, 45), new Vector2(320, 70));
             return p.gameObject;
         }

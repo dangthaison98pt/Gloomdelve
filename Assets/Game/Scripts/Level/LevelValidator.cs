@@ -104,6 +104,8 @@ namespace Gloomdelve
             public int ropeRise;
             public int ropeLength;
             public bool glide;
+            /// <summary>Ground grip of the level (LevelData.grip): the proof and the bot slide exactly like the player.</summary>
+            public float grip;
         }
 
         public static Options DefaultOptions(PlayerConfig cfg) => new Options
@@ -139,6 +141,7 @@ namespace Gloomdelve
         public static Options WithGear(LevelData d, Options o)
         {
             if (d.gateCount > 0) GearRegistry.Get(d.gateGear)?.ApplyToValidator(ref o);
+            o.grip = d.grip;
             return o;
         }
 
@@ -146,6 +149,7 @@ namespace Gloomdelve
         {
             var sw = Stopwatch.StartNew();
             var r = new ValidationResult();
+            baseOptions.grip = d.grip;
             var noGear = baseOptions;
             noGear.glide = false;
             var o = WithGear(d, baseOptions);
@@ -209,6 +213,7 @@ namespace Gloomdelve
         public static List<FrameInput> PlanFinal(LevelData d, Options o, out string reason)
         {
             reason = "";
+            o.grip = d.grip;
             var g = d.grid;
             var start = MotorState.At(new Vector2(d.entrance.x + 0.5f, d.entrance.y));
             var goal = d.goal.Value;
@@ -217,14 +222,14 @@ namespace Gloomdelve
             var frames = ToFrames(p1);
             // crouch + attack = pick up, then stand
             var s2 = atGoal;
-            var pick = new MotorInput { down = true, speedMult = o.speedMult, jumpMult = o.jumpMult };
+            var pick = new MotorInput { down = true, speedMult = o.speedMult, jumpMult = o.jumpMult, grip = o.grip };
             PlayerMotor.Step(ref s2, pick, g, o.stats, GameConst.Dt);
             frames.Add(new FrameInput { down = true, attackPressed = true });
             var heavy = o;
             heavy.speedMult = o.speedMult * (o.heavySpeed > 0f ? o.heavySpeed : 1f);
             for (int i = 0; i < 3; i++)
             {
-                PlayerMotor.Step(ref s2, new MotorInput { speedMult = heavy.speedMult, jumpMult = heavy.jumpMult }, g, o.stats, GameConst.Dt);
+                PlayerMotor.Step(ref s2, new MotorInput { speedMult = heavy.speedMult, jumpMult = heavy.jumpMult, grip = o.grip }, g, o.stats, GameConst.Dt);
                 frames.Add(default);
             }
             var p2 = FindPath(g, s2, heavy, s => IsAtCell(s, d.exit), out _);
@@ -379,7 +384,7 @@ namespace Gloomdelve
             MotorMode startMode = s.mode;
             bool released = false, airborneSeen = false, climbing = s.mode == MotorMode.Climb;
             int jumpFrame = p.runUp;
-            var neutral = new MotorInput { speedMult = o.speedMult, jumpMult = o.jumpMult, glide = o.glide };
+            var neutral = new MotorInput { speedMult = o.speedMult, jumpMult = o.jumpMult, glide = o.glide, grip = o.grip };
 
             for (int f = 0; f < MaxFrames; f++)
             {

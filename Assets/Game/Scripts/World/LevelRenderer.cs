@@ -231,6 +231,7 @@ namespace Gloomdelve
             }
             var a = World.Instance != null ? World.Instance.Area : null;
             if (a != null && a.areaNumber == 2) return new Color(0.5f, 0.27f, 0.22f);
+            if (a != null && a.groundGrip < 1f) return new Color(0.62f, 0.78f, 0.9f);
             return new Color(0.45f, 0.3f, 0.2f);
         }
     }

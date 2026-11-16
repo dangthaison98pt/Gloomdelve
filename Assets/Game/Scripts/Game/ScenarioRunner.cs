@@ -589,6 +589,8 @@ namespace Gloomdelve
             // hold R1, tilt right once (bomb -> rope), release stick, release R1
             yield return Send(pad, r1, 0.45f);
             c.Expect(w.IsOpen, "holding R1 opens the wheel");
+            c.Expect(InputDeviceTracker.UsingGamepad, "prompts switch to gamepad button pictures after a pad press");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "gear_wheel_pad.png"));
             yield return Send(pad, r1Right, 0.12f);
             yield return Send(pad, r1, 0.12f);
             yield return Send(pad, none, 0.15f);
@@ -614,6 +616,7 @@ namespace Gloomdelve
             c.Expect(Mathf.Approximately(Time.timeScale, scale0), "game resumed at normal speed (" + Time.timeScale + ")");
             c.detail += log.ToString();
             InputSystem.RemoveDevice(pad);
+            InputDeviceTracker.ResetToKeyboard();
             InputSystem.settings.backgroundBehavior = prevBg;
             yield return c.Frames(3);
         }

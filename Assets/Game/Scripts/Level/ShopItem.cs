@@ -63,7 +63,7 @@ namespace Gloomdelve
         {
             if (offer == null) return null;
             string d = string.IsNullOrEmpty(offer.description) ? "" : "  -  " + offer.description;
-            return Free ? $"A / UP : take {offer.displayName} (free!){d}" : $"A / UP : buy {offer.displayName} for ${offer.price}{d}";
+            return Free ? $"[enter] / [up]  take {offer.displayName} (free!){d}" : $"[enter] / [up]  buy {offer.displayName} for ${offer.price}{d}";
         }
 
         public void Interact(PlayerController p)

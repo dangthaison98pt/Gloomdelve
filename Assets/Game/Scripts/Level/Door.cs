@@ -42,7 +42,7 @@ namespace Gloomdelve
         {
             if (!isExit) return null;
             if (locked) return "The gate is sealed. Bring the Heartstone here!";
-            return "UP / A : enter the exit";
+            return "[up] / [enter]  enter the exit";
         }
 
         public void Interact(PlayerController p)

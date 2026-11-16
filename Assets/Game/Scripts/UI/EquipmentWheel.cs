@@ -197,7 +197,7 @@ namespace Gloomdelve
             var cur = director.config.FindGear(run.gear[sel]);
             nameText.text = cur != null ? cur.displayName.ToUpperInvariant() : "";
             descText.text = cur == null ? "" : cur.description + (string.IsNullOrEmpty(cur.terrainHint) ? "" : "\n" + cur.terrainHint);
-            hintText.text = "LEFT / RIGHT : choose        release R1 / D : equip";
+            hintText.text = "[left] [right]  choose          release [gear]  equip";
         }
     }
 }

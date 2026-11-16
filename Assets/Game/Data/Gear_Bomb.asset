@@ -14,12 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.EquipmentDef
   id: bomb
   displayName: Bombs
-  description: 'Use: throw a lit bomb.  DOWN + use: place it.  UP + use: throw high.'
+  description: '[use] : throw a lit bomb.  [down] + [use]: place it.  [up] + [use]:
+    throw high.'
   icon: {fileID: 21300000, guid: 2072b74ecaf120e499b27f5b44808ff1, type: 3}
   terrainHint: Blasts dirt and cracked rubble (never bedrock).
-  gateBanner: Rubble blocks the tunnels ({0}) - you will need your BOMBS.  Hold R1
-    / D to change gear.
+  gateBanner: Rubble blocks the tunnels ({0}) - you will need your BOMBS.  Hold [gear]
+    to change gear.
   gateSign: Cracked rubble blocks the tunnel and the rock around it is unbreakable.
-    Equip your BOMBS (hold R1 / D) and blast it.
+    Equip your BOMBS (hold [gear]) and blast it.
   supplyPickupId: bombbag
   ammoLabel: bomb(s)

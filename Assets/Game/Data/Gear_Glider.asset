@@ -14,13 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.EquipmentDef
   id: glider
   displayName: Glider
-  description: Equip it, jump, then HOLD JUMP while falling to glide slowly and far. 
-    Never used up.
+  description: Equip it, jump, then HOLD [jump] while falling to glide slowly and
+    far.  Never used up.
   icon: {fileID: 21300000, guid: 4a48713c08ad63d4f8439a127269ecf9, type: 3}
   terrainHint: Crosses wide chasms in the open air.  No fall damage while gliding.
-  gateBanner: Wide thorn chasms ahead ({0}) - equip your GLIDER and hold JUMP while
+  gateBanner: Wide thorn chasms ahead ({0}) - equip your GLIDER and hold [jump] while
     falling.
   gateSign: A wide chasm full of thorns - far too wide to jump. Equip your GLIDER
-    (hold R1 / D), jump and HOLD JUMP to glide across.
+    (hold [gear]), jump and HOLD [jump] to glide across.
   supplyPickupId: 
   ammoLabel: 

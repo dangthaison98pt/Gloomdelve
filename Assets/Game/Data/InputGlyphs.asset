@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95add2cba227f054db6b7da3f8f996b9, type: 3}
+  m_Name: InputGlyphs
+  m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.InputGlyphSet
+  entries:
+  - token: jump
+    keyboard: {fileID: 21300000, guid: 84958aa0b7e4abe4e9093b3a728dcfd9, type: 3}
+    gamepad: {fileID: 21300000, guid: 6823db540a6a83544ab542bcc2cf0c90, type: 3}
+  - token: whip
+    keyboard: {fileID: 21300000, guid: 438a6eb799b09f74d8c29d170a30ee21, type: 3}
+    gamepad: {fileID: 21300000, guid: 47357c5faa90fb648ba2df2f4613cb9d, type: 3}
+  - token: use
+    keyboard: {fileID: 21300000, guid: 9ef286e6944d81247baa69f0848438fd, type: 3}
+    gamepad: {fileID: 21300000, guid: 4227645eefcd9124aa6dd6dee781c40d, type: 3}
+  - token: gear
+    keyboard: {fileID: 21300000, guid: 60a5165a566143b409270c743c84c654, type: 3}
+    gamepad: {fileID: 21300000, guid: 3b012951fce9b3e47b828f0943a1e626, type: 3}
+  - token: enter
+    keyboard: {fileID: 21300000, guid: dc6adbb7be4f18642b27bf4d5d82c98e, type: 3}
+    gamepad: {fileID: 21300000, guid: 37b180238ac8bf8419663836858d80c9, type: 3}
+  - token: walk
+    keyboard: {fileID: 21300000, guid: 4b99154d628201a4aaaa4365db6a8e4e, type: 3}
+    gamepad: {fileID: 21300000, guid: 300b6a0f21ecfdc4e84786551dc6af33, type: 3}
+  - token: pause
+    keyboard: {fileID: 21300000, guid: 11b10bf58ce6bd1409d3d6cc3461f675, type: 3}
+    gamepad: {fileID: 21300000, guid: 31c8fa7d5792122429c2a4288595a887, type: 3}
+  - token: confirm
+    keyboard: {fileID: 21300000, guid: c52ce2572c52adf44bdb084e8c093a62, type: 3}
+    gamepad: {fileID: 21300000, guid: a66f1842892f522499786309caa1383e, type: 3}
+  - token: up
+    keyboard: {fileID: 21300000, guid: 23a76c91131342148ab280a09af34e0c, type: 3}
+    gamepad: {fileID: 21300000, guid: 560a9450f27ebc2428b3a3a0f03f5c36, type: 3}
+  - token: down
+    keyboard: {fileID: 21300000, guid: fadcc14ad63ed1643aefebb168e84be1, type: 3}
+    gamepad: {fileID: 21300000, guid: 626c19b1432d39a44bf21646cd4f9f90, type: 3}
+  - token: left
+    keyboard: {fileID: 21300000, guid: a59bf252e073b9349b81631f28ed26c6, type: 3}
+    gamepad: {fileID: 21300000, guid: b921e00dc1854df4f9ab9d4900a3284d, type: 3}
+  - token: right
+    keyboard: {fileID: 21300000, guid: 18d695f44912ba545b0d425ab6ed78a5, type: 3}
+    gamepad: {fileID: 21300000, guid: 5f8ed4ae268077c4a8db8890bed76d6c, type: 3}
+  - token: move
+    keyboard: {fileID: 21300000, guid: d949aad2f7ac3c84599ecec955fbb0eb, type: 3}
+    gamepad: {fileID: 21300000, guid: 0cbfdc907af1484488f607d4df55f998, type: 3}

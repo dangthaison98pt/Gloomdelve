@@ -49,6 +49,8 @@ namespace Gloomdelve
         /// <summary>Glider equipped: holding jump while falling glides.</summary>
         public bool glide;
         public float speedMult, jumpMult;
+        /// <summary>Ground grip: 1 (or 0 = not set) is normal footing, lower is ice - slow to get going, slow to stop.</summary>
+        public float grip;
     }
 
     public struct MotorState
@@ -148,6 +150,8 @@ namespace Gloomdelve
                 if (stunned) accel = st.groundDecel * 0.5f;
                 else if (ix != 0) accel = (Mathf.Abs(s.vel.x) > 0.01f && Mathf.Sign(target) != Mathf.Sign(s.vel.x)) ? st.groundAccel * 2f : st.groundAccel;
                 else accel = st.groundDecel;
+                // ice: stopping takes much longer, starting and turning a little longer
+                if (i.grip > 0f && i.grip < 1f) accel *= ix != 0 ? Mathf.Lerp(0.45f, 1f, i.grip) : i.grip;
             }
             else accel = stunned ? st.airDecel * 0.3f : (ix != 0 ? st.airAccel : st.airDecel);
             s.vel.x = Mathf.MoveTowards(s.vel.x, target, accel * dt);

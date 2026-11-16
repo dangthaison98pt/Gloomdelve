@@ -13,7 +13,7 @@ namespace Gloomdelve.EditorTools
         const int SR = 22050;
 
         public static readonly List<string> SfxIds = new List<string>();
-        public static readonly List<string> MusicIds = new List<string> { "menu", "area1", "area2", "area3", "final" };
+        public static readonly List<string> MusicIds = new List<string> { "menu", "area1", "area2", "area3", "area4", "final" };
 
         // ------------------------------------------------------------------ helpers
 
@@ -139,6 +139,8 @@ namespace Gloomdelve.EditorTools
             MusicTrack("area1", 116, 16, 5, new[] { 0, 0, -2, -2, 3, 3, -4, -2, 0, 0, -2, -2, 5, 3, -2, 0 }, new[] { 0, 2, 3, 5, 7, 9, 10 }, 1f, 202, 0.6f);
             MusicTrack("area2", 128, 16, 7, new[] { 0, 1, 0, -2, 0, 1, 3, 1, 0, 1, 0, -2, -4, -2, 1, 0 }, new[] { 0, 1, 3, 5, 7, 8, 10 }, 1f, 303, 0.6f);
             MusicTrack("area3", 104, 16, 3, new[] { 0, 5, 7, 5, 0, 5, -3, -5, 0, 5, 7, 9, 5, 7, 0, 0 }, new[] { 0, 2, 4, 5, 7, 9, 11 }, 0.7f, 505, 0.55f);
+            // frozen caves: slow, sparse, minor with a raised sixth
+            MusicTrack("area4", 92, 16, 2, new[] { 0, 0, -5, -5, -2, -2, -7, -5, 0, 0, 3, 3, -2, -4, -5, 0 }, new[] { 0, 2, 3, 5, 7, 9, 10 }, 0.45f, 606, 0.55f);
             MusicTrack("final", 150, 16, 0, new[] { 0, -2, -4, -5, 0, -2, -4, 2, 0, -2, -4, -5, -7, -5, -4, -2 }, new[] { 0, 2, 3, 5, 7, 8, 11 }, 1.3f, 404, 0.65f);
             AssetDatabase.Refresh();
             Debug.Log($"[Audio] Generated {SfxIds.Count} sfx + {MusicIds.Count} music loops");

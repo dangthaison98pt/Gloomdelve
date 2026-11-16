@@ -31,7 +31,7 @@ namespace Gloomdelve
                 $"Total time:  {UIUtil.FormatTime(run.totalTime)}\n" +
                 $"Gold found:  ${goldGained}     (total ${run.gold})\n" +
                 $"Health {run.health}    Bombs {run.bombs}    Ropes {run.ropes}";
-            hint.text = "Press JUMP / ENTER to continue";
+            hint.text = "Press [jump] to continue";
         }
 
         void Update()

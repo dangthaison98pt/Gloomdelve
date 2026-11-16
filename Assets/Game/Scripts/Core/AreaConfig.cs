@@ -21,6 +21,10 @@ namespace Gloomdelve
         public int skyRows = 7;
         [Range(0, 1)] public float treeChance = 0.25f;
 
+        [Header("Footing")]
+        [Tooltip("1 = normal ground. Lower = ice: the player slides when stopping and is slower to turn (0.25 = very slippery).")]
+        [Range(0.1f, 1f)] public float groundGrip = 1f;
+
         [Header("Enemies (ids from PrefabRegistry)")]
         public WeightedId[] groundEnemies = { new WeightedId("snake", 1f) };
         public WeightedId[] ceilingEnemies = { new WeightedId("bat", 1f) };

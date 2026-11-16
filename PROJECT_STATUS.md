@@ -15,7 +15,7 @@ Cập nhật: 16/11/2026 · Phiên bản 0.1.0 · Unity 6000.3.12f1
 - UI: menu chính, hướng dẫn điều khiển, cài đặt (âm lượng tổng/nhạc/hiệu ứng, toàn màn hình, rung màn hình), tạm dừng, HUD đầy đủ, thẻ chuyển màn, màn kết quả (R chơi lại nhanh, chơi lại seed), kỷ lục.
 - Lưu cài đặt + kỷ lục (JSON), ghi log seed.
 - Art pixel 397 sprite + 42 SFX + 4 nhạc, tất cả sinh bằng code (Editor).
-- Kiểm thử (số liệu mới nhất, chi tiết trong `Docs/TEST_REPORT.md`): 34 test logic, quét 150 seed (1350 màn, 0 lỗi), 42 kịch bản tương tác trong build, bot chơi trọn 3 lượt (30 màn) trong build, kiểm tra không rò rỉ trạng thái giữa lượt. Build Windows chạy được.
+- Kiểm thử (số liệu mới nhất, chi tiết trong `Docs/TEST_REPORT.md`): 34 test logic, quét 150 seed (1800 màn, 0 lỗi), 42 kịch bản tương tác trong build, bot chơi trọn 3 lượt (39 màn) trong build, kiểm tra không rò rỉ trạng thái giữa lượt. Build Windows chạy được.
 - Tài liệu: README, DESIGN, REFERENCE, TEST_REPORT.
 
 ## Thay đổi theo phản hồi (14/11)
@@ -56,6 +56,8 @@ Cập nhật: 16/11/2026 · Phiên bản 0.1.0 · Unity 6000.3.12f1
 - Sửa quái đi tuần (rắn, gã húc) đứng trên bệ 1 ô bị lắc trái-phải liên tục: giờ chỉ quay đầu khi phía sau còn ít nhất 0,75 ô để đi, nếu không thì đứng yên và quay mặt về phía người chơi. Thêm kịch bản kiểm thử (42/42).
 - Khu ngoài trời (Sunfall Cliffs): khối đất/đá lơ lửng và hố chông không còn mảng tường tối phía sau (chỉ thấy trời); cửa đứng ngoài trời có nhà cổng bằng đá bao quanh; chim ưng có nhịp lấy đà 0,35 giây trước khi lao và sprite xoay theo hướng lao.
 - Giao diện: khung bảng viền đồng bo góc có đinh vàng, nút bấm nổi khối, ô trang bị chỉ đổi màu viền, logo GLOOMDELVE bằng chữ pixel, màn hình chính có tranh nền miệng hang lúc hoàng hôn (ArtGenerator.MenuArt). Chữ trong menu/HUD vẫn là Arial.
+- Lời nhắc phím bấm hiện bằng hình nút và đổi theo thiết bị dùng gần nhất (bàn phím / tay cầm): viết token như `[jump]`, `[use]`, `[gear]` trong bất kỳ chữ UI nào (GlyphText + Data/InputGlyphs.asset, hình sinh bởi ArtGenerator.GlyphArt).
+- Khu băng **Frostdeep Hollows** (màn 3-1..3-3, sau khu mỏ; khu vách núi thành 4-x): sàn trơn (`AreaConfig.groundGrip`, bộ kiểm tra màn và bot trượt giống hệt người chơi), tile băng tuyết, tuyết rơi, nhạc `area4`. Lượt chơi giờ có 12 màn + màn cuối.
 
 ## Đang làm
 - Không có hạng mục dở dang.

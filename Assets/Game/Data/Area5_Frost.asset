@@ -1,0 +1,81 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fba76dd5935fa7a43abf3cc03dde5205, type: 3}
+  m_Name: Area5_Frost
+  m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.AreaConfig
+  displayName: Frostdeep Hollows
+  areaNumber: 5
+  tiles: {fileID: 11400000, guid: dac3bdeaadfac5f42aea5520c93c1842, type: 2}
+  musicId: area4
+  cameraBackground: {r: 0.05, g: 0.08, b: 0.14, a: 1}
+  roomsX: 4
+  roomsY: 4
+  outdoor: 0
+  skyRows: 7
+  treeChance: 0.25
+  groundGrip: 0.3
+  groundEnemies:
+  - id: snake
+    weight: 1
+  - id: brute
+    weight: 1
+  ceilingEnemies:
+  - id: bat
+    weight: 2
+  - id: spider
+    weight: 1
+  groundEnemyChance: 0.45
+  ceilingEnemyChance: 0.4
+  extraEnemiesPerRoom: 0.25
+  airEnemies: []
+  airEnemiesPerLevel: 0
+  sideRoomRiskMultiplier: 1.4
+  items:
+  - id: rock
+    weight: 2
+  - id: pot
+    weight: 3
+  - id: crate
+    weight: 1
+  itemChance: 0.5
+  treasureChancePath: 0.35
+  treasureChanceSide: 0.7
+  goldVeinChance: 0.035
+  gemVeinChance: 0.014
+  idolRoomChance: 0.35
+  vaultRoomChance: 0.3
+  spikes: 1
+  arrowTraps: 1
+  stalactites: 1
+  crushers: 0
+  flameVents: 0
+  spikeDensity: 0.03
+  arrowTrapDensity: 0.015
+  ceilingHazardChance: 0.75
+  markedTrapChance: 0.75
+  perLevelDensityBonus: 0.15
+  requiredGear: 
+  gatesByLevel: 000000000000000000000000
+  grantGear: 
+  ambientColor: {r: 0.72, g: 0.86, b: 1, a: 1}
+  ambientIntensity: 0.7
+  playerLightIntensity: 0.85
+  playerLightRadius: 7.5
+  torchColor: {r: 1, g: 0.78, b: 0.5, a: 1}
+  torchChance: 0.05
+  ambientParticles: 5
+  ambientParticleCount: 55
+  backdropTint: {r: 0.4, g: 0.52, b: 0.72, a: 1}
+  shopChanceByLevel:
+  - 0
+  - 1
+  - 0.4

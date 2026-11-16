@@ -56,6 +56,14 @@ namespace Gloomdelve.EditorTools
                 UIBuilder.panelSprite = ArtGenerator.S("UI/panel");
                 UIBuilder.buttonSprite = ArtGenerator.S("UI/button");
                 UIBuilder.slotSprite = ArtGenerator.S("UI/slot");
+                // button pictures for the input tokens in UI texts ("[jump]", "[gear]"...)
+                var glyphs = LoadOrCreate<InputGlyphSet>(G + "Data/InputGlyphs.asset");
+                var ge = new List<InputGlyphSet.Entry>();
+                foreach (var tok in ArtGenerator.GlyphTokens)
+                    ge.Add(new InputGlyphSet.Entry { token = tok, keyboard = ArtGenerator.S("UI/Glyphs/kb_" + tok), gamepad = ArtGenerator.S("UI/Glyphs/pad_" + tok) });
+                glyphs.entries = ge.ToArray();
+                EditorUtility.SetDirty(glyphs);
+                UIBuilder.glyphSet = glyphs;
                 BuildMenuScene(cfg);
                 BuildGameScene(cfg, input, font);
                 EditorBuildSettings.scenes = new[]
@@ -321,7 +329,7 @@ namespace Gloomdelve.EditorTools
         static Dictionary<string, TileSet> CreateTileSets()
         {
             var result = new Dictionary<string, TileSet>();
-            foreach (var area in new[] { "Mossroot", "Emberdeep", "Vault", "Sunfall" })
+            foreach (var area in new[] { "Mossroot", "Emberdeep", "Vault", "Sunfall", "Frost" })
             {
                 string d = "Tiles/" + area + "/";
                 var ts = LoadOrCreate<TileSet>($"{G}Data/TileSet_{area}.asset");
@@ -500,6 +508,29 @@ namespace Gloomdelve.EditorTools
             sunfall.tiles = ts["Sunfall"];
             EditorUtility.SetDirty(sunfall);
 
+            var frost = LoadOrCreate<AreaConfig>(G + "Data/Area5_Frost.asset", out bool newFrost);
+            if (newFrost)
+            {
+                frost.displayName = "Frostdeep Hollows"; frost.areaNumber = 5; frost.musicId = "area4";
+                frost.cameraBackground = new Color(0.05f, 0.08f, 0.14f);
+                frost.groundGrip = 0.3f;
+                frost.groundEnemies = new[] { new WeightedId("snake", 1f), new WeightedId("brute", 1f) };
+                frost.ceilingEnemies = new[] { new WeightedId("bat", 2f), new WeightedId("spider", 1f) };
+                frost.spikes = true; frost.arrowTraps = true; frost.stalactites = true; frost.crushers = false; frost.flameVents = false;
+                frost.spikeDensity = 0.03f; frost.arrowTrapDensity = 0.015f; frost.ceilingHazardChance = 0.75f;
+                frost.gemVeinChance = 0.014f;
+                frost.requiredGear = ""; frost.gatesByLevel = new[] { 0, 0, 0 };
+            }
+            if (frost.ambientIntensity < 0f)
+            {
+                frost.ambientColor = new Color(0.72f, 0.86f, 1f); frost.ambientIntensity = 0.7f;
+                frost.torchColor = new Color(1f, 0.78f, 0.5f); frost.torchChance = 0.05f;
+                frost.ambientParticles = AmbientParticles.Snow; frost.ambientParticleCount = 55;
+                frost.backdropTint = new Color(0.4f, 0.52f, 0.72f);
+            }
+            frost.tiles = ts["Frost"];
+            EditorUtility.SetDirty(frost);
+
             var vault = LoadOrCreate<AreaConfig>(G + "Data/Area3_Vault.asset", out bool newVault);
             if (newVault)
             {
@@ -557,6 +588,14 @@ namespace Gloomdelve.EditorTools
             }
             if (string.IsNullOrEmpty(gGlide.gateBanner)) gGlide.gateBanner = "Wide thorn chasms ahead ({0}) - equip your GLIDER and hold JUMP while falling.";
             if (string.IsNullOrEmpty(gGlide.gateSign)) gGlide.gateSign = "A wide chasm full of thorns - far too wide to jump. Equip your GLIDER (hold R1 / D), jump and HOLD JUMP to glide across.";
+            // Input names inside gear texts become tokens, drawn as button pictures of the device in use.
+            foreach (var gdef in new[] { gBomb, gRope, gGlide })
+            {
+                gdef.description = InputTokens(gdef.description);
+                gdef.gateBanner = InputTokens(gdef.gateBanner);
+                gdef.gateSign = InputTokens(gdef.gateSign);
+                EditorUtility.SetDirty(gdef);
+            }
             gGlide.icon = ArtGenerator.S("Sprites/Player/glider");
             EditorUtility.SetDirty(gGlide);
             // Built-in gear first; equipment a designer added to the list by hand is kept.
@@ -580,10 +619,36 @@ namespace Gloomdelve.EditorTools
                 new StageDef { displayName = "3-3", kind = LevelKind.Area, area = sunfall, levelNumber = 3 },
                 new StageDef { displayName = "THE SUNKEN VAULT", kind = LevelKind.Final, area = vault, levelNumber = 1, handcrafted = final },
             };
+            // The frozen area joins an existing stage list after the mines (or before the final level), once.
+            if (!System.Array.Exists(cfg.stages, st => st.area == frost))
+            {
+                var list = new List<StageDef>(cfg.stages);
+                int at = list.FindLastIndex(st => st.area == ember) + 1;
+                if (at == 0) { at = list.FindIndex(st => st.kind == LevelKind.Final); if (at < 0) at = list.Count; }
+                for (int lv = 3; lv >= 1; lv--)
+                    list.Insert(at, new StageDef { displayName = "", kind = LevelKind.Area, area = frost, levelNumber = lv });
+                // renumber "area-level" names along the run
+                int areaNo = 0; AreaConfig prev = null;
+                foreach (var st in list)
+                {
+                    if (st.kind != LevelKind.Area) continue;
+                    if (st.area != prev) { areaNo++; prev = st.area; }
+                    st.displayName = $"{areaNo}-{st.levelNumber}";
+                }
+                cfg.stages = list.ToArray();
+            }
             cfg.tutorial = new StageDef { displayName = "TUTORIAL", kind = LevelKind.Tutorial, area = moss, levelNumber = 1, handcrafted = tut };
             EditorUtility.SetDirty(cfg);
             AssetDatabase.SaveAssets();
             return cfg;
+        }
+
+        static string InputTokens(string t)
+        {
+            if (string.IsNullOrEmpty(t)) return t;
+            return t.Replace("Hold R1 / D", "Hold [gear]").Replace("hold R1 / D", "hold [gear]")
+                    .Replace("HOLD JUMP", "HOLD [jump]").Replace("hold JUMP", "hold [jump]")
+                    .Replace("DOWN + use", "[down] + [use]").Replace("UP + use", "[up] + [use]").Replace("Use:", "[use] :");
         }
 
         // ------------------------------------------------------------------ prefabs
@@ -890,7 +955,7 @@ namespace Gloomdelve.EditorTools
             menu.recordsBack = UIBuilder.Button(rec.transform, "Back", "BACK", new Vector2(0.5f, 0f), new Vector2(170, 50), new Vector2(300, 70));
             menu.recordsPanel = rec.gameObject;
             menu.versionText = UIBuilder.Label(t, "Version", "", 22, new Color(1, 1, 1, 0.5f), TextAnchor.LowerLeft, new Vector2(0f, 0f), new Vector2(20, 16), new Vector2(900, 40), false);
-            UIBuilder.Label(t, "Hint", "Arrow keys / Enter to navigate   ·   Z / Space jump   ·   X whip   ·   C use gear   ·   hold D gear wheel   ·   A enter", 22,
+            UIBuilder.Label(t, "Hint", "[move] navigate   ·   [confirm] select   ·   [jump] jump   ·   [whip] whip   ·   [use] use gear   ·   hold [gear] gear wheel   ·   [enter] enter", 22,
                 new Color(1, 1, 1, 0.55f), TextAnchor.LowerRight, new Vector2(1f, 0f), new Vector2(-20, 16), new Vector2(1300, 40), false);
 
             EditorSceneManager.SaveScene(scene, G + "Scenes/MainMenu.unity");
@@ -1052,7 +1117,7 @@ namespace Gloomdelve.EditorTools
             hud.equipName.rectTransform.pivot = new Vector2(0f, 0.5f);
             hud.equipAmmo = UIBuilder.Label(gearBox.transform, "Ammo", "x4", 30, Color.white, TextAnchor.MiddleRight, new Vector2(1f, 0.5f), new Vector2(-22, 13), new Vector2(100, 36), true, FontStyle.Bold);
             hud.equipAmmo.rectTransform.pivot = new Vector2(1f, 0.5f);
-            var ghint = UIBuilder.Label(gearBox.transform, "Hint", "C use  /  hold D or R1 to change", 18, new Color(1, 1, 1, 0.6f), TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(86, -17), new Vector2(316, 22), false);
+            var ghint = UIBuilder.Label(gearBox.transform, "Hint", "[use] use     hold [gear] to change", 18, new Color(1, 1, 1, 0.6f), TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(86, -17), new Vector2(316, 22), false);
             ghint.rectTransform.pivot = new Vector2(0f, 0.5f);
 
             // Rows are placed by their vertical centre (pivot y = 0.5) so everything stays inside the frame.

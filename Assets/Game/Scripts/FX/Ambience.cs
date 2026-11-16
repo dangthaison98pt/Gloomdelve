@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Gloomdelve
 {
-    public enum AmbientParticles { None, Dust, Embers, Pollen, Spirits }
+    public enum AmbientParticles { None, Dust, Embers, Pollen, Spirits, Snow }
 
     /// <summary>
     /// Drifting atmosphere particles around the camera: dust motes in caves, rising embers in the mines, pollen
@@ -55,6 +55,7 @@ namespace Gloomdelve
                 case AmbientParticles.Embers: baseColor = new Color(1f, 0.55f, 0.18f); break;
                 case AmbientParticles.Pollen: baseColor = new Color(1f, 0.97f, 0.75f); break;
                 case AmbientParticles.Spirits: baseColor = new Color(0.55f, 0.8f, 1f); break;
+                case AmbientParticles.Snow: baseColor = new Color(0.92f, 0.97f, 1f); break;
                 default: baseColor = new Color(1f, 0.96f, 0.85f); break;
             }
             for (int i = 0; i < poolSize; i++)
@@ -92,6 +93,12 @@ namespace Gloomdelve
                     m.vel = new Vector2(Random.Range(-0.9f, -0.3f), Random.Range(-0.25f, 0.05f));
                     m.alpha = Random.Range(0.35f, 0.75f);
                     break;
+                case AmbientParticles.Snow:
+                    m.pos = new Vector2(Random.Range(v.xMin, v.xMax), anywhere ? Random.Range(v.yMin, v.yMax) : v.yMax);
+                    m.vel = new Vector2(Random.Range(-0.5f, 0.1f), Random.Range(-1.5f, -0.6f));
+                    m.alpha = Random.Range(0.5f, 0.95f);
+                    m.size = Random.value < 0.3f ? 2f : 1f;
+                    break;
                 case AmbientParticles.Spirits:
                     m.pos = new Vector2(Random.Range(v.xMin, v.xMax), Random.Range(v.yMin, v.yMax));
                     m.vel = new Vector2(Random.Range(-0.12f, 0.12f), Random.Range(0.08f, 0.3f));
@@ -119,7 +126,7 @@ namespace Gloomdelve
                 var r = renderers[i];
                 r.transform.position = m.pos;
                 r.transform.localScale = new Vector3(m.size, m.size, 1f);
-                float tw = kind == AmbientParticles.Dust ? 1f : 0.65f + 0.35f * Mathf.Sin(t * 2.3f + m.phase * 3f);
+                float tw = kind == AmbientParticles.Dust || kind == AmbientParticles.Snow ? 1f : 0.65f + 0.35f * Mathf.Sin(t * 2.3f + m.phase * 3f);
                 r.color = new Color(baseColor.r, baseColor.g, baseColor.b, m.alpha * tw);
             }
         }

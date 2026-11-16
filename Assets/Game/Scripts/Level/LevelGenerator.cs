@@ -233,7 +233,7 @@ namespace Gloomdelve
             var thornPits = new List<Vector2Int>();
             var data = new LevelData
             {
-                name = req.name, kind = LevelKind.Area, seed = req.seed, grid = g,
+                name = req.name, kind = LevelKind.Area, seed = req.seed, grid = g, grip = area.groundGrip,
                 roomTypes = types, roomTemplates = new string[rx, ry]
             };
             var roomRects = new Dictionary<Vector2Int, RectInt>();
@@ -405,7 +405,7 @@ namespace Gloomdelve
                         {
                             var gearDef = cfg.FindGear(gear);
                             string hint = gearDef != null && !string.IsNullOrEmpty(gearDef.gateSign) ? gearDef.gateSign
-                                : $"You need your {gear.ToUpperInvariant()} to get past this. Hold R1 / D to change gear.";
+                                : $"You need your {gear.ToUpperInvariant()} to get past this. Hold [gear] to change gear.";
                             spawns.Add(new SpawnPoint("sign", c, 0, 0, hint));
                         }
                         break;

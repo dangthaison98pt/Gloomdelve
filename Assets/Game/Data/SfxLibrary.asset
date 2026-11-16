@@ -278,6 +278,9 @@ MonoBehaviour:
   - id: area3
     clip: {fileID: 8300000, guid: 4c5704aca8d34344290a40423f2d5e8c, type: 3}
     volume: 0.55
+  - id: area4
+    clip: {fileID: 8300000, guid: 2097c4bcd8742ec47ba9cfbb161e69a2, type: 3}
+    volume: 0.55
   - id: final
     clip: {fileID: 8300000, guid: c25a8c4285310f8408db7ed87fc8ad98, type: 3}
     volume: 0.55

@@ -122,14 +122,16 @@ namespace Gloomdelve
             var gateGear = Level.gateCount > 0 ? config.FindGear(Level.gateGear) : null;
             if (gateGear != null)
                 sub = string.IsNullOrEmpty(gateGear.gateBanner)
-                    ? $"Obstacles ahead ({Level.gateCount}) - you will need your {gateGear.displayName.ToUpperInvariant()}.  Hold R1 / D to change gear."
+                    ? $"Obstacles ahead ({Level.gateCount}) - you will need your {gateGear.displayName.ToUpperInvariant()}.  Hold [gear] to change gear."
                     : string.Format(gateGear.gateBanner, Level.gateCount);
             hud.ShowBanner(Stage.kind == LevelKind.Area ? $"{Stage.displayName}  {Stage.area.displayName}" : Stage.displayName, sub, gateGear != null ? 5f : 3.5f);
             if (gateGear != null && !ScenarioRunner.Active && !AutoTest.Active) SupplyCache(gateGear, run);
+            if (Level.grip < 1f && Stage.levelNumber == 1 && !grantedGear)
+                hud.ShowMessage("The ground is frozen: you slide before you stop. Slow down before a ledge - hold [walk] to walk.", 7f);
             if (grantedGear)
             {
                 var g = config.FindGear(Stage.area.grantGear);
-                hud.ShowMessage($"New gear: {g.displayName.ToUpperInvariant()}!  Hold R1 / D to equip it.  {g.description}", 7f);
+                hud.ShowMessage($"New gear: {g.displayName.ToUpperInvariant()}!  Hold [gear] to equip it.  {g.description}", 7f);
                 Sfx.PlayUI("idol");
             }
             string line = $"seed {run.seed} stage {Stage.displayName} levelSeed {Level.seed} attempts {Level.attempts} ok={Level.validation?.ok}";

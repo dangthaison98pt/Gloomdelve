@@ -53,15 +53,30 @@ MonoBehaviour:
     handcrafted: {fileID: 0}
   - displayName: 3-1
     kind: 0
-    area: {fileID: 11400000, guid: a8f7037a9ecbda443befd8e59409c417, type: 2}
+    area: {fileID: 11400000, guid: 69f9dbae77aae6a4ab4f675840daa4b0, type: 2}
     levelNumber: 1
     handcrafted: {fileID: 0}
   - displayName: 3-2
     kind: 0
-    area: {fileID: 11400000, guid: a8f7037a9ecbda443befd8e59409c417, type: 2}
+    area: {fileID: 11400000, guid: 69f9dbae77aae6a4ab4f675840daa4b0, type: 2}
     levelNumber: 2
     handcrafted: {fileID: 0}
   - displayName: 3-3
+    kind: 0
+    area: {fileID: 11400000, guid: 69f9dbae77aae6a4ab4f675840daa4b0, type: 2}
+    levelNumber: 3
+    handcrafted: {fileID: 0}
+  - displayName: 4-1
+    kind: 0
+    area: {fileID: 11400000, guid: a8f7037a9ecbda443befd8e59409c417, type: 2}
+    levelNumber: 1
+    handcrafted: {fileID: 0}
+  - displayName: 4-2
+    kind: 0
+    area: {fileID: 11400000, guid: a8f7037a9ecbda443befd8e59409c417, type: 2}
+    levelNumber: 2
+    handcrafted: {fileID: 0}
+  - displayName: 4-3
     kind: 0
     area: {fileID: 11400000, guid: a8f7037a9ecbda443befd8e59409c417, type: 2}
     levelNumber: 3

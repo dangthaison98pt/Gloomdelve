@@ -40,6 +40,8 @@ namespace Gloomdelve
 
         // Terrain puzzles
         /// <summary>Equipment id the main path requires ('rope' / 'bomb'), or null.</summary>
+        /// <summary>Ground grip (AreaConfig.groundGrip): below 1 the floor is icy.</summary>
+        public float grip = 1f;
         public string gateGear;
         public int gateCount;
         public int gatesWanted;

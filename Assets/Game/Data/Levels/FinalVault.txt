@@ -1,6 +1,6 @@
 name: The Sunken Vault
 sign1: THE SUNKEN VAULT.  Deep below rests the Heartstone.  Carry it back to this gate to win.
-sign2: The Heartstone!  DOWN + X lifts it.  Lifting it wakes the vault - climb the east ladder to the gate, fast!
+sign2: The Heartstone!  [down] + [whip] lifts it.  Lifting it wakes the vault - climb the east ladder to the gate, fast!
 ---
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBX

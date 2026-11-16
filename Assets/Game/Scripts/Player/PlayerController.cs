@@ -95,6 +95,7 @@ namespace Gloomdelve
                 stunned = stunned,
                 speedMult = held != null && held.heavy ? cfg.heavyCarrySpeed : 1f,
                 jumpMult = Run != null ? 1f + Run.stats.jumpBonus : 1f,
+                grip = World.Level != null ? World.Level.grip : 1f,
             };
             EquippedGear?.ModifyMotor(this, ref mi);
             var prevMode = motor.mode;
@@ -320,11 +321,11 @@ namespace Gloomdelve
             if (held == null && grounded)
             {
                 World.Query(r, tmp, e => e is Item it && it.CanPickUp);
-                if (tmp.Count > 0) Prompt = $"DOWN + X : pick up {tmp[0].displayName}";
+                if (tmp.Count > 0) Prompt = $"[down] + [whip]  pick up {tmp[0].displayName}";
             }
             else if (held != null)
             {
-                Prompt = held.heavy ? $"Carrying {held.displayName}  (X throw, DOWN+X put down)" : null;
+                Prompt = held.heavy ? $"Carrying {held.displayName}  ([whip] throw,  [down] + [whip] put down)" : null;
             }
         }
 

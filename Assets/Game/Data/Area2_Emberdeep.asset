@@ -22,6 +22,7 @@ MonoBehaviour:
   outdoor: 0
   skyRows: 7
   treeChance: 0.25
+  groundGrip: 1
   groundEnemies:
   - id: toad
     weight: 2
