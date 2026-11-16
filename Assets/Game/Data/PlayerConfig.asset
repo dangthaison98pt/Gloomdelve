@@ -33,7 +33,7 @@ MonoBehaviour:
     ledgeGrabReach: 0.38
     pullUpTime: 0.22
     ladderJumpSideFactor: 0.6
-  startHealth: 4
+  startHealth: 10
   startBombs: 4
   startRopes: 4
   startGold: 0

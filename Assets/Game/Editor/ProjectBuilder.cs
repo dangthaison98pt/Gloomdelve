@@ -883,15 +883,15 @@ namespace Gloomdelve.EditorTools
             // bosses (one per area + the final guardian), their projectile, and the treasure chest
             Sprite BS(string n) => ArtGenerator.S("Sprites/Bosses/" + n);
             Reg("broodmother", Make<Broodmother>("Broodmother", "Enemies", "Broodmother", new Vector2(1.5f, 1.0f), BS("broodmother_0"), anims["broodmother_idle"], 15,
-                (e, go, sr) => { e.maxHealth = 14; e.goldDrop = 0; e.heartDropChance = 1f; e.animIdle = anims["broodmother_idle"]; e.animJump = anims["broodmother_jump"]; e.bloodColor = new Color(0.5f, 0.3f, 0.6f); }));
+                (e, go, sr) => { e.maxHealth = 14; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animIdle = anims["broodmother_idle"]; e.animJump = anims["broodmother_jump"]; e.bloodColor = new Color(0.5f, 0.3f, 0.6f); }));
             Reg("forgebrute", Make<ForgeBrute>("ForgeBrute", "Enemies", "Forge Brute", new Vector2(1.6f, 1.7f), BS("forgebrute_0"), anims["forgebrute_walk"], 15,
-                (e, go, sr) => { e.maxHealth = 16; e.goldDrop = 0; e.heartDropChance = 1f; e.animWalk = anims["forgebrute_walk"]; e.animCharge = anims["forgebrute_charge"]; e.animDazed = anims["forgebrute_dazed"]; e.bloodColor = new Color(0.9f, 0.4f, 0.2f); }));
+                (e, go, sr) => { e.maxHealth = 16; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animWalk = anims["forgebrute_walk"]; e.animCharge = anims["forgebrute_charge"]; e.animDazed = anims["forgebrute_dazed"]; e.bloodColor = new Color(0.9f, 0.4f, 0.2f); }));
             Reg("yetiking", Make<YetiKing>("YetiKing", "Enemies", "Yeti King", new Vector2(1.5f, 1.9f), BS("yetiking_0"), anims["yetiking_idle"], 15,
-                (e, go, sr) => { e.maxHealth = 16; e.goldDrop = 0; e.heartDropChance = 1f; e.animIdle = anims["yetiking_idle"]; e.animThrow = anims["yetiking_throw"]; e.bloodColor = new Color(0.85f, 0.92f, 1f); }));
+                (e, go, sr) => { e.maxHealth = 16; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animIdle = anims["yetiking_idle"]; e.animThrow = anims["yetiking_throw"]; e.bloodColor = new Color(0.85f, 0.92f, 1f); }));
             Reg("stormhawk", Make<StormHawk>("StormHawk", "Enemies", "Storm Hawk", new Vector2(1.3f, 0.9f), BS("stormhawk_0"), anims["stormhawk_fly"], 15,
-                (e, go, sr) => { e.maxHealth = 12; e.goldDrop = 0; e.heartDropChance = 1f; e.animFly = anims["stormhawk_fly"]; e.animDive = anims["stormhawk_dive"]; e.bloodColor = new Color(0.5f, 0.6f, 0.9f); }));
+                (e, go, sr) => { e.maxHealth = 12; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animFly = anims["stormhawk_fly"]; e.animDive = anims["stormhawk_dive"]; e.bloodColor = new Color(0.5f, 0.6f, 0.9f); }));
             Reg("warden", Make<Warden>("Warden", "Enemies", "Hollow Warden", new Vector2(1.4f, 1.8f), BS("warden_0"), anims["warden_float"], 31,
-                (e, go, sr) => { e.maxHealth = 24; e.stompable = false; e.goldDrop = 0; e.heartDropChance = 0f; e.animFloat = anims["warden_float"]; e.bloodColor = new Color(0.7f, 0.4f, 1f); }));
+                (e, go, sr) => { e.maxHealth = 24; e.stompable = false; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = ""; e.animFloat = anims["warden_float"]; e.bloodColor = new Color(0.7f, 0.4f, 1f); }));
             Reg("gloomorb", Make<BossShot>("GloomOrb", "Enemies", "gloom orb", new Vector2(0.35f, 0.35f), BS("orb"), null, 32,
                 (e, go, sr) => { e.flipWithFacing = false; }));
             // traps for climbs
@@ -936,6 +936,8 @@ namespace Gloomdelve.EditorTools
             Reg("ropepile", Make<Pickup>("RopePile", "Items", "rope pile", new Vector2(0.6f, 0.45f), ArtGenerator.S(I("ropepile")), null, 11, (e, g, s) => { e.resource = Res.Ropes; e.label = "ROPES"; e.value = 3; e.sfx = "pickup"; e.textColor = Color.white; e.flipWithFacing = false; }));
             Reg("heart", Make<Pickup>("Heart", "Items", "heart", new Vector2(0.5f, 0.45f), ArtGenerator.S(I("heart")), null, 11,
                 (e, g, s) => { e.resource = Res.Health; e.label = "HP"; e.value = 1; e.sfx = "buy"; e.textColor = new Color(1f, 0.45f, 0.5f); e.flipWithFacing = false; }));
+            Reg("heartvessel", Make<Pickup>("HeartVessel", "Items", "heart vessel", new Vector2(0.6f, 0.55f), ArtGenerator.S(I("heartvessel")), null, 11,
+                (e, g, s) => { e.resource = Res.MaxHealth; e.label = "MAX HEALTH"; e.value = 1; e.sfx = "idol"; e.textColor = new Color(1f, 0.85f, 0.35f); e.flipWithFacing = false; }));
             Reg("rope", Make<RopeProjectile>("Rope", "Items", "rope", new Vector2(0.4f, 0.4f), ArtGenerator.S("Center/rope_hook"), null, 5,
                 (e, g, s) =>
                 {
@@ -1209,7 +1211,7 @@ namespace Gloomdelve.EditorTools
             var vig = UIBuilder.Img(hudGo.transform, "DamageVignette", ArtGenerator.S("UI/vignette"), new Color(0.8f, 0f, 0f, 0f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
             UIBuilder.Stretch(vig.rectTransform);
             hud.damageVignette = vig;
-            var bar = UIBuilder.Panel(hudGo.transform, "TopLeft", new Vector2(0f, 1f), new Vector2(16, -16), new Vector2(640, 84));
+            var bar = UIBuilder.Panel(hudGo.transform, "TopLeft", new Vector2(0f, 1f), new Vector2(16, -16), new Vector2(490, 84));
             Text Stat(string name, string icon, float x, out Image img)
             {
                 img = UIBuilder.Img(bar.transform, name + "Icon", ArtGenerator.S(icon), Color.white, new Vector2(0f, 0.5f), new Vector2(x, 0), new Vector2(48, 48));
@@ -1219,9 +1221,9 @@ namespace Gloomdelve.EditorTools
                 return tx;
             }
             hud.healthText = Stat("Health", "UI/icon_heart", 20, out hud.heartIcon);
-            hud.bombText = Stat("Bombs", "UI/icon_bomb", 150, out _);
-            hud.ropeText = Stat("Ropes", "UI/icon_rope", 280, out _);
-            hud.goldText = Stat("Gold", "UI/icon_gold", 410, out _);
+            // health (current/limit) and gold only: bombs and ropes are counted on the gear slot below
+            hud.healthText.rectTransform.sizeDelta = new Vector2(150, 60);
+            hud.goldText = Stat("Gold", "UI/icon_gold", 240, out _);
             hud.goldText.color = gold;
             hud.goldText.rectTransform.sizeDelta = new Vector2(180, 60);
             hud.upgradesText = UIBuilder.Label(hudGo.transform, "Upgrades", "", 24, new Color(0.7f, 1f, 0.75f), TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(28, -108), new Vector2(900, 40));

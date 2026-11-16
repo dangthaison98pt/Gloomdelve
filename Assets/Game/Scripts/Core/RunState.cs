@@ -13,6 +13,8 @@ namespace Gloomdelve
         public bool isTutorial;
 
         public int health;
+        /// <summary>Health can never go above this; only a max-health item raises it. 0 = no limit (tests).</summary>
+        public int maxHealth;
         public int bombs;
         public int ropes;
         public int gold;
@@ -135,12 +137,16 @@ namespace Gloomdelve
             foreach (var id in worn) stats.Add(Owned(id)?.modifiers);
         }
 
+        /// <summary>Health is at its limit: hearts and tonics would do nothing.</summary>
+        public bool HealthFull => maxHealth > 0 && health >= maxHealth;
+
         public int GetResource(string id)
         {
             switch (id)
             {
                 case Res.Gold: return gold;
                 case Res.Health: return health;
+                case Res.MaxHealth: return maxHealth;
                 case Res.Bombs: return bombs;
                 case Res.Ropes: return ropes;
                 default: return id != null && counters.TryGetValue(id, out int v) ? v : 0;
@@ -153,7 +159,11 @@ namespace Gloomdelve
             switch (id)
             {
                 case Res.Gold: gold += amount; break;
-                case Res.Health: health += amount; break;
+                case Res.Health:
+                    health += amount;
+                    if (maxHealth > 0 && health > maxHealth) health = maxHealth;
+                    break;
+                case Res.MaxHealth: maxHealth += amount; health = maxHealth; break;
                 case Res.Bombs: bombs += amount; break;
                 case Res.Ropes: ropes += amount; break;
                 default:
@@ -180,7 +190,8 @@ namespace Gloomdelve
                 seed = seed,
                 stageIndex = 0,
                 isTutorial = tutorial,
-                health = cfg != null ? cfg.startHealth : 4,
+                health = cfg != null ? cfg.startHealth : 10,
+                maxHealth = cfg != null ? cfg.startHealth : 10,
                 bombs = cfg != null ? cfg.startBombs : 4,
                 ropes = cfg != null ? cfg.startRopes : 4,
                 gold = cfg != null ? cfg.startGold : 0,

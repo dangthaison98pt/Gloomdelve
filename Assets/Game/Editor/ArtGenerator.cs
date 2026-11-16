@@ -1476,6 +1476,17 @@ namespace Gloomdelve.EditorTools
             {
                 var p = ItemCanvas(); HeartShape(p, 2, 1, C(220, 40, 60), C(255, 150, 160), C(140, 20, 40)); p.Outline(ol); Save(p, d + "heart", PItem);
             }
+            {
+                // heart vessel (max-health item): a golden heart with a red core and a glint
+                var p = ItemCanvas();
+                HeartShape(p, 3, 3, C(255, 200, 60), C(255, 240, 170), C(190, 130, 30));
+                Color32 red = C(220, 40, 60);
+                p.Rect(5, 7, 5, 2, red); p.Rect(6, 6, 3, 1, red); p.Set(7, 5, red);
+                p.Set(5, 8, C(255, 150, 160));
+                p.Outline(ol);
+                p.Set(13, 13, C(255, 255, 230)); p.Set(13, 14, C(255, 240, 170)); p.Set(13, 12, C(255, 240, 170)); p.Set(12, 13, C(255, 240, 170)); p.Set(14, 13, C(255, 240, 170));
+                Save(p, d + "heartvessel", PItem);
+            }
             // rope segments (centre pivot)
             Color32 rc = C(196, 156, 92), rcd = C(130, 96, 50);
             {

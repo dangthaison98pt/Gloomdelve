@@ -85,6 +85,7 @@ namespace Gloomdelve
             if (!g.IsEmpty(x, y)) return;
             var e = World.SpawnById(minionId, new Vector2(x + 0.5f, y));
             if (e != null) e.facing = p.pos.x > e.pos.x ? 1 : -1;
+            if (e is Enemy en) en.summoned = true;
             Sfx.Play("toad", pos, 1f, 1.5f);
         }
     }

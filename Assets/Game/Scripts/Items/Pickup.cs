@@ -35,6 +35,7 @@ namespace Gloomdelve
             if (Dead || age < 0.15f) return;
             var run = RunSession.Current;
             if (run == null) return;
+            if (resource == Res.Health && run.HealthFull) return;   // already at full health: the heart stays for later
             run.AddResource(string.IsNullOrEmpty(resource) ? Res.Gold : resource, value);
             if (string.IsNullOrEmpty(label)) Fx.Text(Center + Vector2.up * 0.4f, "+" + value, textColor, 0.8f);
             else Fx.Text(Center + Vector2.up * 0.4f, "+" + value + " " + label, textColor);

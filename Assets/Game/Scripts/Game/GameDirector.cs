@@ -77,7 +77,7 @@ namespace Gloomdelve
             if (ScenarioRunner.Active)
             {
                 Stage = config.tutorial;
-                run.health = 4; run.bombs = 4; run.ropes = 4;
+                run.health = 4; run.maxHealth = 10; run.bombs = 4; run.ropes = 4;
                 Level = ScenarioRunner.BuildLevel();
                 Time.timeScale = 3f;
             }

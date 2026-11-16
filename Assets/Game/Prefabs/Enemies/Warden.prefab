@@ -60,6 +60,7 @@ MonoBehaviour:
   heartDropChance: 0
   maxHitDamage: 3
   goldChunks: 4
+  rewardId: 
   driftSpeed: 1.6
   attackGap: 2.2
   shotSpeed: 6

@@ -8,7 +8,7 @@ namespace Gloomdelve
         public MotorStats motor = new MotorStats();
 
         [Header("Run start")]
-        public int startHealth = 4;
+        public int startHealth = 10;
         public int startBombs = 4;
         public int startRopes = 4;
         public int startGold = 0;

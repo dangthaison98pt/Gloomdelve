@@ -11,7 +11,9 @@ namespace Gloomdelve
         public float knockbackScale = 1f;
         public Color bloodColor = new Color(0.55f, 0.1f, 0.12f);
         [Tooltip("Gold dropped on death (0 = none). Paid out as chunks (150) and nuggets (50).")] public int goldDrop = 50;
-        [Tooltip("Chance to also drop a heart on death.")] [Range(0, 1)] public float heartDropChance = 0.05f;
+        [Tooltip("Chance to drop a heart on death instead of the gold.")] [Range(0, 1)] public float heartDropChance = 0.05f;
+        /// <summary>Called in by a boss during its fight: killing it pays no gold and no heart (no farming the arena).</summary>
+        [System.NonSerialized] public bool summoned;
 
         [System.NonSerialized] public float stunTimer;
         protected float hurtTimer;
@@ -54,19 +56,22 @@ namespace Gloomdelve
             Sfx.Play("enemy_die", pos);
             if (RunSession.Current != null && (d.source is PlayerController || (d.source is Item it && it.thrower is PlayerController) || d.source is Bomb))
                 RunSession.Current.kills++;
-            // Every kill pays: gold by how dangerous the creature is, and now and then a heart.
             var w = World;
             Vector2 at = Center;
+            if (summoned) { Despawn(); return; }
+            // One reward per kill: now and then a heart, otherwise gold.
+            if (heartDropChance > 0f && Random.value < heartDropChance)
+            {
+                var h = w.SpawnById("heart", at);
+                if (h != null) h.vel = new Vector2(0f, 5.5f);
+                Despawn();
+                return;
+            }
             int chunks = goldDrop / 150, nuggets = Mathf.CeilToInt((goldDrop - chunks * 150) / 50f), n = chunks + nuggets;
             for (int i = 0; i < n; i++)
             {
                 var e = w.SpawnById(i < chunks ? "gold_big" : "gold_small", at);
                 if (e != null) e.vel = new Vector2(n > 1 ? (i - (n - 1) * 0.5f) * 1.8f : 0f, 4f + (i % 2));
-            }
-            if (heartDropChance > 0f && Random.value < heartDropChance)
-            {
-                var h = w.SpawnById("heart", at);
-                if (h != null) h.vel = new Vector2(0f, 5.5f);
             }
             Despawn();
         }

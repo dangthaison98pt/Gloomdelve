@@ -56,9 +56,10 @@ MonoBehaviour:
   knockbackScale: 1
   bloodColor: {r: 0.5, g: 0.3, b: 0.6, a: 1}
   goldDrop: 0
-  heartDropChance: 1
+  heartDropChance: 0
   maxHitDamage: 3
   goldChunks: 4
+  rewardId: heartvessel
   leapSpeedX: 6.5
   leapVelocity: 13
   restTime: 1.1

@@ -12,7 +12,7 @@ namespace Gloomdelve
         [System.NonSerialized] public Shopkeeper keeper;
         float bob;
         int slot;
-        bool shownFree;
+        bool shownFree, shelfChecked;
 
         public bool UpTriggers => true;
         bool Free => keeper == null || keeper.Dead || keeper.angry;
@@ -23,14 +23,52 @@ namespace Gloomdelve
             slot = sp.param;
             var shop = World.config.shop;
             offer = shop != null ? shop.Find(sp.text) : null;
+            // Equipment is bought once per run: an owned piece is never put on display again.
+            if (Owned(offer)) offer = Replacement();
+        }
+
+        static bool Owned(ShopOffer o)
+        {
             var run = RunSession.Current;
-            if (offer != null && offer.isUpgrade && run != null && run.HasUpgrade(offer.id) && shop != null)
+            return o != null && o.isUpgrade && run != null && run.HasUpgrade(o.id);
+        }
+
+        /// <summary>Another piece of equipment that is neither owned nor already on display here, else bombs
+        /// (supplies - bombs, ropes, hearts - can be bought again and again).</summary>
+        ShopOffer Replacement()
+        {
+            var shop = World.config.shop;
+            if (shop == null) return null;
+            foreach (var o in shop.offers)
+                if (o.isUpgrade && !Owned(o) && !OnDisplayElsewhere(o.id)) return o;
+            return shop.Find("bombs");
+        }
+
+        bool OnDisplayElsewhere(string id)
+        {
+            foreach (var e in World.Entities)
+                if (e is ShopItem s && s != this && !s.Dead && s.offer != null && s.offer.id == id) return true;
+            return false;
+        }
+
+        /// <summary>True when an item earlier on the same keeper's shelf shows the same piece of equipment.</summary>
+        bool DuplicateOnShelf()
+        {
+            foreach (var e in World.Entities)
             {
-                // Already owned: offer a different upgrade, or bombs.
-                ShopOffer alt = null;
-                foreach (var o in shop.offers) if (o.isUpgrade && !run.HasUpgrade(o.id)) { alt = o; break; }
-                offer = alt ?? shop.Find("bombs");
+                if (e == this) return false;
+                if (e is ShopItem s && !s.Dead && s.keeper == keeper && s.offer != null && s.offer.id == offer.id) return true;
             }
+            return false;
+        }
+
+        void Show(ShopOffer o)
+        {
+            offer = o;
+            if (offer == null) { Despawn(); return; }
+            displayName = offer.displayName;
+            if (icon != null) icon.sprite = offer.icon;
+            RefreshTag();
         }
 
         public override void OnSpawn()
@@ -57,6 +95,14 @@ namespace Gloomdelve
             bob += dt;
             if (icon != null) icon.transform.localPosition = new Vector3(0f, 0.12f + Mathf.Sin(bob * 3f) * 0.05f, 0f);
             if (Free != shownFree) RefreshTag();   // keeper linked, angered or killed
+            if (offer == null || !offer.isUpgrade) return;
+            // Got this piece somewhere else meanwhile (a chest, the same item on another shelf): it is gone from here.
+            if (Owned(offer)) { Despawn(); return; }
+            if (keeper != null && !shelfChecked)
+            {
+                shelfChecked = true;
+                if (DuplicateOnShelf()) Show(Replacement());   // one shelf never shows the same equipment twice
+            }
         }
 
         public string GetPrompt(PlayerController p)
@@ -70,6 +116,13 @@ namespace Gloomdelve
         {
             var run = RunSession.Current;
             if (offer == null || run == null || Dead) return;
+            if (Owned(offer)) { Despawn(); return; }   // never charge for equipment the run already has
+            if (offer.resource == Res.Health && run.HealthFull)
+            {
+                Sfx.Play("error", pos);
+                Fx.Text(Center + Vector2.up * 0.8f, "HEALTH IS FULL", new Color(1f, 0.4f, 0.4f));
+                return;
+            }
             if (!Free)
             {
                 if (run.gold < offer.price)

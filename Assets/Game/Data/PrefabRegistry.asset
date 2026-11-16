@@ -88,6 +88,8 @@ MonoBehaviour:
     prefab: {fileID: 3867685975134011339, guid: d733cc154a885b44089f2f3076eec8af, type: 3}
   - id: heart
     prefab: {fileID: 5961885058789331752, guid: 6e603d80527355d44ac1e5bfde83e838, type: 3}
+  - id: heartvessel
+    prefab: {fileID: 3702451930236346434, guid: 645d89b93809a914b9cab408eb9f6b56, type: 3}
   - id: rope
     prefab: {fileID: 6251988066372899909, guid: 08e1dcbfeb519194ab381a56c61b1fb0, type: 3}
   - id: arrowtrap

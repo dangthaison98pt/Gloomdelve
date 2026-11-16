@@ -206,6 +206,15 @@ namespace Gloomdelve
             new Scenario { name = "treasure chest lays out three free items", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => ChestCase(c) },
 
+            new Scenario { name = "shop: equipment sells once (no owned pieces, no twins on a shelf, gone once owned)", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => ShopOnceCase(c) },
+
+            new Scenario { name = "boss minions pay no gold or hearts; ordinary enemies pay a heart or gold, never both", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => MinionDropCase(c) },
+
+            new Scenario { name = "max health: hearts never overfill; a boss drops a heart vessel (+1 max, full heal) and gold", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => MaxHealthCase(c) },
+
             new Scenario { name = "shopkeeper grudge: robbed -> ambush with two brothers; killed -> no more shopkeepers", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => GrudgeCase(c) },
 
@@ -799,6 +808,163 @@ namespace Gloomdelve
             foreach (var si in items) if (!si.Dead) si.Despawn();
             chest.Despawn();
             foreach (var id in new System.Collections.Generic.List<string>(c.run.upgrades)) if (!owned.Contains(id)) c.run.RemoveUpgrade(id);
+        }
+
+        static IEnumerator ShopOnceCase(Ctx c)
+        {
+            var shop = c.world.config.shop;
+            var had = new System.Collections.Generic.HashSet<string>(c.run.upgrades);
+            c.Teleport(4.5f, 1f);
+            c.Bot(Seq((200, F())));
+            c.run.gold = 5000;
+            var keeper = c.Spawn<Shopkeeper>("shopkeeper", 16, 1, 0, null, -1);
+            var a = c.Spawn<ShopItem>("shopitem", 8, 1, 0, "springboots");
+            var b = c.Spawn<ShopItem>("shopitem", 10, 1, 1, "springboots");
+            yield return c.Frames(2);
+            keeper.AddWare(a); keeper.AddWare(b);
+            yield return c.Frames(3);
+            c.Expect(a.offer.id == "springboots" && !b.Dead && b.offer.id != "springboots" && b.offer.isUpgrade,
+                $"the twin on the shelf became another piece ({a.offer.id} / {b.offer?.id})");
+            // owning a piece: the one on display leaves, and it is never stocked again
+            var free = c.Spawn<ShopItem>("shopitem", 12, 1, 2, "compass");
+            yield return c.Frames(2);
+            c.run.AddUpgrade(shop.Find("compass"));
+            yield return c.Frames(3);
+            c.Expect(free.Dead, "an item bought elsewhere disappears from display");
+            var again = c.Spawn<ShopItem>("shopitem", 12, 1, 2, "compass");
+            yield return c.Frames(2);
+            c.Expect(again != null && again.offer != null && again.offer.id != "compass", $"an owned piece is not stocked (shows {again?.offer?.id})");
+            int gold = c.run.gold;
+            a.Interact(c.p);
+            yield return c.Frames(3);
+            c.Expect(a.Dead && c.run.HasUpgrade("springboots") && c.run.gold == gold - shop.Find("springboots").price, "buying equipment charges once");
+            // supplies stay on sale however many the run has
+            var bombs = c.Spawn<ShopItem>("shopitem", 6, 1, 3, "bombs");
+            yield return c.Frames(3);
+            c.Expect(bombs != null && !bombs.Dead && bombs.offer.id == "bombs", "supplies can always be bought again");
+            foreach (var e in c.world.Entities) if (!e.Dead && (e is ShopItem || e is Shopkeeper)) e.Despawn();
+            foreach (var id in new System.Collections.Generic.List<string>(c.run.upgrades)) if (!had.Contains(id)) c.run.RemoveUpgrade(id);
+            c.run.shopkeeperDead = false; c.run.shopkeeperWanted = false;
+            yield return c.Frames(2);
+        }
+
+        static IEnumerator MinionDropCase(Ctx c)
+        {
+            c.Teleport(4.5f, 1f);
+            c.p.godMode = true;
+            c.Bot(Seq((1500, F())));
+            var boss = c.Spawn<Broodmother>("broodmother", 16, 1);
+            Bat minion = null;
+            for (int i = 0; i < 1200 && minion == null; i++)
+            {
+                yield return c.Frames(1);
+                foreach (var e in c.world.Entities) if (e is Bat bt && !bt.Dead) { minion = bt; break; }
+            }
+            c.Expect(minion != null && minion.summoned, "the boss called in a minion marked as summoned");
+            if (boss != null) boss.Despawn();
+            if (minion != null)
+            {
+                c.Teleport(4.5f, 1f);
+                int kills = c.run.kills, drops = c.Count<Pickup>();
+                var at = minion.pos;
+                for (int i = 0; i < 10 && !minion.Dead; i++)
+                    minion.TakeDamage(new DamageInfo(99, DamageType.Whip, c.p, Vector2.zero, "test"));
+                yield return c.Frames(2);
+                c.Expect(minion.Dead && c.run.kills == kills + 1, "the minion dies and counts as a kill");
+                c.Expect(c.Count<Pickup>() == drops, $"it drops nothing (pickups {drops} -> {c.Count<Pickup>()}, killed at {at})");
+            }
+            ClearFight(c);
+            yield return c.Frames(2);
+            // control: the same creature met in a level still pays
+            var wild = c.Spawn<Bat>("bat", 18, 4);
+            yield return c.Frames(2);
+            int before = c.Count<Pickup>();
+            if (wild != null) for (int i = 0; i < 10 && !wild.Dead; i++) wild.TakeDamage(new DamageInfo(99, DamageType.Whip, c.p, Vector2.zero, "test"));
+            yield return c.Frames(2);
+            c.Expect(!ReferenceEquals(wild, null) && wild.Dead && c.Count<Pickup>() > before, $"an ordinary bat still drops gold (pickups {before} -> {c.Count<Pickup>()})");
+            foreach (var e in c.world.Entities) if (!e.Dead && e is Pickup) e.Despawn();
+            yield return c.Frames(2);
+            // a kill pays a heart or gold, never both
+            for (int pass = 0; pass < 2; pass++)
+            {
+                var bat = c.Spawn<Bat>("bat", 18, 4);
+                bat.heartDropChance = pass == 0 ? 1f : 0f;
+                yield return c.Frames(2);
+                bat.TakeDamage(new DamageInfo(99, DamageType.Whip, c.p, Vector2.zero, "test"));
+                yield return c.Frames(2);
+                int gold = 0, other = 0;
+                foreach (var e in c.world.Entities) if (!e.Dead && e is Pickup pk) { if (pk.resource == Res.Gold) gold++; else other++; }
+                if (pass == 0) c.Expect(other == 1 && gold == 0, $"a heart drop comes without gold (hearts {other}, gold {gold})");
+                else c.Expect(other == 0 && gold > 0, $"no heart: gold only (hearts {other}, gold {gold})");
+                foreach (var e in c.world.Entities) if (!e.Dead && e is Pickup) e.Despawn();
+                yield return c.Frames(2);
+            }
+            ClearFight(c);
+            c.p.godMode = false;
+            yield return c.Frames(2);
+        }
+
+        static IEnumerator MaxHealthCase(Ctx c)
+        {
+            c.Expect(c.world.config.player.startHealth == 10, $"a run starts with 10 health (config says {c.world.config.player.startHealth})");
+            c.run.maxHealth = 10; c.run.health = 10;
+            c.Teleport(4.5f, 1f);
+            // full health: the heart on the way is left lying, and the tonic is not sold
+            var heart = c.Spawn<Pickup>("heart", 7, 1);
+            c.Bot(Seq((40, F(x: 1)), (20, F())));
+            yield return c.Frames(62);
+            c.Expect(c.run.health == 10 && !heart.Dead, $"at full health a heart is not picked up (health {c.run.health})");
+            c.run.gold = 2000;
+            var tonic = c.Spawn<ShopItem>("shopitem", 12, 1, 0, "heart");
+            yield return c.Frames(2);
+            tonic.Interact(c.p);
+            yield return c.Frames(2);
+            c.Expect(c.run.gold == 2000 && c.run.health == 10 && !tonic.Dead, "a tonic cannot be bought at full health (no gold spent)");
+            tonic.Despawn();
+            // hurt: the same heart now heals, and never past the limit
+            c.run.health = 9;
+            c.Teleport(4.5f, 1f);
+            c.Bot(Seq((40, F(x: 1)), (20, F())));
+            yield return c.Frames(62);
+            c.Expect(c.run.health == 10 && heart.Dead, $"hurt: the heart heals 1 (health {c.run.health})");
+            c.run.AddResource(Res.Health, 5);
+            c.Expect(c.run.health == 10, $"health never goes past the limit (health {c.run.health})");
+
+            // a boss pays a heart vessel and gold, no plain heart
+            c.Teleport(4.5f, 1f);
+            c.p.godMode = true;
+            c.Bot(Seq((400, F())));
+            c.run.health = 3;
+            var boss = c.Spawn<Broodmother>("broodmother", 18, 1);
+            yield return c.Frames(2);
+            for (int i = 0; i < 60 && !boss.Dead; i++)
+            {
+                boss.TakeDamage(new DamageInfo(99, DamageType.Explosion, c.p, Vector2.zero, "test"));
+                yield return c.Frames(2);
+            }
+            yield return c.Frames(3);
+            int vessels = 0, hearts = 0, gold = 0;
+            Pickup vessel = null;
+            foreach (var e in c.world.Entities)
+                if (!e.Dead && e is Pickup pk)
+                {
+                    if (pk.resource == Res.MaxHealth) { vessels++; vessel = pk; }
+                    else if (pk.resource == Res.Health) hearts++;
+                    else if (pk.resource == Res.Gold) gold++;
+                }
+            c.Expect(boss.Dead && vessels == 1 && hearts == 0 && gold == boss.goldChunks, $"boss drop: 1 vessel, no heart, {boss.goldChunks} gold (got {vessels} / {hearts} / {gold})");
+            ClearFight(c);
+            if (vessel != null)
+            {
+                yield return c.Frames(20);
+                vessel.Collect(c.p);
+                yield return c.Frames(2);
+                c.Expect(c.run.maxHealth == 11 && c.run.health == 11, $"the vessel adds 1 max health and heals fully (health {c.run.health}/{c.run.maxHealth})");
+            }
+            foreach (var e in c.world.Entities) if (!e.Dead && e is Pickup) e.Despawn();
+            c.run.maxHealth = 10; c.run.health = 4;
+            c.p.godMode = false;
+            yield return c.Frames(2);
         }
 
         static IEnumerator GrudgeCase(Ctx c)

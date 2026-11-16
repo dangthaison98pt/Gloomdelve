@@ -162,9 +162,10 @@ MonoBehaviour:
   knockbackScale: 1
   bloodColor: {r: 0.85, g: 0.92, b: 1, a: 1}
   goldDrop: 0
-  heartDropChance: 1
+  heartDropChance: 0
   maxHitDamage: 3
   goldChunks: 4
+  rewardId: heartvessel
   actionGap: 1.5
   windupTime: 0.5
   ballGravity: 28

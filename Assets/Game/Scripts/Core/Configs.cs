@@ -41,6 +41,8 @@ namespace Gloomdelve
     public static class Res
     {
         public const string Gold = "gold", Health = "health", Bombs = "bombs", Ropes = "ropes";
+        /// <summary>Raises the health limit by the amount and refills health completely.</summary>
+        public const string MaxHealth = "maxhealth";
     }
 
     /// <summary>Upgrade ids that game code asks about by name (RunState.HasUpgrade). Pure stat upgrades need no entry here.</summary>

@@ -13,6 +13,7 @@ namespace Gloomdelve
         [Header("Boss")]
         [Tooltip("Largest damage a single hit can do.")] public int maxHitDamage = 3;
         [Tooltip("Gold chunks dropped on death.")] public int goldChunks = 4;
+        [Tooltip("Prefab id dropped on death along with the gold (the max-health item). Empty = nothing.")] public string rewardId = "heartvessel";
 
         public float HealthFraction => maxHealth > 0 ? Mathf.Clamp01(health / (float)maxHealth) : 0f;
         public override bool IsHazard => true;
@@ -40,6 +41,11 @@ namespace Gloomdelve
             Fx.Shake(0.7f);
             Fx.Debris(at, bloodColor, 16);
             base.Die(d);
+            if (w != null && !string.IsNullOrEmpty(rewardId))
+            {
+                var r = w.SpawnById(rewardId, at);
+                if (r != null) r.vel = new Vector2(0f, 7f);
+            }
             if (w != null)
                 for (int i = 0; i < goldChunks; i++)
                 {

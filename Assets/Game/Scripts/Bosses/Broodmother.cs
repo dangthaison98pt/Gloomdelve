@@ -67,7 +67,10 @@ namespace Gloomdelve
             {
                 var at = new Vector2(pos.x + (i == 0 ? -2f : 2f), pos.y + 3.2f);
                 if (!g.IsEmpty(Mathf.FloorToInt(at.x), Mathf.FloorToInt(at.y))) continue;
-                if (World.SpawnById(minionId, at) != null) room--;
+                var m = World.SpawnById(minionId, at);
+                if (m == null) continue;
+                if (m is Enemy en) en.summoned = true;
+                room--;
             }
             Sfx.Play("bat", pos, 1f, 0.7f);
             Fx.Debris(Center, new Color(0.5f, 0.4f, 0.6f), 8);

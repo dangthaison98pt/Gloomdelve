@@ -64,7 +64,7 @@ namespace Gloomdelve
         float bannerT, msgT, hurtT, vignette;
         float introT = -1f, introLength = 3.6f;
         float shownGold;
-        int lastHealth = -1;
+        int lastHealth = -1, shownHealth = -1, shownMax = -1;
         float heartPulse;
 
         public void Bind(GameDirector d) { dir = d; shownGold = RunSession.Current != null ? RunSession.Current.gold : 0; }
@@ -111,15 +111,19 @@ namespace Gloomdelve
             if (run == null || dir == null) return;
             float dt = Time.unscaledDeltaTime;
 
-            healthText.text = run.health.ToString();
+            if (run.health != shownHealth || run.maxHealth != shownMax)
+            {
+                shownHealth = run.health; shownMax = run.maxHealth;
+                healthText.text = run.maxHealth > 0 ? run.health + "/" + run.maxHealth : run.health.ToString();
+            }
             if (lastHealth >= 0 && run.health != lastHealth) heartPulse = 0.4f;
             lastHealth = run.health;
             heartPulse -= dt;
             if (heartIcon != null) heartIcon.rectTransform.localScale = Vector3.one * (1f + Mathf.Max(0f, heartPulse) * 0.8f);
             healthText.color = run.health <= 1 ? new Color(1f, 0.35f, 0.35f) : Color.white;
 
-            bombText.text = run.bombs.ToString();
-            ropeText.text = run.ropes.ToString();
+            if (bombText != null) bombText.text = run.bombs.ToString();
+            if (ropeText != null) ropeText.text = run.ropes.ToString();
             var gear = dir.config != null ? dir.config.FindGear(run.EquippedId) : null;
             if (equipIcon != null)
             {
