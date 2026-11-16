@@ -1381,14 +1381,40 @@ namespace Gloomdelve.EditorTools
             var rs = resGo.AddComponent<ResultsScreen>();
             var rroot = UIBuilder.Dimmer(resGo.transform, "Root");
             rs.root = rroot.gameObject;
-            var rp = UIBuilder.Panel(rroot.transform, "Panel", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1100, 860));
-            rs.title = UIBuilder.Label(rp.transform, "Title", "YOU DIED", 72, Color.red, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -70), new Vector2(1000, 100), true, FontStyle.Bold);
-            rs.body = UIBuilder.Label(rp.transform, "Body", "", 32, Color.white, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(0, -150), new Vector2(820, 380));
-            rs.news = UIBuilder.Label(rp.transform, "News", "", 30, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0, 250), new Vector2(1000, 50), true, FontStyle.Bold);
-            rs.records = UIBuilder.Label(rp.transform, "Records", "", 22, new Color(1, 1, 1, 0.75f), TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0, 185), new Vector2(1040, 70));
-            rs.newRunButton = UIBuilder.Button(rp.transform, "NewRun", "NEW RUN  (R)", new Vector2(0.5f, 0f), new Vector2(-340, 70), new Vector2(320, 76), out rs.newRunLabel);
-            rs.retrySeedButton = UIBuilder.Button(rp.transform, "RetrySeed", "SAME SEED", new Vector2(0.5f, 0f), new Vector2(0, 70), new Vector2(320, 76));
-            rs.menuButton = UIBuilder.Button(rp.transform, "Menu", "MAIN MENU", new Vector2(0.5f, 0f), new Vector2(340, 70), new Vector2(320, 76));
+            // Layout, top to bottom: big title, how it ended, how far it got, a rule, four stat tiles,
+            // then (bottom up) the buttons, the seed, lifetime records and any "new best" news.
+            var rp = UIBuilder.Panel(rroot.transform, "Panel", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1060, 800));
+            var top = new Vector2(0.5f, 1f); var bottom = new Vector2(0.5f, 0f);
+            rs.title = UIBuilder.Label(rp.transform, "Title", "YOU DIED", 84, Color.red, TextAnchor.MiddleCenter, top, new Vector2(0, -52), new Vector2(1000, 100), true, FontStyle.Bold);
+            rs.cause = UIBuilder.Label(rp.transform, "Cause", "", 30, new Color(1f, 1f, 1f, 0.9f), TextAnchor.MiddleCenter, top, new Vector2(0, -158), new Vector2(960, 40));
+            rs.reached = UIBuilder.Label(rp.transform, "Reached", "", 26, gold, TextAnchor.MiddleCenter, top, new Vector2(0, -204), new Vector2(960, 34), true, FontStyle.Bold);
+            UIBuilder.Img(rp.transform, "Rule", ArtGenerator.S("Center/pixel"), new Color(1f, 0.84f, 0.38f, 0.45f), top, new Vector2(0, -256), new Vector2(820, 3));
+            var statsGo = UIBuilder.Node(rp.transform, "Stats");
+            UIBuilder.Place(UIBuilder.Rect(statsGo), top, new Vector2(0, -282), new Vector2(960, 150));
+            rs.statsRoot = statsGo;
+            Text Tile(string label, float x, Color valueColor, string icon)
+            {
+                var tile = UIBuilder.Img(statsGo.transform, label, UIBuilder.slotSprite, new Color(0.62f, 0.5f, 0.3f), new Vector2(0.5f, 1f), new Vector2(x, 0), new Vector2(222, 150), true);
+                float lx = 0f;
+                if (icon != null)
+                {
+                    UIBuilder.Img(tile.transform, "Icon", ArtGenerator.S(icon), Color.white, new Vector2(0.5f, 1f), new Vector2(-42, -16), new Vector2(30, 30));
+                    lx = 16f;
+                }
+                UIBuilder.Label(tile.transform, "Label", label, 20, new Color(1f, 1f, 1f, 0.65f), TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(lx, -16), new Vector2(160, 30), false, FontStyle.Bold);
+                return UIBuilder.Label(tile.transform, "Value", "0", 46, valueColor, TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0, 22), new Vector2(210, 64), true, FontStyle.Bold);
+            }
+            rs.statGold = Tile("GOLD", -357, gold, "UI/icon_gold");
+            rs.statTime = Tile("TIME", -119, Color.white, "UI/icon_clock");
+            rs.statKills = Tile("KILLS", 119, Color.white, null);
+            rs.statLevels = Tile("LEVELS", 357, Color.white, null);
+            rs.body = UIBuilder.Label(rp.transform, "Body", "", 30, Color.white, TextAnchor.UpperCenter, top, new Vector2(0, -190), new Vector2(880, 240));
+            rs.news = UIBuilder.Label(rp.transform, "News", "", 30, gold, TextAnchor.MiddleCenter, bottom, new Vector2(0, 286), new Vector2(1000, 44), true, FontStyle.Bold);
+            rs.records = UIBuilder.Label(rp.transform, "Records", "", 22, new Color(1, 1, 1, 0.7f), TextAnchor.MiddleCenter, bottom, new Vector2(0, 204), new Vector2(1000, 66));
+            rs.seedText = UIBuilder.Label(rp.transform, "Seed", "", 20, new Color(1, 1, 1, 0.5f), TextAnchor.MiddleCenter, bottom, new Vector2(0, 160), new Vector2(1000, 30), false);
+            rs.newRunButton = UIBuilder.Button(rp.transform, "NewRun", "NEW RUN", bottom, new Vector2(-340, 60), new Vector2(320, 76), out rs.newRunLabel);
+            rs.retrySeedButton = UIBuilder.Button(rp.transform, "RetrySeed", "SAME SEED", bottom, new Vector2(0, 60), new Vector2(320, 76));
+            rs.menuButton = UIBuilder.Button(rp.transform, "Menu", "MAIN MENU", bottom, new Vector2(340, 60), new Vector2(320, 76));
             dir.results = rs;
 
             EditorSceneManager.SaveScene(scene, G + "Scenes/Game.unity");

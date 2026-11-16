@@ -9,7 +9,12 @@ namespace Gloomdelve
     {
         public GameObject root;
         public Text title;
-        public Text body;
+        [Tooltip("One line under the title: how the run ended.")] public Text cause;
+        [Tooltip("How far the run got.")] public Text reached;
+        [Tooltip("The four stat tiles (hidden for the tutorial).")] public GameObject statsRoot;
+        public Text statGold, statTime, statKills, statLevels;
+        public Text seedText;
+        [Tooltip("Free text block (tutorial only).")] public Text body;
         public Text records;
         public Text news;
         public Button newRunButton;
@@ -46,21 +51,22 @@ namespace Gloomdelve
             shownAt = Time.unscaledTime;
             title.text = victory ? "VICTORY!" : "YOU DIED";
             title.color = victory ? new Color(1f, 0.85f, 0.3f) : new Color(1f, 0.35f, 0.35f);
-            string how = victory ? "You carried the Heartstone back to the surface." : run.deathCause;
-            body.text =
-                $"{how}\n\n" +
-                $"Reached:  {run.reachedStageName}\n" +
-                $"Gold:  ${run.gold}\n" +
-                $"Time:  {UIUtil.FormatTime(run.totalTime)}\n" +
-                $"Kills:  {run.kills}      Levels cleared:  {run.levelsCompleted}\n" +
-                $"Seed:  {run.seed}   (SAME SEED replays this cave)";
+            cause.text = victory ? "You carried the Heartstone back to the surface." : run.deathCause;
+            reached.text = victory ? "" : "REACHED  " + run.reachedStageName;
+            body.text = "";
+            statsRoot.SetActive(true);
+            statGold.text = "$" + run.gold;
+            statTime.text = UIUtil.FormatTime(run.totalTime);
+            statKills.text = run.kills.ToString();
+            statLevels.text = run.levelsCompleted.ToString();
+            seedText.text = "Seed " + run.seed;
             var r = SaveSystem.Records;
             records.text =
-                $"BEST   deepest {r.bestStageName}   ·   gold ${r.bestGold}   ·   fastest win {(r.fastestWin < 0 ? "--" : UIUtil.FormatTime(r.fastestWin))}\n" +
-                $"runs {r.runs}   ·   wins {r.wins}   ·   deaths {r.deaths}";
+                $"BEST     deepest {r.bestStageName}     gold ${r.bestGold}     fastest win {(r.fastestWin < 0 ? "--" : UIUtil.FormatTime(r.fastestWin))}\n" +
+                $"{r.runs} runs     {r.wins} wins     {r.deaths} deaths";
             news.text = newsText;
             retrySeedButton.gameObject.SetActive(true);
-            if (newRunLabel) newRunLabel.text = "NEW RUN  (R)";
+            if (newRunLabel) newRunLabel.text = "NEW RUN";
             UIUtil.Select(newRunButton);
         }
 
@@ -71,11 +77,15 @@ namespace Gloomdelve
             shownAt = Time.unscaledTime;
             title.text = "TUTORIAL COMPLETE";
             title.color = new Color(0.6f, 1f, 0.6f);
-            body.text = "You know the basics: run, jump, hang, climb, whip,\nthrow, bomb and rope.\n\nTwo cave areas and the Sunken Vault await.\nFind the Heartstone and carry it out!";
+            cause.text = "";
+            reached.text = "";
+            seedText.text = "";
+            statsRoot.SetActive(false);
+            body.text = "You know the basics: run, jump, hang, climb, whip, throw, bomb and rope.\n\nFour areas, each with a boss, lie between you and the Heartstone.";
             records.text = "";
             news.text = $"Time {UIUtil.FormatTime(run.totalTime)}";
             retrySeedButton.gameObject.SetActive(false);
-            if (newRunLabel) newRunLabel.text = "START A RUN  (R)";
+            if (newRunLabel) newRunLabel.text = "START A RUN";
             UIUtil.Select(newRunButton);
         }
 
