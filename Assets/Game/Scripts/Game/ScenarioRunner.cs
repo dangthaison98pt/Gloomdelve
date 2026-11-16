@@ -185,7 +185,7 @@ namespace Gloomdelve
             new Scenario { name = "penguin slides at the player and hits a wall", map = m => { Set(m, 3, 1, 'S'); Set(m, 2, 1, '#'); Set(m, 2, 2, '#'); },
                 run = c => PenguinCase(c) },
 
-            new Scenario { name = "yeti snowball shoves the player without damage", map = m => { Set(m, 3, 1, 'S'); },
+            new Scenario { name = "yeti snowball shoves and freezes the player for 0.5 s without damage", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => YetiCase(c) },
 
             new Scenario { name = "frost bat drops an ice chunk that can be thrown and shatters", map = m => { Set(m, 3, 1, 'S'); },
@@ -194,7 +194,7 @@ namespace Gloomdelve
             new Scenario { name = "equipment: slots, wearing and taking off; ice cleats stop the slide", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => EquipmentCase(c) },
 
-            new Scenario { name = "fur coat: a snowball no longer freezes the wearer", map = m => { Set(m, 3, 1, 'S'); },
+            new Scenario { name = "fur coat: a snowball only slows the wearer by 30% for 1 s", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => FurCoatCase(c) },
 
             new Scenario { name = "boss: registered, damage capped per hit, defeat is reported", map = m => { Set(m, 3, 1, 'S'); },
@@ -217,6 +217,9 @@ namespace Gloomdelve
 
             new Scenario { name = "enemies only hurt while attacking: touching is safe, the snake's bite lands after its wind-up", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => AttackOnlyCase(c) },
+
+            new Scenario { name = "boss shockwave runs along the floor: it hits a standing player for 2, a jump clears it", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => ShockwaveCase(c) },
 
             new Scenario { name = "shopkeeper grudge: robbed -> ambush with two brothers; killed -> no more shopkeepers", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => GrudgeCase(c) },
@@ -694,18 +697,34 @@ namespace Gloomdelve
             c.Teleport(6.5f, 1f);
             var yt = c.Spawn<Yeti>("yeti", 13, 1);
             c.Bot(Seq((500, F())));
-            bool thrown = false, gone = false, frozen = false;
+            bool thrown = false, gone = false, frozen = false, slowed = false;
             for (int i = 0; i < 420 && !gone; i++)
             {
                 yield return new WaitForFixedUpdate();
                 if (c.Count<Snowball>() > 0) thrown = true;
                 else if (thrown) gone = true;
                 if (c.p.Frozen) frozen = true;
+                if (c.p.Slowed) slowed = true;
             }
             yield return c.Frames(10);
             c.Expect(thrown && gone, "the yeti's snowball flew and burst");
-            c.Expect(!frozen && !c.p.Frozen && !c.p.IsStunned, "the wearer is not frozen or stunned");
-            c.Expect(c.run.health == 4, "and takes no damage");
+            c.Expect(!frozen && !c.p.Frozen, "the wearer is not frozen");
+            c.Expect(slowed, "the wearer is slowed instead");
+            c.Expect(c.run.health == 4, "and takes no damage (health " + c.run.health + ")");
+            // the slow: 30% off the running speed, gone after a second
+            if (yt != null) yt.Despawn();
+            foreach (var e in c.world.Entities) if (!e.Dead && e is Snowball) e.Despawn();
+            yield return c.Frames(70);          // the slow from the snowball itself runs out first
+            c.p.Slow(0.3f, 1f);
+            c.Teleport(6.5f, 1f);
+            c.Bot(Seq((40, F(x: 1)), (80, F()), (40, F(x: 1)), (10, F())));
+            yield return c.Frames(38);
+            float slowSpeed = Mathf.Abs(c.p.vel.x);
+            yield return c.Frames(80);
+            c.Expect(!c.p.Slowed, "the slow wears off after a second");
+            yield return c.Frames(38);
+            float fullSpeed = Mathf.Abs(c.p.vel.x);
+            c.Expect(fullSpeed > 1f && Mathf.Abs(slowSpeed / fullSpeed - 0.7f) < 0.05f, $"slowed speed is 70% of normal ({slowSpeed:0.00} vs {fullSpeed:0.00})");
             if (yt != null) yt.Despawn();
             c.run.RemoveUpgrade("warmcoat");
         }
@@ -773,14 +792,28 @@ namespace Gloomdelve
                 if (b == null) continue;
                 Vector2 p0 = b.pos;
                 int n0 = c.world.EntityCount;
-                bool acted = false;
-                for (int i = 0; i < 420; i++)
+                bool acted = false, shots = false, rocks = false, balls = false;
+                for (int i = 0; i < 1800; i++)
                 {
                     yield return new WaitForFixedUpdate();
                     if ((b.pos - p0).sqrMagnitude > 0.5f || c.world.EntityCount > n0) acted = true;
+                    if (i % 5 == 0)
+                        foreach (var e in c.world.Entities)
+                        {
+                            if (e.Dead) continue;
+                            if (e is BossShot) shots = true;
+                            else if (e is Stalactite) rocks = true;
+                            else if (e is Snowball) balls = true;
+                        }
                     if (i == 200) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_" + id + ".png"));
                 }
-                c.Expect(acted && !b.Dead, id + " moved or attacked within 7 seconds and is still alive");
+                c.Expect(acted && !b.Dead, id + " moved or attacked and is still alive");
+                // every boss has more than its two basic moves: the extra ones leave these traces within 30 seconds
+                if (id == "broodmother") c.Expect(shots, "broodmother spat venom / sent a shockwave");
+                if (id == "forgebrute") c.Expect(rocks && shots, $"forgebrute stomped rocks loose ({rocks}) and landed a leap with a shockwave ({shots})");
+                if (id == "yetiking") c.Expect(balls && rocks, $"yetiking threw snowballs ({balls}) and shook icicles loose ({rocks})");
+                if (id == "stormhawk") c.Expect(shots, "stormhawk shot feathers");
+                if (id == "warden") c.Expect(shots, "warden fired orbs");
                 b.Despawn();
                 ClearFight(c);
                 yield return c.Frames(5);
@@ -1001,6 +1034,36 @@ namespace Gloomdelve
             c.Expect(hitFrame >= 0 && !attackedEarly && h0 - c.run.health == snake.contactDamage,
                 $"the bite itself costs {snake.contactDamage} (health {h0} -> {c.run.health}, hit frame {hitFrame}, before any strike: {attackedEarly})");
             snake.Despawn();
+            c.run.health = 4;
+            yield return c.Frames(2);
+        }
+
+        static IEnumerator ShockwaveCase(Ctx c)
+        {
+            // standing still in its path
+            c.Teleport(14.5f, 1f);
+            c.Bot(Seq((200, F())));
+            yield return c.Frames(2);
+            int h0 = c.run.health;
+            var w = c.Spawn<BossShot>("shockwave", 8, 1);
+            c.Expect(w != null, "shockwave prefab exists");
+            if (w == null) yield break;
+            w.pos = new Vector2(8.5f, 1.2f); w.vel = new Vector2(7.5f, 0f);
+            yield return c.Frames(20);
+            c.Expect(!ReferenceEquals(w, null) && !w.Dead && w.pos.x > 10f, $"it runs along the floor without bursting (x {w.pos.x:0.0}, dead {w.Dead})");
+            yield return c.Frames(60);
+            c.Expect(h0 - c.run.health == w.damage && w.damage == 2, $"standing in its way costs {w.damage} (health {h0} -> {c.run.health})");
+            // jumping over the next one
+            yield return c.Frames(90);            // let the invulnerability run out
+            c.Teleport(14.5f, 1f);
+            h0 = c.run.health;
+            var w2 = c.Spawn<BossShot>("shockwave", 8, 1);
+            w2.pos = new Vector2(8.5f, 1.2f); w2.vel = new Vector2(7.5f, 0f);
+            // it needs ~0.7 s to arrive: jump just before
+            c.Bot(Seq((34, F()), (1, F(jp: true, jh: true)), (30, F(jh: true)), (60, F())));
+            yield return c.Frames(125);
+            c.Expect(c.run.health == h0, $"a jump clears it (health {h0} -> {c.run.health})");
+            foreach (var e in c.world.Entities) if (!e.Dead && e is BossShot) e.Despawn();
             c.run.health = 4;
             yield return c.Frames(2);
         }
@@ -1390,7 +1453,7 @@ namespace Gloomdelve
             int hp0 = c.run.health;
             bool stunned = false;
             for (int i = 0; i < 90; i++) { yield return new WaitForFixedUpdate(); if (c.p.IsStunned) stunned = true; }
-            c.Expect(c.run.health == hp0 - 1, $"took fall damage (health {c.run.health})");
+            c.Expect(c.run.health == hp0 - c.p.cfg.fallDamage, $"took {c.p.cfg.fallDamage} fall damage (health {hp0} -> {c.run.health})");
             c.Expect(stunned, "stunned after landing");
         }
 

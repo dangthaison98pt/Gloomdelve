@@ -50,7 +50,7 @@ MonoBehaviour:
   maxHealth: 12
   flipWithFacing: 1
   artFacesLeft: 0
-  contactDamage: 1
+  contactDamage: 2
   stompable: 1
   gravity: 40
   knockbackScale: 1
@@ -60,6 +60,7 @@ MonoBehaviour:
   maxHitDamage: 3
   goldChunks: 4
   rewardId: heartvessel
+  bossShotId: gloomorb
   hoverHeight: 6.5
   hoverSpeed: 5
   diveSpeed: 14
@@ -68,6 +69,11 @@ MonoBehaviour:
   groundedTime: 1.7
   climbSpeed: 5
   rockId: rock
+  feathers: 5
+  featherSpeed: 8
+  featherTell: 0.45
+  sweepSpeed: 11
+  sweepHeight: 0.35
   animFly: {fileID: 11400000, guid: 39a221b9659c3db4294d72ebfdf406cb, type: 2}
   animDive: {fileID: 11400000, guid: 85bdca71b48ee5f48a5175d975f40cdc, type: 2}
 --- !u!1 &7992062299918963125

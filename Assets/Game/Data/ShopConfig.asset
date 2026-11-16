@@ -156,6 +156,6 @@ MonoBehaviour:
       iceGrip: 0
       coldResist: 1
     icon: {fileID: 21300000, guid: 4654bf18d521cf74b8ce7b23a5c922b3, type: 3}
-    description: snowballs cannot freeze you
+    description: snowballs only slow you instead of freezing you
   shopkeeperHealth: 6
   warningsBeforeAngry: 2

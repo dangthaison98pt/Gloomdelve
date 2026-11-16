@@ -1208,6 +1208,44 @@ namespace Gloomdelve.EditorTools
                 p.Disc(4f, 4f, 3.4f, C(150, 90, 230)); p.Disc(4f, 4f, 2f, C(214, 170, 255)); p.Set(4, 4, C(255, 255, 255));
                 Save(p, o + "orb", PCenter);
             }
+            // venom glob (Broodmother's spit): two frames, the drip trails behind (art points right)
+            for (int f = 0; f < 2; f++)
+            {
+                var p = new Px(12, 9);
+                Color32 v = C(110, 200, 60), vl = C(190, 245, 120), vd = C(50, 120, 40);
+                p.Disc(7.5f, 4f, 3.3f, v); p.Disc(8.3f, 4.6f, 1.5f, vl); p.Set(9, 5, C(240, 255, 210));
+                p.Set(7, 1, vd); p.Set(8, 1, vd); p.Set(6, 1, vd);
+                if (f == 0) { p.Rect(2, 4, 3, 1, v); p.Set(1, 4, vd); p.Set(3, 6, vd); }
+                else { p.Rect(3, 3, 2, 1, v); p.Set(1, 3, vd); p.Set(2, 5, v); p.Set(0, 5, vd); }
+                p.Outline(C(24, 50, 22));
+                Save(p, o + "venom_" + f, PCenter);
+            }
+            // feather (Storm Hawk): a quill flying point first (art points right)
+            {
+                var p = new Px(14, 7);
+                Color32 w = C(236, 244, 255), b = C(150, 186, 236), d = C(84, 112, 170);
+                p.Line(1, 3, 12, 3, d);                                  // the shaft
+                p.Line(3, 4, 10, 4, w); p.Line(4, 5, 8, 5, b); p.Line(3, 2, 10, 2, w); p.Line(4, 1, 8, 1, b);
+                p.Set(11, 4, b); p.Set(11, 2, b); p.Set(13, 3, w); p.Set(0, 3, d);
+                p.Outline(C(30, 40, 70));
+                Save(p, o + "feather", PCenter);
+            }
+            // shockwave (slams): a crest of dust and force running along the floor (art runs right; drawn pale so the
+            // boss can tint it - green for venom, orange for embers). Two frames; bottom pivot, it sits on the ground.
+            for (int f = 0; f < 2; f++)
+            {
+                var p = new Px(16, 12);
+                Color32 w = C(255, 255, 255), g1 = C(226, 226, 232), g2 = C(170, 170, 184);
+                // the leading crest: a tall curved wall on the right
+                p.Line(12, 0, 13, 4, w); p.Line(13, 4, 12, 8, w); p.Line(12, 8, 10, 10 + f, w);
+                p.Line(11, 0, 12, 4, g1); p.Line(12, 4, 11, 7, g1); p.Line(11, 7, 9, 9, g1);
+                p.Line(14, 0, 14, 3, g1);
+                // what it kicks up behind
+                p.Rect(6, 0, 5, 2, g1); p.Rect(2, 0, 4, 1, g2); p.Rect(8, 2, 3, 2 + f, g2);
+                p.Set(7, 4 + f, g1); p.Set(5, 3 - f, g2); p.Set(3, 2 + f, g2); p.Set(9, 6, g2); p.Set(1, 1, g2);
+                p.Outline(C(60, 60, 70));
+                Save(p, o + "shock_" + f, PItem);
+            }
             {
                 // rock dropper: a carved stone mouth in the ceiling
                 var p = new Px(16, 16);

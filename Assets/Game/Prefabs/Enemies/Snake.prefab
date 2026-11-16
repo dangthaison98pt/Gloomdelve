@@ -58,6 +58,11 @@ MonoBehaviour:
   goldDrop: 50
   heartDropChance: 0.05
   speed: 1.4
+  biteRange: 1.15
+  biteWindup: 0.35
+  biteTime: 0.16
+  biteLunge: 5.5
+  biteRecover: 0.9
   animWalk: {fileID: 11400000, guid: 51e9546297f025642823d4ebab7eee3e, type: 2}
 --- !u!1 &7980996915697547159
 GameObject:

@@ -166,6 +166,11 @@ MonoBehaviour:
   speed: 3.9
   accel: 9
   wakeRange: 6
+  swoopRange: 2
+  swoopWindup: 0.35
+  swoopTime: 0.38
+  swoopSpeed: 7.5
+  swoopRecover: 1.1
   animHang: {fileID: 11400000, guid: 7b4fd0e1b3f48ea4b93510cbb7159307, type: 2}
   animFly: {fileID: 11400000, guid: b7048f414982a1b4586e4250a4e1ab1c, type: 2}
   dropId: icechunk

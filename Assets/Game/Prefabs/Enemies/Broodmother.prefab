@@ -50,7 +50,7 @@ MonoBehaviour:
   maxHealth: 14
   flipWithFacing: 1
   artFacesLeft: 0
-  contactDamage: 1
+  contactDamage: 2
   stompable: 1
   gravity: 40
   knockbackScale: 1
@@ -60,11 +60,18 @@ MonoBehaviour:
   maxHitDamage: 3
   goldChunks: 4
   rewardId: heartvessel
+  bossShotId: gloomorb
   leapSpeedX: 6.5
   leapVelocity: 13
   restTime: 1.1
   minionId: bat
   maxMinions: 2
+  minionsPerCall: 1
+  broodCooldown: 12
+  spitSpeed: 7
+  tellTime: 0.5
+  slamVelocity: 17
+  shockSpeed: 7.5
   animIdle: {fileID: 11400000, guid: 53e40c77c1956124d923480fd97369e2, type: 2}
   animJump: {fileID: 11400000, guid: 30aad3d355b46864ba410bcab5bf1026, type: 2}
 --- !u!1 &9021173479815016475

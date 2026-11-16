@@ -3,8 +3,9 @@ using UnityEngine;
 namespace Gloomdelve
 {
     /// <summary>
-    /// Frostdeep boss: the yeti king. Throws fans of snowballs (they shove and freeze - wear a fur coat), calls
-    /// penguins to slide across the ice, and now and then leaps at the player. All of it on slippery ground.
+    /// Frostdeep boss: the yeti king. Five moves in a fixed round: fans of snowballs (they hurt, shove and freeze -
+    /// a fur coat stops the freeze), a belly slide across the whole arena (jump it: he is dazed when he hits the
+    /// wall), a penguin called in now and then, a leap at the player, and icicles shaken loose above the player.
     /// </summary>
     public class YetiKing : Boss
     {
@@ -15,14 +16,23 @@ namespace Gloomdelve
         [Tooltip("Seconds between two calls at the least (the first call comes after half of this). A skipped call is a snowball volley instead.")] public float summonCooldown = 14f;
         public float leapVelocity = 12f;
         public string projectileId = "snowball";
+        [Header("Belly slide")]
+        public float slideTellTime = 0.65f;
+        public float slideSpeed = 10f;
+        public float slideDaze = 1.5f;
+        [Header("Icicles")]
+        public float icicleTellTime = 0.6f;
+        public int icicles = 5;
         public string minionId = "penguin";
         public SpriteAnim animIdle;
         public SpriteAnim animThrow;
 
-        float timer, windup, summonTimer;
+        float timer, windup, summonTimer, slideTell, slideT, daze, icicleTell;
+        bool sliding;
+        int icicleX;
 
         /// <summary>Up close only his leap hurts (the snowballs are his real attack).</summary>
-        public override bool Attacking => !grounded;
+        public override bool Attacking => (!grounded || sliding) && daze <= 0f;
         int step;
         Vector2 aim;
 
@@ -39,8 +49,33 @@ namespace Gloomdelve
             base.Tick(dt);
             summonTimer -= dt;
             var p = Target;
-            if (grounded) vel.x = Mathf.MoveTowards(vel.x, 0f, 14f * dt);
-            if (windup > 0f)
+            if (grounded && !sliding) vel.x = Mathf.MoveTowards(vel.x, 0f, 14f * dt);
+            if (daze > 0f) { daze -= dt; anim?.Play(animIdle); }                 // hit the wall: open to attack
+            else if (sliding)
+            {
+                vel.x = facing * slideSpeed;
+                slideT -= dt;
+                if (grounded && slideT % 0.1f < dt) Fx.Dust(pos, 1);
+                if (slideT <= 0f) { sliding = false; timer = actionGap; }
+            }
+            else if (slideTell > 0f)
+            {
+                slideTell -= dt;
+                anim?.Play(animThrow);
+                if (slideTell <= 0f) { sliding = true; slideT = 3.5f; Sfx.Play("brute", pos, 1f, 1.1f); }
+            }
+            else if (icicleTell > 0f)
+            {
+                icicleTell -= dt;
+                anim?.Play(animThrow);
+                if (icicleTell <= 0f)
+                {
+                    Fx.Shake(0.4f);
+                    Sfx.Play("thud", pos, 1f, 0.6f);
+                    for (int i = 0; i < icicles; i++) DropFromCeiling(icicleX + (i * 2 - (icicles - 1)));
+                }
+            }
+            else if (windup > 0f)
             {
                 windup -= dt;
                 if (windup <= 0f) Volley();
@@ -53,8 +88,11 @@ namespace Gloomdelve
                 if (timer <= 0f && p != null)
                 {
                     timer = actionGap;
-                    int kind = step++ % 4;
-                    if (kind == 2 && summonTimer <= 0f && CountAlive<Penguin>() < maxPenguins) { Summon(p); summonTimer = summonCooldown; }
+                    // the round: snowballs, belly slide, penguin (or snowballs), leap, icicles
+                    int kind = step++ % 5;
+                    if (kind == 1) { slideTell = slideTellTime; Tell(); Sfx.Play("toad", pos, 1f, 0.5f); }
+                    else if (kind == 4) { icicleTell = icicleTellTime; icicleX = Mathf.FloorToInt(p.pos.x); Tell(); Sfx.Play("brute", pos, 1f, 0.5f); }
+                    else if (kind == 2 && summonTimer <= 0f && CountAlive<Penguin>() < maxPenguins) { Summon(p); summonTimer = summonCooldown; }
                     else if (kind == 3)
                     {
                         vel = new Vector2(Mathf.Clamp((p.pos.x - pos.x) * 1.1f, -6f, 6f), leapVelocity);
@@ -66,6 +104,17 @@ namespace Gloomdelve
             }
             var b = StepPhysics(dt, gravity);
             if (b.landed) { Fx.Shake(0.3f); Fx.Dust(pos, 6); Sfx.Play("thud", pos); }
+            if (sliding && (b.hitLeft || b.hitRight))
+            {
+                sliding = false;
+                daze = slideDaze;
+                timer = actionGap * 0.5f;
+                vel.x = -facing * 2f;
+                Fx.Shake(0.45f);
+                Fx.Debris(new Vector2(pos.x + facing * 0.8f, pos.y + 0.8f), new Color(0.85f, 0.95f, 1f), 10);
+                Sfx.Play("thud", pos, 1f, 0.7f);
+                facing = -facing;
+            }
         }
 
         void Volley()

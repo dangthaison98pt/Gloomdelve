@@ -60,6 +60,11 @@ MonoBehaviour:
   speed: 3.6
   accel: 9
   wakeRange: 6
+  swoopRange: 2
+  swoopWindup: 0.35
+  swoopTime: 0.38
+  swoopSpeed: 7.5
+  swoopRecover: 1.1
   animHang: {fileID: 11400000, guid: 25676528cf54992408f5da0634e85547, type: 2}
   animFly: {fileID: 11400000, guid: a90bb4b6cfa736e4d8298e627c4c6078, type: 2}
 --- !u!1 &3506030286765170598

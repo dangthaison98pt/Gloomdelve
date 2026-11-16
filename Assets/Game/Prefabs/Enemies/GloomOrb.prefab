@@ -145,6 +145,8 @@ MonoBehaviour:
   damage: 1
   lifetime: 4
   burstColor: {r: 0.7, g: 0.5, b: 1, a: 1}
+  faceVelocity: 0
+  flipByVelocity: 0
 --- !u!114 &7329094038100033600
 MonoBehaviour:
   m_ObjectHideFlags: 0

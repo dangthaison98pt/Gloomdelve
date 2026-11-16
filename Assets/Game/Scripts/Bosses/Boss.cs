@@ -15,6 +15,8 @@ namespace Gloomdelve
         [Tooltip("Gold chunks dropped on death.")] public int goldChunks = 4;
         [Tooltip("Prefab id dropped on death along with the gold (the max-health item). Empty = nothing.")] public string rewardId = "heartvessel";
 
+        [Tooltip("Projectile prefab used by the shots of this boss (venom, embers, feathers, orbs).")] public string bossShotId = "gloomorb";
+
         public float HealthFraction => maxHealth > 0 ? Mathf.Clamp01(health / (float)maxHealth) : 0f;
         public override bool IsHazard => true;
 
@@ -84,6 +86,43 @@ namespace Gloomdelve
                     return;
                 }
             }
+        }
+
+        /// <summary>The tell before a move: a "!" over the boss.</summary>
+        protected void Tell()
+        {
+            Fx.Text(new Vector2(Center.x, pos.y + size.y + 0.45f), "!", new Color(1f, 0.85f, 0.3f), 0.55f);
+        }
+
+        /// <summary>Fires one straight shot.</summary>
+        protected BossShot FireShot(Vector2 from, Vector2 velocity, string shotId = null, Color? tint = null)
+        {
+            var s = World.SpawnById(string.IsNullOrEmpty(shotId) ? bossShotId : shotId, from) as BossShot;
+            if (s == null) return null;
+            s.vel = velocity; s.owner = this;
+            if (tint.HasValue) s.Tint(tint.Value);
+            return s;
+        }
+
+        /// <summary>Fires a fan of shots aimed at a point; spread is the angle between neighbours in degrees.</summary>
+        protected void FanAt(Vector2 from, Vector2 target, int count, float spread, float speed, string shotId = null)
+        {
+            Vector2 d = target - from;
+            float baseAngle = Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg;
+            for (int i = 0; i < count; i++)
+            {
+                float a = (baseAngle + (i - (count - 1) * 0.5f) * spread) * Mathf.Deg2Rad;
+                FireShot(from, new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * speed, shotId);
+            }
+        }
+
+        /// <summary>Two shots that run along the floor to the left and right of the boss: jump over them.</summary>
+        protected void Shockwave(float speed, Color tint)
+        {
+            float y = pos.y + 0.2f, hw = size.x * 0.5f + 0.3f;
+            FireShot(new Vector2(pos.x - hw, y), new Vector2(-speed, 0f), "shockwave", tint);
+            FireShot(new Vector2(pos.x + hw, y), new Vector2(speed, 0f), "shockwave", tint);
+            Fx.Dust(pos, 10);
         }
 
         /// <summary>Launch velocity that lands a thrown object (gravity g) on a point after roughly time t.</summary>

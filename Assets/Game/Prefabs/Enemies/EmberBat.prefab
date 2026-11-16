@@ -157,7 +157,7 @@ MonoBehaviour:
   maxHealth: 1
   flipWithFacing: 1
   artFacesLeft: 0
-  contactDamage: 1
+  contactDamage: 2
   stompable: 1
   gravity: 40
   knockbackScale: 1
@@ -167,6 +167,11 @@ MonoBehaviour:
   speed: 4.6
   accel: 12
   wakeRange: 7
+  swoopRange: 2
+  swoopWindup: 0.35
+  swoopTime: 0.38
+  swoopSpeed: 7.5
+  swoopRecover: 1.1
   animHang: {fileID: 11400000, guid: beb26da637e32854a8ef68956532b49f, type: 2}
   animFly: {fileID: 11400000, guid: 55e2fd6d976f5bf49a72e4f043ac809c, type: 2}
 --- !u!114 &2094464974600797936

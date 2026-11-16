@@ -156,7 +156,7 @@ MonoBehaviour:
   maxHealth: 1
   flipWithFacing: 1
   artFacesLeft: 0
-  contactDamage: 1
+  contactDamage: 2
   stompable: 1
   gravity: 40
   knockbackScale: 1

@@ -51,7 +51,7 @@ MonoBehaviour:
   maxHealth: 24
   flipWithFacing: 1
   artFacesLeft: 0
-  contactDamage: 1
+  contactDamage: 2
   stompable: 0
   gravity: 40
   knockbackScale: 1
@@ -61,11 +61,16 @@ MonoBehaviour:
   maxHitDamage: 3
   goldChunks: 4
   rewardId: 
+  bossShotId: gloomorb
   driftSpeed: 1.6
   attackGap: 2.2
   shotSpeed: 6
   dashSpeed: 10
   shotId: gloomorb
+  rainOrbs: 5
+  rainSpacing: 1.7
+  rainHeight: 6
+  blinkDistance: 5
   animFloat: {fileID: 11400000, guid: c74158efcfdf65444a2052bd9121dd0b, type: 2}
 --- !u!114 &7866580570104725124
 MonoBehaviour:

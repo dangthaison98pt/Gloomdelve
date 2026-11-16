@@ -56,7 +56,7 @@ MonoBehaviour:
   hurtStunTime: 0.45
   hurtKnockback: {x: 5, y: 7}
   fallDamageHeight: 9
-  fallDamage: 1
+  fallDamage: 2
   fallStunTime: 1
   springBootsJumpMult: 1.17
   blastPowderRadiusBonus: 0.9

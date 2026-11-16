@@ -50,7 +50,7 @@ MonoBehaviour:
   maxHealth: 16
   flipWithFacing: 1
   artFacesLeft: 0
-  contactDamage: 1
+  contactDamage: 2
   stompable: 1
   gravity: 40
   knockbackScale: 1
@@ -60,14 +60,21 @@ MonoBehaviour:
   maxHitDamage: 3
   goldChunks: 4
   rewardId: heartvessel
+  bossShotId: gloomorb
   chargeSpeed: 9.5
   windupTime: 0.7
   dazeTime: 2.2
   idleTime: 0.9
   rocksPerSlam: 3
+  stompTell: 0.65
+  stompRocks: 4
+  leapVelocity: 14
+  leapSpeedX: 7
+  shockSpeed: 8
   animWalk: {fileID: 11400000, guid: 07ce2c96aec16174cb6a6de5ec36ce08, type: 2}
   animCharge: {fileID: 11400000, guid: 4c4514ffe330acf4a83cc89238117092, type: 2}
   animDazed: {fileID: 11400000, guid: 1304c5501cbd09346a34d57cb27455ed, type: 2}
+  chargeDamage: 3
 --- !u!1 &6630594636818759283
 GameObject:
   m_ObjectHideFlags: 0

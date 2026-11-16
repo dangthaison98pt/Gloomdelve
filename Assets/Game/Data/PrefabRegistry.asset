@@ -48,6 +48,12 @@ MonoBehaviour:
     prefab: {fileID: 1924136200737026320, guid: 7288a4b403e39ce4493b5a4d510a4ca7, type: 3}
   - id: gloomorb
     prefab: {fileID: 7832127820332425931, guid: 767c7e73031f16d4a95cceec37d7850a, type: 3}
+  - id: venomshot
+    prefab: {fileID: 2050318368188993514, guid: f9d85c5442c41174ebccbfbb10b28678, type: 3}
+  - id: feathershot
+    prefab: {fileID: 4535875391466398596, guid: f8faca63e6fa6cd4abf9ed5eb0334aa1, type: 3}
+  - id: shockwave
+    prefab: {fileID: 8821524181920425401, guid: a08c4f59355007944a17759eacb750ab, type: 3}
   - id: rockdropper
     prefab: {fileID: 5367929282938394832, guid: 25d876941e26a854b951a62f3280f5ab, type: 3}
   - id: crumble

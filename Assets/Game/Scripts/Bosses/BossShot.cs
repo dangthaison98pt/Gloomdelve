@@ -8,6 +8,8 @@ namespace Gloomdelve
         public int damage = 1;
         public float lifetime = 4f;
         public Color burstColor = new Color(0.7f, 0.5f, 1f);
+        [Tooltip("Turn the picture along the flight direction (art must point right): feathers, venom.")] public bool faceVelocity;
+        [Tooltip("Mirror the picture when flying left (art must run right): shockwaves.")] public bool flipByVelocity;
 
         [System.NonSerialized] public Entity owner;
         float life;
@@ -34,6 +36,22 @@ namespace Gloomdelve
                 return;
             }
             if (b.hitLeft || b.hitRight || b.hitCeiling || b.landed || b.grounded || life <= 0f) Burst();
+        }
+
+        protected override void LateUpdate()
+        {
+            base.LateUpdate();
+            if (sr == null) return;
+            if (faceVelocity && vel.sqrMagnitude > 0.01f)
+                sr.transform.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(vel.y, vel.x) * Mathf.Rad2Deg);
+            if (flipByVelocity) sr.flipX = vel.x < 0f;
+        }
+
+        /// <summary>Recolours the shot (each boss has its own colour) and its burst.</summary>
+        public void Tint(Color c)
+        {
+            burstColor = c;
+            if (sr != null) sr.color = c;
         }
 
         void Burst()

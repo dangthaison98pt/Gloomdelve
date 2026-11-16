@@ -156,7 +156,7 @@ MonoBehaviour:
   maxHealth: 16
   flipWithFacing: 1
   artFacesLeft: 0
-  contactDamage: 1
+  contactDamage: 2
   stompable: 1
   gravity: 40
   knockbackScale: 1
@@ -166,12 +166,19 @@ MonoBehaviour:
   maxHitDamage: 3
   goldChunks: 4
   rewardId: heartvessel
+  bossShotId: gloomorb
   actionGap: 1.5
   windupTime: 0.5
   ballGravity: 28
   maxPenguins: 1
+  summonCooldown: 14
   leapVelocity: 12
   projectileId: snowball
+  slideTellTime: 0.65
+  slideSpeed: 10
+  slideDaze: 1.5
+  icicleTellTime: 0.6
+  icicles: 5
   minionId: penguin
   animIdle: {fileID: 11400000, guid: bd2d25c0de2456d44862cfe70075a7d9, type: 2}
   animThrow: {fileID: 11400000, guid: 971cb61e4c13f814489227dd21dfaff3, type: 2}

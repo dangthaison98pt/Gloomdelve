@@ -43,7 +43,7 @@ namespace Gloomdelve
         public Vector2 hurtKnockback = new Vector2(5f, 7f);
         [Tooltip("Falls of at least this many tiles hurt and stun. The level validator never requires such a fall.")]
         public float fallDamageHeight = 9f;
-        public int fallDamage = 1;
+        public int fallDamage = 2;
         public float fallStunTime = 1.0f;
 
         // Upgrade bonuses (spring boots, iron whip, blast powder...) live in ShopConfig offers -> modifiers.

@@ -54,6 +54,9 @@ namespace Gloomdelve
         /// <summary>Encased in ice (snowball without a fur coat): cannot act until it wears off.</summary>
         public bool Frozen => frozen > 0f;
         float frozen;
+        /// <summary>Chilled: moving slower for a moment (a snowball on someone with cold resistance).</summary>
+        public bool Slowed => slowTimer > 0f;
+        float slowTimer, slowAmount;
         bool frozenTint;
 
         float whipTimer = -1f, whipCooldown, invuln, stunTimer, lookTimer, throwAnimTimer;
@@ -90,14 +93,14 @@ namespace Gloomdelve
             if (IsDead) { TickCorpse(dt); return; }
 
             FrameInput fi = bot != null ? bot.Next() : (input != null ? input.Consume() : default);
-            invuln -= dt; stunTimer -= dt; whipCooldown -= dt; throwAnimTimer -= dt; frozen -= dt;
+            invuln -= dt; stunTimer -= dt; whipCooldown -= dt; throwAnimTimer -= dt; frozen -= dt; slowTimer -= dt;
             bool stunned = stunTimer > 0f;
 
             var mi = new MotorInput
             {
                 x = fi.x, up = fi.up, down = fi.down, jumpPressed = fi.jumpPressed, jumpHeld = fi.jumpHeld, walk = fi.walk,
                 stunned = stunned,
-                speedMult = held != null && held.heavy ? cfg.heavyCarrySpeed : 1f,
+                speedMult = (held != null && held.heavy ? cfg.heavyCarrySpeed : 1f) * (slowTimer > 0f ? 1f - slowAmount : 1f),
                 jumpMult = Run != null ? 1f + Run.stats.jumpBonus : 1f,
                 grip = Mathf.Max(World.Level != null ? World.Level.grip : 1f, Run != null ? Run.stats.iceGrip : 0f),
             };
@@ -415,6 +418,16 @@ namespace Gloomdelve
             motor.jumping = false;
             vel = motor.vel;
             Fx.Shake(0.15f);
+        }
+
+        /// <summary>Moves slower by the given fraction (0.3 = 30%) for a while. No damage, full control.</summary>
+        public void Slow(float amount, float seconds)
+        {
+            if (IsDead || godMode) return;
+            slowAmount = Mathf.Clamp01(amount);
+            slowTimer = Mathf.Max(slowTimer, seconds);
+            Fx.Text(Center + Vector2.up * 0.9f, "SLOWED", new Color(0.7f, 0.9f, 1f), 0.8f);
+            Sfx.Play("shatter", pos, 0.4f, 1.7f);
         }
 
         /// <summary>Frozen solid for a moment: no damage, but no control either.</summary>

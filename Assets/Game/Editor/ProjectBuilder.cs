@@ -326,6 +326,8 @@ namespace Gloomdelve.EditorTools
             Anim("penguin_idle", F(e + "penguin_0"), 1); Anim("penguin_windup", F(e + "penguin_1"), 1); Anim("penguin_slide", F(e + "penguin_2"), 1);
             Anim("yeti_idle", F(e + "yeti_0"), 1); Anim("yeti_throw", F(e + "yeti_1"), 1);
             const string bo = "Sprites/Bosses/";
+            Anim("venom_fly", F(bo + "venom_0", bo + "venom_1"), 10f);
+            Anim("shock_run", F(bo + "shock_0", bo + "shock_1"), 12f);
             Anim("broodmother_idle", F(bo + "broodmother_0"), 1); Anim("broodmother_jump", F(bo + "broodmother_1"), 1);
             Anim("forgebrute_walk", F(bo + "forgebrute_0", bo + "forgebrute_1"), 4f); Anim("forgebrute_charge", F(bo + "forgebrute_2"), 1); Anim("forgebrute_dazed", F(bo + "forgebrute_3"), 1);
             Anim("yetiking_idle", F(bo + "yetiking_0"), 1); Anim("yetiking_throw", F(bo + "yetiking_1"), 1);
@@ -468,7 +470,7 @@ namespace Gloomdelve.EditorTools
                     description = "spiked soles: no sliding on ice", modifiers = new StatModifiers { iceGrip = 1f } });
             if (shop.Find("warmcoat") == null)
                 shop.offers.Add(new ShopOffer { id = "warmcoat", displayName = "Fur Coat", price = 650, isUpgrade = true, slot = "body",
-                    description = "snowballs cannot freeze you", modifiers = new StatModifiers { coldResist = 1f } });
+                    description = "snowballs only slow you instead of freezing you", modifiers = new StatModifiers { coldResist = 1f } });
             foreach (var o in shop.offers)
             {
                 if (!o.isUpgrade || !string.IsNullOrEmpty(o.slot)) continue;
@@ -862,16 +864,16 @@ namespace Gloomdelve.EditorTools
             Reg("bat", Make<Bat>("Bat", "Enemies", "bat", new Vector2(0.6f, 0.5f), ArtGenerator.S("Sprites/Enemies/bat_2"), anims["bat_hang"], 14,
                 (e, go, sr) => { e.animHang = anims["bat_hang"]; e.animFly = anims["bat_fly"]; }));
             Reg("emberbat", Make<Bat>("EmberBat", "Enemies", "ember bat", new Vector2(0.6f, 0.5f), ArtGenerator.S("Sprites/Enemies/emberbat_2"), anims["emberbat_hang"], 14,
-                (e, go, sr) => { e.goldDrop = 100; e.animHang = anims["emberbat_hang"]; e.animFly = anims["emberbat_fly"]; e.speed = 4.6f; e.accel = 12f; e.wakeRange = 7f; e.bloodColor = new Color(1f, 0.5f, 0.2f); }));
+                (e, go, sr) => { e.contactDamage = 2; e.goldDrop = 100; e.animHang = anims["emberbat_hang"]; e.animFly = anims["emberbat_fly"]; e.speed = 4.6f; e.accel = 12f; e.wakeRange = 7f; e.bloodColor = new Color(1f, 0.5f, 0.2f); }));
             Reg("spider", Make<Spider>("Spider", "Enemies", "spider", new Vector2(0.6f, 0.5f), ArtGenerator.S("Sprites/Enemies/spider_2"), anims["spider_hang"], 14,
                 (e, go, sr) => { e.animHang = anims["spider_hang"]; e.animIdle = anims["spider_idle"]; e.animJump = anims["spider_jump"]; e.bloodColor = new Color(0.3f, 0.6f, 0.3f); }));
             Reg("toad", Make<Toad>("Toad", "Enemies", "cinder toad", new Vector2(0.7f, 0.55f), ArtGenerator.S("Sprites/Enemies/toad_0"), anims["toad_idle"], 14,
                 (e, go, sr) => { e.animIdle = anims["toad_idle"]; e.animJump = anims["toad_jump"]; e.bloodColor = new Color(0.9f, 0.5f, 0.2f); }));
             Reg("brute", Make<Brute>("Brute", "Enemies", "mole brute", new Vector2(0.85f, 0.9f), ArtGenerator.S("Sprites/Enemies/brute_0"), anims["brute_walk"], 14,
-                (e, go, sr) => { e.maxHealth = 3; e.knockbackScale = 1.6f; e.goldDrop = 150; e.animWalk = anims["brute_walk"]; e.animCharge = anims["brute_charge"]; e.animDazed = anims["brute_dazed"]; }));
+                (e, go, sr) => { e.maxHealth = 3; e.contactDamage = 2; e.knockbackScale = 1.6f; e.goldDrop = 150; e.animWalk = anims["brute_walk"]; e.animCharge = anims["brute_charge"]; e.animDazed = anims["brute_dazed"]; }));
             // frozen caves
             Reg("penguin", Make<Penguin>("Penguin", "Enemies", "penguin", new Vector2(0.65f, 0.6f), ArtGenerator.S("Sprites/Enemies/penguin_0"), anims["penguin_idle"], 14,
-                (e, go, sr) => { e.animIdle = anims["penguin_idle"]; e.animWindup = anims["penguin_windup"]; e.animSlide = anims["penguin_slide"]; e.bloodColor = new Color(0.8f, 0.9f, 1f); }));
+                (e, go, sr) => { e.contactDamage = 2; e.animIdle = anims["penguin_idle"]; e.animWindup = anims["penguin_windup"]; e.animSlide = anims["penguin_slide"]; e.bloodColor = new Color(0.8f, 0.9f, 1f); }));
             Reg("yeti", Make<Yeti>("Yeti", "Enemies", "yeti", new Vector2(0.8f, 1.0f), ArtGenerator.S("Sprites/Enemies/yeti_0"), anims["yeti_idle"], 14,
                 (e, go, sr) => { e.maxHealth = 2; e.goldDrop = 100; e.animIdle = anims["yeti_idle"]; e.animThrow = anims["yeti_throw"]; e.bloodColor = new Color(0.85f, 0.92f, 1f); }));
             Reg("frostbat", Make<FrostBat>("FrostBat", "Enemies", "frost bat", new Vector2(0.6f, 0.5f), ArtGenerator.S("Sprites/Enemies/frostbat_2"), anims["frostbat_hang"], 14,
@@ -883,17 +885,23 @@ namespace Gloomdelve.EditorTools
             // bosses (one per area + the final guardian), their projectile, and the treasure chest
             Sprite BS(string n) => ArtGenerator.S("Sprites/Bosses/" + n);
             Reg("broodmother", Make<Broodmother>("Broodmother", "Enemies", "Broodmother", new Vector2(1.5f, 1.0f), BS("broodmother_0"), anims["broodmother_idle"], 15,
-                (e, go, sr) => { e.maxHealth = 14; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animIdle = anims["broodmother_idle"]; e.animJump = anims["broodmother_jump"]; e.bloodColor = new Color(0.5f, 0.3f, 0.6f); }));
+                (e, go, sr) => { e.maxHealth = 14; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animIdle = anims["broodmother_idle"]; e.animJump = anims["broodmother_jump"]; e.bloodColor = new Color(0.5f, 0.3f, 0.6f); }));
             Reg("forgebrute", Make<ForgeBrute>("ForgeBrute", "Enemies", "Forge Brute", new Vector2(1.6f, 1.7f), BS("forgebrute_0"), anims["forgebrute_walk"], 15,
-                (e, go, sr) => { e.maxHealth = 16; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animWalk = anims["forgebrute_walk"]; e.animCharge = anims["forgebrute_charge"]; e.animDazed = anims["forgebrute_dazed"]; e.bloodColor = new Color(0.9f, 0.4f, 0.2f); }));
+                (e, go, sr) => { e.maxHealth = 16; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animWalk = anims["forgebrute_walk"]; e.animCharge = anims["forgebrute_charge"]; e.animDazed = anims["forgebrute_dazed"]; e.bloodColor = new Color(0.9f, 0.4f, 0.2f); }));
             Reg("yetiking", Make<YetiKing>("YetiKing", "Enemies", "Yeti King", new Vector2(1.5f, 1.9f), BS("yetiking_0"), anims["yetiking_idle"], 15,
-                (e, go, sr) => { e.maxHealth = 16; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animIdle = anims["yetiking_idle"]; e.animThrow = anims["yetiking_throw"]; e.bloodColor = new Color(0.85f, 0.92f, 1f); }));
+                (e, go, sr) => { e.maxHealth = 16; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animIdle = anims["yetiking_idle"]; e.animThrow = anims["yetiking_throw"]; e.bloodColor = new Color(0.85f, 0.92f, 1f); }));
             Reg("stormhawk", Make<StormHawk>("StormHawk", "Enemies", "Storm Hawk", new Vector2(1.3f, 0.9f), BS("stormhawk_0"), anims["stormhawk_fly"], 15,
-                (e, go, sr) => { e.maxHealth = 12; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animFly = anims["stormhawk_fly"]; e.animDive = anims["stormhawk_dive"]; e.bloodColor = new Color(0.5f, 0.6f, 0.9f); }));
+                (e, go, sr) => { e.maxHealth = 12; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animFly = anims["stormhawk_fly"]; e.animDive = anims["stormhawk_dive"]; e.bloodColor = new Color(0.5f, 0.6f, 0.9f); }));
             Reg("warden", Make<Warden>("Warden", "Enemies", "Hollow Warden", new Vector2(1.4f, 1.8f), BS("warden_0"), anims["warden_float"], 31,
-                (e, go, sr) => { e.maxHealth = 24; e.stompable = false; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = ""; e.animFloat = anims["warden_float"]; e.bloodColor = new Color(0.7f, 0.4f, 1f); }));
+                (e, go, sr) => { e.maxHealth = 24; e.contactDamage = 2; e.stompable = false; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = ""; e.animFloat = anims["warden_float"]; e.bloodColor = new Color(0.7f, 0.4f, 1f); }));
             Reg("gloomorb", Make<BossShot>("GloomOrb", "Enemies", "gloom orb", new Vector2(0.35f, 0.35f), BS("orb"), null, 32,
                 (e, go, sr) => { e.flipWithFacing = false; }));
+            Reg("venomshot", Make<BossShot>("VenomShot", "Enemies", "venom", new Vector2(0.4f, 0.4f), BS("venom_0"), anims["venom_fly"], 32,
+                (e, go, sr) => { e.flipWithFacing = false; e.faceVelocity = true; e.burstColor = new Color(0.55f, 0.95f, 0.4f); }));
+            Reg("feathershot", Make<BossShot>("FeatherShot", "Enemies", "feather", new Vector2(0.35f, 0.35f), BS("feather"), null, 32,
+                (e, go, sr) => { e.flipWithFacing = false; e.faceVelocity = true; e.burstColor = new Color(0.8f, 0.9f, 1f); }));
+            Reg("shockwave", Make<BossShot>("Shockwave", "Enemies", "shockwave", new Vector2(0.6f, 0.6f), BS("shock_0"), anims["shock_run"], 32,
+                (e, go, sr) => { e.flipWithFacing = false; e.flipByVelocity = true; e.damage = 2; e.lifetime = 3f; e.burstColor = new Color(0.9f, 0.9f, 0.95f); }));
             // traps for climbs
             Reg("rockdropper", Make<RockDropper>("RockDropper", "Traps", "rock dropper", new Vector2(0.9f, 0.75f), ArtGenerator.S("Sprites/Traps/dropper"), null, 3,
                 (e, g, s) => { e.flipWithFacing = false; }));
@@ -902,13 +910,13 @@ namespace Gloomdelve.EditorTools
             Reg("chest", Make<Chest>("Chest", "Level", "chest", new Vector2(1.0f, 0.8f), ArtGenerator.S("Sprites/Props/chest_0"), null, 4,
                 (e, g, s) => { e.flipWithFacing = false; e.openSprite = ArtGenerator.S("Sprites/Props/chest_1"); }));
             Reg("hawk", Make<Hawk>("Hawk", "Enemies", "hawk", new Vector2(0.6f, 0.5f), ArtGenerator.S("Sprites/Enemies/hawk_0"), anims["hawk_fly"], 14,
-                (e, go, sr) => { e.goldDrop = 100; e.animFly = anims["hawk_fly"]; e.animDive = anims["hawk_dive"]; e.bloodColor = new Color(0.6f, 0.2f, 0.15f); }));
+                (e, go, sr) => { e.contactDamage = 2; e.goldDrop = 100; e.animFly = anims["hawk_fly"]; e.animDive = anims["hawk_dive"]; e.bloodColor = new Color(0.6f, 0.2f, 0.15f); }));
             Reg("tree", Make<Scenery>("Tree", "Level", "tree", new Vector2(1f, 2.5f), ArtGenerator.S("Sprites/Props/tree_0"), null, -6,
                 (e, go, sr) => { e.flipWithFacing = false; e.variants = new[] { ArtGenerator.S("Sprites/Props/tree_0"), ArtGenerator.S("Sprites/Props/tree_1") }; }));
             Reg("wraith", Make<Wraith>("Wraith", "Enemies", "Gloom Wraith", new Vector2(0.8f, 1.0f), ArtGenerator.S("Sprites/Enemies/wraith_0"), anims["wraith_float"], 30,
                 (e, go, sr) => { e.contactDamage = 99; e.stompable = false; e.goldDrop = 0; e.heartDropChance = 0f; e.animFloat = anims["wraith_float"]; }));
             Reg("shopkeeper", Make<Shopkeeper>("Shopkeeper", "Enemies", "shopkeeper", new Vector2(0.6f, 0.85f), ArtGenerator.S("Sprites/Shopkeeper/idle_0"), anims["keeper_idle"], 14,
-                (e, go, sr) => { e.maxHealth = 6; e.animIdle = anims["keeper_idle"]; e.animAngry = anims["keeper_angry"]; e.goldDrop = 300; e.stompable = true; }));
+                (e, go, sr) => { e.maxHealth = 6; e.contactDamage = 3; e.animIdle = anims["keeper_idle"]; e.animAngry = anims["keeper_angry"]; e.goldDrop = 300; e.stompable = true; }));
 
             // items
             Reg("rock", Make<Item>("Rock", "Items", "rock", new Vector2(0.45f, 0.35f), ArtGenerator.S(I("rock")), null, 12, (e, g, s) => { e.flipWithFacing = false; }));

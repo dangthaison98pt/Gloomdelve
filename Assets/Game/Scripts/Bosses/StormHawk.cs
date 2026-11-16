@@ -3,8 +3,9 @@ using UnityEngine;
 namespace Gloomdelve
 {
     /// <summary>
-    /// Sunfall boss: a giant hawk. Circles overhead out of reach, drops rocks, then dives. A dive that misses
-    /// leaves it on the ground for a moment: that is the time to strike. The rocks it drops can be thrown back.
+    /// Sunfall boss: a giant hawk circling overhead out of reach. Four moves in a fixed round: a dive (a miss
+    /// leaves it on the ground for a moment: strike then), a fan of feathers shot at the player, a string of
+    /// dropped rocks (they can be thrown back), and a low sweep right across the arena at ground level: jump it.
     /// </summary>
     public class StormHawk : Boss
     {
@@ -16,18 +17,27 @@ namespace Gloomdelve
         public float groundedTime = 1.7f;
         public float climbSpeed = 5f;
         public string rockId = "rock";
+        [Header("Feather fan")]
+        public int feathers = 5;
+        public float featherSpeed = 8f;
+        public float featherTell = 0.45f;
+        [Header("Sweep")]
+        public float sweepSpeed = 11f;
+        public float sweepHeight = 0.35f;
         public SpriteAnim animFly;
         public SpriteAnim animDive;
 
-        enum State { Hover, Windup, Dive, Grounded, Climb }
+        enum State { Hover, Windup, Dive, Grounded, Climb, SweepSetup, Sweep }
         State state;
         float timer, floorY, rockTimer;
-        int dives, rocksLeft;
+        int dives, rocksLeft, step, sweepDir;
+        float fanTimer;
+        bool sweepNext;
         Vector2 diveDir;
 
         /// <summary>Only the dive hurts.</summary>
-        public override bool Attacking => state == State.Dive;
-        public override int ContactDamage => state == State.Dive ? contactDamage : 0;
+        public override bool Attacking => state == State.Dive || state == State.Sweep;
+        public override int ContactDamage => Attacking ? contactDamage : 0;
 
         public override void Configure(SpawnPoint sp)
         {
@@ -63,16 +73,39 @@ namespace Gloomdelve
                         rockTimer -= dt;
                         if (rockTimer <= 0f) { DropRock(); rocksLeft--; rockTimer = 0.45f; }
                     }
+                    else if (fanTimer > 0f)
+                    {
+                        fanTimer -= dt;
+                        if (fanTimer <= 0f && p != null)
+                        {
+                            FanAt(Center, p.Center, feathers, 13f, featherSpeed, "feathershot");
+                            Sfx.Play("throw", pos, 1f, 1.3f);
+                        }
+                    }
                     else if (timer <= 0f && p != null)
                     {
-                        if (dives >= 2) { dives = 0; rocksLeft = 3; rockTimer = 0.2f; timer = hoverTime; Sfx.Play("bat", pos, 1f, 0.5f); }
-                        else { state = State.Windup; timer = windupTime; Sfx.Play("bat", pos, 1f, 0.45f); }
+                        // the round: dive, feathers, dive, rocks, sweep
+                        switch (step++ % 5)
+                        {
+                            case 1: fanTimer = featherTell; timer = hoverTime * 0.8f; Tell(); Sfx.Play("bat", pos, 1f, 0.7f); break;
+                            case 3: rocksLeft = 3; rockTimer = 0.2f; timer = hoverTime; Sfx.Play("bat", pos, 1f, 0.5f); break;
+                            case 4: sweepNext = true; state = State.Windup; timer = windupTime; Tell(); Sfx.Play("bat", pos, 1f, 0.35f); break;
+                            default: state = State.Windup; timer = windupTime; Sfx.Play("bat", pos, 1f, 0.45f); break;
+                        }
                     }
                     break;
                 }
                 case State.Windup:
                     vel = new Vector2(0f, 2f);
-                    if (timer <= 0f)
+                    if (timer <= 0f && sweepNext)
+                    {
+                        // first off to the side away from the player and down to the ground, then back across
+                        sweepNext = false;
+                        float px = p != null ? p.pos.x : pos.x;
+                        sweepDir = pos.x >= px ? -1 : 1;          // the sweep itself runs toward the player
+                        state = State.SweepSetup; timer = 1.3f;
+                    }
+                    else if (timer <= 0f)
                     {
                         Vector2 to = p != null ? p.Center - Center : Vector2.down;
                         if (to.y > -1f) to = Vector2.down;
@@ -83,6 +116,22 @@ namespace Gloomdelve
                     break;
                 case State.Dive:
                     vel = diveDir * diveSpeed;
+                    break;
+                case State.SweepSetup:
+                {
+                    anim?.Play(animFly);
+                    float low = floorY + sweepHeight;
+                    vel = new Vector2(-sweepDir * hoverSpeed * 1.4f, Mathf.Clamp((low - pos.y) * 5f, -11f, 4f));
+                    facing = sweepDir;
+                    float px = p != null ? p.pos.x : pos.x;
+                    bool far = Mathf.Abs(pos.x - px) > 8f || pos.x < 2.5f || pos.x > World.Grid.Width - 2.5f;
+                    if ((far && pos.y < low + 0.6f) || timer <= 0f) { state = State.Sweep; timer = 2.6f; anim?.Play(animDive); Sfx.Play("bat", pos, 1f, 0.6f); }
+                    break;
+                }
+                case State.Sweep:
+                    vel = new Vector2(sweepDir * sweepSpeed, Mathf.Clamp((floorY + sweepHeight - pos.y) * 6f, -11f, 4f));
+                    facing = sweepDir;
+                    if (timer % 0.08f < dt) Fx.Dust(new Vector2(pos.x, floorY), 1);
                     break;
                 case State.Grounded:
                     vel = Vector2.zero;
@@ -98,6 +147,13 @@ namespace Gloomdelve
             var b = new Body { pos = pos, vel = vel, hw = size.x * 0.5f, h = size.y };
             BodyPhysics.Move(World.Grid, ref b, dt, true);
             pos = b.pos;
+            if (state == State.SweepSetup && (b.hitLeft || b.hitRight)) { state = State.Sweep; timer = 2.6f; anim?.Play(animDive); }
+            else if (state == State.Sweep && (b.hitLeft || b.hitRight || timer <= 0f ||
+                                             (sweepDir > 0 ? pos.x > World.Grid.Width - 2.5f : pos.x < 2.5f)))
+            {
+                state = State.Climb;
+                anim?.Play(animFly);
+            }
             if (state == State.Dive && (b.landed || b.grounded || b.hitLeft || b.hitRight || timer <= 0f))
             {
                 state = State.Grounded; timer = groundedTime;

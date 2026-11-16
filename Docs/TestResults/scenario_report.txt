@@ -1,4 +1,4 @@
-Gloomdelve in-game scenario tests 2026-11-16 23:15:50
+Gloomdelve in-game scenario tests 2026-11-17 00:00:04
 PASS  whip kills an approaching snake  
 PASS  stomping a snake kills it and bounces  
 PASS  snake on a single tile stands still instead of flipping left-right  
@@ -23,10 +23,10 @@ PASS  glider: gliding crosses a 6-wide thorn chasm
 PASS  glider gate: without the glider the chasm is deadly  
 PASS  gliding down from high up causes no fall damage  
 PASS  penguin slides at the player and hits a wall  
-PASS  yeti snowball shoves the player without damage  
+PASS  yeti snowball shoves and freezes the player for 0.5 s without damage  
 PASS  frost bat drops an ice chunk that can be thrown and shatters  
 PASS  equipment: slots, wearing and taking off; ice cleats stop the slide  
-PASS  fur coat: a snowball no longer freezes the wearer  
+PASS  fur coat: a snowball only slows the wearer by 30% for 1 s  
 PASS  boss: registered, damage capped per hit, defeat is reported  
 PASS  all five bosses run their attack patterns  
 PASS  treasure chest lays out three free items  
@@ -34,6 +34,7 @@ PASS  shop: equipment sells once (no owned pieces, no twins on a shelf, gone onc
 PASS  boss minions pay no gold or hearts; ordinary enemies pay a heart or gold, never both  
 PASS  max health: hearts never overfill; a boss drops a heart vessel (+1 max, full heal) and gold  
 PASS  enemies only hurt while attacking: touching is safe, the snake's bite lands after its wind-up  
+PASS  boss shockwave runs along the floor: it hits a standing player for 2, a jump clears it  
 PASS  shopkeeper grudge: robbed -> ambush with two brothers; killed -> no more shopkeepers  
 PASS  climb traps: rotten platform gives way and comes back; rock dropper drops on a climber  
 PASS  area title card and event banner never show at the same time  
@@ -58,4 +59,4 @@ PASS  time-pressure wraith spawns and its touch is fatal
 PASS  carrying a golden idol out pays gold  
 PASS  exit door ends the level  
 
-58 passed, 0 failed
+59 passed, 0 failed

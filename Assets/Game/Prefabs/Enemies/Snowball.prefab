@@ -142,7 +142,8 @@ MonoBehaviour:
   flipWithFacing: 0
   artFacesLeft: 0
   gravity: 28
+  damage: 0
   shove: {x: 7.5, y: 4.5}
   stunTime: 0.35
-  freezeTime: 1.1
+  freezeTime: 0.5
   lifetime: 4
