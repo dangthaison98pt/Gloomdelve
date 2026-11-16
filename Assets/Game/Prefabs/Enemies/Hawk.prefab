@@ -61,6 +61,7 @@ MonoBehaviour:
   climbSpeed: 3.6
   senseRange: 8
   diveCooldown: 1.4
+  windup: 0.35
   animFly: {fileID: 11400000, guid: 4b321822b86842349982c676af93bdb3, type: 2}
   animDive: {fileID: 11400000, guid: 7b381efca83a4f24ba304ddf0410287d, type: 2}
 --- !u!1 &4861045815211907391

@@ -1099,13 +1099,20 @@ namespace Gloomdelve.EditorTools
                 }
                 else
                 {
-                    p.Ellipse(9, 7, 2.6f, 4.5f, body);
-                    p.Rect(6, 6, 2, 6, wing); p.Rect(11, 6, 2, 6, wing);
-                    p.Disc(9, 3, 2f, head);
-                    p.Set(9, 0, beak); p.Set(9, 1, beak); p.Set(8, 3, eye); p.Set(10, 3, eye);
+                    // stoop: beak first (pointing down), wings swept back in a V, tail feathers trailing.
+                    // Hawk.LateUpdate rotates this sprite along the dive, so it uses a centre pivot.
+                    p.Rect(8, 14, 3, 3, wing); p.Set(7, 16, wing); p.Set(11, 16, wing);
+                    for (int i = 0; i < 6; i++)
+                    {
+                        p.Set(6 - i / 2, 8 + i, wing); p.Set(7 - i / 2, 8 + i, wing); p.Set(5 - i / 2, 9 + i, wingL);
+                        p.Set(12 + i / 2, 8 + i, wing); p.Set(11 + i / 2, 8 + i, wing); p.Set(13 + i / 2, 9 + i, wingL);
+                    }
+                    p.Ellipse(9, 9, 2.2f, 5f, body);
+                    p.Disc(9, 4, 2f, head);
+                    p.Set(9, 1, beak); p.Set(9, 2, beak); p.Set(8, 4, eye); p.Set(10, 4, eye);
                 }
                 p.Outline(C(40, 26, 16));
-                Save(p, d + $"hawk_{f}", pv);
+                Save(p, d + $"hawk_{f}", f < 2 ? pv : new Vector2(0.5f, 0.5f));
             }
         }
 
@@ -1421,6 +1428,27 @@ namespace Gloomdelve.EditorTools
                 }
                 p.Outline(C(30, 20, 14));
                 Save(p, pr + (k == 0 ? "door_entrance" : k == 1 ? "door_exit" : "door_locked"), new Vector2(0.5f, 1f / 24f));
+            }
+            // stone gatehouse behind a door that stands in the open (outdoor surface): see Door.housingSprite
+            {
+                var p = new Px(34, 34);
+                Color32 st = C(170, 152, 124), stD = C(126, 110, 88), stL = C(206, 190, 160), mortar = C(96, 82, 66);
+                Color32 grass = C(92, 164, 68), grassL = C(142, 206, 94);
+                for (int y = 0; y < 27; y++)
+                    for (int x = 3; x < 31; x++)
+                    {
+                        int course = y / 5;
+                        bool joint = y % 5 == 4 || (x + (course % 2) * 4) % 8 == 3;
+                        p.Set(x, y, joint ? mortar : (y % 5 == 3 ? stL : (y % 5 == 0 ? stD : st)));
+                    }
+                for (int y = 0; y < 27; y++) { p.Set(3, y, stL); p.Set(30, y, stD); }
+                p.Rect(1, 27, 32, 3, stL); p.Rect(1, 27, 32, 1, stD);          // lintel slab
+                p.Rect(2, 30, 30, 1, grass);                                    // turf on the roof
+                for (int x = 2; x < 32; x++) if (N(x, 1, 77) > 0.45f) p.Set(x, 31, grassL);
+                for (int x = 4; x < 30; x++)                                    // moss hanging over the edge
+                    if (N(x, 2, 91) > 0.7f) { p.Set(x, 29, grass); if (N(x, 3, 91) > 0.5f) p.Set(x, 28, grass); }
+                p.Outline(C(30, 20, 14));
+                Save(p, pr + "door_housing", new Vector2(0.5f, 1f / 34f));
             }
             {
                 var p = new Px(16, 16);

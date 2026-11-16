@@ -145,6 +145,7 @@ MonoBehaviour:
   isExit: 1
   openSprite: {fileID: 21300000, guid: 01f3dc84edf8ceb489fd177c7ca35295, type: 3}
   lockedSprite: {fileID: 21300000, guid: 26898000678d7084f82a2f27f1ae7142, type: 3}
+  housingSprite: {fileID: 21300000, guid: dfcee03fa72974849b951703b5e1f845, type: 3}
 --- !u!114 &8569466847134723169
 MonoBehaviour:
   m_ObjectHideFlags: 0

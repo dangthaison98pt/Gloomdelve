@@ -17,6 +17,7 @@ namespace Gloomdelve
         bool[,] shopCells;
 
         int[] surface;
+        bool[,] wall;   // outdoor only: cells that have the back wall behind them
 
         int SurfaceAt(int x) => surface == null || surface.Length == 0 ? int.MaxValue : surface[Mathf.Clamp(x, 0, surface.Length - 1)];
 
@@ -35,25 +36,12 @@ namespace Gloomdelve
                         if (grid.InBounds(x, y)) shopCells[x, y] = true;
 
             int w = grid.Width, h = grid.Height;
-            // Outdoor: the terrain surface of each column (highest solid tile). Above it the sky backdrop shows.
-            var top = new int[w];
-            for (int x = 0; x < w; x++)
-            {
-                top[x] = -1;
-                for (int y = h - 1; y >= 0; y--) if (grid.IsSolid(x, y)) { top[x] = y; break; }
-            }
-            // Smooth over neighbouring columns so narrow shafts / drop holes stay "underground".
-            surface = new int[w];
-            for (int x = 0; x < w; x++)
-            {
-                int m = -1;
-                for (int k = -2; k <= 2; k++) m = Mathf.Max(m, top[Mathf.Clamp(x + k, 0, w - 1)]);
-                surface[x] = m;
-            }
+            wall = null;
+            if (ts.outdoor) BuildOutdoorWall(w, h);
             // Background extends a little beyond the level so the camera never shows void at the borders.
             for (int y = -6; y < h + 6; y++)
                 for (int x = -10; x < w + 10; x++)
-                    if (!ts.outdoor || y <= SurfaceAt(x))
+                    if (HasBackWall(x, y))
                         background.SetTile(new Vector3Int(x, y, 0), BackgroundTile(x, y));
 
             for (int y = 0; y < h; y++)
@@ -65,9 +53,75 @@ namespace Gloomdelve
             // Bedrock frame drawn outside the grid too (purely visual).
             for (int y = -6; y < h + 6; y++)
                 for (int x = -10; x < w + 10; x++)
-                    if (!grid.InBounds(x, y) && (!ts.outdoor || y <= SurfaceAt(x))) terrain.SetTile(new Vector3Int(x, y, 0), ts.bedrock[0]);
+                    if (!grid.InBounds(x, y) && HasBackWall(x, y)) terrain.SetTile(new Vector3Int(x, y, 0), ts.bedrock[0]);
 
             grid.TileChanged += OnTileChanged;
+        }
+
+        /// <summary>Solid masses up to this many tiles that touch nothing else count as floating islands outdoors.</summary>
+        const int IslandMaxTiles = 40;
+
+        /// <summary>
+        /// True where the back wall is drawn behind a cell. Indoors: everywhere. Outdoors: only below the terrain
+        /// surface - above it, and behind floating islands, the sky shows.
+        /// </summary>
+        public bool HasBackWall(int x, int y)
+        {
+            if (ts == null || !ts.outdoor || wall == null) return true;
+            if (grid.InBounds(x, y)) return wall[x, y];
+            return y <= SurfaceAt(x);
+        }
+
+        void BuildOutdoorWall(int w, int h)
+        {
+            // Split the solid tiles into connected masses: big ones are the ground, small ones are floating islands.
+            var comp = new int[w, h];
+            var sizes = new System.Collections.Generic.List<int> { 0 };
+            var stack = new System.Collections.Generic.Stack<Vector2Int>();
+            for (int y0 = 0; y0 < h; y0++)
+                for (int x0 = 0; x0 < w; x0++)
+                {
+                    if (comp[x0, y0] != 0 || !grid.IsSolid(x0, y0)) continue;
+                    int id = sizes.Count, n = 0;
+                    comp[x0, y0] = id; stack.Push(new Vector2Int(x0, y0));
+                    while (stack.Count > 0)
+                    {
+                        var c = stack.Pop(); n++;
+                        for (int k = 0; k < 4; k++)
+                        {
+                            int nx = c.x + (k == 0 ? 1 : k == 1 ? -1 : 0), ny = c.y + (k == 2 ? 1 : k == 3 ? -1 : 0);
+                            if (nx < 0 || ny < 0 || nx >= w || ny >= h || comp[nx, ny] != 0 || !grid.IsSolid(nx, ny)) continue;
+                            comp[nx, ny] = id; stack.Push(new Vector2Int(nx, ny));
+                        }
+                    }
+                    sizes.Add(n);
+                }
+            bool Ground(int x, int y) => comp[x, y] != 0 && sizes[comp[x, y]] > IslandMaxTiles;
+
+            // The terrain surface of each column: its highest ground tile. Above it the sky backdrop shows.
+            var top = new int[w];
+            for (int x = 0; x < w; x++)
+            {
+                top[x] = -1;
+                for (int y = h - 1; y >= 0; y--) if (Ground(x, y)) { top[x] = y; break; }
+            }
+            // A deep hole with ground on both sides (shaft, drop hole) stays "underground" up to the lower rim.
+            // Shallow dips such as thorn pits get no wall: the sky shows right behind them.
+            surface = new int[w];
+            for (int x = 0; x < w; x++)
+            {
+                int l = -1, r = -1;
+                for (int k = 1; k <= 4; k++)
+                {
+                    l = Mathf.Max(l, top[Mathf.Clamp(x - k, 0, w - 1)]);
+                    r = Mathf.Max(r, top[Mathf.Clamp(x + k, 0, w - 1)]);
+                }
+                int rim = Mathf.Min(l, r);
+                surface[x] = rim - top[x] >= 3 ? rim : top[x];
+            }
+            wall = new bool[w, h];
+            for (int x = 0; x < w; x++)
+                for (int y = 0; y < h && y <= surface[x]; y++) wall[x, y] = true;
         }
 
         void OnDestroy()
@@ -137,7 +191,7 @@ namespace Gloomdelve
             if (shade != null && ts.shade != null && ts.shade.Length == 16)
             {
                 TileBase sh = null;
-                if (!grid.IsSolid(x, y) && !(ts.outdoor && y > SurfaceAt(x)))
+                if (!grid.IsSolid(x, y) && HasBackWall(x, y))
                 {
                     int solidSides = ~Mask(x, y) & 15;
                     if (solidSides != 0) sh = ts.shade[solidSides];

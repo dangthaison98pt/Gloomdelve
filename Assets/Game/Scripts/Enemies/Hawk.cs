@@ -10,13 +10,15 @@ namespace Gloomdelve
         public float climbSpeed = 3.6f;
         public float senseRange = 8f;
         public float diveCooldown = 1.4f;
+        [Tooltip("Pause before a dive: the hawk pulls up and screeches so the player can react.")]
+        public float windup = 0.35f;
         public SpriteAnim animFly;
         public SpriteAnim animDive;
 
-        enum State { Hover, Dive, Climb }
+        enum State { Hover, Windup, Dive, Climb }
         State state;
         Vector2 home, diveDir;
-        float t, cooldown, diveDist;
+        float t, cooldown, diveDist, windupTimer;
 
         public override void Configure(SpawnPoint sp)
         {
@@ -56,15 +58,28 @@ namespace Gloomdelve
                         Mathf.Abs(p.pos.x - pos.x) < senseRange && (p.Center - Center).sqrMagnitude < senseRange * senseRange * 1.6f &&
                         World.LineClear(Center, p.Center))
                     {
-                        state = State.Dive;
-                        diveDir = (p.Center - Center).normalized;
-                        diveDist = 0f;
-                        facing = diveDir.x >= 0 ? 1 : -1;
-                        anim?.Play(animDive);
+                        state = State.Windup;
+                        windupTimer = windup;
+                        facing = p.pos.x >= pos.x ? 1 : -1;
                         Sfx.Play("bat", pos, 0.8f, 0.6f);
                     }
                     break;
                 }
+                case State.Windup:
+                    // pull up a little, then commit to a straight dive at where the player is now
+                    vel = new Vector2(0f, 1.6f);
+                    windupTimer -= dt;
+                    if (windupTimer <= 0f)
+                    {
+                        Vector2 to = p != null && !p.IsDead ? p.Center - Center : Vector2.down;
+                        if (to.y > -0.5f) { state = State.Hover; cooldown = 0.4f; break; }   // the player got above us
+                        state = State.Dive;
+                        diveDir = to.normalized;
+                        diveDist = 0f;
+                        facing = diveDir.x >= 0 ? 1 : -1;
+                        anim?.Play(animDive);
+                    }
+                    break;
                 case State.Dive:
                     vel = diveDir * diveSpeed;
                     diveDist += diveSpeed * dt;
@@ -88,6 +103,18 @@ namespace Gloomdelve
                 // blocked on the way home: make this spot the new perch
                 home = pos;
             }
+        }
+
+        /// <summary>The dive sprite points straight down: turn it along the dive so the hawk flies beak first.</summary>
+        protected override void LateUpdate()
+        {
+            base.LateUpdate();
+            if (sr == null) return;
+            bool diving = state == State.Dive && stunTimer <= 0f;
+            var tr = sr.transform;
+            tr.localRotation = diving ? Quaternion.Euler(0f, 0f, Vector2.SignedAngle(Vector2.down, diveDir)) : Quaternion.identity;
+            tr.localPosition = diving ? new Vector3(0f, size.y * 0.5f, 0f) : Vector3.zero;
+            if (diving) sr.flipX = false;
         }
 
         protected override void OnHurt(in DamageInfo d)

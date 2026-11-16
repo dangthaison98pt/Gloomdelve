@@ -785,9 +785,9 @@ namespace Gloomdelve.EditorTools
 
             // level objects
             Reg("door_entrance", Make<Door>("DoorEntrance", "Level", "entrance", new Vector2(0.8f, 1.2f), ArtGenerator.S("Sprites/Props/door_entrance"), null, 3,
-                (e, g, s) => { e.isExit = false; e.flipWithFacing = false; e.openSprite = ArtGenerator.S("Sprites/Props/door_entrance"); }));
+                (e, g, s) => { e.isExit = false; e.flipWithFacing = false; e.openSprite = ArtGenerator.S("Sprites/Props/door_entrance"); e.housingSprite = ArtGenerator.S("Sprites/Props/door_housing"); }));
             Reg("door_exit", Make<Door>("DoorExit", "Level", "exit", new Vector2(0.8f, 1.2f), ArtGenerator.S("Sprites/Props/door_exit"), null, 3,
-                (e, g, s) => { e.isExit = true; e.flipWithFacing = false; e.openSprite = ArtGenerator.S("Sprites/Props/door_exit"); e.lockedSprite = ArtGenerator.S("Sprites/Props/door_locked"); }));
+                (e, g, s) => { e.isExit = true; e.flipWithFacing = false; e.openSprite = ArtGenerator.S("Sprites/Props/door_exit"); e.lockedSprite = ArtGenerator.S("Sprites/Props/door_locked"); e.housingSprite = ArtGenerator.S("Sprites/Props/door_housing"); }));
             Reg("sign", Make<Sign>("Sign", "Level", "sign", new Vector2(0.9f, 1f), ArtGenerator.S("Sprites/Props/sign"), null, 3, (e, g, s) => { e.flipWithFacing = false; }));
             Reg("altar", Make<Prop>("Altar", "Level", "altar", new Vector2(1f, 0.4f), ArtGenerator.S("Sprites/Props/altar"), null, 4, (e, g, s) => { e.flipWithFacing = false; }));
             Reg("shopsign", Make<Prop>("ShopSign", "Level", "shop sign", new Vector2(1f, 1f), ArtGenerator.S("Sprites/Props/shopsign"), null, 3, (e, g, s) => { e.flipWithFacing = false; }));
