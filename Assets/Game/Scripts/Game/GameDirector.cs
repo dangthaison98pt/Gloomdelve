@@ -22,6 +22,7 @@ namespace Gloomdelve
         public TransitionScreen transition;
         public EquipmentWheel gearWheel;
         public SkyBackdrop sky;
+        public CaveBackdrop caveBackdrop;
 
         [Header("Debug (play Game.unity directly)")]
         [Tooltip("0 = random seed")] public int debugSeed;
@@ -83,6 +84,14 @@ namespace Gloomdelve
                 sky.gameObject.SetActive(Stage.area != null && Stage.area.outdoor);
                 sky.Setup(Level.Height);
             }
+            if (caveBackdrop != null)
+            {
+                bool indoor = Stage.area == null || !Stage.area.outdoor;
+                caveBackdrop.gameObject.SetActive(indoor);
+                if (indoor && Stage.area != null) caveBackdrop.SetTint(Stage.area.backdropTint);
+            }
+            if (LevelLighting.Instance != null) LevelLighting.Instance.Setup(Level, Stage.area);
+            if (Ambience.Instance != null) Ambience.Instance.Setup(Stage.area);
             bool grantedGear = false;
             if (Stage.area != null && !string.IsNullOrEmpty(Stage.area.grantGear) && !run.gear.Contains(Stage.area.grantGear) && config.FindGear(Stage.area.grantGear) != null)
             {

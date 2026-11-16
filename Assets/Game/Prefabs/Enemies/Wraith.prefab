@@ -59,7 +59,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 71f4b9bdde8354942977b450a30471f2, type: 2}
+  - {fileID: 2100000, guid: da14ca7730f8b7e419ee60026776113d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -116,6 +116,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1469977567647977325}
   - component: {fileID: 5615943857777852222}
+  - component: {fileID: 8551476344636160013}
   m_Layer: 0
   m_Name: Wraith
   m_TagString: Untagged
@@ -166,3 +167,22 @@ MonoBehaviour:
   speedGrowth: 0.04
   maxSpeed: 3.2
   animFloat: {fileID: 11400000, guid: 71aa7b16935c91a4aa028e5afe278e48, type: 2}
+--- !u!114 &8551476344636160013
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8286831506121351212}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d8828b6c7ceef944cb677be5cb97a47b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.GlowLight
+  color: {r: 0.5, g: 0.85, b: 1, a: 1}
+  radius: 5
+  intensity: 1.2
+  flicker: 0.2
+  pulse: 1
+  offset: {x: 0, y: 0.5}
+  startOn: 1

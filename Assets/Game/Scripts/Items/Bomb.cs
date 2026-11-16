@@ -16,6 +16,7 @@ namespace Gloomdelve
         float timer;
         bool lit;
         float tickTimer;
+        GlowLight glow;
 
         public void Light(Entity by, float radiusBonus)
         {
@@ -30,6 +31,7 @@ namespace Gloomdelve
         {
             base.Tick(dt);
             if (Dead || !lit) return;
+            if (glow == null) { glow = GetComponent<GlowLight>(); if (glow != null) glow.SetOn(true); }
             timer -= dt;
             if (anim != null) anim.speed = timer < 0.8f ? 3f : 1f;
             tickTimer -= dt;

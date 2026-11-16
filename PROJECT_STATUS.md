@@ -51,6 +51,8 @@ Cập nhật: 16/11/2026 · Phiên bản 0.1.0 · Unity 6000.3.12f1
   - **Gloomdelve > Room Template Editor**: vẽ lưới 10×8, bảng ký hiệu, sửa types/tag/khu/weight, kiểm tra quy tắc tức thì, chạy thử qua bộ sinh màn + validator, xem bản đồ thu nhỏ, chơi thử.
   - Hướng dẫn: `Docs/EXTENDING.md`. Kiểm thử sau thay đổi: 34/34 logic, quét 150 seed cho kết quả giống hệt trước khi sửa, 41/41 kịch bản, bot 30/30 màn.
 
+- **Nâng cấp đồ hoạ (16/11)**: chuyển sang URP 2D Renderer; ánh sáng 2D (ánh sáng nền theo khu, đèn theo nhân vật, đuốc treo tường đặt tất định theo màn, đèn trên bom/lỗ lửa/ngọc/Heartstone/chủ tiệm/cửa ra, chớp sáng khi nổ); hậu kỳ (bloom, vignette, chỉnh màu) trong `Settings/PostFX.asset`; bóng tiếp xúc trên tường nền; lớp đá parallax sau địa hình; bầu trời hoàng hôn nhiều dải + mặt trời + thêm dãy núi và mây; hạt không khí theo khu (bụi, tàn lửa, phấn hoa, đốm sáng); bụi khi chạy, nhân vật co giãn khi nhảy/đáp, vụ nổ có tàn lửa; tile đất và tường nền vẽ lại (mảng đất thay cho nhiễu từng điểm ảnh), nhân vật/quái/đồ vật có viền sáng trên – bóng dưới. Mọi thứ chỉ là hình ảnh, không đụng mô phỏng: quét 150 seed cho kết quả giống hệt, 34/34 logic, 41/41 kịch bản, bot 40/40 màn. Chỉnh theo khu ở `AreaConfig > Lighting & atmosphere`.
+
 ## Đang làm
 - Không có hạng mục dở dang.
 
@@ -60,7 +62,8 @@ Cập nhật: 16/11/2026 · Phiên bản 0.1.0 · Unity 6000.3.12f1
 - Tinh chỉnh mật độ quái/bẫy theo phản hồi; cân bằng giá cửa hàng.
 - Âm thanh: đánh giá bằng tai, có thể thay bằng âm thanh do sound designer làm.
 - Tùy chọn đổi phím trong game (hiện đổi được trong `GameInput.inputactions`).
-- Font pixel cho UI (đang dùng font hệ thống LegacyRuntime của Unity).
+- Font pixel cho UI (đang dùng font hệ thống LegacyRuntime của Unity) – chưa làm trong đợt nâng cấp đồ hoạ.
+- Đồ hoạ mới chỉ được đánh giá qua ảnh chụp tĩnh; chuyển động (parallax, hạt, co giãn, nhấp nháy đuốc) cần xem khi chơi thật.
 
 ## Lỗi đã biết
 - 17 ký hiệu "chết" trong các mẫu phòng có sẵn (quái trần / vật rơi không có trần phía trên, chông / quái không có sàn) – không gây lỗi, chỉ là không bao giờ xuất hiện; danh sách trong `Docs/TestResults/room_lint.txt`, sửa bằng Room Template Editor.

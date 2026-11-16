@@ -18,6 +18,7 @@ namespace Gloomdelve
         Vector2Int cell;
         float t;
         float sparkTimer;
+        GlowLight glow;
         readonly List<Entity> tmp = new List<Entity>();
 
         float Period => idleTime + warnTime + burnTime;
@@ -36,6 +37,7 @@ namespace Gloomdelve
             World.RegisterTileEntity(cell.x, cell.y, this);
             if (flameAnim != null) flameAnim.Play(flameLoop);
             if (flame != null) flame.enabled = false;
+            glow = GetComponent<GlowLight>();
         }
 
         public override void Tick(float dt)
@@ -52,6 +54,7 @@ namespace Gloomdelve
             }
             if (Burning && !wasBurning) Sfx.Play("flame", pos);
             if (flame != null) flame.enabled = Burning;
+            if (glow != null) glow.SetOn(Burning);
             if (!Burning) return;
 
             var r = new Rect(cell.x + 0.15f, cell.y + 1f, 0.7f, flameHeight);

@@ -65,6 +65,20 @@ namespace Gloomdelve
         [Tooltip("Equipment given to the player when the area starts (if not owned yet), e.g. 'glider'.")]
         public string grantGear = "";
 
+        [Header("Lighting & atmosphere (visual only)")]
+        [Tooltip("Colour of the ambient light. Caves: cool and dim; outdoors: bright and warm.")]
+        public Color ambientColor = new Color(0.62f, 0.7f, 0.85f);
+        [Tooltip("Brightness away from any light source. Below 0 = not set yet (Build Everything fills in the built-in areas).")]
+        public float ambientIntensity = -1f;
+        [Tooltip("Light carried by the player (0 = none).")] public float playerLightIntensity = 0.85f;
+        public float playerLightRadius = 7.5f;
+        public Color torchColor = new Color(1f, 0.72f, 0.4f);
+        [Tooltip("Chance of a wall torch on each suitable spot (0 = no torches).")] [Range(0, 0.3f)] public float torchChance = 0.06f;
+        public AmbientParticles ambientParticles = AmbientParticles.Dust;
+        public int ambientParticleCount = 40;
+        [Tooltip("Tint of the parallax rock layers behind the terrain (indoor areas).")]
+        public Color backdropTint = new Color(0.42f, 0.36f, 0.34f);
+
         [Header("Shop")]
         [Tooltip("Chance of a shop on level 1,2,3 of this area.")]
         public float[] shopChanceByLevel = { 0f, 1f, 0.4f };

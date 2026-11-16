@@ -7,6 +7,7 @@ namespace Gloomdelve
     public class LevelRenderer : MonoBehaviour
     {
         public Tilemap background;
+        [Tooltip("Soft shadows where the back wall meets solid terrain.")] public Tilemap shade;
         public Tilemap decor;
         public Tilemap terrain;
         public Tilemap overlay;
@@ -24,7 +25,7 @@ namespace Gloomdelve
             if (grid != null) grid.TileChanged -= OnTileChanged;
             grid = level.grid;
             ts = tiles;
-            background.ClearAllTiles(); decor.ClearAllTiles(); terrain.ClearAllTiles(); overlay.ClearAllTiles();
+            background.ClearAllTiles(); if (shade != null) shade.ClearAllTiles(); decor.ClearAllTiles(); terrain.ClearAllTiles(); overlay.ClearAllTiles();
             if (ts == null) { Debug.LogError("[LevelRenderer] Missing TileSet"); return; }
 
             shopCells = new bool[grid.Width, grid.Height];
@@ -133,6 +134,16 @@ namespace Gloomdelve
             }
             terrain.SetTile(p, tile);
             overlay.SetTile(p, over);
+            if (shade != null && ts.shade != null && ts.shade.Length == 16)
+            {
+                TileBase sh = null;
+                if (!grid.IsSolid(x, y) && !(ts.outdoor && y > SurfaceAt(x)))
+                {
+                    int solidSides = ~Mask(x, y) & 15;
+                    if (solidSides != 0) sh = ts.shade[solidSides];
+                }
+                shade.SetTile(p, sh);
+            }
         }
 
         void PlaceDecor(int x, int y)

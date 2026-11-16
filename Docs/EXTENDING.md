@@ -121,6 +121,20 @@ Vòng chọn trang bị, HUD, số đạn tự hoạt động. Các hook khác c
 
 Prefab có sẵn trong dự án được sinh bằng code trong `ProjectBuilder.CreatePrefabs` (để art và thông số tái tạo được). Prefab bạn tự tạo trong Editor không bị đụng tới.
 
+## Ánh sáng và không khí của một khu
+
+`AreaConfig > Lighting & atmosphere` (chỉ ảnh hưởng hình ảnh):
+
+| Trường | Ý nghĩa |
+|---|---|
+| Ambient Color / Intensity | Màu và độ sáng nền khi không có nguồn sáng (hang: khoảng 0.5–0.6, ngoài trời: gần 1) |
+| Player Light Intensity / Radius | Vùng sáng đi theo nhân vật |
+| Torch Color / Chance | Màu và mật độ đuốc treo tường (0 = không có đuốc) |
+| Ambient Particles / Count | Hạt trôi trong không khí: Dust, Embers, Pollen, Spirits |
+| Backdrop Tint | Màu lớp đá parallax phía sau địa hình |
+
+Muốn một prefab tự phát sáng: thêm component **Glow Light** (màu, bán kính, độ nhấp nháy). Với prefab có sẵn, thêm một dòng vào bảng `glows` trong `ProjectBuilder`. Bloom, vignette, độ tương phản chỉnh trong `Assets/Game/Settings/PostFX.asset` (giá trị được giữ khi *Build Everything*).
+
 ## 6. Khu / màn mới
 
 1. *Create > Gloomdelve > Area Config*: bộ tile, nhạc, danh sách quái, mật độ bẫy, trang bị bắt buộc...

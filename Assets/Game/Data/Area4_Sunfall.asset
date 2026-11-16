@@ -65,6 +65,15 @@ MonoBehaviour:
   requiredGear: glider
   gatesByLevel: 010000000100000002000000
   grantGear: glider
+  ambientColor: {r: 1, g: 0.95, b: 0.88, a: 1}
+  ambientIntensity: 0.92
+  playerLightIntensity: 0.25
+  playerLightRadius: 7.5
+  torchColor: {r: 1, g: 0.72, b: 0.4, a: 1}
+  torchChance: 0
+  ambientParticles: 3
+  ambientParticleCount: 30
+  backdropTint: {r: 0.1, g: 0.08, b: 0.12, a: 1}
   shopChanceByLevel:
   - 0
   - 1

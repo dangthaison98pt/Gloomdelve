@@ -58,7 +58,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 71f4b9bdde8354942977b450a30471f2, type: 2}
+  - {fileID: 2100000, guid: da14ca7730f8b7e419ee60026776113d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -102,6 +102,7 @@ GameObject:
   - component: {fileID: 8339576785266345185}
   - component: {fileID: 7685839385956542465}
   - component: {fileID: 3441044297336370894}
+  - component: {fileID: 3894910710023063342}
   m_Layer: 0
   m_Name: Gem
   m_TagString: Untagged
@@ -167,3 +168,22 @@ MonoBehaviour:
   glowSprite: {fileID: 21300000, guid: 6b4ae05f3ed9edc43a801575254feb1c, type: 3}
   hintSprite: {fileID: 21300000, guid: d02a72a776b136a47b398f4d324836f6, type: 3}
   material: {fileID: 2100000, guid: 71f4b9bdde8354942977b450a30471f2, type: 2}
+--- !u!114 &3894910710023063342
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6534938677142570418}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d8828b6c7ceef944cb677be5cb97a47b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.GlowLight
+  color: {r: 0.4, g: 1, b: 0.6, a: 1}
+  radius: 2.2
+  intensity: 0.75
+  flicker: 0.2
+  pulse: 1
+  offset: {x: 0, y: 0.2}
+  startOn: 1

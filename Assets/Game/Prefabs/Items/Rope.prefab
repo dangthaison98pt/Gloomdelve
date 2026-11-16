@@ -60,7 +60,7 @@ MonoBehaviour:
   bottomSprite: {fileID: 21300000, guid: 41f5628fb75f8c5419714bb4214da77d, type: 3}
   lipSprite: {fileID: 21300000, guid: 127ea9b2da477e341aa63da0f09c1761, type: 3}
   pitonSprite: {fileID: 21300000, guid: cdcd8eda2720e1446959e579ea37c579, type: 3}
-  material: {fileID: 2100000, guid: 71f4b9bdde8354942977b450a30471f2, type: 2}
+  material: {fileID: 2100000, guid: da14ca7730f8b7e419ee60026776113d, type: 2}
 --- !u!1 &7711737205301903149
 GameObject:
   m_ObjectHideFlags: 0
@@ -119,7 +119,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 71f4b9bdde8354942977b450a30471f2, type: 2}
+  - {fileID: 2100000, guid: da14ca7730f8b7e419ee60026776113d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

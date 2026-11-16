@@ -63,6 +63,15 @@ MonoBehaviour:
   requiredGear: rope
   gatesByLevel: 010000000100000002000000
   grantGear: 
+  ambientColor: {r: 0.66, g: 0.74, b: 0.9, a: 1}
+  ambientIntensity: 0.58
+  playerLightIntensity: 0.85
+  playerLightRadius: 7.5
+  torchColor: {r: 1, g: 0.74, b: 0.42, a: 1}
+  torchChance: 0.07
+  ambientParticles: 1
+  ambientParticleCount: 45
+  backdropTint: {r: 0.42, g: 0.36, b: 0.34, a: 1}
   shopChanceByLevel:
   - 0
   - 1

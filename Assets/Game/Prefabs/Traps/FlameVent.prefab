@@ -59,7 +59,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 71f4b9bdde8354942977b450a30471f2, type: 2}
+  - {fileID: 2100000, guid: da14ca7730f8b7e419ee60026776113d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -116,6 +116,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4142512758767292197}
   - component: {fileID: 8972598198286859280}
+  - component: {fileID: 1456172847126698079}
   m_Layer: 0
   m_Name: FlameVent
   m_TagString: Untagged
@@ -164,3 +165,22 @@ MonoBehaviour:
   flame: {fileID: 1977926248034024481}
   flameAnim: {fileID: 7401850465263237421}
   flameLoop: {fileID: 11400000, guid: a87258b0a25b19b4bb8f3c70118b41e7, type: 2}
+--- !u!114 &1456172847126698079
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1635840819910400942}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d8828b6c7ceef944cb677be5cb97a47b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.GlowLight
+  color: {r: 1, g: 0.5, b: 0.15, a: 1}
+  radius: 5.5
+  intensity: 1.9
+  flicker: 0.3
+  pulse: 0
+  offset: {x: 0, y: 1}
+  startOn: 0

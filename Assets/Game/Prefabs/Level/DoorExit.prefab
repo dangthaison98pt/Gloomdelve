@@ -58,7 +58,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 71f4b9bdde8354942977b450a30471f2, type: 2}
+  - {fileID: 2100000, guid: da14ca7730f8b7e419ee60026776113d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -101,6 +101,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8062525383290501445}
   - component: {fileID: 5693941329880597190}
+  - component: {fileID: 8569466847134723169}
   m_Layer: 0
   m_Name: DoorExit
   m_TagString: Untagged
@@ -144,3 +145,22 @@ MonoBehaviour:
   isExit: 1
   openSprite: {fileID: 21300000, guid: 01f3dc84edf8ceb489fd177c7ca35295, type: 3}
   lockedSprite: {fileID: 21300000, guid: 26898000678d7084f82a2f27f1ae7142, type: 3}
+--- !u!114 &8569466847134723169
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6700383373115666590}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d8828b6c7ceef944cb677be5cb97a47b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.GlowLight
+  color: {r: 0.6, g: 0.9, b: 1, a: 1}
+  radius: 3.6
+  intensity: 0.8
+  flicker: 0.15
+  pulse: 1
+  offset: {x: 0, y: 0.7}
+  startOn: 1

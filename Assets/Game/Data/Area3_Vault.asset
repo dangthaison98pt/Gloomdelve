@@ -63,6 +63,15 @@ MonoBehaviour:
   requiredGear: 
   gatesByLevel: 010000000100000002000000
   grantGear: 
+  ambientColor: {r: 0.6, g: 0.68, b: 1, a: 1}
+  ambientIntensity: 0.52
+  playerLightIntensity: 0.85
+  playerLightRadius: 7.5
+  torchColor: {r: 0.6, g: 0.85, b: 1, a: 1}
+  torchChance: 0.08
+  ambientParticles: 4
+  ambientParticleCount: 30
+  backdropTint: {r: 0.3, g: 0.34, b: 0.55, a: 1}
   shopChanceByLevel:
   - 0
   - 1

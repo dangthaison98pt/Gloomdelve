@@ -120,9 +120,16 @@ namespace Gloomdelve
 
         void MotorEvents(MotorMode prevMode)
         {
-            if (motor.jumpedThisStep) { Sfx.Play("jump", pos); Fx.Dust(pos, 3); }
+            if (motor.jumpedThisStep) { Sfx.Play("jump", pos); Fx.Dust(pos, 3); squash = new Vector2(0.82f, 1.2f); }
+            if (grounded && Mathf.Abs(vel.x) > 4f && !motor.crouching)
+            {
+                runDustTimer -= GameConst.Dt;
+                if (runDustTimer <= 0f) { runDustTimer = 0.2f; Fx.Dust(pos - new Vector2(facing * 0.2f, 0f), 1); }
+            }
             if (motor.landed)
             {
+                float hard = Mathf.Clamp01(-motor.landImpact / 16f);
+                squash = new Vector2(1f + 0.3f * hard, 1f - 0.28f * hard);
                 Fx.Dust(pos, motor.landImpact < -10f ? 6 : 2);
                 if (motor.landImpact < -7f) Sfx.Play("land", pos, Mathf.Clamp01(-motor.landImpact / 18f));
                 if (motor.fallDistance >= cfg.fallDamageHeight && !godMode)
@@ -415,9 +422,18 @@ namespace Gloomdelve
 
         // ------------------------------------------------------------------ visuals
 
+        // squash & stretch of the sprite on jump / landing (visual only)
+        Vector2 squash = Vector2.one;
+        float runDustTimer;
+
         protected override void LateUpdate()
         {
             base.LateUpdate();
+            if (sr != null)
+            {
+                squash = Vector2.Lerp(squash, Vector2.one, 1f - Mathf.Exp(-14f * Time.deltaTime));
+                sr.transform.localScale = new Vector3(squash.x, squash.y, 1f);
+            }
             if (anim == null) return;
             SpriteAnim a;
             anim.speed = 1f;

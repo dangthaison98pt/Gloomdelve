@@ -13,6 +13,8 @@ namespace Gloomdelve
         public SpriteRenderer[] layers;
         [Tooltip("0 = fixed to the camera, 1 = fixed to the world.")] public float[] parallax = { 0.1f, 0.25f };
         public float[] layerHeight = { -1.5f, -3.2f };
+        [Tooltip("Sun disc: stays at a fixed spot of the view.")] public SpriteRenderer sun;
+        public Vector2 sunViewPos = new Vector2(0.55f, 0.5f);
         public SpriteRenderer[] clouds;
         public float cloudSpeed = 0.35f;
 
@@ -43,6 +45,7 @@ namespace Gloomdelve
             }
 
             float dy = (cp.y - levelMidY) * 0.12f;
+            if (sun != null) sun.transform.localPosition = new Vector3(w * sunViewPos.x, h * sunViewPos.y - dy * 0.3f, 0f);
             for (int i = 0; layers != null && i < layers.Length; i++)
             {
                 var l = layers[i];

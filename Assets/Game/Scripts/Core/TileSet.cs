@@ -20,6 +20,8 @@ namespace Gloomdelve
         public TileBase gemOverlay;
         public TileBase[] background = new TileBase[4];
         public TileBase shopBackground;
+        [Tooltip("Contact shadows on the back wall, indexed by solid-neighbour mask (1=up,2=right,4=down,8=left).")]
+        public TileBase[] shade = new TileBase[16];
         public TileBase[] decorFloor;
         public TileBase[] decorCeiling;
         [Range(0, 1)] public float decorChance = 0.18f;

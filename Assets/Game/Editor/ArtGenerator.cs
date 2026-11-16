@@ -18,8 +18,34 @@ namespace Gloomdelve.EditorTools
         static readonly Vector2 PCenter = new Vector2(0.5f, 0.5f);
         static Vector2 PBottom(Px p, int oy) => new Vector2(0.5f, oy / (float)p.h);
 
+        /// <summary>
+        /// Gives a sprite volume with a light from above: pixels under the top outline get a warm highlight, pixels
+        /// above the bottom outline a cool shadow. Outline pixels (very dark) are left alone.
+        /// </summary>
+        static Px AutoShade(Px src)
+        {
+            var p = src.Copy();
+            bool Edge(int x, int y)
+            {
+                var c = src.Get(x, y);
+                return c.a < 128 || (c.r + c.g + c.b) < 110;
+            }
+            for (int y = 0; y < src.h; y++)
+                for (int x = 0; x < src.w; x++)
+                {
+                    var c = src.Get(x, y);
+                    if (c.a < 255 || (c.r + c.g + c.b) < 110) continue;
+                    if (Edge(x, y + 1))
+                        p.Set(x, y, new Color32((byte)Mathf.Min(255, c.r * 1.14f + 10), (byte)Mathf.Min(255, c.g * 1.12f + 8), (byte)Mathf.Min(255, c.b * 1.06f + 2), 255));
+                    else if (Edge(x, y - 1))
+                        p.Set(x, y, new Color32((byte)(c.r * 0.8f), (byte)(c.g * 0.8f), (byte)Mathf.Min(255, c.b * 0.88f + 4), 255));
+                }
+            return p;
+        }
+
         static void Save(Px p, string rel, Vector2 pivot, Vector4 border = default)
         {
+            if (rel.StartsWith("Sprites/Player/") || rel.StartsWith("Sprites/Enemies/") || rel.StartsWith("Sprites/Items/")) p = AutoShade(p);
             string path = Root + rel + ".png";
             p.Save(Path.Combine(Directory.GetCurrentDirectory(), path));
             ArtImport.Pending[path] = new ArtImport.Settings { pivot = pivot, border = border };
@@ -190,6 +216,85 @@ namespace Gloomdelve.EditorTools
             TileSetArt("Vault", Vault, 37);
             TileSetArt("Sunfall", Sunfall, 51);
             SkyArt();
+            AtmosphereArt();
+        }
+
+        /// <summary>Smooth value noise that repeats every 'period' lattice cells (for seamless tiling textures).</summary>
+        static float TileNoise(float x, float y, int period, int seed)
+        {
+            int x0 = Mathf.FloorToInt(x), y0 = Mathf.FloorToInt(y);
+            float fx = x - x0, fy = y - y0;
+            fx = fx * fx * (3f - 2f * fx); fy = fy * fy * (3f - 2f * fy);
+            int W(int v) => ((v % period) + period) % period;
+            float a = N(W(x0), W(y0), seed), b = N(W(x0 + 1), W(y0), seed), c = N(W(x0), W(y0 + 1), seed), d = N(W(x0 + 1), W(y0 + 1), seed);
+            return Mathf.Lerp(Mathf.Lerp(a, b, fx), Mathf.Lerp(c, d, fx), fy);
+        }
+
+        /// <summary>Lighting / depth art shared by every area: contact shadows, parallax rock layers, wall torch.</summary>
+        static void AtmosphereArt()
+        {
+            // Contact shadows on the back wall, by solid-neighbour mask (1=up, 2=right, 4=down, 8=left).
+            for (int m = 0; m < 16; m++)
+            {
+                var px = new Px(16, 16);
+                for (int y = 0; y < 16; y++)
+                    for (int x = 0; x < 16; x++)
+                    {
+                        float a = 0f;
+                        const float reach = 6f;
+                        if ((m & 1) != 0) a = Mathf.Max(a, 1f - (15 - y) / reach);          // ceiling casts the deepest shadow
+                        if ((m & 2) != 0) a = Mathf.Max(a, 0.75f * (1f - (15 - x) / reach));
+                        if ((m & 4) != 0) a = Mathf.Max(a, 0.6f * (1f - y / reach));
+                        if ((m & 8) != 0) a = Mathf.Max(a, 0.75f * (1f - x / reach));
+                        if (a <= 0f) continue;
+                        int step = Mathf.CeilToInt(a * 3f);                                  // 3 flat bands: stays pixel art
+                        px.Set(x, y, C(8, 5, 12, step * 38));
+                    }
+                Save(px, $"Tiles/Common/shade_{m:00}", PCenter);
+            }
+
+            // Parallax rock silhouettes (tile seamlessly in both directions).
+            for (int layer = 0; layer < 2; layer++)
+            {
+                const int S = 96;
+                var px = new Px(S, S);
+                int period = layer == 0 ? 3 : 4;
+                float cell = S / (float)period;
+                for (int y = 0; y < S; y++)
+                    for (int x = 0; x < S; x++)
+                    {
+                        float n = TileNoise(x / cell, y / cell, period, 71 + layer * 13);
+                        float n2 = TileNoise(x / (cell * 0.5f), y / (cell * 0.5f), period * 2, 91 + layer * 7);
+                        float v = n * 0.75f + n2 * 0.25f;
+                        float cut = layer == 0 ? 0.5f : 0.56f;
+                        if (v < cut) continue;
+                        int alpha = layer == 0 ? 120 : 150;
+                        if (v < cut + 0.035f) alpha = alpha * 55 / 100;                      // one-step soft rim
+                        px.Set(x, y, C(255, 255, 255, alpha));
+                    }
+                Save(px, "Sky/cave_" + layer, PCenter);
+            }
+
+            // Wall torch: bracket + 3 flame frames.
+            {
+                var br = new Px(8, 12);
+                Color32 wood = C(110, 72, 42), woodD = C(70, 44, 26), iron = C(96, 96, 108), ironD = C(56, 56, 66), ol = C(22, 14, 20);
+                br.Rect(3, 0, 2, 7, wood); br.Rect(3, 0, 1, 7, woodD);
+                br.Rect(2, 7, 4, 2, iron); br.Rect(2, 7, 4, 1, ironD);
+                br.Rect(1, 9, 6, 1, iron);
+                br.Outline(ol);
+                Save(br, "Sprites/Props/torch", new Vector2(0.5f, 0.75f));
+                for (int f = 0; f < 3; f++)
+                {
+                    var fl = new Px(8, 10);
+                    Color32 o = C(232, 84, 30), y = C(255, 176, 52), w = C(255, 244, 190);
+                    int lean = f - 1;
+                    fl.Rect(2, 0, 4, 3, o); fl.Rect(2 + (lean > 0 ? 1 : 0), 3, 3, 2, o); fl.Rect(3 + lean, 5, 2, 2, o); fl.Set(3 + lean + (f == 1 ? 1 : 0), 7, o);
+                    fl.Rect(3, 0, 2, 3, y); fl.Rect(3, 3, 2 - (f == 2 ? 1 : 0), 2, y); fl.Set(3 + lean, 5, y);
+                    fl.Rect(3, 0, 2, 2, w);
+                    Save(fl, $"Sprites/Props/torch_flame_{f}", new Vector2(0.5f, 0f));
+                }
+            }
         }
 
         static void TileSetArt(string name, Pal p, int seed)
@@ -233,18 +338,34 @@ namespace Gloomdelve.EditorTools
         {
             var px = new Px(16, 16);
             int s = seed + v * 131;
+            Color32 mid = Lerp(p.b, p.l, 0.45f), low = Lerp(p.b, p.d, 0.55f);
             for (int y = 0; y < 16; y++)
                 for (int x = 0; x < 16; x++)
                 {
-                    float n = N(x, y, s);
-                    px.Set(x, y, n < 0.13f ? p.d : (n > 0.9f ? p.l : p.b));
+                    // soft clumps (4 px lattice, wraps at the tile edge so neighbouring tiles join without seams)
+                    float n = TileNoise(x / 4f, y / 4f, 4, s) * 0.7f + TileNoise(x / 2f, y / 2f, 8, s + 31) * 0.3f;
+                    Color32 col = n < 0.36f ? low : (n > 0.66f ? mid : p.b);
+                    float g = N(x, y, s);
+                    if (g < 0.035f) col = p.d; else if (g > 0.975f) col = p.l;
+                    px.Set(x, y, col);
                 }
-            for (int k = 0; k < 3; k++)
+            // pebbles pressed into the soil: light top, dark underside
+            // (only in the second variant, and low-contrast, so large walls do not show a repeating dot grid)
+            for (int k = 0; k < v; k++)
             {
-                int sx = 1 + (int)(N(k, v, s + 7) * 12), sy = 2 + (int)(N(v, k, s + 9) * 10);
-                px.Set(sx, sy, p.l); px.Set(sx + 1, sy, p.l); px.Set(sx, sy - 1, p.d); px.Set(sx + 1, sy - 1, p.deep);
+                int sx = 3 + (int)(N(k, v, s + 7) * 9), sy = 4 + (int)(N(v, k, s + 9) * 8);
+                int wdt = 2 + (N(k, 5, s + 3) > 0.5f ? 1 : 0);
+                for (int i = 0; i < wdt; i++)
+                {
+                    px.Set(sx + i, sy, Lerp(p.b, p.l, 0.8f));
+                    px.Set(sx + i, sy - 1, Lerp(p.b, p.l, 0.3f));
+                    px.Set(sx + i, sy - 2, p.d);
+                }
             }
             Edges(px, mask, p, p.deep);
+            // exposed underside: a second, softer shadow row so overhangs read as thick
+            if ((mask & 4) != 0)
+                for (int x = 1; x < 15; x++) if (px.Get(x, 2).a > 0) px.Set(x, 2, Mul(px.Get(x, 2), 0.88f));
             if ((mask & 1) != 0)
             {
                 for (int x = 0; x < 16; x++)
@@ -314,10 +435,10 @@ namespace Gloomdelve.EditorTools
             for (int y = 0; y < 16; y++)
                 for (int x = 0; x < 16; x++)
                 {
-                    float n = N(x / 2, y / 2, seed + v * 17 + 300);
+                    float n = TileNoise(x / 4f, y / 4f, 4, seed + v * 17 + 300);
                     float n2 = N(x, y, seed + v);
-                    Color32 col = n < 0.35f ? p.bgD : p.bg;
-                    if (n2 > 0.95f) col = p.bgL;
+                    Color32 col = n < 0.4f ? p.bgD : (n > 0.72f ? Lerp(p.bg, p.bgL, 0.5f) : p.bg);
+                    if (n2 > 0.975f) col = p.bgL; else if (n2 < 0.02f) col = Mul(p.bgD, 0.85f);
                     px.Set(x, y, col);
                 }
             if (p.style == 2)
@@ -576,15 +697,41 @@ namespace Gloomdelve.EditorTools
         static void SkyArt()
         {
             const string d = "Sky/";
-            var g = new Px(4, 64);
-            Color32 top = C(48, 70, 140), mid = C(132, 118, 176), hor = C(246, 168, 120);
-            for (int y = 0; y < 64; y++)
+            var g = new Px(4, 96);
+            // sunset bands from the horizon up; quantised so the sky reads as pixel art, not a smooth ramp
+            Color32[] stops = { C(255, 206, 132), C(250, 160, 120), C(214, 124, 148), C(150, 110, 176), C(92, 92, 168), C(52, 68, 140), C(34, 46, 104) };
+            float[] at = { 0f, 0.14f, 0.3f, 0.48f, 0.66f, 0.84f, 1f };
+            for (int y = 0; y < 96; y++)
             {
-                float t = y / 63f;
-                Color32 c = t > 0.45f ? Lerp(mid, top, (t - 0.45f) / 0.55f) : Lerp(hor, mid, t / 0.45f);
+                float t = Mathf.Floor(y / 95f * 24f) / 24f;
+                int k = 0;
+                while (k < at.Length - 2 && t > at[k + 1]) k++;
+                Color32 c = Lerp(stops[k], stops[k + 1], Mathf.InverseLerp(at[k], at[k + 1], t));
                 for (int x = 0; x < 4; x++) g.Set(x, y, c);
             }
             Save(g, d + "gradient", PCenter);
+
+            var sun = new Px(48, 48);
+            for (int y = 0; y < 48; y++)
+                for (int x = 0; x < 48; x++)
+                {
+                    float dx = x - 23.5f, dy = y - 23.5f, dd = Mathf.Sqrt(dx * dx + dy * dy);
+                    if (dd < 9f) sun.Set(x, y, C(255, 250, 214));
+                    else if (dd < 11f) sun.Set(x, y, C(255, 232, 160));
+                    else if (dd < 16f) sun.Set(x, y, C(255, 220, 150, 110));
+                    else if (dd < 23f) sun.Set(x, y, C(255, 210, 150, 46));
+                }
+            Save(sun, d + "sun", PCenter);
+
+            var range = new Px(128, 40);
+            Color32 rg = C(168, 128, 172), rgL = C(206, 160, 184);
+            for (int x = 0; x < 128; x++)
+            {
+                float hgt = 14f + 12f * Mathf.Abs(Mathf.Sin(x * 0.0736f + 0.6f)) + 6f * Mathf.Abs(Mathf.Sin(x * 0.196f + 2.1f));
+                int h = Mathf.Min(39, (int)hgt);
+                for (int y = 0; y < h; y++) range.Set(x, y, y > h - 4 ? rgL : rg);
+            }
+            Save(range, d + "range", PCenter);
 
             var far = new Px(128, 44);
             Color32 m = C(124, 110, 164), mL = C(170, 156, 200), snow = C(236, 226, 240);
@@ -609,11 +756,11 @@ namespace Gloomdelve.EditorTools
 
             for (int k = 0; k < 2; k++)
             {
-                var cl = new Px(k == 0 ? 48 : 32, k == 0 ? 16 : 12);
-                Color32 c = C(252, 236, 236, 210), cs = C(232, 204, 214, 210);
-                if (k == 0) { cl.Ellipse(14, 6, 10, 5, c); cl.Ellipse(28, 8, 12, 6, c); cl.Ellipse(38, 5, 8, 4, c); }
-                else { cl.Ellipse(10, 5, 8, 4, c); cl.Ellipse(21, 6, 9, 5, c); }
-                for (int x = 0; x < cl.w; x++) for (int y = 0; y < 3; y++) if (cl.Get(x, y).a > 0) cl.Set(x, y, cs);
+                var cl = new Px(k == 0 ? 64 : 40, k == 0 ? 22 : 14);
+                Color32 c = C(255, 240, 232, 225), cs = C(240, 190, 190, 225), hl = C(255, 252, 244, 235);
+                if (k == 0) { cl.Ellipse(16, 8, 12, 6, c); cl.Ellipse(34, 11, 15, 8, c); cl.Ellipse(50, 7, 10, 5, c); cl.Ellipse(30, 15, 9, 5, hl); }
+                else { cl.Ellipse(12, 6, 9, 5, c); cl.Ellipse(26, 7, 11, 6, c); cl.Ellipse(22, 10, 6, 3, hl); }
+                for (int x = 0; x < cl.w; x++) for (int y = 0; y < 4; y++) if (cl.Get(x, y).a > 0) cl.Set(x, y, cs);
                 Save(cl, d + "cloud_" + k, PCenter);
             }
         }

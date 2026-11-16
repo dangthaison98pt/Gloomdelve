@@ -63,6 +63,15 @@ MonoBehaviour:
   requiredGear: bomb
   gatesByLevel: 010000000100000002000000
   grantGear: 
+  ambientColor: {r: 0.95, g: 0.62, b: 0.52, a: 1}
+  ambientIntensity: 0.55
+  playerLightIntensity: 0.85
+  playerLightRadius: 7.5
+  torchColor: {r: 1, g: 0.6, b: 0.3, a: 1}
+  torchChance: 0.05
+  ambientParticles: 2
+  ambientParticleCount: 35
+  backdropTint: {r: 0.5, g: 0.24, b: 0.2, a: 1}
   shopChanceByLevel:
   - 0
   - 1

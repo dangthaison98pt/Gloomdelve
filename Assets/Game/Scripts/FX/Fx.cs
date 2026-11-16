@@ -13,6 +13,7 @@ namespace Gloomdelve
         public SpriteAnim explosionAnim;
         public PixelFont font;
         public Material spriteMaterial;
+        [Tooltip("Unlit material for things that glow: sparks, explosions, floating text.")] public Material glowMaterial;
         public int maxParticles = 500;
         public CameraFollow cameraFollow;
 
@@ -53,7 +54,9 @@ namespace Gloomdelve
 
         void OnDestroy() { if (Instance == this) Instance = null; }
 
-        void Emit(Vector2 pos, Vector2 vel, Color c, float life, float gravity, float size, bool smoke = false)
+        Material Glow => glowMaterial != null ? glowMaterial : spriteMaterial;
+
+        void Emit(Vector2 pos, Vector2 vel, Color c, float life, float gravity, float size, bool smoke = false, bool glow = false)
         {
             int i = cursor;
             cursor = (cursor + 1) % maxParticles;
@@ -62,6 +65,8 @@ namespace Gloomdelve
             r.enabled = true;
             r.sprite = smoke && smokeFrames != null && smokeFrames.Length > 0 ? smokeFrames[0] : pixel;
             r.color = c;
+            var mat = glow ? Glow : spriteMaterial;
+            if (mat != null && r.sharedMaterial != mat) r.sharedMaterial = mat;
             r.transform.localScale = smoke ? Vector3.one : new Vector3(size, size, 1f);
             r.transform.position = pos;
         }
@@ -132,8 +137,17 @@ namespace Gloomdelve
             for (int i = 0; i < n; i++)
             {
                 var d = Random.insideUnitCircle.normalized * R(speed * 0.4f, speed);
-                Instance.Emit(pos, d, c, R(0.15f, 0.4f), 6f, 1f);
+                Instance.Emit(pos, d, c, R(0.15f, 0.4f), 6f, 1f, false, true);
             }
+        }
+
+        /// <summary>Slow glowing embers that drift up and fade (explosions, fire).</summary>
+        public static void Embers(Vector2 pos, int n = 6)
+        {
+            if (Instance == null) return;
+            for (int i = 0; i < n; i++)
+                Instance.Emit(pos + Random.insideUnitCircle * 0.6f, new Vector2(R(-1.2f, 1.2f), R(1f, 3.5f)),
+                    new Color(1f, R(0.45f, 0.75f), 0.15f), R(0.6f, 1.4f), -0.8f, R(1f, 2f), false, true);
         }
 
         public static void Blood(Vector2 pos, Color c, int n = 8)
@@ -162,7 +176,7 @@ namespace Gloomdelve
                 var go = new GameObject("boom");
                 go.transform.SetParent(inst.transform, false);
                 var r = go.AddComponent<SpriteRenderer>();
-                if (inst.spriteMaterial != null) r.sharedMaterial = inst.spriteMaterial;
+                if (inst.Glow != null) r.sharedMaterial = inst.Glow;
                 r.sortingOrder = 45;
                 a = go.AddComponent<SpriteAnimator>();
             }
@@ -172,8 +186,10 @@ namespace Gloomdelve
             a.Play(inst.explosionAnim, true);
             float len = inst.explosionAnim != null ? inst.explosionAnim.frames.Length / inst.explosionAnim.fps : 0.4f;
             inst.booms.Add((a, len));
-            Smoke(pos, 6);
-            Sparks(pos, new Color(1f, 0.8f, 0.3f), 14, 9f);
+            Smoke(pos, 9);
+            Sparks(pos, new Color(1f, 0.8f, 0.3f), 22, 11f);
+            Embers(pos, 10);
+            LevelLighting.Flash(pos, new Color(1f, 0.72f, 0.35f), radius * 3.2f, 2.4f, 0.45f);
         }
 
         public static void Text(Vector2 pos, string text, Color c, float life = 1.0f)
@@ -188,7 +204,7 @@ namespace Gloomdelve
                 go.transform.SetParent(inst.transform, false);
                 pt = go.AddComponent<PixelText>();
                 pt.font = inst.font;
-                pt.material = inst.spriteMaterial;
+                pt.material = inst.Glow;
                 pt.sortingOrder = 70;
             }
             pt.gameObject.SetActive(true);

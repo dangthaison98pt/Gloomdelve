@@ -93,6 +93,23 @@ MonoBehaviour:
   - {fileID: 11400000, guid: cbaba9aaf48952f40913533b08004155, type: 2}
   - {fileID: 11400000, guid: 01887141169137f4f90f16e2a3fd7447, type: 2}
   shopBackground: {fileID: 11400000, guid: 081e17382b519ab49b6b525941432e7e, type: 2}
+  shade:
+  - {fileID: 11400000, guid: 253540e6159fcfe4cb2a0feb17aa2fb7, type: 2}
+  - {fileID: 11400000, guid: 720c5e896b9584e46a799ce3994c0c34, type: 2}
+  - {fileID: 11400000, guid: aa0bdbe561a1d9e4fbb935cb29053a12, type: 2}
+  - {fileID: 11400000, guid: 31a31b697f0bb0e43868d4d028dd3e87, type: 2}
+  - {fileID: 11400000, guid: 740318a34a9e7a749b3badcce65b467c, type: 2}
+  - {fileID: 11400000, guid: 57842bc87d4850648bfe1d4340fd6b33, type: 2}
+  - {fileID: 11400000, guid: f9c27cf23b6f1544e8e4641d43c4e1a7, type: 2}
+  - {fileID: 11400000, guid: 4e4eedd27af923c499e2fe0f17ac9221, type: 2}
+  - {fileID: 11400000, guid: 8079d049ddfb7b34ea4de6a2e2bdc2cb, type: 2}
+  - {fileID: 11400000, guid: 1736723dce3ef2044a923f27e2ec258b, type: 2}
+  - {fileID: 11400000, guid: 0772cd3d20ffc464abbad39b5a38c693, type: 2}
+  - {fileID: 11400000, guid: 1edf6b465a9591f41b02ff528e201c8d, type: 2}
+  - {fileID: 11400000, guid: 0b91a8ebd371f674fae2c1f74296bdd1, type: 2}
+  - {fileID: 11400000, guid: 79ebacccd7ee7374aabf5a88df589e45, type: 2}
+  - {fileID: 11400000, guid: 73303b93cd2fd9a4a8a738e4083611d1, type: 2}
+  - {fileID: 11400000, guid: a53c9cbfa6d05ba42ac8183f1d5e68ea, type: 2}
   decorFloor:
   - {fileID: 11400000, guid: 14349fd23c5b12440a24d00ad7d8b842, type: 2}
   - {fileID: 11400000, guid: 94d6065f43b1e474698dbb7b9ebefd97, type: 2}

@@ -22,7 +22,8 @@ namespace Gloomdelve.EditorTools
     public static class ProjectBuilder
     {
         const string G = "Assets/Game/";
-        static Material spriteMat;
+        static Material spriteMat;   // lit by 2D lights: terrain, characters, items
+        static Material unlitMat;    // ignores lighting: sky, glows, sparks, world-space text
         static readonly Dictionary<string, SpriteAnim> anims = new Dictionary<string, SpriteAnim>();
 
         [MenuItem("Gloomdelve/Build Everything", priority = 0)]
@@ -39,7 +40,8 @@ namespace Gloomdelve.EditorTools
                 EditorUtility.DisplayProgressBar("Gloomdelve", "Audio", 0.35f);
                 AudioGenerator.GenerateAll();
                 EditorUtility.DisplayProgressBar("Gloomdelve", "Assets", 0.5f);
-                spriteMat = SpriteMaterial();
+                spriteMat = SpriteMaterial("SpriteLit", "Universal Render Pipeline/2D/Sprite-Lit-Default");
+                unlitMat = SpriteMaterial("SpriteUnlit", "Universal Render Pipeline/2D/Sprite-Unlit-Default");
                 var input = InputActions();
                 CreateAnims();
                 var tileSets = CreateTileSets();
@@ -125,20 +127,41 @@ namespace Gloomdelve.EditorTools
 
         static void SetupURP()
         {
-            string rdPath = G + "Settings/URP_Renderer.asset", urpPath = G + "Settings/URP_Asset.asset";
-            var rd = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(rdPath);
+            // 2D renderer: Light2D lighting + post-processing (bloom, vignette, colour grading).
+            const string urpPackage = "Packages/com.unity.render-pipelines.universal";
+            string rdPath = G + "Settings/URP_Renderer2D.asset", urpPath = G + "Settings/URP_Asset.asset";
+            var rd = AssetDatabase.LoadAssetAtPath<Renderer2DData>(rdPath);
             if (rd == null)
             {
-                rd = ScriptableObject.CreateInstance<UniversalRendererData>();
+                rd = ScriptableObject.CreateInstance<Renderer2DData>();
                 AssetDatabase.CreateAsset(rd, rdPath);
+                ResourceReloader.ReloadAllNullIn(rd, urpPackage);
             }
+            var rdSo = new SerializedObject(rd);
+            var ppProp = rdSo.FindProperty("m_PostProcessData");
+            if (ppProp != null && ppProp.objectReferenceValue == null)
+            {
+                ppProp.objectReferenceValue = AssetDatabase.LoadAssetAtPath<PostProcessData>(urpPackage + "/Runtime/Data/PostProcessData.asset");
+                rdSo.ApplyModifiedPropertiesWithoutUndo();
+            }
+            EditorUtility.SetDirty(rd);
             var urp = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(urpPath);
             if (urp == null)
             {
                 urp = UniversalRenderPipelineAsset.Create(rd);
                 AssetDatabase.CreateAsset(urp, urpPath);
             }
-            urp.supportsHDR = false;
+            var urpSo = new SerializedObject(urp);
+            var list = urpSo.FindProperty("m_RendererDataList");
+            if (list != null)
+            {
+                list.arraySize = 1;
+                list.GetArrayElementAtIndex(0).objectReferenceValue = rd;
+                var def = urpSo.FindProperty("m_DefaultRendererIndex");
+                if (def != null) def.intValue = 0;
+                urpSo.ApplyModifiedPropertiesWithoutUndo();
+            }
+            urp.supportsHDR = true;
             urp.msaaSampleCount = 1;
             urp.renderScale = 1f;
             urp.supportsCameraDepthTexture = false;
@@ -155,16 +178,42 @@ namespace Gloomdelve.EditorTools
             AssetDatabase.SaveAssets();
         }
 
-        static Material SpriteMaterial()
+        static Material SpriteMaterial(string name, string shaderName)
         {
-            string path = G + "Settings/SpriteUnlit.mat";
-            var m = AssetDatabase.LoadAssetAtPath<Material>(path);
-            if (m != null) return m;
-            var sh = Shader.Find("Universal Render Pipeline/2D/Sprite-Unlit-Default");
+            string path = G + "Settings/" + name + ".mat";
+            var sh = Shader.Find(shaderName);
             if (sh == null) sh = Shader.Find("Sprites/Default");
-            m = new Material(sh) { name = "SpriteUnlit" };
+            var m = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (m != null) { if (m.shader != sh) { m.shader = sh; EditorUtility.SetDirty(m); } return m; }
+            m = new Material(sh) { name = name };
             AssetDatabase.CreateAsset(m, path);
             return m;
+        }
+
+        /// <summary>Post-processing look of the game scene. Values in an existing profile are kept (tune them in the asset).</summary>
+        static VolumeProfile PostProfile()
+        {
+            string path = G + "Settings/PostFX.asset";
+            var profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
+            if (profile != null) return profile;
+            profile = ScriptableObject.CreateInstance<VolumeProfile>();
+            AssetDatabase.CreateAsset(profile, path);
+            T Add<T>() where T : VolumeComponent
+            {
+                var c = profile.Add<T>(true);
+                c.hideFlags = HideFlags.HideInInspector | HideFlags.HideInHierarchy;
+                AssetDatabase.AddObjectToAsset(c, profile);
+                return c;
+            }
+            var bloom = Add<Bloom>();
+            bloom.threshold.Override(0.95f); bloom.intensity.Override(0.55f); bloom.scatter.Override(0.6f);
+            var vig = Add<Vignette>();
+            vig.intensity.Override(0.3f); vig.smoothness.Override(0.45f);
+            var col = Add<ColorAdjustments>();
+            col.contrast.Override(8f); col.saturation.Override(6f);
+            EditorUtility.SetDirty(profile);
+            AssetDatabase.SaveAssets();
+            return profile;
         }
 
         // ------------------------------------------------------------------ input
@@ -292,6 +341,8 @@ namespace Gloomdelve.EditorTools
                 ts.rubble = MakeTile(area, d + "rubble");
                 ts.goldOverlay = MakeTile(area, d + "gold_overlay");
                 ts.gemOverlay = MakeTile(area, d + "gem_overlay");
+                ts.shade = new TileBase[16];
+                for (int m = 0; m < 16; m++) ts.shade[m] = MakeTile("Common", $"Tiles/Common/shade_{m:00}");
                 ts.decorFloor = new TileBase[4];
                 for (int i = 0; i < 4; i++) ts.decorFloor[i] = MakeTile(area, $"{d}decor_floor_{i}");
                 ts.decorCeiling = new TileBase[3];
@@ -391,6 +442,13 @@ namespace Gloomdelve.EditorTools
                 moss.spikes = true; moss.arrowTraps = true; moss.stalactites = true; moss.crushers = false; moss.flameVents = false;
                 moss.spikeDensity = 0.035f; moss.arrowTrapDensity = 0.02f;
             }
+            if (moss.ambientIntensity < 0f)
+            {
+                moss.ambientColor = new Color(0.66f, 0.74f, 0.9f); moss.ambientIntensity = 0.58f;
+                moss.torchColor = new Color(1f, 0.74f, 0.42f); moss.torchChance = 0.07f;
+                moss.ambientParticles = AmbientParticles.Dust; moss.ambientParticleCount = 45;
+                moss.backdropTint = new Color(0.42f, 0.36f, 0.34f);
+            }
             moss.tiles = ts["Mossroot"];
             if (string.IsNullOrEmpty(moss.requiredGear)) moss.requiredGear = "rope";
             EditorUtility.SetDirty(moss);
@@ -406,6 +464,13 @@ namespace Gloomdelve.EditorTools
                 ember.spikes = true; ember.arrowTraps = true; ember.stalactites = false; ember.crushers = true; ember.flameVents = true;
                 ember.spikeDensity = 0.03f; ember.arrowTrapDensity = 0.012f; ember.groundEnemyChance = 0.5f; ember.ceilingEnemyChance = 0.45f;
                 ember.goldVeinChance = 0.045f; ember.gemVeinChance = 0.012f;
+            }
+            if (ember.ambientIntensity < 0f)
+            {
+                ember.ambientColor = new Color(0.95f, 0.62f, 0.52f); ember.ambientIntensity = 0.55f;
+                ember.torchColor = new Color(1f, 0.6f, 0.3f); ember.torchChance = 0.05f;
+                ember.ambientParticles = AmbientParticles.Embers; ember.ambientParticleCount = 35;
+                ember.backdropTint = new Color(0.5f, 0.24f, 0.2f);
             }
             ember.tiles = ts["Emberdeep"];
             if (string.IsNullOrEmpty(ember.requiredGear)) ember.requiredGear = "bomb";
@@ -425,6 +490,12 @@ namespace Gloomdelve.EditorTools
                 sunfall.spikeDensity = 0.03f; sunfall.arrowTrapDensity = 0.012f;
                 sunfall.requiredGear = "glider"; sunfall.grantGear = "glider";
             }
+            if (sunfall.ambientIntensity < 0f)
+            {
+                sunfall.ambientColor = new Color(1f, 0.95f, 0.88f); sunfall.ambientIntensity = 0.92f;
+                sunfall.playerLightIntensity = 0.25f; sunfall.torchChance = 0f;
+                sunfall.ambientParticles = AmbientParticles.Pollen; sunfall.ambientParticleCount = 30;
+            }
             sunfall.tiles = ts["Sunfall"];
             EditorUtility.SetDirty(sunfall);
 
@@ -435,6 +506,13 @@ namespace Gloomdelve.EditorTools
                 vault.cameraBackground = new Color(0.05f, 0.05f, 0.08f);
                 vault.groundEnemies = new[] { new WeightedId("snake", 1f), new WeightedId("toad", 1f) };
                 vault.ceilingEnemies = new[] { new WeightedId("bat", 1f) };
+            }
+            if (vault.ambientIntensity < 0f)
+            {
+                vault.ambientColor = new Color(0.6f, 0.68f, 1f); vault.ambientIntensity = 0.52f;
+                vault.torchColor = new Color(0.6f, 0.85f, 1f); vault.torchChance = 0.08f;
+                vault.ambientParticles = AmbientParticles.Spirits; vault.ambientParticleCount = 30;
+                vault.backdropTint = new Color(0.3f, 0.34f, 0.55f);
             }
             vault.tiles = ts["Vault"];
             EditorUtility.SetDirty(vault);
@@ -548,6 +626,22 @@ namespace Gloomdelve.EditorTools
             ["Heart"] = (new Color(1f, 0.35f, 0.45f, 0.95f), true, false),
         };
 
+        // Light carried by a prefab (GlowLight): colour, radius, intensity, flicker, slow pulse, lit from the start, offset.
+        static readonly Dictionary<string, (Color color, float radius, float intensity, float flicker, bool pulse, bool on, Vector2 offset)> glows =
+            new Dictionary<string, (Color, float, float, float, bool, bool, Vector2)>
+        {
+            ["Bomb"] = (new Color(1f, 0.6f, 0.25f), 3.2f, 1.3f, 0.45f, false, false, new Vector2(0f, 0.4f)),
+            ["FlameVent"] = (new Color(1f, 0.5f, 0.15f), 5.5f, 1.9f, 0.3f, false, false, new Vector2(0f, 1f)),
+            ["Gem"] = (new Color(0.4f, 1f, 0.6f), 2.2f, 0.75f, 0.2f, true, true, new Vector2(0f, 0.2f)),
+            ["Idol"] = (new Color(1f, 0.82f, 0.3f), 3.2f, 0.95f, 0.15f, true, true, new Vector2(0f, 0.35f)),
+            ["Heartstone"] = (new Color(1f, 0.35f, 0.5f), 4.8f, 1.4f, 0.25f, true, true, new Vector2(0f, 0.35f)),
+            ["Heart"] = (new Color(1f, 0.35f, 0.4f), 2f, 0.6f, 0.2f, true, true, new Vector2(0f, 0.2f)),
+            ["EmberBat"] = (new Color(1f, 0.5f, 0.2f), 2.6f, 0.8f, 0.3f, false, true, new Vector2(0f, 0.3f)),
+            ["Wraith"] = (new Color(0.5f, 0.85f, 1f), 5f, 1.2f, 0.2f, true, true, new Vector2(0f, 0.5f)),
+            ["Shopkeeper"] = (new Color(1f, 0.8f, 0.5f), 7f, 0.9f, 0.08f, false, true, new Vector2(0f, 1.5f)),
+            ["DoorExit"] = (new Color(0.6f, 0.9f, 1f), 3.6f, 0.8f, 0.15f, true, true, new Vector2(0f, 0.7f)),
+        };
+
         static T Make<T>(string id, string folder, string display, Vector2 size, Sprite sprite, SpriteAnim anim, int order, Action<T, GameObject, SpriteRenderer> setup = null)
             where T : Entity
         {
@@ -562,8 +656,14 @@ namespace Gloomdelve.EditorTools
                 h.glowColor = hl.color; h.bob = hl.bob; h.showHint = hl.hint;
                 h.glowSprite = ArtGenerator.S("Center/glow");
                 h.hintSprite = ArtGenerator.S("Center/hint_arrow");
-                h.material = spriteMat;
+                h.material = unlitMat;
                 h.glowScale = hl.bob ? 3.2f : 2.4f;
+            }
+            if (glows.TryGetValue(id, out var gl))
+            {
+                var glow = root.AddComponent<GlowLight>();
+                glow.color = gl.color; glow.radius = gl.radius; glow.intensity = gl.intensity; glow.flicker = gl.flicker;
+                glow.pulse = gl.pulse; glow.startOn = gl.on; glow.offset = gl.offset;
             }
             return SavePrefab<T>(root, folder);
         }
@@ -701,7 +801,7 @@ namespace Gloomdelve.EditorTools
                     tag.transform.SetParent(g.transform, false);
                     tag.transform.localPosition = new Vector3(0f, 1.05f, 0f);
                     var pt = tag.AddComponent<PixelText>();
-                    pt.font = font; pt.material = spriteMat; pt.sortingOrder = 60;
+                    pt.font = font; pt.material = unlitMat; pt.sortingOrder = 60;
                     e.priceTag = pt;
                 }));
 
@@ -738,7 +838,9 @@ namespace Gloomdelve.EditorTools
             cam.nearClipPlane = -50f; cam.farClipPlane = 50f;
             go.transform.position = new Vector3(0, 0, -10);
             go.AddComponent<AudioListener>();
-            go.AddComponent<UniversalAdditionalCameraData>();
+            var camData = go.AddComponent<UniversalAdditionalCameraData>();
+            camData.renderPostProcessing = true;
+            cam.allowHDR = true;
             return cam;
         }
 
@@ -821,15 +923,54 @@ namespace Gloomdelve.EditorTools
                 var go = new GameObject(name);
                 go.transform.SetParent(skyGo.transform, false);
                 var r = go.AddComponent<SpriteRenderer>();
-                r.sprite = ArtGenerator.S(sprite); r.sharedMaterial = spriteMat; r.sortingOrder = order;
+                r.sprite = ArtGenerator.S(sprite); r.sharedMaterial = unlitMat; r.sortingOrder = order;
                 return r;
             }
             sky.gradient = SkySr("Gradient", "Sky/gradient", -40);
-            sky.layers = new[] { SkySr("Mountains", "Sky/mountains", -38), SkySr("Hills", "Sky/hills", -36) };
-            sky.parallax = new[] { 0.08f, 0.22f };
-            sky.layerHeight = new[] { -1.2f, -3.4f };
-            sky.clouds = new[] { SkySr("Cloud0", "Sky/cloud_0", -37), SkySr("Cloud1", "Sky/cloud_1", -37), SkySr("Cloud2", "Sky/cloud_0", -37) };
+            sky.sun = SkySr("Sun", "Sky/sun", -39);
+            sky.layers = new[] { SkySr("Range", "Sky/range", -38), SkySr("Mountains", "Sky/mountains", -37), SkySr("Hills", "Sky/hills", -35) };
+            sky.parallax = new[] { 0.04f, 0.1f, 0.24f };
+            sky.layerHeight = new[] { 0.8f, -0.6f, -3.0f };
+            sky.clouds = new[]
+            {
+                SkySr("Cloud0", "Sky/cloud_0", -36), SkySr("Cloud1", "Sky/cloud_1", -36), SkySr("Cloud2", "Sky/cloud_0", -36),
+                SkySr("Cloud3", "Sky/cloud_1", -38), SkySr("Cloud4", "Sky/cloud_0", -38),
+            };
             skyGo.SetActive(false);
+
+            // indoor parallax rock layers (enabled by GameDirector in indoor areas)
+            var caveGo = new GameObject("CaveBackdrop");
+            caveGo.transform.SetParent(cam.transform, false);
+            var cave = caveGo.AddComponent<CaveBackdrop>();
+            cave.cam = cam;
+            SpriteRenderer CaveSr(string name, string sprite, int order, float alpha)
+            {
+                var go = new GameObject(name);
+                go.transform.SetParent(caveGo.transform, false);
+                var r = go.AddComponent<SpriteRenderer>();
+                r.sprite = ArtGenerator.S(sprite); r.sharedMaterial = spriteMat; r.sortingOrder = order;
+                r.color = new Color(0.1f, 0.08f, 0.12f, alpha);
+                return r;
+            }
+            cave.layers = new[] { CaveSr("Far", "Sky/cave_0", -19, 0.22f), CaveSr("Near", "Sky/cave_1", -18, 0.3f) };
+            cave.parallax = new[] { 0.55f, 0.78f };
+
+            // post-processing + lighting + atmosphere
+            var postGo = new GameObject("PostFX");
+            var vol = postGo.AddComponent<Volume>();
+            vol.isGlobal = true;
+            vol.sharedProfile = PostProfile();
+            var lightGo = new GameObject("Lighting");
+            var lighting = lightGo.AddComponent<LevelLighting>();
+            lighting.torchFrames = ArtGenerator.Frames("Sprites/Props/torch_flame", 3);
+            lighting.torchBracket = ArtGenerator.S("Sprites/Props/torch");
+            lighting.glowMaterial = unlitMat;
+            lighting.litMaterial = spriteMat;
+            var ambGo = new GameObject("Ambience");
+            var amb = ambGo.AddComponent<Ambience>();
+            amb.pixel = ArtGenerator.S("Center/pixel");
+            amb.litMaterial = spriteMat;
+            amb.glowMaterial = unlitMat;
             UIBuilder.EventSystem();
 
             // world
@@ -842,6 +983,7 @@ namespace Gloomdelve.EditorTools
             var lr = grid.AddComponent<LevelRenderer>();
             lr.background = MakeTilemap(grid.transform, "Background", -20);
             lr.background.color = new Color(0.85f, 0.85f, 0.85f);
+            lr.shade = MakeTilemap(grid.transform, "Shade", -15);
             lr.decor = MakeTilemap(grid.transform, "Decor", -10);
             lr.decor.color = new Color(0.55f, 0.55f, 0.62f);   // decor is dimmed so it never reads as a collectible
             lr.terrain = MakeTilemap(grid.transform, "Terrain", 0);
@@ -859,6 +1001,7 @@ namespace Gloomdelve.EditorTools
             fx.explosionAnim = anims["explosion"];
             fx.font = font;
             fx.spriteMaterial = spriteMat;
+            fx.glowMaterial = unlitMat;
             fx.cameraFollow = follow;
 
             // director
@@ -868,6 +1011,7 @@ namespace Gloomdelve.EditorTools
             reader.actions = input;
             dir.config = cfg; dir.world = world; dir.cameraFollow = follow; dir.cam = cam; dir.input = reader;
             dir.sky = sky;
+            dir.caveBackdrop = cave;
 
             // UI
             var gold = new Color(1f, 0.84f, 0.38f);
