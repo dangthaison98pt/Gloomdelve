@@ -9,7 +9,7 @@ namespace Gloomdelve.EditorTools
     public static class UIBuilder
     {
         public static Font font;
-        public static Sprite panelSprite, buttonSprite;
+        public static Sprite panelSprite, buttonSprite, slotSprite;
 
         static readonly Color Gold = new Color(1f, 0.84f, 0.38f);
         static readonly Color Dim = new Color(0f, 0f, 0f, 0.62f);
@@ -65,7 +65,7 @@ namespace Gloomdelve.EditorTools
             var go = Node(parent, name);
             var i = go.AddComponent<Image>();
             i.sprite = s; i.color = c; i.raycastTarget = false;
-            if (sliced) { i.type = Image.Type.Sliced; i.pixelsPerUnitMultiplier = s == panelSprite ? 1.4f : 2.5f; }
+            if (sliced) { i.type = Image.Type.Sliced; i.pixelsPerUnitMultiplier = s == panelSprite ? 1.7f : 2.5f; }
             Place(Rect(go), anchor, pos, size);
             return i;
         }

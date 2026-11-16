@@ -1549,25 +1549,60 @@ namespace Gloomdelve.EditorTools
                 p.Outline(C(40, 26, 6)); Save(p, d + "compass_arrow", PCenter);
             }
             {
-                // Symmetric frame (same on all four sides): dark outline, 2px bronze border, dark inner line, fill.
-                var p = new Px(16, 16);
-                Color32 fill = C(22, 17, 24, 235), outline = C(16, 11, 14), bord = C(156, 120, 76), inner = C(62, 45, 30);
-                for (int y = 0; y < 16; y++)
-                    for (int x = 0; x < 16; x++)
+                // Panel (9-slice, 8 px border): rounded bronze frame lit from the top-left, gold studs in the corners.
+                const int n = 24;
+                var p = new Px(n, n);
+                Color32 fill = C(26, 20, 30, 240), fillTop = C(18, 14, 22, 240), outline = C(16, 11, 14);
+                Color32 brL = C(204, 164, 102), br = C(156, 120, 76), brD = C(104, 78, 50), inner = C(12, 9, 13);
+                for (int y = 0; y < n; y++)
+                    for (int x = 0; x < n; x++)
                     {
-                        int ring = Mathf.Min(Mathf.Min(x, 15 - x), Mathf.Min(y, 15 - y));
-                        p.Set(x, y, ring == 0 ? outline : ring <= 2 ? bord : ring == 3 ? inner : fill);
+                        int ring = Ring(x, y, n, 3);
+                        if (ring < 0) continue;
+                        bool lit = Mathf.Min(x, n - 1 - y) <= Mathf.Min(n - 1 - x, y);   // nearest to the left / top edge
+                        Color32 col = ring == 0 ? outline : ring == 1 ? (lit ? brL : br) : ring == 2 ? br : ring == 3 ? (lit ? brD : Mul(brD, 0.8f))
+                            : ring == 4 ? inner : (ring == 5 && n - 1 - y == 5 ? fillTop : fill);
+                        p.Set(x, y, col);
                     }
-                p.Set(0, 0, Clear); p.Set(15, 15, Clear); p.Set(0, 15, Clear); p.Set(15, 0, Clear);
-                Save(p, d + "panel", PCenter, new Vector4(4, 4, 4, 4));
+                foreach (int cx in new[] { 2, n - 5 })
+                    foreach (int cy in new[] { 2, n - 5 })
+                    {
+                        p.Rect(cx, cy, 3, 3, C(236, 196, 104));
+                        p.Set(cx, cy + 2, C(255, 240, 180)); p.Set(cx + 2, cy, C(160, 112, 46));
+                    }
+                Save(p, d + "panel", PCenter, new Vector4(8, 8, 8, 8));
             }
             {
-                var p = new Px(16, 16); Color32 fill = C(255, 255, 255), bord = C(200, 200, 200);
-                p.Fill(fill);
-                for (int i = 0; i < 16; i++) { p.Set(i, 0, bord); p.Set(i, 15, bord); p.Set(0, i, bord); p.Set(15, i, bord); }
-                p.Set(0, 0, Clear); p.Set(15, 15, Clear); p.Set(0, 15, Clear); p.Set(15, 0, Clear);
-                Save(p, d + "button", PCenter, new Vector4(3, 3, 3, 3));
+                // Button (9-slice, tinted by the UI): rounded, light top edge, darker lower half and bottom edge.
+                const int n = 16;
+                var p = new Px(n, n);
+                for (int y = 0; y < n; y++)
+                    for (int x = 0; x < n; x++)
+                    {
+                        int ring = Ring(x, y, n, 2);
+                        if (ring < 0) continue;
+                        int g = ring == 0 ? 44 : ring == 1 ? (n - 1 - y == 1 ? 255 : y == 1 ? 140 : 222) : (y == 2 ? 178 : y < n / 2 ? 208 : 240);
+                        p.Set(x, y, C(g, g, g));
+                    }
+                Save(p, d + "button", PCenter, new Vector4(5, 5, 5, 5));
             }
+            {
+                // Slot (9-slice): only the rim takes the tint, the middle stays dark so an icon reads on top of it.
+                const int n = 16;
+                var p = new Px(n, n);
+                for (int y = 0; y < n; y++)
+                    for (int x = 0; x < n; x++)
+                    {
+                        int ring = Ring(x, y, n, 3);
+                        if (ring < 0) continue;
+                        bool lit = Mathf.Min(x, n - 1 - y) <= Mathf.Min(n - 1 - x, y);
+                        p.Set(x, y, ring == 0 ? C(24, 18, 24) : ring == 1 ? (lit ? C(255, 255, 255) : C(190, 190, 190)) : ring == 2 ? C(150, 150, 150)
+                            : ring == 3 ? C(20, 16, 22, 245) : C(58, 50, 62, 235));
+                    }
+                Save(p, d + "slot", PCenter, new Vector4(5, 5, 5, 5));
+            }
+            LogoArt();
+            MenuArt();
             {
                 var p = new Px(64, 64);
                 for (int y = 0; y < 64; y++) for (int x = 0; x < 64; x++)
@@ -1578,6 +1613,172 @@ namespace Gloomdelve.EditorTools
                 }
                 Save(p, d + "vignette", PCenter);
             }
+        }
+
+        /// <summary>Distance (in whole pixels) from the edge of an n x n rounded square; -1 outside the rounded corners.</summary>
+        static int Ring(int x, int y, int n, int radius)
+        {
+            int dx = Mathf.Min(x, n - 1 - x), dy = Mathf.Min(y, n - 1 - y);
+            if (dx < radius && dy < radius)
+            {
+                float ax = radius - dx - 0.5f, ay = radius - dy - 0.5f;
+                float r = radius - Mathf.Sqrt(ax * ax + ay * ay);
+                return r < 0f ? -1 : (int)r;
+            }
+            return Mathf.Min(dx, dy);
+        }
+
+        /// <summary>Reads a sprite written earlier in this run back into a pixel buffer.</summary>
+        static Px LoadPx(string rel)
+        {
+            var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+            tex.LoadImage(File.ReadAllBytes(Path.Combine(Directory.GetCurrentDirectory(), Root + rel + ".png")));
+            var p = new Px(tex.width, tex.height);
+            var src = tex.GetPixels32();
+            for (int i = 0; i < src.Length; i++) p.c[i] = src[i];
+            Object.DestroyImmediate(tex);
+            return p;
+        }
+
+        static readonly Dictionary<char, string[]> LogoGlyphs = new Dictionary<char, string[]>
+        {
+            ['G'] = new[] { ".#####.", "##...##", "##.....", "##.....", "##.####", "##...##", "##...##", "##...##", ".#####." },
+            ['L'] = new[] { "##.....", "##.....", "##.....", "##.....", "##.....", "##.....", "##.....", "##.....", "#######" },
+            ['O'] = new[] { ".#####.", "##...##", "##...##", "##...##", "##...##", "##...##", "##...##", "##...##", ".#####." },
+            ['M'] = new[] { "##...##", "###.###", "#######", "##.#.##", "##...##", "##...##", "##...##", "##...##", "##...##" },
+            ['D'] = new[] { "######.", "##...##", "##...##", "##...##", "##...##", "##...##", "##...##", "##...##", "######." },
+            ['E'] = new[] { "#######", "##.....", "##.....", "##.....", "#####..", "##.....", "##.....", "##.....", "#######" },
+            ['V'] = new[] { "##...##", "##...##", "##...##", "##...##", "##...##", "##...##", ".##.##.", "..###..", "...#..." },
+        };
+
+        /// <summary>Title logo: chunky gold pixel letters with a dark outline and a drop shadow.</summary>
+        static void LogoArt()
+        {
+            const string word = "GLOOMDELVE";
+            const int S = 2, OX = 3, OY = 6, LH = 9 * S;
+            var p = new Px(word.Length * 16 + 6, LH + 9);
+            Color32 hi = C(255, 250, 204), light = C(255, 224, 120), mid = C(250, 184, 62), dark = C(206, 128, 40);
+            for (int i = 0; i < word.Length; i++)
+            {
+                var g = LogoGlyphs[word[i]];
+                for (int cy = 0; cy < 9; cy++)
+                    for (int cx = 0; cx < 7; cx++)
+                    {
+                        if (g[cy][cx] != '#') continue;
+                        for (int sy = 0; sy < S; sy++)
+                            for (int sx = 0; sx < S; sx++)
+                            {
+                                int py = OY + (8 - cy) * S + sy;
+                                float t = (py - OY) / (float)(LH - 1);
+                                p.Set(OX + i * 16 + cx * S + sx, py, t > 0.66f ? light : t > 0.3f ? mid : dark);
+                            }
+                    }
+            }
+            var top = p.Copy();
+            for (int y = 0; y < p.h; y++)
+                for (int x = 0; x < p.w; x++)
+                    if (top.Opaque(x, y) && !top.Opaque(x, y + 1)) p.Set(x, y, hi);
+            p.Outline(C(64, 32, 12));
+            var q = new Px(p.w, p.h);
+            for (int y = 0; y < p.h; y++)
+                for (int x = 0; x < p.w; x++)
+                    if (p.Opaque(x, y)) { q.Set(x + 1, y - 2, C(10, 6, 8, 200)); q.Set(x, y - 2, C(10, 6, 8, 200)); }
+            q.Blit(p, 0, 0);
+            Save(q, "UI/logo", PCenter);
+        }
+
+        /// <summary>
+        /// Main menu picture (320 x 180): the explorer at a camp torch inside a cave mouth, looking out at the sunset
+        /// over the mountains. Characters are the game's own sprites, drawn at the same pixel size as the scenery.
+        /// </summary>
+        static void MenuArt()
+        {
+            const int W = 320, H = 180, FLOOR = 38;
+            var p = new Px(W, H);
+
+            // sky: banded sunset gradient, stars high up
+            float[] stops = { 30f, 66f, 100f, 138f, 180f };
+            Color32[] cols = { C(252, 176, 100), C(228, 114, 120), C(122, 72, 142), C(46, 40, 98), C(20, 18, 54) };
+            for (int y = 0; y < H; y++)
+                for (int x = 0; x < W; x++)
+                {
+                    float yy = Mathf.Clamp(y + (N(x, y, 5) - 0.5f) * 4f, stops[0], stops[4] - 0.01f);
+                    int k = 0;
+                    while (yy >= stops[k + 1]) k++;
+                    Color32 col = Lerp(cols[k], cols[k + 1], (yy - stops[k]) / (stops[k + 1] - stops[k]));
+                    if (y > 112 && N(x, y, 11) > 0.9935f) col = C(255, 244, 222);
+                    p.Set(x, y, col);
+                }
+            // sun with a soft halo
+            const float SX = 212f, SY = 76f;
+            for (int y = 0; y < H; y++)
+                for (int x = 0; x < W; x++)
+                {
+                    float dd = Mathf.Sqrt((x - SX) * (x - SX) + (y - SY) * (y - SY));
+                    if (dd < 13f) p.Set(x, y, C(255, 238, 180));
+                    else if (dd < 15f) p.Set(x, y, C(255, 210, 144));
+                    else if (dd < 36f) p.Set(x, y, Lerp(p.Get(x, y), C(255, 196, 128), (1f - dd / 36f) * 0.5f));
+                }
+            // clouds
+            p.Ellipse(112, 120, 26, 3.5f, C(232, 140, 150)); p.Ellipse(124, 123, 15, 3f, C(250, 178, 164));
+            p.Ellipse(262, 134, 20, 3f, C(170, 100, 150)); p.Ellipse(252, 136, 11, 2.5f, C(206, 130, 160));
+            p.Ellipse(176, 150, 16, 2.5f, C(96, 64, 128));
+            // mountain ranges and a pine forest silhouette
+            for (int x = 0; x < W; x++)
+            {
+                int h1 = (int)(68 + 11 * Mathf.Sin(x * 0.045f) + 6 * Mathf.Sin(x * 0.11f + 1f));
+                int h2 = (int)(54 + 8 * Mathf.Sin(x * 0.07f + 2f) + 4 * Mathf.Sin(x * 0.19f));
+                int h3 = 43 + 4 - Mathf.Abs(x % 9 - 4) + (int)(2 * Mathf.Sin(x * 0.3f));
+                for (int y = FLOOR - 2; y <= h1; y++) p.Set(x, y, y >= h1 - 1 ? C(176, 120, 150) : C(112, 74, 128));
+                for (int y = FLOOR - 2; y <= h2; y++) p.Set(x, y, y == h2 ? C(96, 64, 112) : C(66, 46, 90));
+                for (int y = FLOOR - 2; y <= h3; y++) p.Set(x, y, C(30, 24, 46));
+            }
+
+            // the cave around the opening: how deep a pixel sits inside the rock (<= 0: open air)
+            (int cx, int len, int hw)[] stal = { (96, 44, 7), (128, 40, 6), (158, 52, 9), (204, 36, 6), (238, 58, 10), (270, 42, 7) };
+            float Rock(int x, int y)
+            {
+                float n = TileNoise(x / 14f, y / 14f, 64, 5) * 0.6f + TileNoise(x / 5f, y / 5f, 64, 9) * 0.4f;
+                float dx = (x - 166) / 128f, dy = (y - 100) / 68f;
+                float dpt = Mathf.Sqrt(dx * dx + dy * dy) + (n - 0.5f) * 0.28f - 1f;
+                foreach (var s in stal)
+                {
+                    float k = 1f - Mathf.Abs(x - s.cx) / (float)s.hw;
+                    if (k > 0f && y > H - s.len * k) dpt = Mathf.Max(dpt, 0.04f + (y - (H - s.len * k)) / 90f);
+                }
+                if (y < FLOOR) dpt = Mathf.Max(dpt, 0.04f + (FLOOR - 1 - y) / 40f);
+                return dpt;
+            }
+            const float TX = 84f, TY = FLOOR + 7f;   // camp torch
+            for (int y = 0; y < H; y++)
+                for (int x = 0; x < W; x++)
+                {
+                    float dpt = Rock(x, y);
+                    if (dpt <= 0f) continue;
+                    Color32 col = Lerp(C(78, 56, 68), C(16, 12, 20), Mathf.Clamp01(dpt * 2.6f));
+                    bool rim = Rock(x, y + 1) <= 0f || Rock(x + 1, y) <= 0f || Rock(x - 1, y) <= 0f || Rock(x, y - 1) <= 0f;
+                    if (rim) col = y < FLOOR ? C(156, 116, 94) : C(138, 94, 88);          // edge lit by the sunset
+                    else if (N(x / 2, y / 2, 21) > 0.84f) col = Mul(col, 1.2f);
+                    else if (N(x / 3, y / 2, 22) < 0.12f) col = Mul(col, 0.78f);
+                    float td = Mathf.Sqrt((x - TX) * (x - TX) + (y - TY) * (y - TY));
+                    if (td < 46f) { float f = 1f - td / 46f; col = Lerp(col, C(255, 170, 90), f * f * 0.6f); }
+                    p.Set(x, y, col);
+                }
+            // pebbles on the ledge
+            for (int x = 8; x < W - 8; x += 7)
+                if (N(x, 3, 31) > 0.55f && Rock(x, FLOOR) <= 0f) { p.Set(x, FLOOR, C(120, 90, 80)); p.Set(x + 1, FLOOR, C(84, 62, 62)); }
+            // camp torch stuck in the ground
+            p.Rect(84, FLOOR, 1, 6, C(116, 78, 42)); p.Set(84, FLOOR + 5, C(70, 44, 24));
+            p.Set(83, FLOOR + 6, C(255, 140, 40)); p.Set(84, FLOOR + 6, C(255, 200, 80)); p.Set(85, FLOOR + 6, C(255, 140, 40));
+            p.Set(84, FLOOR + 7, C(255, 236, 160)); p.Set(83, FLOOR + 7, C(255, 170, 60)); p.Set(84, FLOOR + 8, C(255, 190, 80));
+
+            // the cast, at scenery pixel size
+            p.Blit(LoadPx("Sprites/Player/idle_0"), 62, FLOOR - 1);
+            var snake = LoadPx("Sprites/Enemies/snake_0"); snake.FlipX(); p.Blit(snake, 246, FLOOR - 1);
+            p.Blit(LoadPx("Sprites/Enemies/bat_0"), 236, 104);
+            var bat2 = LoadPx("Sprites/Enemies/bat_1"); p.Blit(bat2, 268, 118);
+            p.Blit(LoadPx("Sprites/Items/idol"), 284, FLOOR - 1);
+            Save(p, "UI/menu_bg", PCenter);
         }
 
         static readonly Dictionary<char, string[]> Glyphs = new Dictionary<char, string[]>

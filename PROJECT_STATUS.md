@@ -55,6 +55,7 @@ Cập nhật: 16/11/2026 · Phiên bản 0.1.0 · Unity 6000.3.12f1
 
 - Sửa quái đi tuần (rắn, gã húc) đứng trên bệ 1 ô bị lắc trái-phải liên tục: giờ chỉ quay đầu khi phía sau còn ít nhất 0,75 ô để đi, nếu không thì đứng yên và quay mặt về phía người chơi. Thêm kịch bản kiểm thử (42/42).
 - Khu ngoài trời (Sunfall Cliffs): khối đất/đá lơ lửng và hố chông không còn mảng tường tối phía sau (chỉ thấy trời); cửa đứng ngoài trời có nhà cổng bằng đá bao quanh; chim ưng có nhịp lấy đà 0,35 giây trước khi lao và sprite xoay theo hướng lao.
+- Giao diện: khung bảng viền đồng bo góc có đinh vàng, nút bấm nổi khối, ô trang bị chỉ đổi màu viền, logo GLOOMDELVE bằng chữ pixel, màn hình chính có tranh nền miệng hang lúc hoàng hôn (ArtGenerator.MenuArt). Chữ trong menu/HUD vẫn là Arial.
 
 ## Đang làm
 - Không có hạng mục dở dang.

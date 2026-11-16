@@ -55,6 +55,7 @@ namespace Gloomdelve.EditorTools
                 UIBuilder.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
                 UIBuilder.panelSprite = ArtGenerator.S("UI/panel");
                 UIBuilder.buttonSprite = ArtGenerator.S("UI/button");
+                UIBuilder.slotSprite = ArtGenerator.S("UI/slot");
                 BuildMenuScene(cfg);
                 BuildGameScene(cfg, input, font);
                 EditorBuildSettings.scenes = new[]
@@ -853,17 +854,17 @@ namespace Gloomdelve.EditorTools
             var t = canvas.transform;
             var gold = new Color(1f, 0.84f, 0.38f);
 
-            var vig = UIBuilder.Img(t, "Vignette", ArtGenerator.S("UI/vignette"), new Color(0f, 0f, 0f, 0.9f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+            // Picture of the cave mouth: always covers the screen, whatever its shape (ArtGenerator.MenuArt).
+            var art = UIBuilder.Img(t, "Backdrop", ArtGenerator.S("UI/menu_bg"), Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+            UIBuilder.Stretch(art.rectTransform);
+            var fit = art.gameObject.AddComponent<UnityEngine.UI.AspectRatioFitter>();
+            fit.aspectMode = UnityEngine.UI.AspectRatioFitter.AspectMode.EnvelopeParent;
+            fit.aspectRatio = 16f / 9f;
+            var vig = UIBuilder.Img(t, "Vignette", ArtGenerator.S("UI/vignette"), new Color(0f, 0f, 0f, 0.55f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
             UIBuilder.Stretch(vig.rectTransform);
-            // decorative characters
-            UIBuilder.Img(t, "Hero", ArtGenerator.S("Sprites/Player/idle_0"), Color.white, new Vector2(0.2f, 0.32f), Vector2.zero, new Vector2(240, 240));
-            UIBuilder.Img(t, "Bat", ArtGenerator.S("Sprites/Enemies/bat_0"), Color.white, new Vector2(0.82f, 0.62f), Vector2.zero, new Vector2(170, 170));
-            UIBuilder.Img(t, "Snake", ArtGenerator.S("Sprites/Enemies/snake_0"), Color.white, new Vector2(0.8f, 0.25f), Vector2.zero, new Vector2(200, 200));
-            UIBuilder.Img(t, "Heartstone", ArtGenerator.S("Sprites/Items/heartstone"), Color.white, new Vector2(0.5f, 1f), new Vector2(-560, -140), new Vector2(120, 120));
-            UIBuilder.Img(t, "Idol", ArtGenerator.S("Sprites/Items/idol"), Color.white, new Vector2(0.5f, 1f), new Vector2(560, -140), new Vector2(120, 120));
 
-            UIBuilder.Label(t, "Title", "GLOOMDELVE", 112, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -130), new Vector2(1400, 150), true, FontStyle.Bold);
-            UIBuilder.Label(t, "Subtitle", "a cave-delving roguelike platformer", 34, new Color(0.85f, 0.8f, 0.75f), TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -250), new Vector2(1200, 50));
+            UIBuilder.Img(t, "Title", ArtGenerator.S("UI/logo"), Color.white, new Vector2(0.5f, 1f), new Vector2(0, -70), new Vector2(1162, 189));
+            UIBuilder.Label(t, "Subtitle", "a cave-delving roguelike platformer", 34, new Color(0.95f, 0.88f, 0.78f), TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -268), new Vector2(1200, 50));
 
             var menu = new GameObject("MainMenu").AddComponent<MainMenuController>();
             menu.config = cfg;
@@ -1044,7 +1045,7 @@ namespace Gloomdelve.EditorTools
 
             var gearBox = UIBuilder.Panel(hudGo.transform, "Gear", new Vector2(0f, 1f), new Vector2(16, -108), new Vector2(420, 96));
             gearBox.rectTransform.pivot = new Vector2(0f, 1f);
-            var gframe = UIBuilder.Img(gearBox.transform, "IconFrame", UIBuilder.buttonSprite, new Color(1f, 0.8f, 0.35f), new Vector2(0f, 0.5f), new Vector2(18, 0), new Vector2(58, 58), true);
+            var gframe = UIBuilder.Img(gearBox.transform, "IconFrame", UIBuilder.slotSprite, new Color(1f, 0.8f, 0.35f), new Vector2(0f, 0.5f), new Vector2(18, 0), new Vector2(58, 58), true);
             gframe.rectTransform.pivot = new Vector2(0f, 0.5f);
             hud.equipIcon = UIBuilder.Img(gframe.transform, "Icon", ArtGenerator.S("UI/icon_bomb"), Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(44, 44));
             hud.equipName = UIBuilder.Label(gearBox.transform, "Name", "BOMBS", 30, gold, TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(86, 13), new Vector2(200, 36), true, FontStyle.Bold);
@@ -1123,7 +1124,7 @@ namespace Gloomdelve.EditorTools
             var row = UIBuilder.Node(wpanel.transform, "Row");
             UIBuilder.Place(UIBuilder.Rect(row), new Vector2(0.5f, 0.5f), new Vector2(0, 40), new Vector2(800, 150));
             wheel.row = (RectTransform)row.transform;
-            var slot = UIBuilder.Img(row.transform, "SlotTemplate", UIBuilder.buttonSprite, Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(124, 124), true);
+            var slot = UIBuilder.Img(row.transform, "SlotTemplate", UIBuilder.slotSprite, Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(124, 124), true);
             UIBuilder.Img(slot.transform, "Icon", ArtGenerator.S("UI/icon_bomb"), Color.white, new Vector2(0.5f, 0.5f), new Vector2(0, 8), new Vector2(84, 84));
             UIBuilder.Label(slot.transform, "Ammo", "x4", 26, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0, -22), new Vector2(120, 36), true, FontStyle.Bold);
             wheel.slotTemplate = slot.gameObject;
