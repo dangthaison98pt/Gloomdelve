@@ -51,6 +51,68 @@ namespace Gloomdelve
             yield return new WaitForSecondsRealtime(0.8f);
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_main.png"));
             yield return new WaitForSecondsRealtime(0.3f);
+            // a (virtual) gamepad button here must switch the menu hints to gamepad buttons
+            {
+                var prevBg = UnityEngine.InputSystem.InputSystem.settings.backgroundBehavior;
+                UnityEngine.InputSystem.InputSystem.settings.backgroundBehavior = UnityEngine.InputSystem.InputSettings.BackgroundBehavior.IgnoreFocus;
+                var pad = UnityEngine.InputSystem.InputSystem.AddDevice<UnityEngine.InputSystem.Gamepad>("MenuPad");
+                UnityEngine.InputSystem.InputSystem.QueueStateEvent(pad,
+                    new UnityEngine.InputSystem.LowLevel.GamepadState().WithButton(UnityEngine.InputSystem.LowLevel.GamepadButton.LeftShoulder));
+                yield return new WaitForSecondsRealtime(0.3f);
+                Debug.Log("[Scenario] menu: gamepad button -> UsingGamepad = " + InputDeviceTracker.UsingGamepad);
+                System.IO.File.WriteAllText(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_pad.txt"), "UsingGamepad=" + InputDeviceTracker.UsingGamepad);
+                ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_pad.png"));
+                yield return new WaitForSecondsRealtime(0.3f);
+                UnityEngine.InputSystem.InputSystem.QueueStateEvent(pad, new UnityEngine.InputSystem.LowLevel.GamepadState());
+                yield return null;
+                UnityEngine.InputSystem.InputSystem.RemoveDevice(pad);
+                InputDeviceTracker.ResetToKeyboard();
+                // the same with a PlayStation pad: the hints must show cross / circle / square / triangle
+                string psResult = "not created";
+                UnityEngine.InputSystem.InputDevice ps = null;
+                try { ps = UnityEngine.InputSystem.InputSystem.AddDevice<UnityEngine.InputSystem.DualShock.DualShockGamepad>("MenuPadPS"); }
+                catch (System.Exception ex) { psResult = "could not create a virtual DualShock: " + ex.Message; }
+                if (ps != null)
+                {
+                    UnityEngine.InputSystem.InputSystem.QueueStateEvent(ps,
+                        new UnityEngine.InputSystem.LowLevel.GamepadState().WithButton(UnityEngine.InputSystem.LowLevel.GamepadButton.LeftShoulder));
+                    yield return new WaitForSecondsRealtime(0.3f);
+                    psResult = "UsingGamepad=" + InputDeviceTracker.UsingGamepad + " PlayStation=" + InputDeviceTracker.PlayStation;
+                    ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_ps.png"));
+                    yield return new WaitForSecondsRealtime(0.3f);
+                    UnityEngine.InputSystem.InputSystem.QueueStateEvent(ps, new UnityEngine.InputSystem.LowLevel.GamepadState());
+                    yield return null;
+                    UnityEngine.InputSystem.InputSystem.RemoveDevice(ps);
+                    InputDeviceTracker.ResetToKeyboard();
+                }
+                System.IO.File.AppendAllText(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_pad.txt"), "\nPS: " + psResult);
+                // and with a Nintendo pad (recognised by its description): B / A / Y / X as printed on it
+                string swResult = "not created";
+                UnityEngine.InputSystem.InputDevice sw = null;
+                try
+                {
+                    UnityEngine.InputSystem.InputSystem.RegisterLayoutMatcher<UnityEngine.InputSystem.Gamepad>(
+                        new UnityEngine.InputSystem.Layouts.InputDeviceMatcher().WithManufacturer("Nintendo").WithProduct("Scenario Pro Controller"));
+                    sw = UnityEngine.InputSystem.InputSystem.AddDevice(new UnityEngine.InputSystem.Layouts.InputDeviceDescription
+                        { manufacturer = "Nintendo", product = "Scenario Pro Controller" });
+                }
+                catch (System.Exception ex) { swResult = "could not create a virtual Switch pad: " + ex.Message; }
+                if (sw != null)
+                {
+                    UnityEngine.InputSystem.InputSystem.QueueStateEvent(sw,
+                        new UnityEngine.InputSystem.LowLevel.GamepadState().WithButton(UnityEngine.InputSystem.LowLevel.GamepadButton.LeftShoulder));
+                    yield return new WaitForSecondsRealtime(0.3f);
+                    swResult = "UsingGamepad=" + InputDeviceTracker.UsingGamepad + " Nintendo=" + InputDeviceTracker.Nintendo + " Kind=" + InputDeviceTracker.Kind;
+                    ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_switch.png"));
+                    yield return new WaitForSecondsRealtime(0.3f);
+                    UnityEngine.InputSystem.InputSystem.QueueStateEvent(sw, new UnityEngine.InputSystem.LowLevel.GamepadState());
+                    yield return null;
+                    UnityEngine.InputSystem.InputSystem.RemoveDevice(sw);
+                    InputDeviceTracker.ResetToKeyboard();
+                }
+                System.IO.File.AppendAllText(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_pad.txt"), "\nSwitch: " + swResult);
+                UnityEngine.InputSystem.InputSystem.settings.backgroundBehavior = prevBg;
+            }
             Open(controlsPanel, controlsBack);
             yield return new WaitForSecondsRealtime(0.3f);
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_controls.png"));

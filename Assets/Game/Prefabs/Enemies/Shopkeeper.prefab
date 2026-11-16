@@ -167,6 +167,7 @@ MonoBehaviour:
   jumpVelocity: 12
   animIdle: {fileID: 11400000, guid: c941b96366c4e6045b730866c2e58b17, type: 2}
   animAngry: {fileID: 11400000, guid: 07f8150310aad244e806224a437e64f7, type: 2}
+  ambushRange: 5.5
 --- !u!114 &4602634778883608727
 MonoBehaviour:
   m_ObjectHideFlags: 0

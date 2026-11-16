@@ -61,18 +61,23 @@ namespace Gloomdelve.EditorTools
                 Sprite GS(string n) => ArtGenerator.S("UI/Glyphs/" + n);
                 Sprite key = GS("key"), pill = GS("pill"), darkBtn = GS("pad_dark");
                 Color ink = new Color(0.17f, 0.14f, 0.19f), light = new Color(0.97f, 0.96f, 0.93f);
-                InputGlyphSet.Entry GE(string token, string kb, Sprite pad, string padLabel, bool darkInk = false) => new InputGlyphSet.Entry
+                // PlayStation symbols in their usual colours, on a dark button
+                Color psCross = new Color(0.55f, 0.75f, 1f), psCircle = new Color(1f, 0.45f, 0.45f), psSquare = new Color(1f, 0.55f, 0.95f), psTriangle = new Color(0.35f, 0.92f, 0.7f);
+                // sw = the label printed on a Switch pad for the same physical button (B is at the bottom, A on the right)
+                InputGlyphSet.Entry GE(string token, string kb, Sprite pad, string padLabel, bool darkInk = false, string ps = null, Color? psInk = null, Sprite psShape = null, string sw = null) => new InputGlyphSet.Entry
                 {
                     token = token, keyboard = key, keyboardLabel = kb, keyboardInk = ink,
                     gamepad = pad, gamepadLabel = padLabel, gamepadInk = darkInk ? ink : light,
+                    playstation = ps != null ? (psShape != null ? psShape : darkBtn) : null, playstationLabel = ps, playstationInk = psInk ?? light,
+                    nintendo = sw != null ? (psShape != null ? psShape : darkBtn) : null, nintendoLabel = sw, nintendoInk = light,
                 };
                 glyphs.entries = new[]
                 {
-                    GE("jump", "Z", GS("pad_green"), "A"), GE("confirm", "Enter", GS("pad_green"), "A"),
-                    GE("whip", "X", GS("pad_blue"), "X"), GE("use", "C", GS("pad_red"), "B"),
-                    GE("enter", "A", GS("pad_yellow"), "Y", true),
-                    GE("gear", "D", pill, "R1"), GE("walk", "Shift", pill, "LT"),
-                    GE("pause", "Esc", pill, "Start"), GE("inventory", "Tab", pill, "Select"),
+                    GE("jump", "Z", GS("pad_green"), "A", false, "\u00D7", psCross, null, "B"), GE("confirm", "Enter", GS("pad_green"), "A", false, "\u00D7", psCross, null, "B"),
+                    GE("whip", "X", GS("pad_blue"), "X", false, "\u25A1", psSquare, null, "Y"), GE("use", "C", GS("pad_red"), "B", false, "\u25CB", psCircle, null, "A"),
+                    GE("enter", "A", GS("pad_yellow"), "Y", true, "\u25B2", psTriangle, null, "X"),
+                    GE("gear", "D", pill, "R1", false, "R1", null, pill, "R"), GE("walk", "Shift", pill, "LT", false, "L2", null, pill, "ZL"),
+                    GE("pause", "Esc", pill, "Start", false, "Options", null, pill, "+"), GE("inventory", "Tab", pill, "Select", false, "Share", null, pill, "\u2212"),
                     GE("up", "\u25B2", darkBtn, "\u25B2"), GE("down", "\u25BC", darkBtn, "\u25BC"),
                     GE("left", "\u25C4", darkBtn, "\u25C4"), GE("right", "\u25BA", darkBtn, "\u25BA"),
                     GE("move", "\u25C4 \u25B2 \u25BC \u25BA", darkBtn, "L"),

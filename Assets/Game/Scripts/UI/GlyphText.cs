@@ -24,7 +24,7 @@ namespace Gloomdelve
 
         Text text;
         string raw, shown;
-        bool pad;
+        int device;
         Vector2 lastSize;
         readonly List<Spot> spots = new List<Spot>();
         readonly List<Icon> icons = new List<Icon>();
@@ -45,7 +45,7 @@ namespace Gloomdelve
                 else { raw = cur; dirty = true; }
             }
             if (raw == null) return;
-            if (pad != InputDeviceTracker.UsingGamepad) { pad = InputDeviceTracker.UsingGamepad; dirty = true; }
+            if (device != InputDeviceTracker.Kind) { device = InputDeviceTracker.Kind; dirty = true; }
             var size = text.rectTransform.rect.size;
             if (dirty) Rebuild();
             else if (size != lastSize && spots.Count > 0) Place();
@@ -84,7 +84,7 @@ namespace Gloomdelve
                 char ch = raw[i];
                 int end = ch == '[' ? raw.IndexOf(']', i + 1) : -1;
                 Sprite s = null; string label = ""; Color ink = Color.white;
-                if (end <= i + 1 || !set.Find(raw.Substring(i + 1, end - i - 1), pad, out s, out label, out ink)) { sb.Append(ch); continue; }
+                if (end <= i + 1 || !set.Find(raw.Substring(i + 1, end - i - 1), device, out s, out label, out ink)) { sb.Append(ch); continue; }
                 // a 9-slice shape (key, pill) grows with its label; a fixed shape (round button) keeps its proportions
                 float w = s.border.sqrMagnitude > 0f
                     ? Mathf.Max(h, Advance(label, LabelSize, FontStyle.Bold) + h * 0.62f)
