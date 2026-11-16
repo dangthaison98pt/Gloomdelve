@@ -1,0 +1,44 @@
+Gloomdelve in-game scenario tests 2026-11-14 21:47:49
+PASS  whip kills an approaching snake  
+PASS  stomping a snake kills it and bounces  
+PASS  picked-up rock thrown at a snake kills it  
+PASS  bomb destroys dirt but not bedrock, player escapes  
+PASS  bomb chain reaction is bounded  
+PASS  thrown rock triggers arrow trap; arrow hurts player (2)  
+PASS  stalactite falls on a snake  
+PASS  falling onto spikes kills  
+PASS  rope: throw, climb, step onto a high ledge  
+PASS  rope hook visibly grabs a ledge lip / a wall face / the ceiling  
+PASS  rope into open air finds no hold and drops back  
+PASS  hooked rope vanishes after its lifetime  
+PASS  rope does not vanish while being climbed  
+PASS  gear wheel freezes the game and equips the chosen gear  
+PASS  gear swap with real R1 presses: one tap after the wheel swaps back  wheel->rope tap->bomb longtap->rope 
+PASS  use button uses only the equipped gear  
+PASS  rope gate: 4-high cliff cannot be passed without the rope  
+PASS  rope gate: rope beside the cliff gets you over  
+PASS  bomb gate: one bomb clears the rubble, bedrock stays  
+PASS  glider: gliding crosses a 6-wide thorn chasm  
+PASS  glider gate: without the glider the chasm is deadly  
+PASS  gliding down from high up causes no fall damage  
+PASS  hawk dives at the player below it  
+PASS  ledge grab and climb (real controller)  
+PASS  ladder climb to the top  
+PASS  jumping off a ladder under the ceiling stays inside the map  
+PASS  buy a bomb bag in a shop  
+PASS  shopkeeper: 2 warnings without damage, 3rd hit angers him, items free  
+PASS  crusher hits the player for 3  
+PASS  flame vent burns the player and lights a bomb  
+PASS  a heart pickup heals 1  
+PASS  collectibles glow, pickups bob, hint arrow near a rock  
+PASS  waypoint: rides the screen edge, then floats above the exit  
+PASS  whip breaks a pot  
+PASS  long fall hurts and stuns  
+PASS  pause menu freezes the game  
+PASS  settings panel opens from pause  
+PASS  results screen after death  
+PASS  time-pressure wraith spawns and its touch is fatal  
+PASS  carrying a golden idol out pays gold  
+PASS  exit door ends the level  
+
+41 passed, 0 failed

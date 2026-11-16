@@ -1,0 +1,84 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04b4b2e046fad3844b7ae4b98f9663ce, type: 3}
+  m_Name: PrefabRegistry
+  m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.PrefabRegistry
+  player: {fileID: 2096733273879930384, guid: d70c64c8d9481ed4d8abb29536393ef0, type: 3}
+  entries:
+  - id: snake
+    prefab: {fileID: 5518890676095365102, guid: 20f33f1d3c2f8d141ba4d196fb2268a3, type: 3}
+  - id: bat
+    prefab: {fileID: 2955707307905686629, guid: 100118cd1ca5190468500b8907852f3a, type: 3}
+  - id: emberbat
+    prefab: {fileID: 187368833009874205, guid: a64d1d455f5c1424aba36505ee82e60c, type: 3}
+  - id: spider
+    prefab: {fileID: 7570002852000247608, guid: 79f97cfb44b461e4da61a868751d0a34, type: 3}
+  - id: toad
+    prefab: {fileID: 7307930703589476578, guid: 28524312e246049468d29d9a383dd749, type: 3}
+  - id: brute
+    prefab: {fileID: 7280242137149766647, guid: 29b64a180a3739446bc3183dbb52a9b9, type: 3}
+  - id: hawk
+    prefab: {fileID: 282029270680871591, guid: 864923d5074fbb4498626ef3dcbdef4b, type: 3}
+  - id: tree
+    prefab: {fileID: 2973345593559117600, guid: 6f2148d2435098b4e9a03e36c8a72f91, type: 3}
+  - id: wraith
+    prefab: {fileID: 5615943857777852222, guid: 9b59f347c323a4042bce3c11dc60337b, type: 3}
+  - id: shopkeeper
+    prefab: {fileID: 5617685194465324275, guid: b35dd9c68fc2b0e45a1593f3f92d5a97, type: 3}
+  - id: rock
+    prefab: {fileID: 752481112950695594, guid: 49699dfc29f75b14fb1af73d864bbb6f, type: 3}
+  - id: pot
+    prefab: {fileID: 4288921872685477480, guid: 76fab6b4624186c478ef705846852693, type: 3}
+  - id: crate
+    prefab: {fileID: 7156982810074276317, guid: ea3ab4d91afd4b847b4e72ed1a4d6964, type: 3}
+  - id: arrow
+    prefab: {fileID: 8811875733502816701, guid: 8e8ab743e69e0944c9902bc0cee4ff7b, type: 3}
+  - id: bomb
+    prefab: {fileID: 1209095498363193052, guid: d477e6a53e684844cac32829e412d879, type: 3}
+  - id: idol
+    prefab: {fileID: 7114767298160125637, guid: 8400678e66614b4408d8bae7f73929b6, type: 3}
+  - id: heartstone
+    prefab: {fileID: 301633585561420827, guid: f8b86a78c317745458b036d744b4173e, type: 3}
+  - id: gold_small
+    prefab: {fileID: 2801083082458205760, guid: eeeec6c20a4a1ca48a865abe141a6d3c, type: 3}
+  - id: gold_big
+    prefab: {fileID: 3283645544618794572, guid: 8d22bae0dca59a246b9a65c4b99ac1f0, type: 3}
+  - id: gem
+    prefab: {fileID: 7685839385956542465, guid: 77ef974fded7c694b874f7ba127d3d8f, type: 3}
+  - id: bombbag
+    prefab: {fileID: 7834356725537803413, guid: 75ce697fa053d2e479829287c662ad32, type: 3}
+  - id: ropepile
+    prefab: {fileID: 3867685975134011339, guid: d733cc154a885b44089f2f3076eec8af, type: 3}
+  - id: heart
+    prefab: {fileID: 5961885058789331752, guid: 6e603d80527355d44ac1e5bfde83e838, type: 3}
+  - id: rope
+    prefab: {fileID: 6251988066372899909, guid: 08e1dcbfeb519194ab381a56c61b1fb0, type: 3}
+  - id: arrowtrap
+    prefab: {fileID: 143766190703970970, guid: c25e691073e803042b1edf837acc5409, type: 3}
+  - id: stalactite
+    prefab: {fileID: 1988830143635382749, guid: 976163b6d4ca5bc4ca63a59d8c1a2a69, type: 3}
+  - id: crusher
+    prefab: {fileID: 4152285831955026271, guid: 7072777b73cd70b4eaf6ec84da8918c9, type: 3}
+  - id: flamevent
+    prefab: {fileID: 8972598198286859280, guid: c62db04f6a197da41bdea70e8d2ab169, type: 3}
+  - id: door_entrance
+    prefab: {fileID: 8571432961537751860, guid: a179777279b61af4ca1605f08dea4261, type: 3}
+  - id: door_exit
+    prefab: {fileID: 5693941329880597190, guid: 6c4518b838262ed40bd28e04f78ded74, type: 3}
+  - id: sign
+    prefab: {fileID: 8989074349318937008, guid: da0b8fcea1fc6a94b900538809a35c81, type: 3}
+  - id: altar
+    prefab: {fileID: 7751914155658704218, guid: 845e15b985485174b8f0d8db033b073e, type: 3}
+  - id: shopsign
+    prefab: {fileID: 5755584402361523035, guid: ce755e956692d4c4ca0ab43a18267346, type: 3}
+  - id: shopitem
+    prefab: {fileID: 2780275439992920030, guid: d91446493146f784c8c41fa8f4cde44e, type: 3}

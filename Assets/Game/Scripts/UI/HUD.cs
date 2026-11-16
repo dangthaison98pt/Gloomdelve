@@ -1,0 +1,205 @@
+using System.Text;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace Gloomdelve
+{
+    public class HUD : MonoBehaviour
+    {
+        public Text healthText;
+        public Text bombText;
+        public Text ropeText;
+        public Text goldText;
+        public Text stageText;
+        public Text timeText;
+        public Text totalTimeText;
+        public Text upgradesText;
+        public GameObject promptPanel;
+        public Text promptText;
+        public CanvasGroup bannerGroup;
+        public Text bannerTitle;
+        public Text bannerSub;
+        public CanvasGroup messageGroup;
+        public Text messageText;
+        public CanvasGroup hurtGroup;
+        public Text hurtText;
+        public Image damageVignette;
+        [Header("Waypoint (Compass upgrade)")]
+        public GameObject compassRoot;          // full-screen layer holding the marker
+        public Text compassText;                // distance label
+        public RectTransform wpMarker;
+        public RectTransform wpArrowPivot;
+        public Image wpRing, wpPing, wpChevron, wpTail, wpIcon;
+        public Sprite wpExitIcon, wpGoalIcon;
+        public CanvasGroup wpGroup;
+        public Color wpExitColor = new Color(0.36f, 1f, 0.82f);
+        public Color wpGoalColor = new Color(1f, 0.45f, 0.62f);
+
+        /// <summary>Waypoint state (read by the scenario tests).</summary>
+        public bool WaypointVisible { get; private set; }
+        public bool WaypointOnScreen { get; private set; }
+        public Vector2 WaypointPos => wpMarker != null ? wpMarker.anchoredPosition : Vector2.zero;
+        public Vector2 WaypointTarget { get; private set; }
+        bool wpSnapped;
+        float wpArrowA, wpTailA;
+        public Image heartIcon;
+        [Header("Equipped gear")]
+        public Image equipIcon;
+        public Text equipName;
+        public Text equipAmmo;
+
+        GameDirector dir;
+        float bannerT, msgT, hurtT, vignette;
+        float shownGold;
+        int lastHealth = -1;
+        float heartPulse;
+
+        public void Bind(GameDirector d) { dir = d; shownGold = RunSession.Current != null ? RunSession.Current.gold : 0; }
+
+        public void ShowBanner(string title, string sub, float seconds = 3.5f)
+        {
+            bannerTitle.text = title;
+            bannerSub.text = sub;
+            bannerT = seconds;
+        }
+
+        public void ShowMessage(string m, float seconds = 3.5f)
+        {
+            messageText.text = m;
+            msgT = seconds;
+        }
+
+        public void ShowHurt(string cause, int amount)
+        {
+            hurtText.text = amount >= 50 ? cause : $"-{amount}  {cause}";
+            hurtT = 2.2f;
+            vignette = 0.55f;
+        }
+
+        void Update()
+        {
+            var run = RunSession.Current;
+            if (run == null || dir == null) return;
+            float dt = Time.unscaledDeltaTime;
+
+            healthText.text = run.health.ToString();
+            if (lastHealth >= 0 && run.health != lastHealth) heartPulse = 0.4f;
+            lastHealth = run.health;
+            heartPulse -= dt;
+            if (heartIcon != null) heartIcon.rectTransform.localScale = Vector3.one * (1f + Mathf.Max(0f, heartPulse) * 0.8f);
+            healthText.color = run.health <= 1 ? new Color(1f, 0.35f, 0.35f) : Color.white;
+
+            bombText.text = run.bombs.ToString();
+            ropeText.text = run.ropes.ToString();
+            var gear = dir.config != null ? dir.config.FindGear(run.EquippedId) : null;
+            if (equipIcon != null)
+            {
+                equipIcon.enabled = gear != null && gear.icon != null;
+                if (gear != null) equipIcon.sprite = gear.icon;
+                equipName.text = gear != null ? gear.displayName.ToUpperInvariant() : "-";
+                int ammo = gear != null ? run.Ammo(gear.kind) : 0;
+                equipAmmo.text = gear != null && ammo >= 0 ? "x" + ammo : "";
+                equipAmmo.color = ammo > 0 ? Color.white : new Color(1f, 0.4f, 0.4f);
+            }
+            shownGold = Mathf.MoveTowards(shownGold, run.gold, Mathf.Max(60f, Mathf.Abs(run.gold - shownGold) * 4f) * dt);
+            goldText.text = "$" + Mathf.RoundToInt(shownGold);
+
+            if (dir.Stage != null)
+                stageText.text = dir.Stage.kind == LevelKind.Area ? $"{dir.Stage.displayName}  {dir.Stage.area.displayName}" : dir.Stage.displayName;
+            timeText.text = UIUtil.FormatTime(run.levelTime);
+            if (dir.WraithActive) timeText.color = Color.Lerp(new Color(1f, 0.2f, 0.2f), Color.white, Mathf.PingPong(Time.unscaledTime * 3f, 1f) * 0.4f);
+            else if (dir.PressureWarned) timeText.color = new Color(1f, 0.6f, 0.2f);
+            else timeText.color = Color.white;
+            totalTimeText.text = "TOTAL " + UIUtil.FormatTime(run.totalTime);
+
+            var sb = new StringBuilder();
+            if (run.springBoots) sb.Append("Spring Boots   ");
+            if (run.ironWhip) sb.Append("Iron Whip   ");
+            if (run.compass) sb.Append("Compass   ");
+            if (run.blastPowder) sb.Append("Blast Powder");
+            upgradesText.text = sb.ToString();
+
+            var p = dir.Player;
+            string prompt = p != null && !p.IsDead && !dir.Ended ? p.Prompt : null;
+            promptPanel.SetActive(!string.IsNullOrEmpty(prompt));
+            if (!string.IsNullOrEmpty(prompt)) promptText.text = prompt;
+
+            bannerT -= dt; msgT -= dt; hurtT -= dt;
+            bannerGroup.alpha = dir.Paused || dir.Ended || (dir.gearWheel != null && dir.gearWheel.IsOpen) ? 0f : Mathf.Clamp01(bannerT);
+            messageGroup.alpha = Mathf.Clamp01(msgT);
+            hurtGroup.alpha = Mathf.Clamp01(hurtT);
+            vignette = Mathf.Max(0f, vignette - dt * 0.8f);
+            if (p != null && p.IsDead) vignette = Mathf.Max(vignette, 0.35f);
+            damageVignette.color = new Color(0.8f, 0f, 0f, vignette);
+
+            UpdateWaypoint(run, p, dt);
+        }
+
+        // Screen-space objective marker: floats above the exit when it is on screen, otherwise rides the
+        // screen edge with a chevron pointing towards it. Distance in tiles ("m").
+        void UpdateWaypoint(RunState run, PlayerController p, float dt)
+        {
+            bool show = run.compass && p != null && !p.IsDead && dir.Level != null && dir.cam != null && wpMarker != null;
+            WaypointVisible = show;
+            compassRoot.SetActive(show);
+            if (!show) { wpSnapped = false; return; }
+
+            bool goal = dir.Level.goal.HasValue && !dir.Collapsing;
+            Vector2Int cell = goal ? dir.Level.goal.Value : dir.Level.exit;
+            Vector2 world = new Vector2(cell.x + 0.5f, cell.y + 1.35f);   // top of the door / altar
+            float dist = Vector2.Distance(new Vector2(cell.x + 0.5f, cell.y + 0.5f), p.Center);
+
+            var root = (RectTransform)compassRoot.transform;
+            Vector2 screen = dir.cam.WorldToScreenPoint(world);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(root, screen, null, out var local);
+            WaypointTarget = local;
+
+            Vector2 half = root.rect.size * 0.5f;
+            const float side = 80f, top = 190f, bottom = 120f, lift = 125f;
+            float minX = -half.x + side, maxX = half.x - side, minY = -half.y + bottom, maxY = half.y - top;
+
+            bool onScreen = local.x > minX && local.x < maxX && local.y > minY && local.y < maxY - lift * 0.5f;
+            Vector2 want;
+            float t = Time.unscaledTime;
+            if (onScreen)
+            {
+                want = local + new Vector2(0f, lift + Mathf.Sin(t * 2.4f) * 6f);
+                want.y = Mathf.Min(want.y, maxY);
+            }
+            else
+            {
+                // clamp along the ray from the screen centre to the target
+                Vector2 c = new Vector2((minX + maxX) * 0.5f, (minY + maxY) * 0.5f);
+                Vector2 d = local - c;
+                float sx = d.x > 0f ? (maxX - c.x) / d.x : d.x < 0f ? (minX - c.x) / d.x : float.MaxValue;
+                float sy = d.y > 0f ? (maxY - c.y) / d.y : d.y < 0f ? (minY - c.y) / d.y : float.MaxValue;
+                want = c + d * Mathf.Min(1f, Mathf.Min(sx, sy));
+            }
+            WaypointOnScreen = onScreen;
+
+            Vector2 pos = wpSnapped ? Vector2.Lerp(wpMarker.anchoredPosition, want, 1f - Mathf.Exp(-16f * dt)) : want;
+            wpSnapped = true;
+            wpMarker.anchoredPosition = pos;
+
+            Vector2 toT = local - pos;
+            if (!onScreen && toT.sqrMagnitude > 1f)
+                wpArrowPivot.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(toT.y, toT.x) * Mathf.Rad2Deg);
+            wpArrowA = Mathf.MoveTowards(wpArrowA, onScreen ? 0f : 1f, dt * 6f);
+            wpTailA = Mathf.MoveTowards(wpTailA, onScreen ? 1f : 0f, dt * 6f);
+
+            Color accent = goal ? wpGoalColor : wpExitColor;
+            wpRing.color = accent;
+            wpChevron.color = new Color(accent.r, accent.g, accent.b, wpArrowA);
+            wpTail.color = new Color(accent.r, accent.g, accent.b, wpTailA);
+            float ph = (t % 1.8f) / 1.8f;
+            wpPing.rectTransform.localScale = Vector3.one * (1f + ph * 0.9f);
+            wpPing.color = new Color(accent.r, accent.g, accent.b, (1f - ph) * 0.6f);
+            wpIcon.sprite = goal ? wpGoalIcon : wpExitIcon;
+
+            compassText.text = $"{Mathf.RoundToInt(dist)} m";
+            bool hidden = dir.Paused || dir.Ended || (dir.gearWheel != null && dir.gearWheel.IsOpen);
+            float a = hidden ? 0f : dist < 2.2f ? 0.35f : 1f;
+            wpGroup.alpha = Mathf.MoveTowards(wpGroup.alpha, a, dt * 5f);
+        }
+    }
+}

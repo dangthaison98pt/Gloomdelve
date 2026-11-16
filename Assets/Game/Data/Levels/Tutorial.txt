@@ -1,0 +1,29 @@
+name: Tutorial
+sign1: Welcome, delver!  ARROW KEYS move.  Hold SHIFT to walk slowly near edges.
+sign2: Z or SPACE jumps.  Tap for a small hop, hold for a high jump.
+sign3: Jump at a ledge and you grab it automatically.  UP or JUMP climbs up, DOWN lets go.
+sign4: Press UP on a ladder to climb it.  JUMP to leap off.
+sign5: X cracks your whip.  You can also stomp most enemies by landing on their heads.
+sign6: DOWN + X picks things up, X throws them (UP + X throws high).  Pots hold treasure - or snakes.
+sign7: Your GEAR is BOMBS (top-left).  C uses it: throw a bomb, DOWN + C places it.  Bombs break dirt and rubble, never the dark bedrock.  Stand back!
+sign8: Hold D (R1 on a gamepad) to open the GEAR WHEEL, pick the ROPE with LEFT / RIGHT and release.  Then press C right next to this wall: the rope hooks on, climb with UP.  Ropes vanish after a while.
+sign9: Falling onto SPIKES kills.  Arrow traps fire at anything moving in front of them - throw a rock first!  Exit: UP or A at the door.
+---
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+X##############################################################################################X
+X##############################################################################################X
+X##############################################################################################X
+X...........................................................XX...............................XXX
+X...........................H######.........................XX...............................XXX
+X...........................H######.........................XX........########...............XXX
+X...........................H########.......................XX........########...............XXX
+X...........................H########.......................XX........########...............XXX
+X...........................H########.......................XX........##########.............XXX
+X.........................4.H##########.....................XX........##########.............XXX
+X....................##################.....................##........##########.............XXX
+X............###.....##################.....................##........############...........XXX
+X..S..1..2.#####..3..##################.5....s..6.o.u.c.7k..##..8q....############9o.^^...G..AXX
+X##############################################################################################X
+X##############################################################################################X
+X##############################################################################################X
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX

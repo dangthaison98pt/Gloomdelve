@@ -1,0 +1,69 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fba76dd5935fa7a43abf3cc03dde5205, type: 3}
+  m_Name: Area2_Emberdeep
+  m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.AreaConfig
+  displayName: Emberdeep Mines
+  areaNumber: 2
+  tiles: {fileID: 11400000, guid: 44882c3378b67224da8ebebaa1505a90, type: 2}
+  musicId: area2
+  cameraBackground: {r: 0.08, g: 0.03, b: 0.035, a: 1}
+  roomsX: 4
+  roomsY: 4
+  outdoor: 0
+  skyRows: 7
+  treeChance: 0.25
+  groundEnemies:
+  - id: toad
+    weight: 2
+  - id: brute
+    weight: 1
+  ceilingEnemies:
+  - id: emberbat
+    weight: 1
+  groundEnemyChance: 0.5
+  ceilingEnemyChance: 0.45
+  extraEnemiesPerRoom: 0.25
+  airEnemies: []
+  airEnemiesPerLevel: 0
+  sideRoomRiskMultiplier: 1.4
+  items:
+  - id: rock
+    weight: 2
+  - id: pot
+    weight: 2
+  - id: crate
+    weight: 1.5
+  itemChance: 0.5
+  treasureChancePath: 0.35
+  treasureChanceSide: 0.7
+  goldVeinChance: 0.045
+  gemVeinChance: 0.012
+  idolRoomChance: 0.35
+  vaultRoomChance: 0.3
+  spikes: 1
+  arrowTraps: 1
+  stalactites: 0
+  crushers: 1
+  flameVents: 1
+  spikeDensity: 0.03
+  arrowTrapDensity: 0.012
+  ceilingHazardChance: 0.6
+  markedTrapChance: 0.75
+  perLevelDensityBonus: 0.15
+  requiredGear: bomb
+  gatesByLevel: 010000000100000002000000
+  grantGear: 
+  shopChanceByLevel:
+  - 0
+  - 1
+  - 0.4

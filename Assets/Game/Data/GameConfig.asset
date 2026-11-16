@@ -1,0 +1,96 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 79ff050ccf6e7d74a855cbcd1b9546ce, type: 3}
+  m_Name: GameConfig
+  m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.GameConfig
+  player: {fileID: 11400000, guid: efa870f47c6d83148a341e26bfd9c055, type: 2}
+  shop: {fileID: 11400000, guid: 74a8c9b2c3f9abf4fba0c6978cc8eec5, type: 2}
+  prefabs: {fileID: 11400000, guid: 7e67c5d380b678b4f903ea3b7d562ead, type: 2}
+  sfx: {fileID: 11400000, guid: 032aa30e6ccab44418d28b5577fcd123, type: 2}
+  equipment:
+  - {fileID: 11400000, guid: 71cc6d1f52344b1478385f8e19f7a975, type: 2}
+  - {fileID: 11400000, guid: b232816b939dde441a8e4f27e5bc425d, type: 2}
+  - {fileID: 11400000, guid: e63b793cb7592764eb64be88c3c82ff3, type: 2}
+  stages:
+  - displayName: 1-1
+    kind: 0
+    area: {fileID: 11400000, guid: c834bbda6ecc2dc44aca7d00e47db205, type: 2}
+    levelNumber: 1
+    handcrafted: {fileID: 0}
+  - displayName: 1-2
+    kind: 0
+    area: {fileID: 11400000, guid: c834bbda6ecc2dc44aca7d00e47db205, type: 2}
+    levelNumber: 2
+    handcrafted: {fileID: 0}
+  - displayName: 1-3
+    kind: 0
+    area: {fileID: 11400000, guid: c834bbda6ecc2dc44aca7d00e47db205, type: 2}
+    levelNumber: 3
+    handcrafted: {fileID: 0}
+  - displayName: 2-1
+    kind: 0
+    area: {fileID: 11400000, guid: b2e29995bd4809c489df5d417a7bfb59, type: 2}
+    levelNumber: 1
+    handcrafted: {fileID: 0}
+  - displayName: 2-2
+    kind: 0
+    area: {fileID: 11400000, guid: b2e29995bd4809c489df5d417a7bfb59, type: 2}
+    levelNumber: 2
+    handcrafted: {fileID: 0}
+  - displayName: 2-3
+    kind: 0
+    area: {fileID: 11400000, guid: b2e29995bd4809c489df5d417a7bfb59, type: 2}
+    levelNumber: 3
+    handcrafted: {fileID: 0}
+  - displayName: 3-1
+    kind: 0
+    area: {fileID: 11400000, guid: a8f7037a9ecbda443befd8e59409c417, type: 2}
+    levelNumber: 1
+    handcrafted: {fileID: 0}
+  - displayName: 3-2
+    kind: 0
+    area: {fileID: 11400000, guid: a8f7037a9ecbda443befd8e59409c417, type: 2}
+    levelNumber: 2
+    handcrafted: {fileID: 0}
+  - displayName: 3-3
+    kind: 0
+    area: {fileID: 11400000, guid: a8f7037a9ecbda443befd8e59409c417, type: 2}
+    levelNumber: 3
+    handcrafted: {fileID: 0}
+  - displayName: THE SUNKEN VAULT
+    kind: 1
+    area: {fileID: 11400000, guid: adeb2330f47fe2a4eb3ec3bf955d22ac, type: 2}
+    levelNumber: 1
+    handcrafted: {fileID: 4900000, guid: 029a92843949fa845bca2034ac97c53c, type: 3}
+  tutorial:
+    displayName: TUTORIAL
+    kind: 2
+    area: {fileID: 11400000, guid: c834bbda6ecc2dc44aca7d00e47db205, type: 2}
+    levelNumber: 1
+    handcrafted: {fileID: 4900000, guid: 68feba275eecaf84ebb44580255893e3, type: 3}
+  roomTemplates: {fileID: 4900000, guid: 1eb98f7a3229e664393dc8ec1a1736b3, type: 3}
+  pressureEnabled: 1
+  pressureWarnTime: 150
+  pressureSpawnTime: 180
+  pressureRepeat: 60
+  explosionDamage: 10
+  maxExplosionsPerFrame: 3
+  maxChainGeneration: 12
+  chainFuseMin: 0.12
+  chainFuseMax: 0.3
+  maxEntities: 600
+  maxGenerationAttempts: 60
+  entranceSafeRadius: 4
+  enemySafeRadius: 6
+  cameraOrthoSize: 6.75
+  collapseInterval: 0.9
+  heartstoneBonusGold: 5000

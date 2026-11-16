@@ -1,0 +1,71 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fba76dd5935fa7a43abf3cc03dde5205, type: 3}
+  m_Name: Area4_Sunfall
+  m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.AreaConfig
+  displayName: Sunfall Cliffs
+  areaNumber: 4
+  tiles: {fileID: 11400000, guid: 9d29e1548aa774744973f97a029429cd, type: 2}
+  musicId: area3
+  cameraBackground: {r: 0.19, g: 0.27, b: 0.55, a: 1}
+  roomsX: 4
+  roomsY: 3
+  outdoor: 1
+  skyRows: 7
+  treeChance: 0.3
+  groundEnemies:
+  - id: snake
+    weight: 1
+  - id: toad
+    weight: 1
+  ceilingEnemies:
+  - id: bat
+    weight: 1
+  groundEnemyChance: 0.45
+  ceilingEnemyChance: 0.4
+  extraEnemiesPerRoom: 0.25
+  airEnemies:
+  - id: hawk
+    weight: 1
+  airEnemiesPerLevel: 2
+  sideRoomRiskMultiplier: 1.4
+  items:
+  - id: rock
+    weight: 2
+  - id: pot
+    weight: 3
+  - id: crate
+    weight: 1
+  itemChance: 0.5
+  treasureChancePath: 0.35
+  treasureChanceSide: 0.7
+  goldVeinChance: 0.035
+  gemVeinChance: 0.008
+  idolRoomChance: 0.35
+  vaultRoomChance: 0.3
+  spikes: 1
+  arrowTraps: 1
+  stalactites: 0
+  crushers: 0
+  flameVents: 0
+  spikeDensity: 0.03
+  arrowTrapDensity: 0.012
+  ceilingHazardChance: 0.6
+  markedTrapChance: 0.75
+  perLevelDensityBonus: 0.15
+  requiredGear: glider
+  gatesByLevel: 010000000100000002000000
+  grantGear: glider
+  shopChanceByLevel:
+  - 0
+  - 1
+  - 0.4

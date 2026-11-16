@@ -1,0 +1,27 @@
+PASS  full jump height ~2.4 tiles  2.27
+PASS  tap jump is lower (variable height)  0.99
+PASS  coyote time: jump 3 frames after leaving the ledge  
+PASS  jump buffer: early press jumps on landing  
+PASS  jump onto a 2-high ledge  pos (9.49, 4.00)
+PASS  ledge grab on a 3-high wall  pos (7.70, 4.25)
+PASS  climb up from ledge hang  pos (8.35, 5.00) mode Normal
+PASS  ladder climb to the top  pos (8.50, 8.00) mode Normal
+PASS  ladder climb down to the floor  pos (8.50, 2.00) mode Normal
+PASS  jumping off a ladder under a ceiling never enters the ceiling  maxHead 7.00, pos (8.50, 3.96)
+PASS  a jump that does not clear a platform falls back down  pos (8.50, 3.00)
+PASS  crawling off an edge hangs from it  pos (9.30, 1.25)
+PASS  falling onto spikes is lethal  
+PASS  walking into spikes is safe  
+PASS  long fall reports fall distance >= damage height  11.0
+PASS  down+jump drops through a platform  pos (8.50, 2.00)
+PASS  validator: flat corridor reachable  
+PASS  validator: wall blocks the exit  
+PASS  validator: 5-wide pit is not jumpable  
+PASS  validator: 4-high wall is not climbable  
+PASS  validator: 3-high wall is climbable with a ledge grab  
+PASS  new run does not keep the previous run's state  
+PASS  shop effects apply  
+PASS  room templates cover every room type (60 templates)  
+PASS  same seed -> identical level  
+
+25 passed, 0 failed

@@ -1,0 +1,478 @@
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+namespace Gloomdelve
+{
+    /// <summary>Level flow: build level, spawn, pause, time pressure, exits, death, victory, restart.</summary>
+    public class GameDirector : MonoBehaviour
+    {
+        public static GameDirector Instance { get; private set; }
+
+        public GameConfig config;
+        public World world;
+        public CameraFollow cameraFollow;
+        public Camera cam;
+        public PlayerInputReader input;
+        public HUD hud;
+        public PauseMenu pauseMenu;
+        public ResultsScreen results;
+        public TransitionScreen transition;
+        public EquipmentWheel gearWheel;
+        public SkyBackdrop sky;
+
+        [Header("Debug (play Game.unity directly)")]
+        [Tooltip("0 = random seed")] public int debugSeed;
+        public int debugStartStage;
+        public bool debugStartTutorial;
+        public bool debugGodMode;
+
+        public LevelData Level { get; private set; }
+        public StageDef Stage { get; private set; }
+        public PlayerController Player { get; private set; }
+        public bool Ended { get; private set; }
+        public bool Paused { get; private set; }
+        public bool PressureWarned => warned;
+        public bool WraithActive => wraiths > 0;
+        public bool Collapsing => collapsing;
+
+        RunState Run => RunSession.Current;
+        Door exitDoor;
+        bool warned, collapsing, linkPending;
+        int wraiths;
+        float nextWraith, collapseTimer;
+        BotInput bot;
+        float autoTimer, autoDeadline;
+        bool shotTaken;
+
+        void Awake() { Instance = this; }
+        void OnDestroy() { if (Instance == this) Instance = null; }
+
+        void Start()
+        {
+            Time.timeScale = AutoTest.Active ? AutoTest.TimeScale : 1f;
+            if (AudioManager.Instance != null) AudioManager.Instance.SetMusicPitch(1f);
+            var run = RunSession.Current;
+            bool freshRun = run == null || (run.stageIndex == 0 && run.totalTime <= 0f && !run.isTutorial);
+            if (run == null)
+            {
+                run = RunSession.NewRun(debugSeed != 0 ? debugSeed : RunSession.RandomSeed(), debugStartTutorial, config.player);
+                run.stageIndex = Mathf.Clamp(debugStartStage, 0, config.stages.Length - 1);
+            }
+            Stage = run.isTutorial ? config.tutorial : config.stages[Mathf.Clamp(run.stageIndex, 0, config.stages.Length - 1)];
+            run.levelTime = 0f;
+            run.goldAtLevelStart = run.gold;
+            run.reachedStageName = Stage.displayName;
+
+            if (ScenarioRunner.Active)
+            {
+                Stage = config.tutorial;
+                run.health = 4; run.bombs = 4; run.ropes = 4;
+                Level = ScenarioRunner.BuildLevel();
+                Time.timeScale = 3f;
+            }
+            else Level = LevelFactory.Create(config, Stage, run.seed, run.isTutorial ? 999 : run.stageIndex);
+            world.Setup(Level, Stage.area);
+            if (sky != null)
+            {
+                sky.gameObject.SetActive(Stage.area != null && Stage.area.outdoor);
+                sky.Setup(Level.Height);
+            }
+            bool grantedGear = false;
+            if (Stage.area != null && !string.IsNullOrEmpty(Stage.area.grantGear) && !run.gear.Contains(Stage.area.grantGear) && config.FindGear(Stage.area.grantGear) != null)
+            {
+                run.gear.Add(Stage.area.grantGear);
+                grantedGear = true;
+            }
+            LevelFactory.SpawnAll(world, Level, config.prefabs);
+            int spawnCount = world.EntityCount;
+            Player = world.Spawn(config.prefabs.player, new Vector2(Level.entrance.x + 0.5f, Level.entrance.y));
+            world.Player = Player;
+            Player.input = input;
+            Player.godMode = debugGodMode;
+            cameraFollow.SetTarget(Player, new Rect(0f, 0f, Level.Width, Level.Height), config.cameraOrthoSize);
+            if (cam != null && Stage.area != null) cam.backgroundColor = Stage.area.cameraBackground;
+
+            foreach (var d in FindObjectsByType<Door>(FindObjectsSortMode.None)) if (d.isExit) exitDoor = d;
+            if (Stage.kind == LevelKind.Final && exitDoor != null) exitDoor.SetLocked(true);
+            linkPending = true;
+            nextWraith = config.pressureSpawnTime;
+
+            if (AudioManager.Instance != null && Stage.area != null)
+                AudioManager.Instance.PlayMusic(Stage.kind == LevelKind.Final ? "final" : Stage.area.musicId);
+
+            string sub = Stage.kind == LevelKind.Final ? "Find the Heartstone and carry it out!"
+                       : Stage.kind == LevelKind.Tutorial ? "Learn the ropes. Read the signs."
+                       : Stage.levelNumber == 1 ? "A new area. Watch for new dangers." : $"Level {Stage.levelNumber} of 3";
+            hud.Bind(this);
+            var gateGear = Level.gateCount > 0 ? config.FindGear(Level.gateGear) : null;
+            if (gateGear != null)
+                sub = gateGear.kind == GearKind.Rope
+                    ? $"Sheer cliffs ahead ({Level.gateCount}) - you will need your ROPE.  Hold R1 / D to change gear."
+                    : gateGear.kind == GearKind.Glider
+                    ? $"Wide thorn chasms ahead ({Level.gateCount}) - equip your GLIDER and hold JUMP while falling."
+                    : $"Rubble blocks the tunnels ({Level.gateCount}) - you will need your BOMBS.  Hold R1 / D to change gear.";
+            hud.ShowBanner(Stage.kind == LevelKind.Area ? $"{Stage.displayName}  {Stage.area.displayName}" : Stage.displayName, sub, gateGear != null ? 5f : 3.5f);
+            if (gateGear != null && !ScenarioRunner.Active && !AutoTest.Active) SupplyCache(gateGear, run);
+            if (grantedGear)
+            {
+                var g = config.FindGear(Stage.area.grantGear);
+                hud.ShowMessage($"New gear: {g.displayName.ToUpperInvariant()}!  Hold R1 / D to equip it.  {g.description}", 7f);
+                Sfx.PlayUI("idol");
+            }
+            string line = $"seed {run.seed} stage {Stage.displayName} levelSeed {Level.seed} attempts {Level.attempts} ok={Level.validation?.ok}";
+            Debug.Log("[Game] " + line);
+            SaveSystem.AppendRunLog(line);
+
+            if (ScenarioRunner.Active) { StartCoroutine(ScenarioRunner.RunCurrent(this)); return; }
+            if (AutoTest.Active)
+            {
+                if (freshRun && run.stageIndex == 0) AutoTest.CheckFreshRun(run, config.player, world, spawnCount);
+                SetupBot();
+            }
+        }
+
+        // ------------------------------------------------------------------ autotest bot
+
+        /// <summary>
+        /// Anti soft-lock: if the player does not carry enough of the required gear for this level's gates,
+        /// a small supply cache appears next to the entrance.
+        /// </summary>
+        void SupplyCache(EquipmentDef gear, RunState run)
+        {
+            if (!run.gear.Contains(gear.id)) run.gear.Add(gear.id);
+            int have = run.Ammo(gear.kind);
+            int need = Level.gateCount;
+            if (have < 0 || have >= need) return;   // unlimited gear (glider) or enough ammo
+            var p = world.SpawnById(gear.kind == GearKind.Rope ? "ropepile" : "bombbag", new Vector2(Level.entrance.x + 1.5f, Level.entrance.y)) as Pickup;
+            if (p != null) p.value = need - have;
+            hud.ShowMessage($"A supply cache: {need - have} {(gear.kind == GearKind.Rope ? "rope(s)" : "bomb(s)")} for the obstacles ahead.", 5f);
+        }
+
+        /// <summary>Autotest: apply the gear exactly where the validator assumed it (ropes hooked at rope spots, rubble cleared).</summary>
+        void ApplyGatesForBot()
+        {
+            if (Level.gateCount <= 0) return;
+            var run = RunSession.Current;
+            if (!run.gear.Contains(Level.gateGear)) run.gear.Add(Level.gateGear);
+            if (Level.gateGear == "glider") run.Equip("glider");
+            var g = world.Grid;
+            for (int y = 0; y < g.Height; y++)
+                for (int x = 0; x < g.Width; x++)
+                    if (g.Get(x, y) == TileType.Rubble) world.DestroyTile(x, y, false);
+            var prefab = config.prefabs.Get("rope") as RopeProjectile;
+            foreach (var s in Level.ropeSpots)
+            {
+                int anchor = RopeProjectile.SimulateThrow(g, s.x, s.y, config.player.ropeThrowHeight);
+                if (anchor < 0) continue;
+                var r = world.Spawn(prefab, new Vector2(s.x + 0.5f, s.y));
+                if (r == null) continue;
+                r.DeployDown(s.x, anchor);
+                r.SetLife(1e6f);
+            }
+        }
+
+        void SetupBot()
+        {
+            // The validator plans without gliding unless the level needs the glider: unequip it otherwise,
+            // or holding jump while falling would glide and the replay would drift off the planned route.
+            var r = RunSession.Current;
+            if (r.EquippedId == "glider" && !(Level.gateCount > 0 && Level.gateGear == "glider"))
+                foreach (var id in r.gear) if (id != "glider") { r.Equip(id); break; }
+            ApplyGatesForBot();
+            var opts = LevelValidator.DefaultOptions(config.player);
+            List<FrameInput> plan = null;
+            if (Stage.kind == LevelKind.Final) plan = LevelValidator.PlanFinal(Level, opts, out _);
+            else if (Stage.kind == LevelKind.Area) plan = LevelValidator.PlanToExit(Level, opts);
+            Player.godMode = true;
+            if (plan == null)
+            {
+                AutoTest.LevelResult(Run.seed, Stage.displayName, false, "validator found no plan");
+                StartCoroutine(AutoAdvance());
+                return;
+            }
+            bot = new BotInput(plan);
+            Player.bot = bot;
+            autoDeadline = plan.Count * GameConst.Dt + 6f;
+        }
+
+        IEnumerator AutoAdvance()
+        {
+            yield return null;
+            LevelComplete();
+        }
+
+        void AutoTestTick(float dt)
+        {
+            if (!AutoTest.Active || bot == null || Ended) return;
+            autoTimer += dt;
+            if (AutoTest.Screenshots && !shotTaken && autoTimer > 0.6f)
+            {
+                shotTaken = true;
+                ScreenCapture.CaptureScreenshot(Path.Combine(AutoTest.OutDir, $"shot_{Run.seed}_{Stage.displayName}.png"));
+            }
+            if (autoTimer > autoDeadline)
+            {
+                AutoTest.LevelResult(Run.seed, Stage.displayName, false,
+                    $"bot did not reach the exit (frame {bot.Index}/{bot.Count}, player at {Player.pos}, exit {Level.exit})");
+                bot = null;
+                LevelComplete();
+            }
+        }
+
+        // ------------------------------------------------------------------ loop
+
+        void Update()
+        {
+            if (linkPending && world.Frame > 0) { LevelFactory.LinkShops(world, Level); linkPending = false; }
+            if (!Ended && !AutoTest.Active && input != null && input.PausePressed && (gearWheel == null || !gearWheel.IsOpen))
+            {
+                if (Paused) { if (!pauseMenu.HandleBack()) SetPaused(false); }
+                else SetPaused(true);
+            }
+            if (Paused || Ended) return;
+            float dt = Time.deltaTime;
+            var run = Run;
+            if (Player != null && !Player.IsDead)
+            {
+                run.levelTime += dt;
+                run.totalTime += dt;
+            }
+            Pressure();
+            Collapse(dt);
+            AutoTestTick(dt);
+        }
+
+        void Pressure()
+        {
+            var run = Run;
+            if (!config.pressureEnabled || run.isTutorial || AutoTest.Active || Player == null || Player.IsDead) return;
+            if (!warned && run.levelTime >= config.pressureWarnTime)
+            {
+                warned = true;
+                hud.ShowBanner("A deep chill fills the cavern...", "Something is coming for you. Find the exit!");
+                Sfx.PlayUI("warning");
+            }
+            if (run.levelTime >= nextWraith)
+            {
+                nextWraith += Mathf.Max(10f, config.pressureRepeat);
+                SpawnWraith();
+            }
+        }
+
+        public void SpawnWraith()
+        {
+            float h = cam.orthographicSize, w = h * cam.aspect;
+            int side = Random.value < 0.5f ? -1 : 1;
+            var p = Player.Center + new Vector2(side * (w + 1.5f), Random.Range(-h * 0.5f, h * 0.5f));
+            p.x = Mathf.Clamp(p.x, 1f, Level.Width - 1f);
+            p.y = Mathf.Clamp(p.y, 1f, Level.Height - 1f);
+            world.SpawnById("wraith", p);
+            wraiths++;
+            hud.ShowBanner("THE GLOOM WRAITH HAS COME", "It passes through walls. Do not let it touch you!");
+            Sfx.PlayUI("wraith");
+            if (AudioManager.Instance != null) AudioManager.Instance.SetMusicPitch(0.85f);
+        }
+
+        void Collapse(float dt)
+        {
+            if (!collapsing || Player == null || Player.IsDead) return;
+            collapseTimer -= dt;
+            if (collapseTimer > 0f) return;
+            collapseTimer = config.collapseInterval * Random.Range(0.6f, 1.4f);
+            var g = world.Grid;
+            float h = cam.orthographicSize;
+            int x = Mathf.Clamp(Mathf.FloorToInt(Player.pos.x + Random.Range(-9f, 9f)), 1, g.Width - 2);
+            int top = Mathf.Min(g.Height - 2, Mathf.FloorToInt(cam.transform.position.y + h + 1f));
+            for (int y = top; y > 1; y--)
+            {
+                if (g.IsEmpty(x, y) && g.IsSolid(x, y + 1))
+                {
+                    var prefab = config.prefabs.Get("stalactite");
+                    world.Spawn(prefab, new Vector2(x + 0.5f, y), new SpawnPoint("stalactite", new Vector2Int(x, y), 0, 1));
+                    break;
+                }
+            }
+            Fx.Shake(0.12f);
+            Sfx.PlayUI("rumble", 0.5f);
+        }
+
+        // ------------------------------------------------------------------ events
+
+        public void OnHeartstoneLifted()
+        {
+            if (collapsing) return;
+            collapsing = true;
+            collapseTimer = 1.2f;
+            if (exitDoor != null) exitDoor.SetLocked(false);
+            hud.ShowBanner("THE VAULT IS COLLAPSING!", "Carry the Heartstone back up to the Surface Gate!");
+            Sfx.PlayUI("collapse");
+            Fx.Shake(0.5f);
+            if (AudioManager.Instance != null) AudioManager.Instance.SetMusicPitch(1.12f);
+        }
+
+        public void OnPlayerHurt(in DamageInfo d, string description)
+        {
+            hud.ShowHurt(description, d.amount);
+        }
+
+        public void ShowMessage(string msg) => hud.ShowMessage(msg);
+
+        public void OnPlayerEnterExit(PlayerController p, Door door)
+        {
+            if (Ended || p.IsDead) return;
+            var run = Run;
+            if (Stage.kind == LevelKind.Final)
+            {
+                if (!(p.held is Treasure t && t.isHeartstone))
+                {
+                    hud.ShowMessage("The Surface Gate only opens for the Heartstone!");
+                    Sfx.Play("error", p.pos);
+                    return;
+                }
+                Victory();
+                return;
+            }
+            if (p.held is Treasure tr && !tr.isHeartstone)
+            {
+                run.gold += tr.value;
+                hud.ShowMessage($"Golden idol sold for ${tr.value}!");
+                Sfx.PlayUI("buy");
+            }
+            LevelComplete();
+        }
+
+        void LevelComplete()
+        {
+            if (Ended) return;
+            Ended = true;
+            var run = Run;
+            world.enabled = false;
+            Sfx.PlayUI("door");
+            if (Player != null) Player.gameObject.SetActive(false);
+            if (AutoTest.Active && bot != null) AutoTest.LevelResult(run.seed, Stage.displayName, true, $"{run.levelTime:0.0}s game time");
+            if (run.isTutorial)
+            {
+                run.finished = true;
+                results.ShowTutorialComplete(run);
+                return;
+            }
+            run.levelsCompleted++;
+            transition.Show(Stage, run, run.gold - run.goldAtLevelStart, AutoTest.Active ? 0.1f : 0f, ContinueToNextStage);
+        }
+
+        void ContinueToNextStage()
+        {
+            var run = Run;
+            run.stageIndex++;
+            if (run.stageIndex >= config.stages.Length)
+            {
+                // Should not happen (the final stage ends with Victory) – treat as victory.
+                Victory();
+                return;
+            }
+            SceneManager.LoadScene(GameConst.SceneGame);
+        }
+
+        void Victory()
+        {
+            if (Ended && Run.finished) return;
+            Ended = true;
+            world.enabled = false;
+            var run = Run;
+            run.victory = true;
+            run.finished = true;
+            run.gold += config.heartstoneBonusGold;
+            Sfx.PlayUI("victory");
+            if (AudioManager.Instance != null) AudioManager.Instance.SetMusicPitch(1f);
+            if (AutoTest.Active)
+            {
+                AutoTest.LevelResult(run.seed, Stage.displayName, true, "VICTORY reached");
+                NextAutoRun();
+                return;
+            }
+            string news = SaveSystem.RecordRunEnd(run, config.stages.Length);
+            SaveSystem.AppendRunLog($"seed {run.seed} VICTORY time {run.totalTime:0.0} gold {run.gold}");
+            results.ShowRunEnd(run, true, news, config.stages.Length);
+        }
+
+        public void OnPlayerDied(string cause)
+        {
+            var run = Run;
+            run.deathCause = cause;
+            StartCoroutine(DeathRoutine());
+        }
+
+        IEnumerator DeathRoutine()
+        {
+            if (AudioManager.Instance != null) AudioManager.Instance.DuckMusic(0.7f);
+            yield return new WaitForSecondsRealtime(1.6f);
+            if (Ended || ScenarioRunner.Active) yield break;
+            Ended = true;
+            var run = Run;
+            run.finished = true;
+            if (run.isTutorial)
+            {
+                hud.ShowMessage("Ouch! Try again.");
+                yield return new WaitForSecondsRealtime(0.6f);
+                RunSession.NewRun(run.seed, true, config.player);
+                SceneManager.LoadScene(GameConst.SceneGame);
+                yield break;
+            }
+            if (AutoTest.Active)
+            {
+                AutoTest.LevelResult(run.seed, Stage.displayName, false, "player died: " + run.deathCause);
+                NextAutoRun();
+                yield break;
+            }
+            string news = SaveSystem.RecordRunEnd(run, run.stageIndex);
+            SaveSystem.AppendRunLog($"seed {run.seed} DIED at {Stage.displayName}: {run.deathCause}");
+            results.ShowRunEnd(run, false, news, run.stageIndex);
+        }
+
+        void NextAutoRun()
+        {
+            if (!AutoTest.NextSeed()) { AutoTest.Finish(); return; }
+            RunSession.NewRun(AutoTest.CurrentSeed, false, config.player);
+            SceneManager.LoadScene(GameConst.SceneGame);
+        }
+
+        // ------------------------------------------------------------------ menu actions
+
+        public void SetPaused(bool p)
+        {
+            if (Ended && p) return;
+            Paused = p;
+            Time.timeScale = p ? 0f : 1f;
+            if (p) { pauseMenu.Show(Run); Sfx.PlayUI("menu_select"); }
+            else pauseMenu.Hide();
+            input?.ClearLatches();
+        }
+
+        public void RestartRun(bool sameSeed)
+        {
+            var old = Run;
+            Time.timeScale = 1f;
+            RunSession.NewRun(sameSeed && old != null ? old.seed : RunSession.RandomSeed(), false, config.player);
+            SceneManager.LoadScene(GameConst.SceneGame);
+        }
+
+        public void QuitToMenu()
+        {
+            Time.timeScale = 1f;
+            RunSession.Clear();
+            SceneManager.LoadScene(GameConst.SceneMenu);
+        }
+
+        public static void QuitGame()
+        {
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+            Application.Quit();
+#endif
+        }
+    }
+}

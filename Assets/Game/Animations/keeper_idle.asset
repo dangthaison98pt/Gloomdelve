@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50eb2b5ae35d0bc4ab03ac6edf0faa99, type: 3}
+  m_Name: keeper_idle
+  m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
+  frames:
+  - {fileID: 21300000, guid: 1b18705a3ff0f414d935a0178f7d0be1, type: 3}
+  - {fileID: 21300000, guid: bb0113a70ad72e94e8cdcd577378b07f, type: 3}
+  fps: 1.5
+  loop: 1

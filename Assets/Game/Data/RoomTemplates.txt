@@ -1,0 +1,633 @@
+# Gloomdelve room templates. Each room is 10 wide x 8 tall. Row 0 = top.
+# Header: [name] types=<room types> tags=<start|exit|shop|idol|vault> areas=<1,2> weight=<n>
+# Room types: 0 side (off the path), 1 left+right, 2 left+right+bottom, 3 left+right+top, 4 all sides.
+# Conventions that keep rooms connectable:
+#   * L/R rooms keep columns 0 and 9 open on rows 4-6 with floor on row 7.
+#   * Bottom exits (type 2/4) are a hole on row 7 that includes columns 4-5.
+#   * Top exits (type 3/4) open row 0 on columns 3-6; type 4 must break the fall (ledge or platform on rows 3-5).
+# Legend: . empty   # dirt   X bedrock   ? 55% dirt   = wooden platform   H ladder   $ gold vein
+#         ^ spikes slot   A arrow-trap slot   v ceiling hazard slot (stalactite / crusher)   f flame-vent slot
+#         T treasure   E ground enemy   B ceiling enemy   I item (rock/pot/crate)   D door   O idol altar
+#         K shopkeeper   S shop item   % cracked rubble (bomb gate)   R rope spot (stand here to rope a cliff)
+#         ! gear hint sign   ~ thorn pit cell (glider gate; bedrock is put under it)
+# Tags surface / under: outdoor rooms. In outdoor areas the top room row only uses 'surface' templates (open sky).
+# Tags gate_rope / gate_bomb: path rooms that can only be crossed with that gear (AreaConfig.requiredGear).
+#   Gate walls use bedrock (X) so the other gear cannot cheat them; the validator rejects any level whose
+#   exit is reachable without the required gear.
+# Every generated level is proven passable by LevelValidator, so a bad combination is simply re-rolled.
+
+# ------------------------------------------------------------------ type 1: left-right
+[p1_hall] types=1,0 weight=3
+##########
+#??####??#
+#..B..B..#
+..........
+..........
+.....##...
+.E..###.T.
+##########
+
+[p1_steps] types=1,0 weight=2
+##########
+#????????#
+#........#
+.....B....
+......##..
+..I..###..
+.###.####.
+##########
+
+[p1_platforms] types=1,0 weight=2
+##########
+#.B....B.#
+#..====..#
+..........
+.====.===.
+..........
+.T.^E..^I.
+##########
+
+[p1_pillars] types=1,0 weight=2
+##########
+##?#..#?##
+#...vv...#
+..........
+..#....#..
+..#.T..#..
+.E#....#.I
+##########
+
+[p1_bridge] types=1 weight=2
+##########
+#...??...#
+#........#
+..........
+.#==..==#.
+.#......#.
+.#.^^^^.#.
+##########
+
+[p1_ladderhump] types=1,0 weight=2
+##########
+#????????#
+#...B....#
+...####...
+...#..#...
+..H#T.#H..
+.EH#..#H..
+##########
+
+[p1_arrowhall] types=1 weight=2
+##########
+##########
+#A......A#
+..........
+..........
+...#..#...
+.I.#.E#.T.
+##########
+
+[p1_ledges] types=1,0 weight=2
+##########
+#B.....B.#
+#..##....#
+.......##.
+.##.......
+.....##...
+.T.....E..
+##########
+
+[p1_mound] types=1,0 weight=2
+##########
+#??....??#
+#........#
+....##....
+...####...
+..######..
+.E######T.
+##########
+
+[p1_vents] types=1 areas=2 weight=2
+##########
+#????????#
+#.v....v.#
+..........
+..........
+..........
+.E..T....I
+##ff##ff##
+
+[p1_lowceiling] types=1,0 weight=1
+##########
+##########
+#?#?##?#?#
+#........#
+....B.....
+..........
+.I..E...T.
+##########
+
+# ------------------------------------------------------------------ type 2: left-right-bottom (drop)
+[p2_pit] types=2 weight=3
+##########
+#..B..B..#
+#........#
+..........
+..........
+..=....=..
+.T......E.
+####..####
+
+[p2_funnel] types=2 weight=2
+##########
+#????????#
+#........#
+..........
+.##....##.
+..##..##..
+.I.#..#.T.
+###....###
+
+[p2_ledge] types=2 weight=2
+##########
+#v......v#
+#........#
+..........
+....##....
+.E..##..I.
+....##....
+##......##
+
+[p2_spikes] types=2 weight=2
+##########
+##??##??##
+#........#
+..........
+..........
+..=.TT.=..
+.E^....^..
+###....###
+
+[p2_tunnel] types=2,4 weight=1
+###....###
+#........#
+#.======.#
+..........
+..........
+..#....#..
+.E#....#T.
+###....###
+
+# ------------------------------------------------------------------ type 3: left-right-top (landing)
+[p3_open] types=3 weight=3
+###....###
+#........#
+#........#
+..........
+...====...
+..........
+.E......T.
+##########
+
+[p3_hill] types=3 weight=2
+###....###
+#........#
+#........#
+..........
+...####...
+..######..
+.E######I.
+##########
+
+[p3_cups] types=3 weight=2
+###....###
+#..#..#..#
+#........#
+..........
+.##.==.##.
+..........
+.T..E..^I.
+##########
+
+[p3_steps] types=3 weight=2
+###....###
+#........#
+#.B....B.#
+..........
+..==..==..
+.##....##.
+.##.EE.##.
+##########
+
+[p3_ladder] types=3 weight=1
+###....###
+#........#
+#........#
+..........
+..======..
+.H......H.
+.H..T...H.
+##########
+
+# ------------------------------------------------------------------ type 4: all sides (fall must be broken)
+[p4_ledge] types=4 weight=3
+###....###
+#........#
+#........#
+..........
+..######..
+..........
+.E......T.
+####..####
+
+[p4_platform] types=4 weight=2
+###....###
+#........#
+#.v....v.#
+..======..
+..........
+.##....##.
+.##.E..##.
+###....###
+
+[p4_split] types=4 weight=2
+###....###
+#........#
+#........#
+..........
+.###..###.
+...#..#...
+.T........
+####..####
+
+# ------------------------------------------------------------------ start rooms (D = entrance)
+[s1_plain] types=1 tags=start weight=2
+##########
+#????????#
+#........#
+..........
+..........
+..........
+...I.D..T.
+##########
+
+[s1_ledge] types=1 tags=start weight=2
+##########
+#........#
+#.....D..#
+....####..
+..........
+..........
+.T......I.
+##########
+
+[s2_plain] types=2 tags=start weight=2
+##########
+#????????#
+#........#
+..........
+..........
+...D......
+..####....
+####..####
+
+[s2_ledge] types=2 tags=start weight=2
+##########
+#........#
+#..D.....#
+.#####....
+..........
+..........
+.I......T.
+####..####
+
+# ------------------------------------------------------------------ exit rooms (D = exit)
+[x1_plain] types=1 tags=exit weight=2
+##########
+#????????#
+#........#
+..........
+..........
+..........
+.T...D..E.
+##########
+
+[x1_alcove] types=1 tags=exit weight=2
+##########
+#..B..B..#
+#........#
+..........
+..........
+...####...
+.E..D...T.
+##########
+
+[x3_plain] types=3 tags=exit weight=2
+###....###
+#........#
+#........#
+..........
+...====...
+..........
+.T..D...E.
+##########
+
+[x3_steps] types=3 tags=exit weight=2
+###....###
+#........#
+#........#
+..........
+.##.==.##.
+..........
+..I..D..T.
+##########
+
+# ------------------------------------------------------------------ side rooms (off the path: more risk, more loot)
+[side_treasure] types=0 weight=2
+##########
+##$####$##
+#..T..T..#
+#.##..##.#
+..........
+...^..^...
+.E..TT..E.
+##########
+
+[side_cave] types=0 weight=2
+##########
+###??###?#
+#..B...###
+#....T..##
+##.......#
+###..I...#
+####..E..#
+##########
+
+[side_solid] types=0 weight=2
+##########
+###$####$#
+##########
+####$#####
+##########
+#$########
+##########
+##########
+
+[side_nest] types=0 weight=2
+##########
+#B.B..B.B#
+#........#
+..........
+..#....#..
+.##.TT.##.
+.##^..^##.
+##########
+
+[side_ladder] types=0 weight=1
+##########
+#..H.....#
+#..H..T..#
+#..H####.#
+#..H.....#
+...H..E...
+...H....I.
+##########
+
+[side_arrows] types=0 weight=1
+##########
+#A......A#
+#...TT...#
+#..####..#
+..........
+A........A
+..E....T..
+##########
+
+# ------------------------------------------------------------------ shop (opens to the right; mirrored as needed)
+[shop_a] types=0 tags=shop weight=1
+##########
+##########
+###....###
+#........#
+#.........
+#.........
+#K.SSSSS..
+##########
+
+# ------------------------------------------------------------------ idol rooms (golden idol guarded by traps)
+[idol_spikes] types=0 tags=idol weight=1
+##########
+##v####v##
+#........#
+..........
+..........
+A..^..^..A
+...^.O^...
+##########
+
+[idol_pedestal] types=0 tags=idol weight=1
+##########
+#B..vv..B#
+#........#
+..........
+....##....
+...#O.#...
+A..#..#..A
+##########
+
+# ------------------------------------------------------------------ vaults (sealed treasure: bring bombs)
+[vault_a] types=0 tags=vault weight=1
+##########
+###$##$###
+##$....$##
+##.T..T.##
+###$##$###
+##########
+#?......?#
+##########
+
+[vault_b] types=0 tags=vault weight=1
+##########
+#########$
+##$$...$##
+##.TTT..##
+##########
+#........#
+..E....T..
+##########
+
+# ------------------------------------------------------------------ gear gates (mandatory terrain puzzles)
+# Rope gate: a 4-high bedrock cliff (max reach without gear is 3) with a 2-tile gap under the ceiling. A rope thrown beside it (R) hooks
+# under the ceiling; climb it, step onto the cliff top, drop down the far side.
+[gate_rope_a] types=1 tags=gate_rope weight=2
+####XX####
+#........#
+#........#
+....XX....
+....XX....
+....XX....
+.!.RXXR.E.
+####XX####
+
+[gate_rope_b] types=1 tags=gate_rope weight=1
+##########
+#v......v#
+#........#
+....XX....
+....XX....
+....XX....
+.!.RXXR^^.
+####XX####
+
+# Bomb gate: cracked rubble plugs the tunnel, bedrock above and below. One bomb next to it opens a passage.
+[gate_bomb_a] types=1 tags=gate_bomb weight=2
+##########
+##########
+#...XX...#
+....XX....
+....%%....
+....%%....
+.!..%%..E.
+####XX####
+
+[gate_bomb_b] types=1 tags=gate_bomb weight=1
+##########
+##########
+#.v.XX.v.#
+....XX....
+....%%....
+....%%....
+.!..%%....
+##f#XX#f##
+
+# Glider gate: a 6-wide thorn chasm, far beyond a running jump (~4). Jump and HOLD JUMP to glide across.
+[gate_glide_a] types=1 tags=gate_glider,surface weight=2
+..........
+..........
+..........
+..........
+..........
+..........
+.!........
+##~~~~~~##
+
+[gate_glide_b] types=1 tags=gate_glider,under weight=2
+##########
+#........#
+..........
+..........
+..........
+..........
+.!........
+##~~~~~~##
+
+# ------------------------------------------------------------------ outdoor surface rooms (Sunfall Cliffs, area 4)
+[o_meadow] types=1,0 tags=surface areas=4 weight=2
+..........
+..........
+..........
+..........
+..........
+..........
+.T..E...I.
+##########
+
+[o_hills] types=1,0 tags=surface areas=4 weight=3
+..........
+..........
+..........
+.......##.
+..........
+...##.....
+.E####..T.
+##########
+
+[o_steps] types=1,0 tags=surface areas=4 weight=2
+..........
+..........
+..........
+..........
+..........
+.....##...
+.E.####.T.
+##########
+
+[o_bridge] types=1 tags=surface areas=4 weight=2
+..........
+..........
+..........
+..........
+..........
+..........
+.E......T.
+###====###
+
+[o_vineisland] types=1,0 tags=surface areas=4 weight=2
+..........
+....T.....
+..H####...
+..H.......
+..H.......
+..H.......
+.EH.....I.
+##########
+
+[o_rock] types=1,0 tags=surface areas=4 weight=2
+..........
+..........
+..........
+....XX....
+...XXXX...
+..........
+.E......T.
+##########
+
+[o_islands] types=0 tags=surface areas=4 weight=2
+..........
+..##..T...
+.......##.
+...T......
+..####....
+..........
+.E.....##.
+##########
+
+[o_drop] types=2 tags=surface areas=4 weight=3
+..........
+..........
+..........
+..........
+..........
+..........
+.T......E.
+####..####
+
+[o_drop_hill] types=2 tags=surface areas=4 weight=2
+..........
+..........
+.......##.
+..........
+.##.......
+.##.......
+.##.....I.
+###....###
+
+[o_start] types=1 tags=start,surface areas=4 weight=2
+..........
+..........
+..........
+..........
+..........
+..........
+..I..D..T.
+##########
+
+[o_start_drop] types=2 tags=start,surface areas=4 weight=2
+..........
+..........
+..........
+..........
+..........
+...D......
+..####....
+####..####

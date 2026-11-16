@@ -1,0 +1,83 @@
+Gloomdelve seed sweep  2026-11-14 12:20:05
+seeds 1..150, stages per seed: 9 procedural + final
+
+
+Procedural levels generated : 1350
+Levels without a valid route: 0
+Entrance/spawn safety issues: 0
+Total re-rolls (attempts-1) : 467   max attempts for one level: 8
+Generation time             : avg 77.8 ms, max 289 ms (incl. validation)
+Shops placed                : 602 (levels with guaranteed shop: 450)
+Idol rooms                  : 475
+Levels with mandatory gear  : 1350 / 1350   gates total 1522  (rope 508, bomb 520, glider 494)
+  (each gated level: exit reachable WITH the gear, NOT reachable without it - checked by the validator)
+Final level validator       : OK; bot plan 882 frames
+Tutorial parse              : OK (9 signs)
+
+Re-roll causes (rejected attempts):
+    318  exit unreachable;
+    145  exit unreachable; shop unreachable;
+      4  shop unreachable;
+
+Levels that needed re-rolls (seed/stage:attempts):
+  1/1-2:3  1/1-3:3  1/2-1:2  1/3-3:2  2/2-1:2  3/1-1:2  3/2-2:2  4/1-1:3  4/2-2:2  4/2-3:2  5/2-1:2  5/3-2:2  5/3-3:2  7/1-2:2  7/2-1:3  7/2-2:2  7/3-1:3  7/3-2:3  8/3-2:2  9/2-3:2  9/3-1:2  9/3-2:4  10/1-2:2  10/1-3:2  10/2-2:2  12/1-1:5  12/1-2:2  12/2-1:2  13/1-2:2  13/1-3:2  13/3-3:2  14/1-2:2  14/2-3:2  14/3-2:2  15/1-1:3  15/3-2:2  16/1-2:4  16/2-1:4  17/1-2:2  17/3-1:2  17/3-2:2  18/1-2:2  19/1-2:2  20/1-2:2  20/3-2:3  21/3-2:2  22/2-2:3  22/3-2:5  23/1-3:2  23/2-1:2  23/3-2:2  23/3-3:2  24/1-2:3  24/2-2:3  25/2-3:2  26/2-2:2  26/3-1:3  27/1-2:2  27/3-1:2  28/1-1:2  28/3-3:2  29/1-2:2  29/2-2:2  29/3-2:2  30/1-1:2  30/3-2:2  30/3-3:2  32/1-1:4  32/2-1:2  32/3-2:2  33/2-1:3  33/3-2:2  34/1-2:2  35/1-2:3  35/2-3:3  35/3-1:4  35/3-2:2  36/1-2:2  36/3-3:2  37/1-1:2  37/1-2:2  37/2-1:2  37/3-3:3  38/2-1:2  38/3-2:4  39/1-3:2  39/3-3:2  40/1-1:2  40/1-2:2  40/2-1:2  41/2-1:2  41/3-1:2  42/1-2:2  42/1-3:2  42/2-1:4  43/1-1:2  43/1-3:4  43/2-2:2  43/3-1:3  44/2-1:2  44/2-3:2  44/3-2:2  44/3-3:2  46/1-2:2  48/1-1:2  48/2-3:2  49/1-1:3  49/1-2:2  49/3-1:2  50/3-1:3  51/1-1:2  51/1-2:2  51/1-3:3  51/2-1:2  51/3-3:3  52/3-3:3  53/1-3:2  53/2-1:2  53/3-2:2  55/1-1:2  56/1-1:3  56/2-1:2  56/3-2:8  57/1-1:2  57/1-3:3  57/3-1:2  58/1-2:2  58/2-2:2  59/1-1:2  59/2-3:2  59/3-2:2  60/1-2:3  60/3-1:2  61/1-3:3  61/2-2:2  61/3-3:3  62/3-1:4  63/1-3:2  63/3-2:3  63/3-3:6  65/1-2:3  66/1-1:2  66/2-1:2  66/2-3:2  67/1-1:2  67/1-2:2  67/3-2:3  68/1-1:2  68/1-2:2  68/2-1:3  68/3-3:2  69/1-1:2  69/1-2:2  69/2-1:3  69/2-3:2  70/3-2:4  71/3-3:2  72/2-1:4  72/3-1:2  73/1-1:3  73/2-1:2  73/2-3:3  73/3-3:2  74/3-1:2  75/3-1:2  76/1-2:2  76/2-1:2  77/1-1:4  77/3-3:4  78/3-2:2  79/1-3:2  79/3-1:2  79/3-2:2  80/3-2:2  81/1-1:2  81/1-2:2  82/3-1:2  83/2-3:2  83/3-3:2  84/2-2:3  84/3-1:2  84/3-2:3  84/3-3:2  85/1-1:3  85/3-1:5  86/1-2:2  86/1-3:2  86/3-1:3  86/3-2:2  87/2-1:2  87/2-3:4  87/3-1:2  87/3-2:2  87/3-3:3  88/1-3:3  88/3-2:3  89/3-1:2  89/3-3:3  90/3-2:2  90/3-3:2
+
+Template usage in accepted levels:
+  gate_bomb_a        344
+  gate_bomb_b        176
+  gate_glide_a       239
+  gate_glide_b       255
+  gate_rope_a        338
+  gate_rope_b        170
+  idol_pedestal      232
+  idol_spikes        243
+  o_bridge           15
+  o_drop             262
+  o_drop_hill        188
+  o_hills            120
+  o_islands          72
+  o_meadow           66
+  o_rock             80
+  o_start            450
+  o_steps            82
+  o_vineisland       74
+  p1_arrowhall       50
+  p1_bridge          45
+  p1_hall            935
+  p1_ladderhump      594
+  p1_ledges          636
+  p1_lowceiling      294
+  p1_mound           642
+  p1_pillars         589
+  p1_platforms       575
+  p1_steps           629
+  p1_vents           17
+  p2_funnel          426
+  p2_ledge           426
+  p2_pit             670
+  p2_spikes          398
+  p2_tunnel          328
+  p3_cups            444
+  p3_hill            414
+  p3_ladder          217
+  p3_open            676
+  p3_steps           489
+  p4_ledge           332
+  p4_platform        196
+  p4_split           208
+  s1_ledge           383
+  s1_plain           351
+  s2_ledge           166
+  shop_a             602
+  side_arrows        297
+  side_cave          564
+  side_ladder        276
+  side_nest          566
+  side_solid         539
+  side_treasure      634
+  vault_a            247
+  vault_b            189
+  x1_alcove          437
+  x1_plain           393
+  x3_plain           244
+  x3_steps           276

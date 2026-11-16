@@ -1,0 +1,106 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06738f64539d49641be8e8a59431daaf, type: 3}
+  m_Name: TileSet_Emberdeep
+  m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.TileSet
+  dirt:
+  - {fileID: 11400000, guid: 30ed1b875267e304680fb548262c69f9, type: 2}
+  - {fileID: 11400000, guid: 7abf7f423f6f80f47b602b29c4799691, type: 2}
+  - {fileID: 11400000, guid: 3e34229cf4f2ffe4b8e07010b7c6ba21, type: 2}
+  - {fileID: 11400000, guid: 8e6870e47ee25de4cb379e71ab47871e, type: 2}
+  - {fileID: 11400000, guid: feae7b501853b7c4c80a124c7b238ae9, type: 2}
+  - {fileID: 11400000, guid: e830e87bef76fce4e9f4ce1494503c94, type: 2}
+  - {fileID: 11400000, guid: 785e3971eab2a3247821de8932e2e452, type: 2}
+  - {fileID: 11400000, guid: 67460031b414b6a44b8a8099c0239165, type: 2}
+  - {fileID: 11400000, guid: b1bc86e483b30b54e943a75f6277adec, type: 2}
+  - {fileID: 11400000, guid: 19777650641317a44adcda2c9ced6f49, type: 2}
+  - {fileID: 11400000, guid: 73fab136ad419514b843936ffcd18dd6, type: 2}
+  - {fileID: 11400000, guid: 67b5ebb286fe8a247aeef4f895b0c722, type: 2}
+  - {fileID: 11400000, guid: f892e5736196e1a4b866f4e2c4734f98, type: 2}
+  - {fileID: 11400000, guid: d0dd7fb9ed0acad4e9906137f24145e9, type: 2}
+  - {fileID: 11400000, guid: 96e1da1c14a35a34296386d45b0ce839, type: 2}
+  - {fileID: 11400000, guid: eede11f17ddf5384eb4758e0ae03fd14, type: 2}
+  - {fileID: 11400000, guid: 8cbdac9996486ef448f95519de2a1fed, type: 2}
+  - {fileID: 11400000, guid: 6fe5a61bf8cdc4e448cce893cbd0b17c, type: 2}
+  - {fileID: 11400000, guid: 62d33df3850622b44b556d2f862ac243, type: 2}
+  - {fileID: 11400000, guid: 66f21957432247c4d8aa30fee9bf05f1, type: 2}
+  - {fileID: 11400000, guid: c120a7d9e56bed54293c4ab5c5a0db89, type: 2}
+  - {fileID: 11400000, guid: 111c3ddd53959ac4fb8843e649e7f364, type: 2}
+  - {fileID: 11400000, guid: 3a8c8a9786dc4444caf3af4b69b153c9, type: 2}
+  - {fileID: 11400000, guid: b0076e9aa3a00ea43aa0e0e0512c05a8, type: 2}
+  - {fileID: 11400000, guid: 949b8c7a46e207144b6d8605d3e19021, type: 2}
+  - {fileID: 11400000, guid: ce8966527d71a9d469af6609521b1602, type: 2}
+  - {fileID: 11400000, guid: 64ecb73eba0a1224b91ed684c4bcc5c7, type: 2}
+  - {fileID: 11400000, guid: 50c560d3929517d4d9581f2658fc6505, type: 2}
+  - {fileID: 11400000, guid: 22b0326747d1b78478a5b8e4322e2696, type: 2}
+  - {fileID: 11400000, guid: 37d406e0ff24b9a409bb947eb52a5199, type: 2}
+  - {fileID: 11400000, guid: 2c70e6a0a78f1c8428f782b6b41b4aac, type: 2}
+  - {fileID: 11400000, guid: fd32ba612fc701f47a2633239aaf16b4, type: 2}
+  bedrock:
+  - {fileID: 11400000, guid: 0df72ad0b52a2e947955e7ff55cbef72, type: 2}
+  - {fileID: 11400000, guid: 6d5d21dca4f551940b73f1286d622b0e, type: 2}
+  - {fileID: 11400000, guid: 04ec626a6bc81664da1b55037a4d4c99, type: 2}
+  - {fileID: 11400000, guid: 59845ffd7fb175d4c8fe102872b7c32a, type: 2}
+  - {fileID: 11400000, guid: 8d77c16707279be4cac747e1d1433822, type: 2}
+  - {fileID: 11400000, guid: 706e3a75567111b4ebff96e8267158a9, type: 2}
+  - {fileID: 11400000, guid: a013f4efb5fe33e48a6b79723869d8aa, type: 2}
+  - {fileID: 11400000, guid: bd2b49cad281c4943a081401f809848f, type: 2}
+  - {fileID: 11400000, guid: 8152ed18c61b26149bf4940d117f82fc, type: 2}
+  - {fileID: 11400000, guid: 02f6cd196fe3000488176c0831c36a4f, type: 2}
+  - {fileID: 11400000, guid: 857a7ccc90a92c94fa00909f6896b8e3, type: 2}
+  - {fileID: 11400000, guid: 418fea670854c904892ee1bbd2a2f8eb, type: 2}
+  - {fileID: 11400000, guid: 7e1e0ca0452130a4fa18c8885d0c1080, type: 2}
+  - {fileID: 11400000, guid: fb1c029df71d8264487430be32c6e415, type: 2}
+  - {fileID: 11400000, guid: 071bc708ba873254dbb0a225abdae48b, type: 2}
+  - {fileID: 11400000, guid: 7552947a9582347448ffa29eacc59b39, type: 2}
+  brick:
+  - {fileID: 11400000, guid: 19be0c6ff0d330745881f77dcfe0add0, type: 2}
+  - {fileID: 11400000, guid: 27ac2b7aab05f944193c496d3557d5d8, type: 2}
+  - {fileID: 11400000, guid: 3aaa2d881fdce3d43bcb4dbf2d113a45, type: 2}
+  - {fileID: 11400000, guid: 87b3aa8878ce1eb40ad7d63ebbab334d, type: 2}
+  - {fileID: 11400000, guid: e2eca91fb33370c4f852e99b75fac003, type: 2}
+  - {fileID: 11400000, guid: 6c4d5fe247f63544ba19136cedddc9b0, type: 2}
+  - {fileID: 11400000, guid: c3354a7bf133ab74fbd45d281c96c0a5, type: 2}
+  - {fileID: 11400000, guid: 6470914c020d1e9419ece61eb0276db6, type: 2}
+  - {fileID: 11400000, guid: 1e125d17ac8783641a7d475bc7d085b2, type: 2}
+  - {fileID: 11400000, guid: 0d50dd01d580ffc46a06ddcf7618f0b3, type: 2}
+  - {fileID: 11400000, guid: 356c65f11004b394d8a5d6355a33ae8b, type: 2}
+  - {fileID: 11400000, guid: cce233e2324fd9040af63f02809ad7a2, type: 2}
+  - {fileID: 11400000, guid: 65aaeaa080634af48b2d05715989709e, type: 2}
+  - {fileID: 11400000, guid: e6b6c154c25546040a2854df0b46fccd, type: 2}
+  - {fileID: 11400000, guid: 2f34516ffd94df2408429f950b23e27a, type: 2}
+  - {fileID: 11400000, guid: a3f6b453121c03d43bfd13b12c7c33d6, type: 2}
+  platform: {fileID: 11400000, guid: c3ab20a9fe92f914a970bb78b3294320, type: 2}
+  ladder: {fileID: 11400000, guid: 73968741b2ce16f4e8a38c4f933caf07, type: 2}
+  spikes: {fileID: 11400000, guid: 0b677c1524ef0d943bc1213de582da77, type: 2}
+  trapBlock: {fileID: 11400000, guid: eea46f58f18e84d488b5150e793df793, type: 2}
+  ventBlock: {fileID: 11400000, guid: 563c598fd9987504392d2b4a555827ae, type: 2}
+  rubble: {fileID: 11400000, guid: d896f9bbecb6c3c47a402e4ea7a0f58c, type: 2}
+  goldOverlay: {fileID: 11400000, guid: fa3430835d856474097d6b966998846d, type: 2}
+  gemOverlay: {fileID: 11400000, guid: 971003da59402ea45bea42805be4521c, type: 2}
+  background:
+  - {fileID: 11400000, guid: 439c328d970d1ab40bfe966b48e7fc38, type: 2}
+  - {fileID: 11400000, guid: 81c22ceeff21e8543a458a5d7a0c8bb1, type: 2}
+  - {fileID: 11400000, guid: 50890cea9adc3f04c96cb09be64deb1a, type: 2}
+  - {fileID: 11400000, guid: 78eaa06633a161f40b28df7ca38554bd, type: 2}
+  shopBackground: {fileID: 11400000, guid: c2077f5910a15bb41bd76c13a5a2ef4b, type: 2}
+  decorFloor:
+  - {fileID: 11400000, guid: f04bbcda0a33657478a174ff7cf1467a, type: 2}
+  - {fileID: 11400000, guid: 42f051e6847fa554190e4dab95c4c249, type: 2}
+  - {fileID: 11400000, guid: e451211f299c0af428148a1dea40a08a, type: 2}
+  - {fileID: 11400000, guid: a54dde9a0ae4c26418fa20dda1912eaf, type: 2}
+  decorCeiling:
+  - {fileID: 11400000, guid: 405eb93ea34ebc24fb7bff503c1147c4, type: 2}
+  - {fileID: 11400000, guid: bbbc3267e32a467488e11418b1734d5e, type: 2}
+  - {fileID: 11400000, guid: c9eb16e2c8a4d394b9b1b9b22da04126, type: 2}
+  decorChance: 0.18
+  outdoor: 0

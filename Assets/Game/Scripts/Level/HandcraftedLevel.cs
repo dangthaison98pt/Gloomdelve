@@ -1,0 +1,114 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace Gloomdelve
+{
+    /// <summary>
+    /// Parses a hand-made level (tutorial, final vault).
+    /// Header lines "key: value" (sign1..sign9 = sign texts), then a line "---", then rows top to bottom.
+    /// Legend: . empty  # dirt  X bedrock  B brick  = platform  H ladder  ^ spikes  A arrow trap  f flame vent
+    ///         v stalactite  w crusher  $ gold vein  T gold  * gem  S entrance  G exit  Y Heartstone on altar
+    ///         s snake  b bat  x spider  t toad  r brute  e ember bat  o rock  u pot  c crate  k bomb bag  q rope pile
+    ///         1-9 signs
+    /// </summary>
+    public static class HandcraftedLevel
+    {
+        public static LevelData Parse(string text, string name, LevelKind kind, int seed)
+        {
+            var lines = text.Replace("\r", "").Split('\n');
+            var header = new Dictionary<string, string>();
+            int i = 0;
+            for (; i < lines.Length; i++)
+            {
+                var l = lines[i];
+                if (l.Trim() == "---") { i++; break; }
+                int c = l.IndexOf(':');
+                if (c > 0) header[l.Substring(0, c).Trim()] = l.Substring(c + 1).Trim();
+            }
+            var rows = new List<string>();
+            for (; i < lines.Length; i++)
+            {
+                var l = lines[i].TrimEnd();
+                if (l.Length == 0) continue;
+                rows.Add(l);
+            }
+            int H = rows.Count, W = 0;
+            foreach (var r in rows) W = Math.Max(W, r.Length);
+            var g = new TileGrid(W, H);
+            var d = new LevelData { name = name, kind = kind, seed = seed, grid = g };
+            var rng = new Rng(seed);
+            bool hasEntrance = false, hasExit = false;
+
+            for (int ry = 0; ry < H; ry++)
+            {
+                string row = rows[ry];
+                int y = H - 1 - ry;
+                for (int x = 0; x < W; x++)
+                {
+                    char ch = x < row.Length ? row[x] : 'X';
+                    var cell = new Vector2Int(x, y);
+                    TileType t = TileType.Empty;
+                    switch (ch)
+                    {
+                        case '#': t = TileType.Dirt; break;
+                        case 'X': t = TileType.Bedrock; break;
+                        case 'B': t = TileType.Brick; break;
+                        case '=': t = TileType.Platform; break;
+                        case 'H': t = TileType.Ladder; break;
+                        case '^': t = TileType.Spikes; break;
+                        case 'A': t = TileType.ArrowTrap; break;
+                        case 'f': t = TileType.VentBlock; break;
+                        case '$': t = TileType.GoldVein; break;
+                        case '%': t = TileType.Rubble; break;
+                        case 'S': d.entrance = cell; hasEntrance = true; break;
+                        case 'G': d.exit = cell; hasExit = true; break;
+                        case 'Y': d.goal = cell; d.spawns.Add(new SpawnPoint("altar", cell)); d.spawns.Add(new SpawnPoint("heartstone", cell)); break;
+                        case 'v': d.spawns.Add(new SpawnPoint("stalactite", cell)); break;
+                        case 'w': d.spawns.Add(new SpawnPoint("crusher", cell)); break;
+                        case 'T': d.spawns.Add(new SpawnPoint(rng.Chance(0.6f) ? "gold_small" : "gold_big", cell)); break;
+                        case '*': d.spawns.Add(new SpawnPoint("gem", cell)); break;
+                        case 's': d.spawns.Add(new SpawnPoint("snake", cell, -1)); break;
+                        case 'b': d.spawns.Add(new SpawnPoint("bat", cell)); break;
+                        case 'x': d.spawns.Add(new SpawnPoint("spider", cell)); break;
+                        case 't': d.spawns.Add(new SpawnPoint("toad", cell, -1)); break;
+                        case 'r': d.spawns.Add(new SpawnPoint("brute", cell, -1)); break;
+                        case 'e': d.spawns.Add(new SpawnPoint("emberbat", cell)); break;
+                        case 'o': d.spawns.Add(new SpawnPoint("rock", cell)); break;
+                        case 'u': d.spawns.Add(new SpawnPoint("pot", cell)); break;
+                        case 'c': d.spawns.Add(new SpawnPoint("crate", cell)); break;
+                        case 'k': d.spawns.Add(new SpawnPoint("bombbag", cell)); break;
+                        case 'q': d.spawns.Add(new SpawnPoint("ropepile", cell)); break;
+                        default:
+                            if (ch >= '1' && ch <= '9')
+                            {
+                                header.TryGetValue("sign" + ch, out var msg);
+                                d.spawns.Add(new SpawnPoint("sign", cell, 0, ch - '0', msg ?? ""));
+                                d.signs.Add(msg ?? "");
+                            }
+                            break;
+                    }
+                    g.SetRaw(x, y, t);
+                }
+            }
+            if (!hasEntrance) throw new FormatException($"Level '{name}' has no entrance (S)");
+            if (!hasExit) throw new FormatException($"Level '{name}' has no exit (G)");
+
+            for (int y = 0; y < H; y++)
+                for (int x = 0; x < W; x++)
+                {
+                    var t = g.Get(x, y);
+                    if (t == TileType.ArrowTrap)
+                    {
+                        int dir = !g.IsSolid(x - 1, y) && g.IsSolid(x + 1, y) ? -1 : (!g.IsSolid(x + 1, y) ? 1 : -1);
+                        d.spawns.Add(new SpawnPoint("arrowtrap", new Vector2Int(x, y), dir));
+                    }
+                    else if (t == TileType.VentBlock)
+                        d.spawns.Add(new SpawnPoint("flamevent", new Vector2Int(x, y), 0, (x * 3 + y) % 7));
+                }
+            d.spawns.Insert(0, new SpawnPoint("door_entrance", d.entrance));
+            d.spawns.Insert(1, new SpawnPoint("door_exit", d.exit));
+            return d;
+        }
+    }
+}
