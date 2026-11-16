@@ -161,7 +161,8 @@ MonoBehaviour:
   gravity: 40
   knockbackScale: 1
   bloodColor: {r: 0.7, g: 0.88, b: 1, a: 1}
-  goldDrop: 0
+  goldDrop: 50
+  heartDropChance: 0.05
   speed: 3.9
   accel: 9
   wakeRange: 6

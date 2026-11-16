@@ -336,7 +336,11 @@ namespace Gloomdelve
                 }
 
             // Glider gates: the thorn pit sits on bedrock so it can never be dug out or fallen through.
-            foreach (var c in thornPits) if (c.y - 1 > 0) g.SetRaw(c.x, c.y - 1, TileType.Bedrock);
+            foreach (var c in thornPits)
+            {
+                if (c.y - 1 > 0) g.SetRaw(c.x, c.y - 1, TileType.Bedrock);
+                data.lethalSpikes.Add(c);   // the chasm kills: a gate cannot be paid for with two hearts
+            }
 
             // ---------------------------------------------------------------- 5. veins
             for (int y = 1; y < H - 1; y++)

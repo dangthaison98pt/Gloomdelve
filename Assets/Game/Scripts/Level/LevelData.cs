@@ -40,6 +40,11 @@ namespace Gloomdelve
 
         // Terrain puzzles
         /// <summary>Equipment id the main path requires ('rope' / 'bomb'), or null.</summary>
+        /// <summary>
+        /// Spike cells that still kill outright: the thorn chasms of glider gates. Ordinary spikes only wound
+        /// (PlayerConfig.spikeDamage), but a gate must stay impossible to walk through.
+        /// </summary>
+        public readonly HashSet<Vector2Int> lethalSpikes = new HashSet<Vector2Int>();
         /// <summary>Ground grip (AreaConfig.groundGrip): below 1 the floor is icy.</summary>
         public float grip = 1f;
         public string gateGear;

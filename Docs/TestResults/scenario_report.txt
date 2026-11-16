@@ -1,4 +1,4 @@
-Gloomdelve in-game scenario tests 2026-11-16 20:11:06
+Gloomdelve in-game scenario tests 2026-11-16 21:55:30
 PASS  whip kills an approaching snake  
 PASS  stomping a snake kills it and bounces  
 PASS  snake on a single tile stands still instead of flipping left-right  
@@ -7,7 +7,7 @@ PASS  bomb destroys dirt but not bedrock, player escapes
 PASS  bomb chain reaction is bounded  
 PASS  thrown rock triggers arrow trap; arrow hurts player (2)  
 PASS  stalactite falls on a snake  
-PASS  falling onto spikes kills  
+PASS  spikes wound (2 hearts, thrown clear) and only kill at low health  
 PASS  rope: throw, climb, step onto a high ledge  
 PASS  rope hook visibly grabs a ledge lip / a wall face / the ceiling  
 PASS  rope into open air finds no hold and drops back  
@@ -32,6 +32,7 @@ PASS  all five bosses run their attack patterns
 PASS  treasure chest lays out three free items  
 PASS  shopkeeper grudge: robbed -> ambush with two brothers; killed -> no more shopkeepers  
 PASS  climb traps: rotten platform gives way and comes back; rock dropper drops on a climber  
+PASS  area title card and event banner never show at the same time  
 PASS  hawk dives at the player below it  
 PASS  ledge grab and climb (real controller)  
 PASS  ladder climb to the top  
@@ -44,6 +45,7 @@ PASS  a heart pickup heals 1
 PASS  collectibles glow, pickups bob, hint arrow near a rock  
 PASS  waypoint: rides the screen edge, then floats above the exit  
 PASS  whip breaks a pot  
+PASS  long fall onto an enemy's head: no fall damage, the kill pays gold  
 PASS  long fall hurts and stuns  
 PASS  pause menu freezes the game  
 PASS  settings panel opens from pause  
@@ -52,4 +54,4 @@ PASS  time-pressure wraith spawns and its touch is fatal
 PASS  carrying a golden idol out pays gold  
 PASS  exit door ends the level  
 
-52 passed, 0 failed
+54 passed, 0 failed

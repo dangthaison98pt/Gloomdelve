@@ -163,6 +163,7 @@ MonoBehaviour:
   knockbackScale: 1
   bloodColor: {r: 0.55, g: 0.1, b: 0.12, a: 1}
   goldDrop: 0
+  heartDropChance: 0
   speed: 1.5
   speedGrowth: 0.04
   maxSpeed: 3.2

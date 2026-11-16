@@ -162,6 +162,7 @@ MonoBehaviour:
   knockbackScale: 1
   bloodColor: {r: 0.85, g: 0.92, b: 1, a: 1}
   goldDrop: 0
+  heartDropChance: 1
   maxHitDamage: 3
   goldChunks: 4
   actionGap: 1.5

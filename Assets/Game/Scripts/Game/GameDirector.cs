@@ -124,20 +124,13 @@ namespace Gloomdelve
             if (AudioManager.Instance != null && Stage.area != null)
                 AudioManager.Instance.PlayMusic(Stage.kind == LevelKind.Final || Stage.kind == LevelKind.Boss ? "final" : Stage.area.musicId);
 
-            string sub = Stage.kind == LevelKind.Final ? (BossAlive ? "Defeat the Warden, then carry the Heartstone out!" : "Find the Heartstone and carry it out!")
-                       : Stage.kind == LevelKind.Boss ? "Defeat it to open the way on."
-                       : Stage.kind == LevelKind.Rest ? "Open the chest and spend your gold. The Warden waits below."
-                       : Stage.kind == LevelKind.Tutorial ? "Learn the ropes. Read the signs."
-                       : Stage.levelNumber == 1 ? "A new area. Watch for new dangers." : $"Level {Stage.levelNumber} of 3";
             hud.Bind(this);
             var gateGear = Level.gateCount > 0 ? config.FindGear(Level.gateGear) : null;
-            if (gateGear != null)
-                sub = string.IsNullOrEmpty(gateGear.gateBanner)
-                    ? $"Obstacles ahead ({Level.gateCount}) - you will need your {gateGear.displayName.ToUpperInvariant()}.  Hold [gear] to change gear."
-                    : string.Format(gateGear.gateBanner, Level.gateCount);
-            string title = Stage.kind == LevelKind.Area ? $"{Stage.displayName}  {Stage.area.displayName}"
-                         : Stage.kind == LevelKind.Boss && Boss != null ? Boss.displayName.ToUpperInvariant() : Stage.displayName;
-            hud.ShowBanner(title, sub, gateGear != null || Stage.kind == LevelKind.Boss ? 5f : 3.5f);
+            // Area introduction: just the name of the place, and only when a new place begins - the first level
+            // of an area, the camp, the final vault. Later levels and boss arenas start without a card.
+            bool newPlace = Stage.kind == LevelKind.Area ? Stage.levelNumber == 1 : Stage.kind != LevelKind.Boss;
+            if (newPlace)
+                hud.ShowAreaIntro(Stage.kind == LevelKind.Area ? Stage.area.displayName : Stage.displayName);
             if (gateGear != null && !ScenarioRunner.Active && !AutoTest.Active) SupplyCache(gateGear, run);
             if (Level.grip < 1f && Stage.levelNumber == 1 && !grantedGear)
                 hud.ShowMessage("The ground is frozen: you slide before you stop. Slow down before a ledge - hold [walk] to walk.", 7f);

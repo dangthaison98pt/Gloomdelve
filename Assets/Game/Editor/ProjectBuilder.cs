@@ -862,18 +862,18 @@ namespace Gloomdelve.EditorTools
             Reg("bat", Make<Bat>("Bat", "Enemies", "bat", new Vector2(0.6f, 0.5f), ArtGenerator.S("Sprites/Enemies/bat_2"), anims["bat_hang"], 14,
                 (e, go, sr) => { e.animHang = anims["bat_hang"]; e.animFly = anims["bat_fly"]; }));
             Reg("emberbat", Make<Bat>("EmberBat", "Enemies", "ember bat", new Vector2(0.6f, 0.5f), ArtGenerator.S("Sprites/Enemies/emberbat_2"), anims["emberbat_hang"], 14,
-                (e, go, sr) => { e.animHang = anims["emberbat_hang"]; e.animFly = anims["emberbat_fly"]; e.speed = 4.6f; e.accel = 12f; e.wakeRange = 7f; e.bloodColor = new Color(1f, 0.5f, 0.2f); }));
+                (e, go, sr) => { e.goldDrop = 100; e.animHang = anims["emberbat_hang"]; e.animFly = anims["emberbat_fly"]; e.speed = 4.6f; e.accel = 12f; e.wakeRange = 7f; e.bloodColor = new Color(1f, 0.5f, 0.2f); }));
             Reg("spider", Make<Spider>("Spider", "Enemies", "spider", new Vector2(0.6f, 0.5f), ArtGenerator.S("Sprites/Enemies/spider_2"), anims["spider_hang"], 14,
                 (e, go, sr) => { e.animHang = anims["spider_hang"]; e.animIdle = anims["spider_idle"]; e.animJump = anims["spider_jump"]; e.bloodColor = new Color(0.3f, 0.6f, 0.3f); }));
             Reg("toad", Make<Toad>("Toad", "Enemies", "cinder toad", new Vector2(0.7f, 0.55f), ArtGenerator.S("Sprites/Enemies/toad_0"), anims["toad_idle"], 14,
                 (e, go, sr) => { e.animIdle = anims["toad_idle"]; e.animJump = anims["toad_jump"]; e.bloodColor = new Color(0.9f, 0.5f, 0.2f); }));
             Reg("brute", Make<Brute>("Brute", "Enemies", "mole brute", new Vector2(0.85f, 0.9f), ArtGenerator.S("Sprites/Enemies/brute_0"), anims["brute_walk"], 14,
-                (e, go, sr) => { e.maxHealth = 3; e.knockbackScale = 1.6f; e.goldDrop = 100; e.animWalk = anims["brute_walk"]; e.animCharge = anims["brute_charge"]; e.animDazed = anims["brute_dazed"]; }));
+                (e, go, sr) => { e.maxHealth = 3; e.knockbackScale = 1.6f; e.goldDrop = 150; e.animWalk = anims["brute_walk"]; e.animCharge = anims["brute_charge"]; e.animDazed = anims["brute_dazed"]; }));
             // frozen caves
             Reg("penguin", Make<Penguin>("Penguin", "Enemies", "penguin", new Vector2(0.65f, 0.6f), ArtGenerator.S("Sprites/Enemies/penguin_0"), anims["penguin_idle"], 14,
                 (e, go, sr) => { e.animIdle = anims["penguin_idle"]; e.animWindup = anims["penguin_windup"]; e.animSlide = anims["penguin_slide"]; e.bloodColor = new Color(0.8f, 0.9f, 1f); }));
             Reg("yeti", Make<Yeti>("Yeti", "Enemies", "yeti", new Vector2(0.8f, 1.0f), ArtGenerator.S("Sprites/Enemies/yeti_0"), anims["yeti_idle"], 14,
-                (e, go, sr) => { e.maxHealth = 2; e.goldDrop = 50; e.animIdle = anims["yeti_idle"]; e.animThrow = anims["yeti_throw"]; e.bloodColor = new Color(0.85f, 0.92f, 1f); }));
+                (e, go, sr) => { e.maxHealth = 2; e.goldDrop = 100; e.animIdle = anims["yeti_idle"]; e.animThrow = anims["yeti_throw"]; e.bloodColor = new Color(0.85f, 0.92f, 1f); }));
             Reg("frostbat", Make<FrostBat>("FrostBat", "Enemies", "frost bat", new Vector2(0.6f, 0.5f), ArtGenerator.S("Sprites/Enemies/frostbat_2"), anims["frostbat_hang"], 14,
                 (e, go, sr) => { e.animHang = anims["frostbat_hang"]; e.animFly = anims["frostbat_fly"]; e.speed = 3.9f; e.bloodColor = new Color(0.7f, 0.88f, 1f); }));
             Reg("snowball", Make<Snowball>("Snowball", "Enemies", "snowball", new Vector2(0.3f, 0.3f), ArtGenerator.S(I("snowball")), null, 16,
@@ -883,15 +883,15 @@ namespace Gloomdelve.EditorTools
             // bosses (one per area + the final guardian), their projectile, and the treasure chest
             Sprite BS(string n) => ArtGenerator.S("Sprites/Bosses/" + n);
             Reg("broodmother", Make<Broodmother>("Broodmother", "Enemies", "Broodmother", new Vector2(1.5f, 1.0f), BS("broodmother_0"), anims["broodmother_idle"], 15,
-                (e, go, sr) => { e.maxHealth = 14; e.animIdle = anims["broodmother_idle"]; e.animJump = anims["broodmother_jump"]; e.bloodColor = new Color(0.5f, 0.3f, 0.6f); }));
+                (e, go, sr) => { e.maxHealth = 14; e.goldDrop = 0; e.heartDropChance = 1f; e.animIdle = anims["broodmother_idle"]; e.animJump = anims["broodmother_jump"]; e.bloodColor = new Color(0.5f, 0.3f, 0.6f); }));
             Reg("forgebrute", Make<ForgeBrute>("ForgeBrute", "Enemies", "Forge Brute", new Vector2(1.6f, 1.7f), BS("forgebrute_0"), anims["forgebrute_walk"], 15,
-                (e, go, sr) => { e.maxHealth = 16; e.animWalk = anims["forgebrute_walk"]; e.animCharge = anims["forgebrute_charge"]; e.animDazed = anims["forgebrute_dazed"]; e.bloodColor = new Color(0.9f, 0.4f, 0.2f); }));
+                (e, go, sr) => { e.maxHealth = 16; e.goldDrop = 0; e.heartDropChance = 1f; e.animWalk = anims["forgebrute_walk"]; e.animCharge = anims["forgebrute_charge"]; e.animDazed = anims["forgebrute_dazed"]; e.bloodColor = new Color(0.9f, 0.4f, 0.2f); }));
             Reg("yetiking", Make<YetiKing>("YetiKing", "Enemies", "Yeti King", new Vector2(1.5f, 1.9f), BS("yetiking_0"), anims["yetiking_idle"], 15,
-                (e, go, sr) => { e.maxHealth = 16; e.animIdle = anims["yetiking_idle"]; e.animThrow = anims["yetiking_throw"]; e.bloodColor = new Color(0.85f, 0.92f, 1f); }));
+                (e, go, sr) => { e.maxHealth = 16; e.goldDrop = 0; e.heartDropChance = 1f; e.animIdle = anims["yetiking_idle"]; e.animThrow = anims["yetiking_throw"]; e.bloodColor = new Color(0.85f, 0.92f, 1f); }));
             Reg("stormhawk", Make<StormHawk>("StormHawk", "Enemies", "Storm Hawk", new Vector2(1.3f, 0.9f), BS("stormhawk_0"), anims["stormhawk_fly"], 15,
-                (e, go, sr) => { e.maxHealth = 12; e.animFly = anims["stormhawk_fly"]; e.animDive = anims["stormhawk_dive"]; e.bloodColor = new Color(0.5f, 0.6f, 0.9f); }));
+                (e, go, sr) => { e.maxHealth = 12; e.goldDrop = 0; e.heartDropChance = 1f; e.animFly = anims["stormhawk_fly"]; e.animDive = anims["stormhawk_dive"]; e.bloodColor = new Color(0.5f, 0.6f, 0.9f); }));
             Reg("warden", Make<Warden>("Warden", "Enemies", "Hollow Warden", new Vector2(1.4f, 1.8f), BS("warden_0"), anims["warden_float"], 31,
-                (e, go, sr) => { e.maxHealth = 24; e.stompable = false; e.animFloat = anims["warden_float"]; e.bloodColor = new Color(0.7f, 0.4f, 1f); }));
+                (e, go, sr) => { e.maxHealth = 24; e.stompable = false; e.goldDrop = 0; e.heartDropChance = 0f; e.animFloat = anims["warden_float"]; e.bloodColor = new Color(0.7f, 0.4f, 1f); }));
             Reg("gloomorb", Make<BossShot>("GloomOrb", "Enemies", "gloom orb", new Vector2(0.35f, 0.35f), BS("orb"), null, 32,
                 (e, go, sr) => { e.flipWithFacing = false; }));
             // traps for climbs
@@ -902,11 +902,11 @@ namespace Gloomdelve.EditorTools
             Reg("chest", Make<Chest>("Chest", "Level", "chest", new Vector2(1.0f, 0.8f), ArtGenerator.S("Sprites/Props/chest_0"), null, 4,
                 (e, g, s) => { e.flipWithFacing = false; e.openSprite = ArtGenerator.S("Sprites/Props/chest_1"); }));
             Reg("hawk", Make<Hawk>("Hawk", "Enemies", "hawk", new Vector2(0.6f, 0.5f), ArtGenerator.S("Sprites/Enemies/hawk_0"), anims["hawk_fly"], 14,
-                (e, go, sr) => { e.animFly = anims["hawk_fly"]; e.animDive = anims["hawk_dive"]; e.bloodColor = new Color(0.6f, 0.2f, 0.15f); }));
+                (e, go, sr) => { e.goldDrop = 100; e.animFly = anims["hawk_fly"]; e.animDive = anims["hawk_dive"]; e.bloodColor = new Color(0.6f, 0.2f, 0.15f); }));
             Reg("tree", Make<Scenery>("Tree", "Level", "tree", new Vector2(1f, 2.5f), ArtGenerator.S("Sprites/Props/tree_0"), null, -6,
                 (e, go, sr) => { e.flipWithFacing = false; e.variants = new[] { ArtGenerator.S("Sprites/Props/tree_0"), ArtGenerator.S("Sprites/Props/tree_1") }; }));
             Reg("wraith", Make<Wraith>("Wraith", "Enemies", "Gloom Wraith", new Vector2(0.8f, 1.0f), ArtGenerator.S("Sprites/Enemies/wraith_0"), anims["wraith_float"], 30,
-                (e, go, sr) => { e.contactDamage = 99; e.stompable = false; e.animFloat = anims["wraith_float"]; }));
+                (e, go, sr) => { e.contactDamage = 99; e.stompable = false; e.goldDrop = 0; e.heartDropChance = 0f; e.animFloat = anims["wraith_float"]; }));
             Reg("shopkeeper", Make<Shopkeeper>("Shopkeeper", "Enemies", "shopkeeper", new Vector2(0.6f, 0.85f), ArtGenerator.S("Sprites/Shopkeeper/idle_0"), anims["keeper_idle"], 14,
                 (e, go, sr) => { e.maxHealth = 6; e.animIdle = anims["keeper_idle"]; e.animAngry = anims["keeper_angry"]; e.goldDrop = 300; e.stompable = true; }));
 
@@ -1300,6 +1300,22 @@ namespace Gloomdelve.EditorTools
             hud.bannerGroup = banner.AddComponent<CanvasGroup>();
             hud.bannerTitle = UIBuilder.Label(banner.transform, "Title", "", 58, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -40), new Vector2(1600, 80), true, FontStyle.Bold);
             hud.bannerSub = UIBuilder.Label(banner.transform, "Sub", "", 30, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -110), new Vector2(1600, 50));
+
+            // area introduction card (start of every level)
+            var intro = UIBuilder.Node(hudGo.transform, "AreaIntro");
+            UIBuilder.Place(UIBuilder.Rect(intro), new Vector2(0.5f, 1f), new Vector2(0, -210), new Vector2(1600, 220));
+            hud.introGroup = intro.AddComponent<CanvasGroup>();
+            hud.introGroup.alpha = 0f; hud.introGroup.blocksRaycasts = false; hud.introGroup.interactable = false;
+            hud.introName = UIBuilder.Label(intro.transform, "Name", "", 88, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -10), new Vector2(1600, 110), true, FontStyle.Bold);
+            hud.introName.GetComponent<Outline>().effectDistance = new Vector2(4f, -4f);
+            var rule = UIBuilder.Img(intro.transform, "Rule", ArtGenerator.S("Center/pixel"), new Color(1f, 0.84f, 0.38f, 0.9f), new Vector2(0.5f, 1f), new Vector2(0, -138), new Vector2(560, 4), false);
+            rule.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            hud.introRule = rule.rectTransform;
+            var gem = UIBuilder.Img(intro.transform, "Gem", ArtGenerator.S("Center/pixel"), new Color(1f, 0.9f, 0.5f), new Vector2(0.5f, 1f), new Vector2(0, -138), new Vector2(16, 16), false);
+            gem.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            gem.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 45f);
+            hud.introGem = gem.rectTransform;
+            hud.introRuleWidth = 560f;
 
             var msg = UIBuilder.Node(hudGo.transform, "Message");
             UIBuilder.Place(UIBuilder.Rect(msg), new Vector2(0.5f, 0f), new Vector2(0, 230), new Vector2(1600, 60));

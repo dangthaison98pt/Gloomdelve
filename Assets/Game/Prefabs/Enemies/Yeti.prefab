@@ -55,7 +55,8 @@ MonoBehaviour:
   gravity: 40
   knockbackScale: 1
   bloodColor: {r: 0.85, g: 0.92, b: 1, a: 1}
-  goldDrop: 50
+  goldDrop: 100
+  heartDropChance: 0.05
   sightRange: 9
   throwCooldown: 2.2
   windupTime: 0.45

@@ -57,6 +57,7 @@ MonoBehaviour:
   knockbackScale: 1
   bloodColor: {r: 0.7, g: 0.4, b: 1, a: 1}
   goldDrop: 0
+  heartDropChance: 0
   maxHitDamage: 3
   goldChunks: 4
   driftSpeed: 1.6

@@ -137,7 +137,8 @@ namespace Gloomdelve
                 squash = new Vector2(1f + 0.3f * hard, 1f - 0.28f * hard);
                 Fx.Dust(pos, motor.landImpact < -10f ? 6 : 2);
                 if (motor.landImpact < -7f) Sfx.Play("land", pos, Mathf.Clamp01(-motor.landImpact / 18f));
-                if (motor.fallDistance >= cfg.fallDamageHeight && !godMode)
+                // Landing on a creature's head breaks the fall: the stomp (Contacts, right after this) takes the hit instead.
+                if (motor.fallDistance >= cfg.fallDamageHeight && !godMode && !StompTargetBelow())
                 {
                     TakeDamage(new DamageInfo(cfg.fallDamage, DamageType.Fall, null, Vector2.zero, "a long fall"));
                     stunTimer = Mathf.Max(stunTimer, cfg.fallStunTime);
@@ -147,7 +148,23 @@ namespace Gloomdelve
             if (motor.grabbedThisStep) Sfx.Play("grab", pos);
             if (motor.mode == MotorMode.PullUp && prevMode != MotorMode.PullUp) Sfx.Play("climb", pos);
             if (motor.hitSpikes && !godMode)
-                TakeDamage(new DamageInfo(99, DamageType.Spikes, null, Vector2.zero, "spikes"));
+            {
+                // Spikes wound instead of killing outright: lose spikeDamage health and get thrown back up and
+                // away, with the usual moment of invulnerability to get clear.
+                // ...except the thorn chasms of glider gates (LevelData.lethalSpikes), which still kill.
+                bool lethal = false;
+                var lvl = World.Level;
+                if (lvl != null && lvl.lethalSpikes.Count > 0)
+                {
+                    int row = Mathf.FloorToInt(pos.y + 0.05f);
+                    int x0 = Mathf.FloorToInt(pos.x - size.x * 0.5f + 0.1f), x1 = Mathf.FloorToInt(pos.x + size.x * 0.5f - 0.1f);
+                    for (int sx = x0; sx <= x1; sx++) if (lvl.lethalSpikes.Contains(new Vector2Int(sx, row))) lethal = true;
+                }
+                int away = motor.vel.x > 0.5f ? -1 : motor.vel.x < -0.5f ? 1 : -facing;
+                if (lethal) TakeDamage(new DamageInfo(99, DamageType.Spikes, null, Vector2.zero, "spikes"));
+                else TakeDamage(new DamageInfo(Mathf.Max(1, cfg.spikeDamage), DamageType.Spikes, null,
+                    new Vector2(away * 3f, cfg.spikeBounce), "spikes"));
+            }
         }
 
         // ------------------------------------------------------------------ actions
@@ -267,6 +284,17 @@ namespace Gloomdelve
 
         // ------------------------------------------------------------------ contacts
 
+        /// <summary>A stompable enemy right under the feet (so a long fall ends on it, not on the ground).</summary>
+        bool StompTargetBelow()
+        {
+            var r = Bounds;
+            r.xMin += 0.06f; r.xMax -= 0.06f; r.yMin -= 0.25f;
+            World.Query(r, tmp, e => e.IsEnemy && e.IsStompable && !e.Dead);
+            foreach (var e in tmp)
+                if (prevPos.y >= e.pos.y + e.size.y * 0.45f) return true;
+            return false;
+        }
+
         void Contacts(FrameInput fi, float prevVy)
         {
             var me = Bounds;
@@ -284,6 +312,7 @@ namespace Gloomdelve
                     motor.vel.y = fi.jumpHeld ? cfg.stompBounceHeld : cfg.stompBounce;
                     motor.jumping = fi.jumpHeld;
                     motor.grounded = false;
+                    motor.apexY = motor.pos.y;      // the fall ended here: the bounce starts a new one
                     vel = motor.vel;
                     Sfx.Play("stomp", pos);
                     Fx.Dust(pos, 3);
@@ -348,7 +377,7 @@ namespace Gloomdelve
         public override bool TakeDamage(in DamageInfo d)
         {
             if (IsDead || godMode || Run == null) return false;
-            bool bypass = d.type == DamageType.Spikes || d.type == DamageType.Wraith || d.type == DamageType.Explosion;
+            bool bypass = d.type == DamageType.Wraith || d.type == DamageType.Explosion || d.amount >= 99;
             if (invuln > 0f && !bypass) return false;
             Run.health -= d.amount;
             Flash(0.25f);

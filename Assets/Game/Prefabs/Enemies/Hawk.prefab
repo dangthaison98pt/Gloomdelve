@@ -55,7 +55,8 @@ MonoBehaviour:
   gravity: 40
   knockbackScale: 1
   bloodColor: {r: 0.6, g: 0.2, b: 0.15, a: 1}
-  goldDrop: 0
+  goldDrop: 100
+  heartDropChance: 0.05
   hoverRadius: 2.5
   diveSpeed: 9.5
   climbSpeed: 3.6

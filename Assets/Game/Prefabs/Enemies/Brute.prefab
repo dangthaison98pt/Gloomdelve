@@ -161,7 +161,8 @@ MonoBehaviour:
   gravity: 40
   knockbackScale: 1.6
   bloodColor: {r: 0.55, g: 0.1, b: 0.12, a: 1}
-  goldDrop: 100
+  goldDrop: 150
+  heartDropChance: 0.05
   patrolSpeed: 1.2
   chargeSpeed: 7.5
   sightRange: 7

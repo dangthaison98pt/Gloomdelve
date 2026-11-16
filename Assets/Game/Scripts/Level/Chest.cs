@@ -43,11 +43,23 @@ namespace Gloomdelve
             string[] fill = { "heart", "bombs", "ropes" };
             for (int i = 0; picks.Count < itemCount; i++) picks.Add(fill[i % fill.Length]);
 
+            // Laid out in a row beside the chest, two cells apart - never on the chest itself, where the item
+            // and the chest would overlap. To the right when there is floor there, else to the left.
             int cx = Mathf.FloorToInt(pos.x), cy = Mathf.RoundToInt(pos.y);
+            var g = World.Grid;
+            bool Fits(int dir)
+            {
+                for (int i = 1; i <= picks.Count; i++)
+                {
+                    int x = cx + dir * i * 2;
+                    if (!g.IsEmpty(x, cy) || !(g.IsSolid(x, cy - 1) || g.IsPlatformTop(x, cy - 1))) return false;
+                }
+                return true;
+            }
+            int side = Fits(1) || !Fits(-1) ? 1 : -1;
             for (int i = 0; i < picks.Count; i++)
             {
-                // one item on the chest's own cell, the others two cells apart on either side
-                var cell = new Vector2Int(cx + Mathf.RoundToInt((i - (picks.Count - 1) * 0.5f) * 2f), cy);
+                var cell = new Vector2Int(cx + side * (i + 1) * 2, cy);
                 World.Spawn(prefab, new Vector2(cell.x + 0.5f, cy), new SpawnPoint("shopitem", cell, 0, i, picks[i]));
             }
         }

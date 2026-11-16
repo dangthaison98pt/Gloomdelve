@@ -7,7 +7,7 @@ sign5: [whip] cracks your whip.  You can also stomp most enemies by landing on t
 sign6: [down] + [whip] picks things up, [whip] throws them ([up] + [whip] throws high).  Pots hold treasure - or snakes.
 sign7: Your GEAR is BOMBS (top-left).  [use] uses it: throw a bomb, [down] + [use] places it.  Bombs break dirt and rubble, never the dark bedrock.  Stand back!
 sign8: Hold [gear] to open the GEAR WHEEL, pick the ROPE with [left] [right] and release.  Then press [use] right next to this wall: the rope hooks on, climb with [up].  Ropes vanish after a while.
-sign9: Falling onto SPIKES kills.  Arrow traps fire at anything moving in front of them - throw a rock first!  Exit: [up] or [enter] at the door.
+sign9: Falling onto SPIKES costs 2 hearts.  Arrow traps fire at anything moving in front of them - throw a rock first!  Exit: [up] or [enter] at the door.
 ---
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 X##############################################################################################X

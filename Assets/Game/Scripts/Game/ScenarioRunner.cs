@@ -125,7 +125,7 @@ namespace Gloomdelve
             new Scenario { name = "stalactite falls on a snake", map = m => { Set(m, 2, 1, 'S'); Set(m, 10, 4, '#'); Set(m, 10, 3, 'v'); Set(m, 15, 1, 's'); },
                 run = c => Run(c, Seq((1, F())), 360, () => { c.Expect(c.Count<Snake>() == 0, "snake killed"); c.Expect(c.Count<Stalactite>() == 0, "stalactite shattered"); }) },
 
-            new Scenario { name = "falling onto spikes kills", map = m => { Set(m, 2, 1, 'S'); Set(m, 12, 1, '^'); },
+            new Scenario { name = "spikes wound (2 hearts, thrown clear) and only kill at low health", map = m => { Set(m, 2, 1, 'S'); Set(m, 12, 1, '^'); },
                 run = c => SpikeCase(c) },
 
             new Scenario { name = "rope: throw, climb, step onto a high ledge", map = m => { Set(m, 11, 1, 'S'); for (int x = 12; x < 16; x++) for (int y = 1; y <= 6; y++) Set(m, x, y, '#'); },
@@ -213,6 +213,9 @@ namespace Gloomdelve
                 map = m => { Set(m, 3, 1, 'S'); for (int y = 1; y <= 6; y++) Set(m, 16, y, 'H'); for (int x = 14; x <= 18; x++) Set(m, x, 8, '#'); },
                 run = c => ClimbTrapCase(c) },
 
+            new Scenario { name = "area title card and event banner never show at the same time", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => TitleCardCase(c) },
+
             new Scenario { name = "hawk dives at the player below it", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => HawkCase(c) },
 
@@ -254,6 +257,9 @@ namespace Gloomdelve
 
             new Scenario { name = "whip breaks a pot", map = m => { Set(m, 3, 1, 'S'); Set(m, 4, 1, 'u'); },
                 run = c => Run(c, Seq((2, F()), (1, F(atk: true)), (40, F())), 45, () => c.Expect(c.Count<Breakable>() == 0, "pot broken")) },
+
+            new Scenario { name = "long fall onto an enemy's head: no fall damage, the kill pays gold", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => StompFallCase(c) },
 
             new Scenario { name = "long fall hurts and stuns", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => FallCase(c) },
@@ -336,6 +342,17 @@ namespace Gloomdelve
 
         static IEnumerator SpikeCase(Ctx c)
         {
+            c.Bot(Seq((600, F())));
+            c.Teleport(12.5f, 4f);
+            int h0 = c.run.health;
+            float top = 0f;
+            for (int i = 0; i < 60; i++) { yield return new WaitForFixedUpdate(); if (c.run.health < h0) top = Mathf.Max(top, c.p.pos.y); }
+            c.Expect(!c.p.IsDead && h0 - c.run.health == c.p.cfg.spikeDamage, $"spikes cost {c.p.cfg.spikeDamage} hearts, not the whole run (health {h0} -> {c.run.health})");
+            c.Expect(top > 1.8f, $"the player is thrown back up off the spikes (peak {top:0.00})");
+            yield return c.Frames(120);
+            c.Expect(!c.p.IsDead && c.run.health == h0 - c.p.cfg.spikeDamage, "one fall costs only one hit");
+            // at 2 hearts or fewer the same fall is fatal
+            c.run.health = 2;
             c.Teleport(12.5f, 4f);
             yield return c.Frames(60);
             c.Expect(c.p.IsDead, "player died");
@@ -445,6 +462,7 @@ namespace Gloomdelve
         static IEnumerator ResultsCase(Ctx c)
         {
             c.run.gold = 1234; c.run.kills = 3; c.run.reachedStageName = "1-2";
+            c.run.health = 1;
             c.Teleport(12.5f, 4f);
             yield return c.Frames(40);
             c.Expect(c.p.IsDead, "died");
@@ -527,6 +545,7 @@ namespace Gloomdelve
 
         static IEnumerator GlideCase(Ctx c, bool glider)
         {
+            for (int x = 7; x <= 12; x++) c.world.Level.lethalSpikes.Add(new Vector2Int(x, 1));   // a gate chasm, as the generator marks it
             if (!c.run.gear.Contains("glider")) c.run.gear.Add("glider");
             c.run.Equip(glider ? "glider" : "bomb");
             var seq = Seq((6, F(x: 1)), (1, F(x: 1, jp: true, jh: true)), (140, F(x: 1, jh: true)), (40, F()));
@@ -865,6 +884,26 @@ namespace Gloomdelve
             c.p.godMode = false;
         }
 
+        static IEnumerator TitleCardCase(Ctx c)
+        {
+            var hud = c.dir.hud;
+            // the case from the final vault: the title card is still up when the collapse banner arrives
+            hud.ShowAreaIntro("The Sunken Vault");
+            yield return new WaitForSecondsRealtime(0.8f);
+            c.Expect(hud.introGroup.alpha > 0.9f && hud.bannerGroup.alpha < 0.01f, "the title card shows on its own");
+            hud.ShowBanner("THE VAULT IS COLLAPSING!", "Carry the Heartstone back up to the Surface Gate!");
+            yield return new WaitForSecondsRealtime(0.3f);
+            c.Expect(hud.introGroup.alpha < 0.01f && hud.bannerGroup.alpha > 0.9f, $"the banner replaces the card (card {hud.introGroup.alpha:0.00}, banner {hud.bannerGroup.alpha:0.00})");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "banner_over_card.png"));
+            yield return new WaitForSecondsRealtime(0.3f);
+            // and the other way round
+            hud.ShowAreaIntro("Mossroot Caverns");
+            yield return new WaitForSecondsRealtime(0.8f);
+            c.Expect(hud.introGroup.alpha > 0.9f && hud.bannerGroup.alpha < 0.01f, "a new title card clears the banner");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "title_card.png"));
+            yield return new WaitForSecondsRealtime(0.3f);
+        }
+
         static IEnumerator HawkCase(Ctx c)
         {
             c.Teleport(12.5f, 1f);
@@ -1117,6 +1156,27 @@ namespace Gloomdelve
             c.Expect(minY >= -0.001f && maxY > 0.05f, $"bob stays above the ground (sprite y {minY:0.000}..{maxY:0.000})");
             ScreenCapture.CaptureScreenshot(Path.Combine(outDir, "collectibles.png"));
             yield return new WaitForSecondsRealtime(0.3f);
+        }
+
+        static IEnumerator StompFallCase(Ctx c)
+        {
+            // same height as the plain long-fall case, but a snake is standing where the player lands
+            var snake = c.Spawn<Snake>("snake", 12, 1);
+            snake.heartDropChance = 0f;
+            snake.stunTimer = 99f;             // it stays put (a stunned snake does not walk) and is still stompable
+            c.Bot(Seq((200, F())));
+            yield return c.Frames(2);
+            int hp0 = c.run.health, gold0 = c.run.gold;
+            c.Teleport(snake.pos.x, 1f + 10.5f);
+            bool stunned = false;
+            for (int i = 0; i < 150; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (c.p.IsStunned) stunned = true;
+            }
+            c.Expect(snake.Dead, "the snake was stomped");
+            c.Expect(c.run.health == hp0 && !stunned, $"no fall damage or stun (health {hp0} -> {c.run.health})");
+            c.Expect(c.run.gold > gold0, $"the kill dropped gold and it was collected (gold {gold0} -> {c.run.gold})");
         }
 
         static IEnumerator FallCase(Ctx c)

@@ -36,6 +36,9 @@ namespace Gloomdelve
 
         [Header("Damage")]
         public float invulnTime = 1.2f;
+        [Tooltip("Health lost when landing on spikes (99 = instant death, the old rule). The player is thrown clear and is briefly invulnerable.")]
+        public int spikeDamage = 2;
+        [Tooltip("Upward speed of the bounce off spikes.")] public float spikeBounce = 10f;
         public float hurtStunTime = 0.45f;
         public Vector2 hurtKnockback = new Vector2(5f, 7f);
         [Tooltip("Falls of at least this many tiles hurt and stun. The level validator never requires such a fall.")]

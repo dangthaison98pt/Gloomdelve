@@ -56,6 +56,7 @@ MonoBehaviour:
   knockbackScale: 1
   bloodColor: {r: 0.5, g: 0.3, b: 0.6, a: 1}
   goldDrop: 0
+  heartDropChance: 1
   maxHitDamage: 3
   goldChunks: 4
   leapSpeedX: 6.5

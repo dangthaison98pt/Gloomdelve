@@ -19,6 +19,12 @@ namespace Gloomdelve
         public CanvasGroup bannerGroup;
         public Text bannerTitle;
         public Text bannerSub;
+        [Header("Area introduction (start of a level)")]
+        public CanvasGroup introGroup;
+        public Text introName;
+        public RectTransform introRule;
+        public RectTransform introGem;
+        public float introRuleWidth = 560f;
         public CanvasGroup messageGroup;
         public Text messageText;
         public CanvasGroup hurtGroup;
@@ -56,6 +62,7 @@ namespace Gloomdelve
 
         GameDirector dir;
         float bannerT, msgT, hurtT, vignette;
+        float introT = -1f, introLength = 3.6f;
         float shownGold;
         int lastHealth = -1;
         float heartPulse;
@@ -64,9 +71,25 @@ namespace Gloomdelve
 
         public void ShowBanner(string title, string sub, float seconds = 3.5f)
         {
+            // an event banner takes the place of the area title card: the two share the same spot
+            introT = -1f;
+            if (introGroup != null) introGroup.alpha = 0f;
             bannerTitle.text = title;
             bannerSub.text = sub;
             bannerT = seconds;
+        }
+
+        /// <summary>
+        /// The title card of a new place: its name, with a rule that draws itself underneath.
+        /// Fades in, holds, fades out.
+        /// </summary>
+        public void ShowAreaIntro(string place, float seconds = 3.6f)
+        {
+            if (introGroup == null) { ShowBanner(place, "", seconds); return; }
+            introName.text = (place ?? "").ToUpperInvariant();
+            introT = 0f;
+            introLength = Mathf.Max(1.5f, seconds);
+            bannerT = 0f;
         }
 
         public void ShowMessage(string m, float seconds = 3.5f)
@@ -138,6 +161,22 @@ namespace Gloomdelve
             promptPanel.SetActive(!string.IsNullOrEmpty(prompt));
             if (!string.IsNullOrEmpty(prompt)) promptText.text = prompt;
 
+            if (introGroup != null)
+            {
+                bool hideIntro = dir.Paused || dir.Ended || (dir.gearWheel != null && dir.gearWheel.IsOpen);
+                if (introT >= 0f)
+                {
+                    introT += dt;
+                    float fadeIn = Mathf.Clamp01(introT / 0.45f), fadeOut = Mathf.Clamp01((introLength - introT) / 0.7f);
+                    introGroup.alpha = hideIntro ? 0f : Mathf.Min(fadeIn, fadeOut);
+                    float draw = 1f - Mathf.Pow(1f - Mathf.Clamp01((introT - 0.15f) / 0.7f), 3f);       // ease out
+                    introRule.sizeDelta = new Vector2(introRuleWidth * draw, introRule.sizeDelta.y);
+                    introGem.localScale = Vector3.one * Mathf.Clamp01((introT - 0.5f) / 0.25f);
+                    introName.rectTransform.localScale = Vector3.one * Mathf.Lerp(1.06f, 1f, fadeIn);
+                    if (introT >= introLength) introT = -1f;
+                }
+                else introGroup.alpha = 0f;
+            }
             bannerT -= dt; msgT -= dt; hurtT -= dt;
             bannerGroup.alpha = dir.Paused || dir.Ended || (dir.gearWheel != null && dir.gearWheel.IsOpen) ? 0f : Mathf.Clamp01(bannerT);
             messageGroup.alpha = Mathf.Clamp01(msgT);
