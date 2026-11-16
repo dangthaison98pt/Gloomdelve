@@ -1,6 +1,7 @@
-Gloomdelve in-game scenario tests 2026-11-16 12:16:17
+Gloomdelve in-game scenario tests 2026-11-16 12:28:56
 PASS  whip kills an approaching snake  
 PASS  stomping a snake kills it and bounces  
+PASS  snake on a single tile stands still instead of flipping left-right  
 PASS  picked-up rock thrown at a snake kills it  
 PASS  bomb destroys dirt but not bedrock, player escapes  
 PASS  bomb chain reaction is bounded  
@@ -41,4 +42,4 @@ PASS  time-pressure wraith spawns and its touch is fatal
 PASS  carrying a golden idol out pays gold  
 PASS  exit door ends the level  
 
-41 passed, 0 failed
+42 passed, 0 failed

@@ -40,8 +40,7 @@ namespace Gloomdelve
                 switch (state)
                 {
                     case State.Patrol:
-                        if (WallAhead(facing) || EdgeAhead(facing) || SpikesAhead(facing)) facing = -facing;
-                        vel.x = facing * patrolSpeed;
+                        vel.x = PatrolStep() * patrolSpeed;
                         anim?.Play(animWalk);
                         if (p != null && !p.IsDead && Mathf.Abs(p.pos.y - pos.y) < 1.2f && Mathf.Abs(p.pos.x - pos.x) < sightRange &&
                             World.LineClear(Center, p.Center))

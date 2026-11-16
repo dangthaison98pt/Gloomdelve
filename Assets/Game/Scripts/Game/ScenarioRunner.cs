@@ -93,6 +93,10 @@ namespace Gloomdelve
             new Scenario { name = "stomping a snake kills it and bounces", map = m => { Set(m, 3, 1, 'S'); Set(m, 12, 0, '.'); Set(m, 12, 0, 's'); },
                 run = c => StompCase(c) },
 
+            new Scenario { name = "snake on a single tile stands still instead of flipping left-right",
+                map = m => { Set(m, 3, 1, 'S'); Set(m, 10, 1, '#'); Set(m, 10, 2, 's'); Set(m, 14, 1, '#'); Set(m, 15, 1, '#'); Set(m, 14, 2, 's'); },
+                run = c => PatrolCase(c) },
+
             new Scenario { name = "picked-up rock thrown at a snake kills it", map = m => { Set(m, 3, 1, 'S'); Set(m, 4, 1, 'o'); Set(m, 8, 1, 's'); Set(m, 10, 1, 'X'); },
                 run = c => Run(c, Seq((7, F(x: 1)), (12, F()), (1, F(down: true, atk: true)), (4, F()), (1, F(atk: true)), (60, F())), 80,
                     () => { c.Expect(c.Count<Snake>() == 0, "snake dead"); c.Expect(c.run.health == 4, "player unhurt"); }) },
@@ -249,6 +253,28 @@ namespace Gloomdelve
             c.Bot(inputs);
             yield return c.Frames(frames);
             check();
+        }
+
+        static IEnumerator PatrolCase(Ctx c)
+        {
+            Snake single = null, pair = null;
+            foreach (var e in c.world.Entities)
+                if (e is Snake s) { if (s.pos.x < 12f) single = s; else pair = s; }
+            c.Expect(single != null && pair != null, "two snakes spawned");
+            if (single == null || pair == null) yield break;
+            c.Bot(Seq((240, F())));
+            int flips = 0, last = single.facing;
+            float minX = pair.pos.x, maxX = pair.pos.x, startX = single.pos.x;
+            for (int i = 0; i < 240; i++)
+            {
+                yield return c.Frames(1);
+                if (single.facing != last) { flips++; last = single.facing; }
+                minX = Mathf.Min(minX, pair.pos.x); maxX = Mathf.Max(maxX, pair.pos.x);
+            }
+            c.Expect(flips <= 1, $"single-tile snake turned {flips} times in 240 steps");
+            c.Expect(Mathf.Abs(single.pos.x - startX) < 0.05f && !single.Dead, "single-tile snake stays on its tile");
+            c.Expect(single.facing == -1, "it faces the player (to its left)");
+            c.Expect(maxX - minX > 0.5f && !pair.Dead, $"snake on two tiles still patrols ({maxX - minX:0.00} tiles)");
         }
 
         static IEnumerator StompCase(Ctx c)

@@ -71,23 +71,55 @@ namespace Gloomdelve
             return false;
         }
 
-        protected bool WallAhead(int dir)
+        protected bool WallAhead(int dir, float extra = 0f)
         {
-            float fx = pos.x + dir * (size.x * 0.5f + 0.08f);
+            float fx = pos.x + dir * (size.x * 0.5f + 0.08f + extra);
             return World.Grid.IsSolid(Mathf.FloorToInt(fx), Mathf.FloorToInt(pos.y + 0.2f));
         }
 
-        protected bool EdgeAhead(int dir)
+        protected bool EdgeAhead(int dir, float extra = 0f)
         {
-            float fx = pos.x + dir * (size.x * 0.5f + 0.08f);
+            float fx = pos.x + dir * (size.x * 0.5f + 0.08f + extra);
             int x = Mathf.FloorToInt(fx), y = Mathf.FloorToInt(pos.y - 0.1f);
             return !World.Grid.IsSolid(x, y) && !World.Grid.IsPlatformTop(x, y);
         }
 
-        protected bool SpikesAhead(int dir)
+        protected bool SpikesAhead(int dir, float extra = 0f)
         {
-            float fx = pos.x + dir * (size.x * 0.5f + 0.4f);
+            float fx = pos.x + dir * (size.x * 0.5f + 0.4f + extra);
             return World.Grid.IsSpike(Mathf.FloorToInt(fx), Mathf.FloorToInt(pos.y + 0.1f));
+        }
+
+        /// <summary>A wall, a ledge or spikes right in front: a patroller should not walk this way.</summary>
+        protected bool BlockedAhead(int dir, float extra = 0f) => WallAhead(dir, extra) || EdgeAhead(dir, extra) || SpikesAhead(dir, extra);
+
+        /// <summary>A patroller only turns around when it can walk at least this far (tiles) the other way.</summary>
+        protected const float MinPatrolRoom = 0.75f;
+
+        /// <summary>
+        /// Patrol steering shared by ground walkers. Returns the direction to walk this step (-1 / +1), or 0 when
+        /// there is no real room either way (e.g. standing on a single tile): then the enemy stands still and just
+        /// turns to face the player instead of shuffling left-right every few steps.
+        /// </summary>
+        bool patrolStuck;
+
+        protected int PatrolStep()
+        {
+            if (patrolStuck)
+            {
+                // still boxed in on both sides? (terrain may have been destroyed since)
+                if (BlockedAhead(facing, MinPatrolRoom) && BlockedAhead(-facing, MinPatrolRoom))
+                {
+                    var p = Player;
+                    if (p != null && !p.IsDead && Mathf.Abs(p.pos.x - pos.x) > 0.4f) facing = p.pos.x > pos.x ? 1 : -1;
+                    return 0;
+                }
+                patrolStuck = false;
+            }
+            if (!BlockedAhead(facing)) return facing;
+            if (!BlockedAhead(-facing, MinPatrolRoom)) { facing = -facing; return facing; }
+            patrolStuck = true;
+            return 0;
         }
 
         protected bool SeesPlayer(float range)

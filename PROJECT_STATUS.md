@@ -15,7 +15,7 @@ Cập nhật: 16/11/2026 · Phiên bản 0.1.0 · Unity 6000.3.12f1
 - UI: menu chính, hướng dẫn điều khiển, cài đặt (âm lượng tổng/nhạc/hiệu ứng, toàn màn hình, rung màn hình), tạm dừng, HUD đầy đủ, thẻ chuyển màn, màn kết quả (R chơi lại nhanh, chơi lại seed), kỷ lục.
 - Lưu cài đặt + kỷ lục (JSON), ghi log seed.
 - Art pixel 397 sprite + 42 SFX + 4 nhạc, tất cả sinh bằng code (Editor).
-- Kiểm thử (số liệu mới nhất, chi tiết trong `Docs/TEST_REPORT.md`): 34 test logic, quét 150 seed (1350 màn, 0 lỗi), 41 kịch bản tương tác trong build, bot chơi trọn 3 lượt (30 màn) trong build, kiểm tra không rò rỉ trạng thái giữa lượt. Build Windows chạy được.
+- Kiểm thử (số liệu mới nhất, chi tiết trong `Docs/TEST_REPORT.md`): 34 test logic, quét 150 seed (1350 màn, 0 lỗi), 42 kịch bản tương tác trong build, bot chơi trọn 3 lượt (30 màn) trong build, kiểm tra không rò rỉ trạng thái giữa lượt. Build Windows chạy được.
 - Tài liệu: README, DESIGN, REFERENCE, TEST_REPORT.
 
 ## Thay đổi theo phản hồi (14/11)
@@ -52,6 +52,8 @@ Cập nhật: 16/11/2026 · Phiên bản 0.1.0 · Unity 6000.3.12f1
   - Hướng dẫn: `Docs/EXTENDING.md`. Kiểm thử sau thay đổi: 34/34 logic, quét 150 seed cho kết quả giống hệt trước khi sửa, 41/41 kịch bản, bot 30/30 màn.
 
 - **Nâng cấp đồ hoạ (16/11)**: chuyển sang URP 2D Renderer; ánh sáng 2D (ánh sáng nền theo khu, đèn theo nhân vật, đuốc treo tường đặt tất định theo màn, đèn trên bom/lỗ lửa/ngọc/Heartstone/chủ tiệm/cửa ra, chớp sáng khi nổ); hậu kỳ (bloom, vignette, chỉnh màu) trong `Settings/PostFX.asset`; bóng tiếp xúc trên tường nền; lớp đá parallax sau địa hình; bầu trời hoàng hôn nhiều dải + mặt trời + thêm dãy núi và mây; hạt không khí theo khu (bụi, tàn lửa, phấn hoa, đốm sáng); bụi khi chạy, nhân vật co giãn khi nhảy/đáp, vụ nổ có tàn lửa; tile đất và tường nền vẽ lại (mảng đất thay cho nhiễu từng điểm ảnh), nhân vật/quái/đồ vật có viền sáng trên – bóng dưới. Mọi thứ chỉ là hình ảnh, không đụng mô phỏng: quét 150 seed cho kết quả giống hệt, 34/34 logic, 41/41 kịch bản, bot 40/40 màn. Chỉnh theo khu ở `AreaConfig > Lighting & atmosphere`.
+
+- Sửa quái đi tuần (rắn, gã húc) đứng trên bệ 1 ô bị lắc trái-phải liên tục: giờ chỉ quay đầu khi phía sau còn ít nhất 0,75 ô để đi, nếu không thì đứng yên và quay mặt về phía người chơi. Thêm kịch bản kiểm thử (42/42).
 
 ## Đang làm
 - Không có hạng mục dở dang.

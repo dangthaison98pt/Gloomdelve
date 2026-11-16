@@ -18,15 +18,11 @@ namespace Gloomdelve
         public override void Tick(float dt)
         {
             base.Tick(dt);
-            if (stunTimer <= 0f && grounded)
-            {
-                if (WallAhead(facing) || EdgeAhead(facing) || SpikesAhead(facing)) facing = -facing;
-                vel.x = facing * speed;
-            }
+            if (stunTimer <= 0f && grounded) vel.x = PatrolStep() * speed;
             else if (grounded) vel.x = Mathf.MoveTowards(vel.x, 0f, 20f * dt);
             var b = StepPhysics(dt, gravity);
             CheckSpikes(b);
-            if (anim != null) anim.speed = stunTimer > 0f ? 0f : 1f;
+            if (anim != null) anim.speed = stunTimer > 0f || (grounded && Mathf.Abs(vel.x) < 0.01f) ? 0f : 1f;
         }
     }
 }
