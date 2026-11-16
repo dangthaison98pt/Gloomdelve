@@ -190,7 +190,7 @@ namespace Gloomdelve
                 s.frame.color = on ? new Color(1f, 0.8f, 0.35f) : new Color(0.45f, 0.4f, 0.5f, 0.85f);
                 s.icon.sprite = def != null ? def.icon : null;
                 s.icon.color = on ? Color.white : new Color(1f, 1f, 1f, 0.6f);
-                int am = def != null ? run.Ammo(def.kind) : 0;
+                int am = def != null ? run.Ammo(def.id) : 0;
                 s.ammo.text = def != null && am >= 0 ? "x" + am : "";
                 if (i == run.equipped && !on) s.frame.color = new Color(0.55f, 0.75f, 0.55f, 0.9f);
             }

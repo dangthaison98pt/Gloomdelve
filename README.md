@@ -15,6 +15,7 @@ Platformer roguelike 2D pixel art lấy cảm hứng từ cảm giác chơi củ
 - Menu **Gloomdelve** trên thanh menu Editor:
   - *Build Everything* – sinh lại art, âm thanh, tile, prefab, scene, cấu hình URP/Input (giá trị trong các config đã có được giữ nguyên).
   - *Build Windows (Builds/Windows)*.
+  - *Room Template Editor* – tool cho Game Designer xếp mẫu phòng (vẽ lưới, kiểm tra quy tắc, thử trong bộ sinh màn, chơi thử).
   - *Tests > Logic Tests*, *Tests > Seed Sweep (120 seeds)* (báo cáo kiểm thử dùng 150 seed qua dòng lệnh `-seeds 150`).
 
 ## Điều khiển
@@ -48,13 +49,17 @@ Kết quả: `Builds/Windows/Gloomdelve.exe`.
 ## Tinh chỉnh
 Tất cả nằm trong `Assets/Game/Data`:
 - `PlayerConfig` – tốc độ, nhảy, coyote/bộ đệm, bám mép, roi, ném, sát thương rơi, máu/bom/dây khởi đầu.
+- `Gear_Bomb`, `Gear_Rope`, `Gear_Glider` – tên, mô tả, câu thông báo chướng ngại, kho tiếp tế của từng trang bị.
 - `Area1_Mossroot`, `Area2_Emberdeep`, `Area4_Sunfall`, `Area3_Vault` (màn cuối) – kẻ địch, bẫy, mật độ, kho báu, cửa hàng, nhạc, màu nền.
 - `GameConfig` – danh sách màn, áp lực thời gian (2:30 cảnh báo / 3:00 hồn ma), giới hạn nổ dây chuyền, sinh màn.
-- `ShopConfig` – giá và hiệu ứng đồ bán.
-- `RoomTemplates.txt` – mẫu phòng (văn bản, có chú thích ký hiệu). `Levels/Tutorial.txt`, `Levels/FinalVault.txt` – màn làm tay.
+- `ShopConfig` – giá, tài nguyên được cộng và chỉ số cộng thêm (`modifiers`) của từng món.
+- `RoomTemplates.txt` – mẫu phòng (sửa bằng **Gloomdelve > Room Template Editor** hoặc sửa tay). `Levels/Tutorial.txt`, `Levels/FinalVault.txt` – màn làm tay.
 - Prefab trong `Assets/Game/Prefabs` (thông số từng quái/bẫy/vật phẩm).
 
 Seed: mỗi lượt chơi tự lấy seed ngẫu nhiên (menu chính không cho chọn seed); muốn chơi lại đúng màn đó thì dùng nút chơi lại seed ở màn kết quả; seed hiện ở menu tạm dừng và màn kết quả; mọi seed được ghi vào `run_log.txt` (thư mục `%USERPROFILE%\AppData\LocalLow\Gloomdelve Team\Gloomdelve`, cùng `settings.json`, `records.json`).
 
+## Mở rộng game
+Thêm mẫu phòng, nâng cấp, vật phẩm, trang bị, kẻ địch, khu mới: xem **`Docs/EXTENDING.md`**.
+
 ## Tài liệu
-`PROJECT_STATUS.md` · `Docs/DESIGN.md` · `Docs/REFERENCE.md` · `Docs/TEST_REPORT.md` · `Docs/Screenshots/`
+`PROJECT_STATUS.md` · `Docs/EXTENDING.md` · `Docs/DESIGN.md` · `Docs/REFERENCE.md` · `Docs/TEST_REPORT.md` · `Docs/Screenshots/`

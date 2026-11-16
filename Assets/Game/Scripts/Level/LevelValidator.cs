@@ -135,10 +135,10 @@ namespace Gloomdelve
             return g;
         }
 
-        /// <summary>Options with the level's required gear available (glider -> gliding allowed).</summary>
+        /// <summary>Options with the level's required gear available (e.g. glider -> gliding allowed).</summary>
         public static Options WithGear(LevelData d, Options o)
         {
-            if (d.gateCount > 0 && d.gateGear == "glider") o.glide = true;
+            if (d.gateCount > 0) GearRegistry.Get(d.gateGear)?.ApplyToValidator(ref o);
             return o;
         }
 

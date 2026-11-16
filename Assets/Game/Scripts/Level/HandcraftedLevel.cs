@@ -10,12 +10,13 @@ namespace Gloomdelve
     /// Legend: . empty  # dirt  X bedrock  B brick  = platform  H ladder  ^ spikes  A arrow trap  f flame vent
     ///         v stalactite  w crusher  $ gold vein  T gold  * gem  S entrance  G exit  Y Heartstone on altar
     ///         s snake  b bat  x spider  t toad  r brute  e ember bat  o rock  u pot  c crate  k bomb bag  q rope pile
-    ///         1-9 signs
+    ///         1-9 signs   + any symbol from GameConfig.customMarkers
     /// </summary>
     public static class HandcraftedLevel
     {
-        public static LevelData Parse(string text, string name, LevelKind kind, int seed)
+        public static LevelData Parse(string text, string name, LevelKind kind, int seed, IList<MarkerDef> customMarkers = null)
         {
+            var custom = RoomLegend.CustomMap(customMarkers);
             var lines = text.Replace("\r", "").Split('\n');
             var header = new Dictionary<string, string>();
             int i = 0;
@@ -85,6 +86,11 @@ namespace Gloomdelve
                                 header.TryGetValue("sign" + ch, out var msg);
                                 d.spawns.Add(new SpawnPoint("sign", cell, 0, ch - '0', msg ?? ""));
                                 d.signs.Add(msg ?? "");
+                            }
+                            else if (custom.TryGetValue(ch, out var cm))
+                            {
+                                t = cm.tile;
+                                if (!string.IsNullOrEmpty(cm.spawnId)) d.spawns.Add(new SpawnPoint(cm.spawnId, cell, -1));
                             }
                             break;
                     }

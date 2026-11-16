@@ -27,6 +27,7 @@ namespace Gloomdelve
 
         public override int ContactDamage => angry && stunTimer <= 0f ? contactDamage : 0;
         public override bool IsStompable => angry;
+        public override bool IsHazard => false;   // peaceful until provoked: allowed inside shops / near the entrance
         public override bool TriggersTraps => angry && base.TriggersTraps;
 
         public void AddWare(ShopItem s) { wares.Add(s); s.keeper = this; }

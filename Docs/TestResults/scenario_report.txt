@@ -1,4 +1,4 @@
-Gloomdelve in-game scenario tests 2026-11-14 21:47:49
+Gloomdelve in-game scenario tests 2026-11-16 11:52:52
 PASS  whip kills an approaching snake  
 PASS  stomping a snake kills it and bounces  
 PASS  picked-up rock thrown at a snake kills it  

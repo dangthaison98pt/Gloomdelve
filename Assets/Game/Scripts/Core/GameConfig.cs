@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Gloomdelve
@@ -16,6 +17,8 @@ namespace Gloomdelve
         public StageDef[] stages;
         public StageDef tutorial;
         public TextAsset roomTemplates;
+        [Tooltip("Extra room-template symbols: place any PrefabRegistry id in rooms without code (see Docs/EXTENDING.md).")]
+        public List<MarkerDef> customMarkers = new List<MarkerDef>();
 
         [Header("Time pressure (Gloom Wraith)")]
         public bool pressureEnabled = true;

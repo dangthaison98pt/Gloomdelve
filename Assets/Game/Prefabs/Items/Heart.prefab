@@ -142,8 +142,9 @@ MonoBehaviour:
   maxHealth: 1
   flipWithFacing: 0
   artFacesLeft: 0
-  kind: 3
+  resource: health
   value: 1
+  label: HP
   sfx: buy
   textColor: {r: 1, g: 0.45, b: 0.5, a: 1}
   gravity: 30

@@ -72,15 +72,12 @@ namespace Gloomdelve
             if (whipRenderer != null) whipRenderer.enabled = false;
         }
 
-        bool GliderEquipped
-        {
-            get
-            {
-                if (Run == null || World == null) return false;
-                var g = World.config.FindGear(Run.EquippedId);
-                return g != null && g.kind == GearKind.Glider;
-            }
-        }
+        /// <summary>Behaviour of the equipped gear (null when nothing usable is equipped).</summary>
+        GearBehaviour EquippedGear => Run == null || World == null || World.config.FindGear(Run.EquippedId) == null
+            ? null : GearRegistry.Get(Run.EquippedId);
+
+        public float HalfWidth => HalfW;
+        public void PlayThrowAnim(float seconds) => throwAnimTimer = seconds;
 
         public Vector2 HoldPos => new Vector2(pos.x + facing * 0.35f, pos.y + 0.22f);
 
@@ -97,9 +94,9 @@ namespace Gloomdelve
                 x = fi.x, up = fi.up, down = fi.down, jumpPressed = fi.jumpPressed, jumpHeld = fi.jumpHeld, walk = fi.walk,
                 stunned = stunned,
                 speedMult = held != null && held.heavy ? cfg.heavyCarrySpeed : 1f,
-                jumpMult = Run != null && Run.springBoots ? cfg.springBootsJumpMult : 1f,
-                glide = GliderEquipped,
+                jumpMult = Run != null ? 1f + Run.stats.jumpBonus : 1f,
             };
+            EquippedGear?.ModifyMotor(this, ref mi);
             var prevMode = motor.mode;
             float prevVy = motor.vel.y;
             PlayerMotor.Step(ref motor, mi, World.Grid, cfg.motor, dt);
@@ -220,14 +217,14 @@ namespace Gloomdelve
                 hit = new Rect(pos.x - facing * 0.55f - 0.4f, pos.y + 0.5f, 0.8f, 0.8f);
             else if (whipTimer < cfg.whipFrontEnd)
             {
-                float range = cfg.whipFrontSize.x + (Run != null && Run.ironWhip ? cfg.ironWhipRangeBonus : 0f);
+                float range = cfg.whipFrontSize.x + (Run != null ? Run.stats.whipRangeBonus : 0f);
                 float x0 = facing > 0 ? pos.x + HalfW - 0.1f : pos.x - HalfW + 0.1f - range;
                 hit = new Rect(x0, pos.y + 0.45f - cfg.whipFrontSize.y * 0.5f, range, cfg.whipFrontSize.y);
             }
             else return;
 
             World.Query(hit, tmp);
-            int dmg = Run != null && Run.ironWhip ? cfg.ironWhipDamage : cfg.whipDamage;
+            int dmg = cfg.whipDamage + (Run != null ? Run.stats.whipDamageBonus : 0);
             foreach (var e in tmp)
             {
                 if (e == this || e == held || whipHits.Contains(e)) continue;
@@ -238,75 +235,13 @@ namespace Gloomdelve
             }
         }
 
-        /// <summary>The "Use gear" button: uses whatever is equipped in the gear wheel.</summary>
+        /// <summary>The "Use gear" button: uses whatever is equipped in the gear wheel (see GearBehaviour).</summary>
         void UseGear(FrameInput fi)
         {
             if (Run == null) return;
-            var def = World.config.FindGear(Run.EquippedId);
-            if (def == null) { Sfx.Play("error", pos); return; }
-            switch (def.kind)
-            {
-                case GearKind.Bomb: UseBomb(fi); break;
-                case GearKind.Rope: UseRope(fi); break;
-                case GearKind.Glider:
-                    Fx.Text(Center + Vector2.up * 0.9f, "HOLD JUMP WHILE FALLING", new Color(0.8f, 0.95f, 1f), 1.2f);
-                    break;
-            }
-        }
-
-        void UseBomb(FrameInput fi)
-        {
-            if (Run == null) return;
-            if (Run.bombs <= 0) { Sfx.Play("error", pos); return; }
-            var prefab = World.config.prefabs.Get("bomb") as Bomb;
-            if (prefab == null) return;
-            Run.bombs--;
-            var b = World.Spawn(prefab, HoldPos);
-            if (b == null) return;
-            b.Light(this, Run.blastPowder ? cfg.blastPowderRadiusBonus : 0f);
-            if (fi.down && grounded)
-            {
-                b.pos = new Vector2(pos.x + facing * 0.3f, pos.y + 0.02f);
-                b.Place(Vector2.zero);
-                Sfx.Play("bomb_place", pos);
-            }
-            else
-            {
-                Vector2 v = fi.up ? new Vector2(facing * cfg.bombThrowUpVelocity.x, cfg.bombThrowUpVelocity.y)
-                                  : new Vector2(facing * cfg.bombThrowVelocity.x, cfg.bombThrowVelocity.y);
-                v.x += vel.x * 0.4f;
-                b.Throw(this, v);
-                throwAnimTimer = 0.2f;
-                Sfx.Play("throw", pos);
-            }
-        }
-
-        void UseRope(FrameInput fi)
-        {
-            if (Run == null) return;
-            if (Run.ropes <= 0) { Sfx.Play("error", pos); return; }
-            var prefab = World.config.prefabs.Get("rope") as RopeProjectile;
-            if (prefab == null) return;
-            var g = World.Grid;
-            if (fi.down && grounded)
-            {
-                int c = Mathf.FloorToInt(pos.x + facing * (HalfW + 0.45f));
-                int r = Mathf.FloorToInt(pos.y + 0.1f);
-                if (!g.IsSolid(c, r) && !g.IsSolid(c, r - 1) && !g.IsPlatformTop(c, r - 1))
-                {
-                    Run.ropes--;
-                    var rp = World.Spawn(prefab, new Vector2(c + 0.5f, r));
-                    rp?.DeployDown(c, r);
-                    return;
-                }
-            }
-            int cx = Mathf.FloorToInt(pos.x);
-            int cy = Mathf.FloorToInt(pos.y + 0.5f);
-            if (g.IsSolid(cx, cy)) { Sfx.Play("error", pos); return; }
-            Run.ropes--;
-            var up = World.Spawn(prefab, new Vector2(cx + 0.5f, pos.y + 0.4f));
-            up?.LaunchUp();
-            Sfx.Play("rope_throw", pos);
+            var gear = EquippedGear;
+            if (gear == null) { Sfx.Play("error", pos); return; }
+            gear.Use(this, fi);
         }
 
         void UpdateHeld()
@@ -520,12 +455,12 @@ namespace Gloomdelve
                     bool back = whipTimer < cfg.whipBackEnd;
                     whipRenderer.sprite = back ? whipBackSprite : whipFrontSprite;
                     whipRenderer.flipX = facing < 0;
-                    float ext = Run != null && Run.ironWhip ? 1.15f : 1f;
+                    float ext = Run != null && Run.HasUpgrade(UpgradeIds.IronWhip) ? 1.15f : 1f;
                     whipRenderer.transform.localScale = new Vector3(back ? 1f : ext, 1f, 1f);
                     whipRenderer.transform.localPosition = back
                         ? new Vector3(-facing * 0.45f, 0.75f, 0f)
                         : new Vector3(facing * (0.3f + 0.65f * ext), 0.42f, 0f);
-                    whipRenderer.color = Run != null && Run.ironWhip ? new Color(0.8f, 0.85f, 1f) : Color.white;
+                    whipRenderer.color = Run != null && Run.HasUpgrade(UpgradeIds.IronWhip) ? new Color(0.8f, 0.85f, 1f) : Color.white;
                 }
             }
         }

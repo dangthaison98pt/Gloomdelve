@@ -15,6 +15,9 @@ namespace Gloomdelve
         public int damage = 3;
         public SpriteRenderer chain;
 
+        public override bool IsHazard => true;
+        public override bool IsCeilingHazard => true;
+
         enum State { Idle, Warn, Drop, Rest, Rise }
         State state;
         float timer;

@@ -40,6 +40,10 @@ namespace Gloomdelve
         public virtual bool IsStompable => false;
         public virtual int ContactDamage => 0;
         public virtual bool TriggersTraps => false;
+        /// <summary>Dangerous to the player: the generator keeps hazards away from the entrance and out of shops.</summary>
+        public virtual bool IsHazard => IsEnemy;
+        /// <summary>Hazard that drops from above: never placed over the entrance or right above the exit.</summary>
+        public virtual bool IsCeilingHazard => false;
 
         protected virtual void Awake()
         {

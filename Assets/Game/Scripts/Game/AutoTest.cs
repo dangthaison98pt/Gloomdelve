@@ -77,7 +77,7 @@ namespace Gloomdelve
             if (run.bombs != cfg.startBombs) problems.Append("bombs ");
             if (run.ropes != cfg.startRopes) problems.Append("ropes ");
             if (run.gold != cfg.startGold) problems.Append("gold ");
-            if (run.springBoots || run.ironWhip || run.compass || run.blastPowder) problems.Append("upgrades ");
+            if (run.upgrades.Count > 0 || !run.stats.IsZero || run.counters.Count > 0) problems.Append("upgrades ");
             if (run.totalTime > 0.5f) problems.Append("time ");
             if (run.finished || run.victory || run.kills != 0) problems.Append("flags ");
             if (world.EntityCount != spawnCount + 1) problems.Append($"entities({world.EntityCount} vs {spawnCount + 1}) ");

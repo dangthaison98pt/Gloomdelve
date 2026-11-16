@@ -78,6 +78,7 @@ MonoBehaviour:
     levelNumber: 1
     handcrafted: {fileID: 4900000, guid: 68feba275eecaf84ebb44580255893e3, type: 3}
   roomTemplates: {fileID: 4900000, guid: 1eb98f7a3229e664393dc8ec1a1736b3, type: 3}
+  customMarkers: []
   pressureEnabled: 1
   pressureWarnTime: 150
   pressureSpawnTime: 180

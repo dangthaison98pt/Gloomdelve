@@ -24,11 +24,11 @@ namespace Gloomdelve
             var shop = World.config.shop;
             offer = shop != null ? shop.Find(sp.text) : null;
             var run = RunSession.Current;
-            if (offer != null && offer.isUpgrade && run != null && run.HasUpgrade(offer.effect) && shop != null)
+            if (offer != null && offer.isUpgrade && run != null && run.HasUpgrade(offer.id) && shop != null)
             {
                 // Already owned: offer a different upgrade, or bombs.
                 ShopOffer alt = null;
-                foreach (var o in shop.offers) if (o.isUpgrade && !run.HasUpgrade(o.effect)) { alt = o; break; }
+                foreach (var o in shop.offers) if (o.isUpgrade && !run.HasUpgrade(o.id)) { alt = o; break; }
                 offer = alt ?? shop.Find("bombs");
             }
         }
@@ -89,18 +89,11 @@ namespace Gloomdelve
             Despawn();
         }
 
+        /// <summary>Gives the offer to the run: its resource (if any) and, for upgrades, ownership + stat modifiers.</summary>
         public static void Apply(RunState run, ShopOffer o)
         {
-            switch (o.effect)
-            {
-                case ShopEffect.Bombs: run.bombs += o.amount; break;
-                case ShopEffect.Ropes: run.ropes += o.amount; break;
-                case ShopEffect.Health: run.health += o.amount; break;
-                case ShopEffect.SpringBoots: run.springBoots = true; break;
-                case ShopEffect.IronWhip: run.ironWhip = true; break;
-                case ShopEffect.Compass: run.compass = true; break;
-                case ShopEffect.BlastPowder: run.blastPowder = true; break;
-            }
+            if (!string.IsNullOrEmpty(o.resource)) run.AddResource(o.resource, o.amount);
+            if (o.isUpgrade) run.AddUpgrade(o);
         }
 
         public override void OnExplosion(Vector2 center, float radius, Entity source, int generation, int damage)

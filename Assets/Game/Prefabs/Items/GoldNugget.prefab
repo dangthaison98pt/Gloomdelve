@@ -142,8 +142,9 @@ MonoBehaviour:
   maxHealth: 1
   flipWithFacing: 0
   artFacesLeft: 0
-  kind: 0
+  resource: gold
   value: 50
+  label: 
   sfx: coin
   textColor: {r: 1, g: 0.85, b: 0.3, a: 1}
   gravity: 30

@@ -2,14 +2,18 @@ using UnityEngine;
 
 namespace Gloomdelve
 {
-    /// <summary>Collected on touch: gold, gems, bomb bags, rope piles.</summary>
+    /// <summary>
+    /// Collected on touch: gives 'value' of 'resource' (gold / health / bombs / ropes or a custom counter id,
+    /// see RunState.AddResource). A new pickup type is just a prefab with different values.
+    /// </summary>
     public class Pickup : Entity
     {
-        public enum Kind { Gold, Bombs, Ropes, Health }
-
         [Header("Pickup")]
-        public Kind kind = Kind.Gold;
+        [Tooltip("Resource id: gold / health / bombs / ropes, or a custom counter id.")]
+        public string resource = Res.Gold;
         public int value = 25;
+        [Tooltip("Word shown after the amount when collected, e.g. 'BOMBS' -> '+3 BOMBS'. Empty = just the number.")]
+        public string label = "";
         public string sfx = "coin";
         public Color textColor = new Color(1f, 0.85f, 0.3f);
         public float gravity = 30f;
@@ -31,13 +35,9 @@ namespace Gloomdelve
             if (Dead || age < 0.15f) return;
             var run = RunSession.Current;
             if (run == null) return;
-            switch (kind)
-            {
-                case Kind.Gold: run.gold += value; Fx.Text(Center + Vector2.up * 0.4f, "+" + value, textColor, 0.8f); break;
-                case Kind.Bombs: run.bombs += value; Fx.Text(Center + Vector2.up * 0.4f, "+" + value + " BOMBS", textColor); break;
-                case Kind.Ropes: run.ropes += value; Fx.Text(Center + Vector2.up * 0.4f, "+" + value + " ROPES", textColor); break;
-                case Kind.Health: run.health += value; Fx.Text(Center + Vector2.up * 0.4f, "+" + value + " HP", textColor); break;
-            }
+            run.AddResource(string.IsNullOrEmpty(resource) ? Res.Gold : resource, value);
+            if (string.IsNullOrEmpty(label)) Fx.Text(Center + Vector2.up * 0.4f, "+" + value, textColor, 0.8f);
+            else Fx.Text(Center + Vector2.up * 0.4f, "+" + value + " " + label, textColor);
             Fx.Sparks(Center, textColor, 4, 2.5f);
             Sfx.Play(sfx, pos);
             Despawn();

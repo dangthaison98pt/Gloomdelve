@@ -350,14 +350,27 @@ namespace Gloomdelve.EditorTools
             {
                 shop.offers = new List<ShopOffer>
                 {
-                    new ShopOffer { id = "bombs", displayName = "Bomb Bag", price = 350, effect = ShopEffect.Bombs, amount = 3, description = "+3 bombs" },
-                    new ShopOffer { id = "ropes", displayName = "Rope Pile", price = 250, effect = ShopEffect.Ropes, amount = 3, description = "+3 ropes" },
-                    new ShopOffer { id = "heart", displayName = "Heart Tonic", price = 500, effect = ShopEffect.Health, amount = 1, description = "+1 health" },
-                    new ShopOffer { id = "springboots", displayName = "Spring Boots", price = 900, effect = ShopEffect.SpringBoots, isUpgrade = true, description = "jump about 40% higher" },
-                    new ShopOffer { id = "ironwhip", displayName = "Iron Whip", price = 750, effect = ShopEffect.IronWhip, isUpgrade = true, description = "whip deals 2 damage and reaches further" },
-                    new ShopOffer { id = "compass", displayName = "Compass", price = 450, effect = ShopEffect.Compass, isUpgrade = true, description = "marks the exit on screen" },
-                    new ShopOffer { id = "blastpowder", displayName = "Blast Powder", price = 800, effect = ShopEffect.BlastPowder, isUpgrade = true, description = "bigger bomb blasts" },
+                    new ShopOffer { id = "bombs", displayName = "Bomb Bag", price = 350, resource = Res.Bombs, amount = 3, description = "+3 bombs" },
+                    new ShopOffer { id = "ropes", displayName = "Rope Pile", price = 250, resource = Res.Ropes, amount = 3, description = "+3 ropes" },
+                    new ShopOffer { id = "heart", displayName = "Heart Tonic", price = 500, resource = Res.Health, amount = 1, description = "+1 health" },
+                    new ShopOffer { id = "springboots", displayName = "Spring Boots", price = 900, isUpgrade = true, description = "jump about 40% higher" },
+                    new ShopOffer { id = "ironwhip", displayName = "Iron Whip", price = 750, isUpgrade = true, description = "whip deals 2 damage and reaches further" },
+                    new ShopOffer { id = "compass", displayName = "Compass", price = 450, isUpgrade = true, description = "marks the exit on screen" },
+                    new ShopOffer { id = "blastpowder", displayName = "Blast Powder", price = 800, isUpgrade = true, description = "bigger bomb blasts" },
                 };
+            }
+            // Defaults for the built-in offers (also migrates shop assets saved before resources / modifiers existed).
+            foreach (var o in shop.offers)
+            {
+                if (o.modifiers == null) o.modifiers = new StatModifiers();
+                if (!o.isUpgrade && string.IsNullOrEmpty(o.resource))
+                    o.resource = o.id == "bombs" ? Res.Bombs : o.id == "ropes" ? Res.Ropes : o.id == "heart" ? Res.Health : "";
+                if (o.isUpgrade && o.modifiers.IsZero)
+                {
+                    if (o.id == "springboots") o.modifiers.jumpBonus = 0.17f;
+                    else if (o.id == "ironwhip") { o.modifiers.whipDamageBonus = 1; o.modifiers.whipRangeBonus = 0.45f; }
+                    else if (o.id == "blastpowder") o.modifiers.blastRadiusBonus = 0.9f;
+                }
             }
             var icons = new Dictionary<string, string>
             {
@@ -433,35 +446,49 @@ namespace Gloomdelve.EditorTools
             var gBomb = LoadOrCreate<EquipmentDef>(G + "Data/Gear_Bomb.asset", out bool newBomb);
             if (newBomb)
             {
-                gBomb.id = "bomb"; gBomb.displayName = "Bombs"; gBomb.kind = GearKind.Bomb;
+                gBomb.id = "bomb"; gBomb.displayName = "Bombs";
                 gBomb.description = "Use: throw a lit bomb.  DOWN + use: place it.  UP + use: throw high.";
                 gBomb.terrainHint = "Blasts dirt and cracked rubble (never bedrock).";
             }
+            if (string.IsNullOrEmpty(gBomb.gateBanner)) gBomb.gateBanner = "Rubble blocks the tunnels ({0}) - you will need your BOMBS.  Hold R1 / D to change gear.";
+            if (string.IsNullOrEmpty(gBomb.gateSign)) gBomb.gateSign = "Cracked rubble blocks the tunnel and the rock around it is unbreakable. Equip your BOMBS (hold R1 / D) and blast it.";
+            if (string.IsNullOrEmpty(gBomb.supplyPickupId)) gBomb.supplyPickupId = "bombbag";
+            if (string.IsNullOrEmpty(gBomb.ammoLabel)) gBomb.ammoLabel = "bomb(s)";
             gBomb.icon = ArtGenerator.S("UI/icon_bomb");
             EditorUtility.SetDirty(gBomb);
             var gRope = LoadOrCreate<EquipmentDef>(G + "Data/Gear_Rope.asset", out bool newRope);
             if (newRope)
             {
-                gRope.id = "rope"; gRope.displayName = "Rope"; gRope.kind = GearKind.Rope;
+                gRope.id = "rope"; gRope.displayName = "Rope";
                 gRope.description = "Use: throw a rope up - it hooks onto a ceiling or a wall beside it.  DOWN + use at a ledge: drop it down.";
                 gRope.terrainHint = "Climbs sheer cliffs.  Vanishes after a while.";
             }
+            if (string.IsNullOrEmpty(gRope.gateBanner)) gRope.gateBanner = "Sheer cliffs ahead ({0}) - you will need your ROPE.  Hold R1 / D to change gear.";
+            if (string.IsNullOrEmpty(gRope.gateSign)) gRope.gateSign = "A sheer cliff of hard stone - too high to climb and too hard to blast. Equip your ROPE (hold R1 / D) and throw it right beside the cliff.";
+            if (string.IsNullOrEmpty(gRope.supplyPickupId)) gRope.supplyPickupId = "ropepile";
+            if (string.IsNullOrEmpty(gRope.ammoLabel)) gRope.ammoLabel = "rope(s)";
             gRope.icon = ArtGenerator.S("UI/icon_rope");
             EditorUtility.SetDirty(gRope);
             var gGlide = LoadOrCreate<EquipmentDef>(G + "Data/Gear_Glider.asset", out bool newGlide);
             if (newGlide)
             {
-                gGlide.id = "glider"; gGlide.displayName = "Glider"; gGlide.kind = GearKind.Glider;
+                gGlide.id = "glider"; gGlide.displayName = "Glider";
                 gGlide.description = "Equip it, jump, then HOLD JUMP while falling to glide slowly and far.  Never used up.";
                 gGlide.terrainHint = "Crosses wide chasms in the open air.  No fall damage while gliding.";
             }
+            if (string.IsNullOrEmpty(gGlide.gateBanner)) gGlide.gateBanner = "Wide thorn chasms ahead ({0}) - equip your GLIDER and hold JUMP while falling.";
+            if (string.IsNullOrEmpty(gGlide.gateSign)) gGlide.gateSign = "A wide chasm full of thorns - far too wide to jump. Equip your GLIDER (hold R1 / D), jump and HOLD JUMP to glide across.";
             gGlide.icon = ArtGenerator.S("Sprites/Player/glider");
             EditorUtility.SetDirty(gGlide);
-            cfg.equipment = new[] { gBomb, gRope, gGlide };
+            // Built-in gear first; equipment a designer added to the list by hand is kept.
+            var gearList = new List<EquipmentDef> { gBomb, gRope, gGlide };
+            if (cfg.equipment != null) foreach (var extra in cfg.equipment) if (extra != null && !gearList.Contains(extra)) gearList.Add(extra);
+            cfg.equipment = gearList.ToArray();
             cfg.roomTemplates = AssetDatabase.LoadAssetAtPath<TextAsset>(G + "Data/RoomTemplates.txt");
             var final = AssetDatabase.LoadAssetAtPath<TextAsset>(G + "Data/Levels/FinalVault.txt");
             var tut = AssetDatabase.LoadAssetAtPath<TextAsset>(G + "Data/Levels/Tutorial.txt");
-            cfg.stages = new[]
+            // The stage list is only written when it is empty, so stages / areas added by hand in GameConfig survive a rebuild.
+            if (cfg.stages == null || cfg.stages.Length == 0) cfg.stages = new[]
             {
                 new StageDef { displayName = "1-1", kind = LevelKind.Area, area = moss, levelNumber = 1 },
                 new StageDef { displayName = "1-2", kind = LevelKind.Area, area = moss, levelNumber = 2 },
@@ -544,6 +571,8 @@ namespace Gloomdelve.EditorTools
         static void CreatePrefabs(GameConfig cfg, PixelFont font)
         {
             var reg = LoadOrCreate<PrefabRegistry>(G + "Data/PrefabRegistry.asset");
+            // Entries added by hand (new enemies / items made as prefabs in the editor) are kept across rebuilds.
+            var manualEntries = new List<PrefabRegistry.Entry>(reg.entries);
             reg.entries.Clear();
             void Reg(string id, Entity e) => reg.entries.Add(new PrefabRegistry.Entry { id = id, prefab = e });
             string I(string n) => "Sprites/Items/" + n;
@@ -617,10 +646,10 @@ namespace Gloomdelve.EditorTools
             Reg("gold_small", Make<Pickup>("GoldNugget", "Items", "gold nugget", new Vector2(0.3f, 0.25f), ArtGenerator.S(I("gold_small")), null, 11, (e, g, s) => { e.value = 50; e.flipWithFacing = false; }));
             Reg("gold_big", Make<Pickup>("GoldChunk", "Items", "gold chunk", new Vector2(0.5f, 0.35f), ArtGenerator.S(I("gold_big")), null, 11, (e, g, s) => { e.value = 150; e.flipWithFacing = false; }));
             Reg("gem", Make<Pickup>("Gem", "Items", "emerald", new Vector2(0.4f, 0.4f), ArtGenerator.S(I("gem")), null, 11, (e, g, s) => { e.value = 300; e.sfx = "gem"; e.textColor = new Color(0.5f, 1f, 0.7f); e.flipWithFacing = false; }));
-            Reg("bombbag", Make<Pickup>("BombBag", "Items", "bomb bag", new Vector2(0.6f, 0.55f), ArtGenerator.S(I("bombbag")), null, 11, (e, g, s) => { e.kind = Pickup.Kind.Bombs; e.value = 3; e.sfx = "pickup"; e.textColor = Color.white; e.flipWithFacing = false; }));
-            Reg("ropepile", Make<Pickup>("RopePile", "Items", "rope pile", new Vector2(0.6f, 0.45f), ArtGenerator.S(I("ropepile")), null, 11, (e, g, s) => { e.kind = Pickup.Kind.Ropes; e.value = 3; e.sfx = "pickup"; e.textColor = Color.white; e.flipWithFacing = false; }));
+            Reg("bombbag", Make<Pickup>("BombBag", "Items", "bomb bag", new Vector2(0.6f, 0.55f), ArtGenerator.S(I("bombbag")), null, 11, (e, g, s) => { e.resource = Res.Bombs; e.label = "BOMBS"; e.value = 3; e.sfx = "pickup"; e.textColor = Color.white; e.flipWithFacing = false; }));
+            Reg("ropepile", Make<Pickup>("RopePile", "Items", "rope pile", new Vector2(0.6f, 0.45f), ArtGenerator.S(I("ropepile")), null, 11, (e, g, s) => { e.resource = Res.Ropes; e.label = "ROPES"; e.value = 3; e.sfx = "pickup"; e.textColor = Color.white; e.flipWithFacing = false; }));
             Reg("heart", Make<Pickup>("Heart", "Items", "heart", new Vector2(0.5f, 0.45f), ArtGenerator.S(I("heart")), null, 11,
-                (e, g, s) => { e.kind = Pickup.Kind.Health; e.value = 1; e.sfx = "buy"; e.textColor = new Color(1f, 0.45f, 0.5f); e.flipWithFacing = false; }));
+                (e, g, s) => { e.resource = Res.Health; e.label = "HP"; e.value = 1; e.sfx = "buy"; e.textColor = new Color(1f, 0.45f, 0.5f); e.flipWithFacing = false; }));
             Reg("rope", Make<RopeProjectile>("Rope", "Items", "rope", new Vector2(0.4f, 0.4f), ArtGenerator.S("Center/rope_hook"), null, 5,
                 (e, g, s) =>
                 {
@@ -676,6 +705,8 @@ namespace Gloomdelve.EditorTools
                     e.priceTag = pt;
                 }));
 
+            foreach (var m in manualEntries)
+                if (m != null && m.prefab != null && !string.IsNullOrEmpty(m.id) && !reg.entries.Exists(x => x.id == m.id)) reg.entries.Add(m);
             cfg.prefabs = reg;
             EditorUtility.SetDirty(reg);
             EditorUtility.SetDirty(cfg);

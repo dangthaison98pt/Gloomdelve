@@ -58,8 +58,11 @@ namespace Gloomdelve
             bool freshRun = run == null || (run.stageIndex == 0 && run.totalTime <= 0f && !run.isTutorial);
             if (run == null)
             {
-                run = RunSession.NewRun(debugSeed != 0 ? debugSeed : RunSession.RandomSeed(), debugStartTutorial, config.player);
-                run.stageIndex = Mathf.Clamp(debugStartStage, 0, config.stages.Length - 1);
+                // Game scene started directly: debug options of this object, or a "play this room" request from the Room Template Editor.
+                bool playtest = EditorPlaytest.Active;
+                int seed = playtest ? EditorPlaytest.Seed : (debugSeed != 0 ? debugSeed : RunSession.RandomSeed());
+                run = RunSession.NewRun(seed, !playtest && debugStartTutorial, config.player);
+                run.stageIndex = Mathf.Clamp(playtest ? EditorPlaytest.StageIndex : debugStartStage, 0, config.stages.Length - 1);
             }
             Stage = run.isTutorial ? config.tutorial : config.stages[Mathf.Clamp(run.stageIndex, 0, config.stages.Length - 1)];
             run.levelTime = 0f;
@@ -91,7 +94,7 @@ namespace Gloomdelve
             Player = world.Spawn(config.prefabs.player, new Vector2(Level.entrance.x + 0.5f, Level.entrance.y));
             world.Player = Player;
             Player.input = input;
-            Player.godMode = debugGodMode;
+            Player.godMode = debugGodMode || (EditorPlaytest.Active && EditorPlaytest.GodMode);
             cameraFollow.SetTarget(Player, new Rect(0f, 0f, Level.Width, Level.Height), config.cameraOrthoSize);
             if (cam != null && Stage.area != null) cam.backgroundColor = Stage.area.cameraBackground;
 
@@ -109,11 +112,9 @@ namespace Gloomdelve
             hud.Bind(this);
             var gateGear = Level.gateCount > 0 ? config.FindGear(Level.gateGear) : null;
             if (gateGear != null)
-                sub = gateGear.kind == GearKind.Rope
-                    ? $"Sheer cliffs ahead ({Level.gateCount}) - you will need your ROPE.  Hold R1 / D to change gear."
-                    : gateGear.kind == GearKind.Glider
-                    ? $"Wide thorn chasms ahead ({Level.gateCount}) - equip your GLIDER and hold JUMP while falling."
-                    : $"Rubble blocks the tunnels ({Level.gateCount}) - you will need your BOMBS.  Hold R1 / D to change gear.";
+                sub = string.IsNullOrEmpty(gateGear.gateBanner)
+                    ? $"Obstacles ahead ({Level.gateCount}) - you will need your {gateGear.displayName.ToUpperInvariant()}.  Hold R1 / D to change gear."
+                    : string.Format(gateGear.gateBanner, Level.gateCount);
             hud.ShowBanner(Stage.kind == LevelKind.Area ? $"{Stage.displayName}  {Stage.area.displayName}" : Stage.displayName, sub, gateGear != null ? 5f : 3.5f);
             if (gateGear != null && !ScenarioRunner.Active && !AutoTest.Active) SupplyCache(gateGear, run);
             if (grantedGear)
@@ -143,12 +144,14 @@ namespace Gloomdelve
         void SupplyCache(EquipmentDef gear, RunState run)
         {
             if (!run.gear.Contains(gear.id)) run.gear.Add(gear.id);
-            int have = run.Ammo(gear.kind);
+            int have = run.Ammo(gear.id);
             int need = Level.gateCount;
             if (have < 0 || have >= need) return;   // unlimited gear (glider) or enough ammo
-            var p = world.SpawnById(gear.kind == GearKind.Rope ? "ropepile" : "bombbag", new Vector2(Level.entrance.x + 1.5f, Level.entrance.y)) as Pickup;
+            if (string.IsNullOrEmpty(gear.supplyPickupId)) return;
+            var p = world.SpawnById(gear.supplyPickupId, new Vector2(Level.entrance.x + 1.5f, Level.entrance.y)) as Pickup;
             if (p != null) p.value = need - have;
-            hud.ShowMessage($"A supply cache: {need - have} {(gear.kind == GearKind.Rope ? "rope(s)" : "bomb(s)")} for the obstacles ahead.", 5f);
+            string what = string.IsNullOrEmpty(gear.ammoLabel) ? gear.displayName.ToLowerInvariant() : gear.ammoLabel;
+            hud.ShowMessage($"A supply cache: {need - have} {what} for the obstacles ahead.", 5f);
         }
 
         /// <summary>Autotest: apply the gear exactly where the validator assumed it (ropes hooked at rope spots, rubble cleared).</summary>
@@ -157,7 +160,8 @@ namespace Gloomdelve
             if (Level.gateCount <= 0) return;
             var run = RunSession.Current;
             if (!run.gear.Contains(Level.gateGear)) run.gear.Add(Level.gateGear);
-            if (Level.gateGear == "glider") run.Equip("glider");
+            var gateBehaviour = GearRegistry.Get(Level.gateGear);
+            if (gateBehaviour != null && gateBehaviour.AffectsMovement) run.Equip(Level.gateGear);
             var g = world.Grid;
             for (int y = 0; y < g.Height; y++)
                 for (int x = 0; x < g.Width; x++)
@@ -176,11 +180,16 @@ namespace Gloomdelve
 
         void SetupBot()
         {
-            // The validator plans without gliding unless the level needs the glider: unequip it otherwise,
+            // The validator plans without movement gear (glider) unless the level's gates need it: unequip it otherwise,
             // or holding jump while falling would glide and the replay would drift off the planned route.
             var r = RunSession.Current;
-            if (r.EquippedId == "glider" && !(Level.gateCount > 0 && Level.gateGear == "glider"))
-                foreach (var id in r.gear) if (id != "glider") { r.Equip(id); break; }
+            var equippedGear = GearRegistry.Get(r.EquippedId);
+            if (equippedGear != null && equippedGear.AffectsMovement && !(Level.gateCount > 0 && Level.gateGear == r.EquippedId))
+                foreach (var id in r.gear)
+                {
+                    var other = GearRegistry.Get(id);
+                    if (other == null || !other.AffectsMovement) { r.Equip(id); break; }
+                }
             ApplyGatesForBot();
             var opts = LevelValidator.DefaultOptions(config.player);
             List<FrameInput> plan = null;

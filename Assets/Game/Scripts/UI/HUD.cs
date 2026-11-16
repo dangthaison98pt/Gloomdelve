@@ -97,7 +97,7 @@ namespace Gloomdelve
                 equipIcon.enabled = gear != null && gear.icon != null;
                 if (gear != null) equipIcon.sprite = gear.icon;
                 equipName.text = gear != null ? gear.displayName.ToUpperInvariant() : "-";
-                int ammo = gear != null ? run.Ammo(gear.kind) : 0;
+                int ammo = gear != null ? run.Ammo(gear.id) : 0;
                 equipAmmo.text = gear != null && ammo >= 0 ? "x" + ammo : "";
                 equipAmmo.color = ammo > 0 ? Color.white : new Color(1f, 0.4f, 0.4f);
             }
@@ -113,11 +113,13 @@ namespace Gloomdelve
             totalTimeText.text = "TOTAL " + UIUtil.FormatTime(run.totalTime);
 
             var sb = new StringBuilder();
-            if (run.springBoots) sb.Append("Spring Boots   ");
-            if (run.ironWhip) sb.Append("Iron Whip   ");
-            if (run.compass) sb.Append("Compass   ");
-            if (run.blastPowder) sb.Append("Blast Powder");
-            upgradesText.text = sb.ToString();
+            var shop = dir.config != null ? dir.config.shop : null;
+            foreach (var id in run.upgrades)
+            {
+                var offer = shop != null ? shop.Find(id) : null;
+                sb.Append(offer != null ? offer.displayName : id).Append("   ");
+            }
+            upgradesText.text = sb.ToString().TrimEnd();
 
             var p = dir.Player;
             string prompt = p != null && !p.IsDead && !dir.Ended ? p.Prompt : null;
@@ -139,7 +141,7 @@ namespace Gloomdelve
         // screen edge with a chevron pointing towards it. Distance in tiles ("m").
         void UpdateWaypoint(RunState run, PlayerController p, float dt)
         {
-            bool show = run.compass && p != null && !p.IsDead && dir.Level != null && dir.cam != null && wpMarker != null;
+            bool show = run.HasUpgrade(UpgradeIds.Compass) && p != null && !p.IsDead && dir.Level != null && dir.cam != null && wpMarker != null;
             WaypointVisible = show;
             compassRoot.SetActive(show);
             if (!show) { wpSnapped = false; return; }

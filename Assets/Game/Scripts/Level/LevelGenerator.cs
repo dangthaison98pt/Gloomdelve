@@ -11,6 +11,8 @@ namespace Gloomdelve
         public string name;
         public GameConfig config;
         public List<RoomTemplate> templates;
+        /// <summary>Testing: use this template in every room it fits (Room Template Editor). Null in the real game.</summary>
+        public RoomTemplate forceTemplate;
     }
 
     /// <summary>
@@ -54,14 +56,28 @@ namespace Gloomdelve
             return last;
         }
 
-        static bool IsSpecialTag(RoomTemplate t) =>
-            t.HasTag("start") || t.HasTag("exit") || t.HasTag("shop") || t.HasTag("idol") || t.HasTag("vault") ||
-            t.HasTag("gate_rope") || t.HasTag("gate_bomb") || t.HasTag("gate_glider");
+        static bool IsSpecialTag(RoomTemplate t) => t.IsSpecial;
+
+        /// <summary>Whether a forced test template may fill a room of this kind / type.</summary>
+        static bool ForceFits(RoomTemplate f, RoomKind kind, int type, string gear)
+        {
+            switch (kind)
+            {
+                case RoomKind.Start: return f.HasTag("start") && f.types.Contains(type);
+                case RoomKind.Exit: return f.HasTag("exit") && f.types.Contains(type);
+                case RoomKind.Shop: return f.HasTag("shop");
+                case RoomKind.Idol: return f.HasTag("idol");
+                case RoomKind.Vault: return f.HasTag("vault");
+                case RoomKind.Gate: return f.HasTag("gate_" + gear) && f.types.Contains(type);
+                default: return !f.IsSpecial && f.types.Contains(type);
+            }
+        }
 
         public static LevelData Build(GenRequest req, Rng rng)
         {
             var area = req.area;
             var cfg = req.config;
+            var custom = RoomLegend.CustomMap(cfg.customMarkers);
             int rx = Mathf.Max(2, area.roomsX), ry = Mathf.Max(2, area.roomsY);
             float scale = 1f + Mathf.Max(0, req.levelNumber - 1) * area.perLevelDensityBonus;
 
@@ -184,7 +200,9 @@ namespace Gloomdelve
                     int rowY = y;
                     bool RowOk(RoomTemplate rt) => area.outdoor && rowY == 0 ? rt.HasTag("surface") : !rt.HasTag("surface") && !(rt.HasTag("under") && rowY == 0);
                     RoomTemplate t = null;
-                    switch (kind)
+                    var force = req.forceTemplate;
+                    if (force != null && force.ForArea(areaNo) && RowOk(force) && ForceFits(force, kind, type, gear)) t = force;
+                    else switch (kind)
                     {
                         case RoomKind.Start: t = RoomTemplates.Pick(all, rng, tt => tt.HasTag("start") && tt.types.Contains(type) && tt.ForArea(areaNo) && RowOk(tt)) ?? RoomTemplates.Pick(all, rng, tt => tt.HasTag("start") && tt.types.Contains(type) && tt.ForArea(areaNo)); break;
                         case RoomKind.Exit: t = RoomTemplates.Pick(all, rng, tt => tt.HasTag("exit") && tt.types.Contains(type) && tt.ForArea(areaNo) && RowOk(tt)) ?? RoomTemplates.Pick(all, rng, tt => tt.HasTag("exit") && tt.types.Contains(type) && tt.ForArea(areaNo)); break;
@@ -227,6 +245,7 @@ namespace Gloomdelve
                     int ox = 1 + rxi * RW;
                     int oyTop = roomTop - ryi * RH;
                     roomRects[new Vector2Int(rxi, ryi)] = new RectInt(ox, oyTop - RH + 1, RW, RH);
+                    if (t == req.forceTemplate) data.forcedRooms.Add(roomRects[new Vector2Int(rxi, ryi)]);
                     for (int r = 0; r < RH; r++)
                         for (int c = 0; c < RW; c++)
                         {
@@ -244,9 +263,10 @@ namespace Gloomdelve
                                 case 'A': case 'f': tt = TileType.Dirt; break;
                                 case '%': tt = TileType.Rubble; break;
                                 case '~': tt = TileType.Spikes; thornPits.Add(new Vector2Int(gx, gy)); break;
+                                default: if (custom.TryGetValue(ch, out var cmTile)) tt = cmTile.tile; break;
                             }
                             g.SetRaw(gx, gy, tt);
-                            if ("^AvfTEBIDKSOR!".IndexOf(ch) >= 0)
+                            if (RoomLegend.BuiltinMarkers.IndexOf(ch) >= 0 || custom.ContainsKey(ch))
                                 markers.Add(new Marker { cell = new Vector2Int(gx, gy), ch = ch, kind = kinds[rxi, ryi] });
                         }
                     if (kinds[rxi, ryi] == RoomKind.Shop) { data.shopRects.Add(roomRects[new Vector2Int(rxi, ryi)]); data.hasShop = true; }
@@ -382,16 +402,25 @@ namespace Gloomdelve
                         break;
                     case '!':
                         if (gear != null && g.IsEmpty(c.x, c.y) && g.IsSolid(c.x, c.y - 1))
-                            spawns.Add(new SpawnPoint("sign", c, 0, 0, gear == "rope"
-                                ? "A sheer cliff of hard stone - too high to climb and too hard to blast. Equip your ROPE (hold R1 / D) and throw it right beside the cliff."
-                                : gear == "glider"
-                                ? "A wide chasm full of thorns - far too wide to jump. Equip your GLIDER (hold R1 / D), jump and HOLD JUMP to glide across."
-                                : "Cracked rubble blocks the tunnel and the rock around it is unbreakable. Equip your BOMBS (hold R1 / D) and blast it."));
+                        {
+                            var gearDef = cfg.FindGear(gear);
+                            string hint = gearDef != null && !string.IsNullOrEmpty(gearDef.gateSign) ? gearDef.gateSign
+                                : $"You need your {gear.ToUpperInvariant()} to get past this. Hold R1 / D to change gear.";
+                            spawns.Add(new SpawnPoint("sign", c, 0, 0, hint));
+                        }
                         break;
                     case 'O':
                         spawns.Add(new SpawnPoint("altar", c));
                         spawns.Add(new SpawnPoint("idol", c));
                         data.hasIdol = true;
+                        break;
+                    default:
+                        // designer-defined marker (GameConfig.customMarkers): spawn its prefab here
+                        if (!custom.TryGetValue(m.ch, out var cm) || string.IsNullOrEmpty(cm.spawnId)) break;
+                        if (!g.IsEmpty(c.x, c.y)) break;
+                        if (cm.placement == MarkerPlacement.OnFloor && !g.IsSolid(c.x, c.y - 1) && !g.IsPlatformTop(c.x, c.y - 1)) break;
+                        if (cm.placement == MarkerPlacement.UnderCeiling && !g.IsSolid(c.x, c.y + 1)) break;
+                        if (rng.Chance(cm.chance)) spawns.Add(new SpawnPoint(cm.spawnId, c, rng.Chance(0.5f) ? -1 : 1));
                         break;
                 }
             }
@@ -576,22 +605,23 @@ namespace Gloomdelve
 
             // Spawns: enemies away from the entrance; no ceiling hazards above it; nothing on spikes / in walls.
             int ER = cfg.enemySafeRadius;
+            var reg = cfg.prefabs;
             d.spawns.RemoveAll(sp =>
             {
                 var c = sp.cell;
-                bool hostile = IsHostile(sp.id);
+                // What counts as dangerous comes from the prefab itself (Entity.IsHazard / IsCeilingHazard),
+                // so new enemies and traps are covered without touching this list.
+                var prefab = reg != null ? reg.Get(sp.id) : null;
+                bool hostile = prefab != null && prefab.IsHazard;
+                bool fromCeiling = prefab != null && prefab.IsCeilingHazard;
                 if (hostile && Mathf.Abs(c.x - e.x) <= ER && Mathf.Abs(c.y - e.y) <= ER) return true;
-                if ((sp.id == "stalactite" || sp.id == "crusher") && Mathf.Abs(c.x - e.x) <= 1 && c.y >= e.y) return true;
-                if ((sp.id == "stalactite" || sp.id == "crusher") && Mathf.Abs(c.x - d.exit.x) <= 0 && c.y >= d.exit.y && c.y - d.exit.y < 3) return true;
+                if (fromCeiling && Mathf.Abs(c.x - e.x) <= 1 && c.y >= e.y) return true;
+                if (fromCeiling && Mathf.Abs(c.x - d.exit.x) <= 0 && c.y >= d.exit.y && c.y - d.exit.y < 3) return true;
                 if (hostile)
                     foreach (var r in d.shopRects) if (r.Contains(c)) return true;
                 if (!g.IsEmpty(c.x, c.y) && sp.id != "arrowtrap" && sp.id != "flamevent") return true;
                 return false;
             });
         }
-
-        static bool IsHostile(string id) =>
-            id == "snake" || id == "bat" || id == "spider" || id == "toad" || id == "brute" || id == "emberbat" || id == "hawk" ||
-            id == "stalactite" || id == "crusher";
     }
 }

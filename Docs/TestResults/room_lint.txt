@@ -1,0 +1,18 @@
+Room template rule checks (same checks as the Room Template Editor)
+warn   p1_steps: 'B' tại cột 5, hàng 3 không có trần phía trên.
+warn   p1_pillars: 'v' tại cột 4, hàng 2 không có trần phía trên.
+warn   p1_pillars: 'v' tại cột 5, hàng 2 không có trần phía trên.
+warn   p1_lowceiling: 'B' tại cột 4, hàng 4 không có trần phía trên.
+warn   p2_ledge: 'E' tại cột 1, hàng 5 không có sàn bên dưới.
+warn   p3_steps: 'B' tại cột 2, hàng 2 không có trần phía trên.
+warn   p3_steps: 'B' tại cột 7, hàng 2 không có trần phía trên.
+warn   p4_platform: 'v' tại cột 2, hàng 2 không có trần phía trên.
+warn   p4_platform: 'v' tại cột 7, hàng 2 không có trần phía trên.
+warn   p4_platform: 'E' tại cột 4, hàng 6 không có sàn bên dưới.
+warn   p4_split: Loại 4: nên có gờ / sàn gỗ ở cột 4-5 để chặn cú rơi xuyên phòng.
+warn   side_treasure: '^' tại cột 3, hàng 5 không có sàn bên dưới.
+warn   side_treasure: '^' tại cột 6, hàng 5 không có sàn bên dưới.
+warn   side_ladder: 'E' tại cột 6, hàng 5 không có sàn bên dưới.
+warn   idol_spikes: '^' tại cột 3, hàng 5 không có sàn bên dưới.
+warn   idol_spikes: '^' tại cột 6, hàng 5 không có sàn bên dưới.
+warn   idol_pedestal: 'O' tại cột 4, hàng 5 không có sàn bên dưới.

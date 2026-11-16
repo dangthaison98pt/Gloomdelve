@@ -20,6 +20,9 @@ namespace Gloomdelve
         Vector2 home;
         readonly List<Entity> tmp = new List<Entity>();
 
+        public override bool IsHazard => true;
+        public override bool IsCeilingHazard => true;
+
         public override void Configure(SpawnPoint sp)
         {
             pos = new Vector2(sp.cell.x + 0.5f, sp.cell.y + 1f - size.y);

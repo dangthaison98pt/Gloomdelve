@@ -17,5 +17,10 @@ MonoBehaviour:
   description: 'Use: throw a rope up - it hooks onto a ceiling or a wall beside it. 
     DOWN + use at a ledge: drop it down.'
   icon: {fileID: 21300000, guid: a2908bd84fcd1914ab8d2da293642800, type: 3}
-  kind: 1
   terrainHint: Climbs sheer cliffs.  Vanishes after a while.
+  gateBanner: Sheer cliffs ahead ({0}) - you will need your ROPE.  Hold R1 / D to
+    change gear.
+  gateSign: A sheer cliff of hard stone - too high to climb and too hard to blast.
+    Equip your ROPE (hold R1 / D) and throw it right beside the cliff.
+  supplyPickupId: ropepile
+  ammoLabel: rope(s)

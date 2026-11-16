@@ -45,6 +45,8 @@ namespace Gloomdelve
         public int gatesWanted;
         /// <summary>Cells where a player stands to throw a rope up a cliff (rope gates).</summary>
         public readonly List<Vector2Int> ropeSpots = new List<Vector2Int>();
+        /// <summary>Rooms filled with GenRequest.forceTemplate (Room Template Editor test runs).</summary>
+        public readonly List<RectInt> forcedRooms = new List<RectInt>();
         public ValidationResult validation;
         public List<string> notes = new List<string>();
 

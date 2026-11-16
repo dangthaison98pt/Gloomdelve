@@ -681,7 +681,7 @@ namespace Gloomdelve
             var hud = c.dir.hud;
             yield return c.Frames(5);
             c.Expect(!hud.WaypointVisible, "no marker without the Compass upgrade");
-            c.run.compass = true;
+            c.run.AddUpgrade(c.dir.config.shop.Find(UpgradeIds.Compass));
             c.Bot(Seq((40, F())));
             yield return c.Frames(40);
             yield return new WaitForSecondsRealtime(0.4f);

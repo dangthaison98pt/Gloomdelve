@@ -1,6 +1,6 @@
 # PROJECT_STATUS – Gloomdelve
 
-Cập nhật: 14/11/2026 · Phiên bản 0.1.0 · Unity 6000.3.12f1
+Cập nhật: 16/11/2026 · Phiên bản 0.1.0 · Unity 6000.3.12f1
 
 ## Đã xong
 - Unity project tại `E:\Spelunky 2` (thư mục ban đầu trống), URP (Universal Renderer, sprite unlit), New Input System, 2 scene dựng sẵn, build settings.
@@ -15,7 +15,7 @@ Cập nhật: 14/11/2026 · Phiên bản 0.1.0 · Unity 6000.3.12f1
 - UI: menu chính, hướng dẫn điều khiển, cài đặt (âm lượng tổng/nhạc/hiệu ứng, toàn màn hình, rung màn hình), tạm dừng, HUD đầy đủ, thẻ chuyển màn, màn kết quả (R chơi lại nhanh, chơi lại seed), kỷ lục.
 - Lưu cài đặt + kỷ lục (JSON), ghi log seed.
 - Art pixel 397 sprite + 42 SFX + 4 nhạc, tất cả sinh bằng code (Editor).
-- Kiểm thử (số liệu mới nhất, chi tiết trong `Docs/TEST_REPORT.md`): 25 test logic, quét 150 seed (1350 màn, 0 lỗi), 41 kịch bản tương tác trong build, bot chơi trọn lượt 10 màn trong build, kiểm tra không rò rỉ trạng thái giữa lượt. Build Windows chạy được.
+- Kiểm thử (số liệu mới nhất, chi tiết trong `Docs/TEST_REPORT.md`): 34 test logic, quét 150 seed (1350 màn, 0 lỗi), 41 kịch bản tương tác trong build, bot chơi trọn 3 lượt (30 màn) trong build, kiểm tra không rò rỉ trạng thái giữa lượt. Build Windows chạy được.
 - Tài liệu: README, DESIGN, REFERENCE, TEST_REPORT.
 
 ## Thay đổi theo phản hồi (14/11)
@@ -43,6 +43,14 @@ Cập nhật: 14/11/2026 · Phiên bản 0.1.0 · Unity 6000.3.12f1
 
 - Menu chính bỏ ô nhập seed (lượt nào cũng seed ngẫu nhiên; vẫn chơi lại được seed từ màn kết quả) và bỏ nút thử TRY OUTDOOR; menu còn 6 nút.
 
+- **Tái cấu trúc để dễ mở rộng + tool mẫu phòng (16/11)**:
+  - Trang bị: hành vi tách thành `GearBehaviour` đăng ký theo id (`Scripts/Gear`), bỏ enum `GearKind` và các `switch` trong `PlayerController` / `GameDirector` / HUD; câu thông báo chướng ngại, biển gợi ý, kho tiếp tế nằm trong asset `Gear_*`.
+  - Nâng cấp: bỏ enum `ShopEffect` và 4 biến bool trong `RunState`; nâng cấp là id + `modifiers` (chỉ số cộng thêm) trong `ShopConfig`, nâng cấp chỉ cộng chỉ số không cần code. `RunState.AddResource/GetResource` cho tài nguyên tùy biến; `Pickup` dùng id tài nguyên.
+  - Bộ sinh màn: nhận diện quái/bẫy qua `Entity.IsHazard` thay cho danh sách id cứng; `GameConfig.customMarkers` cho phép đặt prefab bất kỳ vào mẫu phòng bằng ký hiệu mới; `GenRequest.forceTemplate` để thử một phòng.
+  - `ProjectBuilder` không còn ghi đè danh sách màn, trang bị và prefab thêm tay khi *Build Everything*.
+  - **Gloomdelve > Room Template Editor**: vẽ lưới 10×8, bảng ký hiệu, sửa types/tag/khu/weight, kiểm tra quy tắc tức thì, chạy thử qua bộ sinh màn + validator, xem bản đồ thu nhỏ, chơi thử.
+  - Hướng dẫn: `Docs/EXTENDING.md`. Kiểm thử sau thay đổi: 34/34 logic, quét 150 seed cho kết quả giống hệt trước khi sửa, 41/41 kịch bản, bot 30/30 màn.
+
 ## Đang làm
 - Không có hạng mục dở dang.
 
@@ -55,7 +63,8 @@ Cập nhật: 14/11/2026 · Phiên bản 0.1.0 · Unity 6000.3.12f1
 - Font pixel cho UI (đang dùng font hệ thống LegacyRuntime của Unity).
 
 ## Lỗi đã biết
-- Test logic, quét seed và bot chưa chạy lại sau các thay đổi chiều/tối 14/11 (chỉ bộ kịch bản được chạy lại) — xem TEST_REPORT §7.
+- 17 ký hiệu "chết" trong các mẫu phòng có sẵn (quái trần / vật rơi không có trần phía trên, chông / quái không có sàn) – không gây lỗi, chỉ là không bao giờ xuất hiện; danh sách trong `Docs/TestResults/room_lint.txt`, sửa bằng Room Template Editor.
+- Room Template Editor: vẽ bằng chuột, Lưu và nút Chơi thử chưa được bấm thử bằng tay (xem TEST_REPORT §7).
 - Cột thông tin dùng font proportional nên không thẳng hàng tuyệt đối (đã đổi sang dạng “Nhãn: giá trị”).
 - Giữ nút ↑ ở cạnh thang ngay cạnh cửa: ↑ ưu tiên leo thang (bộ sinh màn không đặt thang ở cửa).
 - Bot kiểm thử chạy god mode, nên độ khó thực tế chưa đo.

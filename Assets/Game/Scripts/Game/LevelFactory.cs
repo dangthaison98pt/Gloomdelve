@@ -17,9 +17,11 @@ namespace Gloomdelve
                     seed = seed, area = stage.area, levelNumber = stage.levelNumber, name = stage.displayName, config = cfg,
                     templates = RoomTemplates.Parse(cfg.roomTemplates.text)
                 };
+                if (EditorPlaytest.Active && !string.IsNullOrEmpty(EditorPlaytest.RoomName))
+                    req.forceTemplate = req.templates.Find(t => t.name == EditorPlaytest.RoomName);
                 return LevelGenerator.Generate(req);
             }
-            var d = HandcraftedLevel.Parse(stage.handcrafted.text, stage.displayName, stage.kind, seed);
+            var d = HandcraftedLevel.Parse(stage.handcrafted.text, stage.displayName, stage.kind, seed, cfg.customMarkers);
             if (stage.kind == LevelKind.Final)
                 d.validation = LevelValidator.Validate(d, LevelValidator.DefaultOptions(cfg.player));
             return d;

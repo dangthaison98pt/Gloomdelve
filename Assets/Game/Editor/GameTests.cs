@@ -35,6 +35,11 @@ namespace Gloomdelve.EditorTools
         [MenuItem("Gloomdelve/Tests/Logic Tests")]
         public static void LogicTestsMenu() => LogicTests();
 
+        public static void BatchLogic()
+        {
+            EditorApplication.Exit(LogicTests() ? 0 : 1);
+        }
+
         public static void BatchAll()
         {
             bool a = LogicTests();
@@ -405,9 +410,9 @@ namespace Gloomdelve.EditorTools
             {
                 var r1 = RunSession.NewRun(123, false, cfg.player);
                 int c1 = RunSession.RunCounter;
-                r1.gold = 999; r1.bombs = 0; r1.springBoots = true; r1.stageIndex = 4; r1.totalTime = 100; r1.kills = 7;
+                r1.gold = 999; r1.bombs = 0; r1.AddUpgrade(cfg.shop.Find("springboots")); r1.AddResource("test_counter", 3); r1.stageIndex = 4; r1.totalTime = 100; r1.kills = 7;
                 var r2 = RunSession.NewRun(456, false, cfg.player);
-                bool fresh = r2 != r1 && r2.gold == cfg.player.startGold && r2.bombs == cfg.player.startBombs && !r2.springBoots && r2.stageIndex == 0 &&
+                bool fresh = r2 != r1 && r2.gold == cfg.player.startGold && r2.bombs == cfg.player.startBombs && r2.upgrades.Count == 0 && r2.stats.IsZero && r2.counters.Count == 0 && r2.stageIndex == 0 &&
                              r2.totalTime == 0 && r2.kills == 0 && r2.health == cfg.player.startHealth && RunSession.RunCounter == c1 + 1;
                 Check("new run does not keep the previous run's state", fresh);
                 RunSession.Clear();
@@ -416,7 +421,19 @@ namespace Gloomdelve.EditorTools
             {
                 var run = new RunState { bombs = 1, ropes = 1, health = 1 };
                 foreach (var o in cfg.shop.offers) ShopItem.Apply(run, o);
-                Check("shop effects apply", run.bombs == 4 && run.ropes == 4 && run.health == 2 && run.springBoots && run.ironWhip && run.compass && run.blastPowder);
+                bool allOwned = cfg.shop.offers.Where(o => o.isUpgrade).All(o => run.HasUpgrade(o.id));
+                Check("shop effects apply", run.bombs == 4 && run.ropes == 4 && run.health == 2 && allOwned &&
+                      run.stats.jumpBonus > 0f && run.stats.whipDamageBonus > 0 && run.stats.whipRangeBonus > 0f && run.stats.blastRadiusBonus > 0f,
+                      $"jump +{run.stats.jumpBonus} whip +{run.stats.whipDamageBonus}/+{run.stats.whipRangeBonus} blast +{run.stats.blastRadiusBonus}");
+                var twice = new RunState();
+                var boots = cfg.shop.Find("springboots");
+                twice.AddUpgrade(boots); twice.AddUpgrade(boots);
+                Check("an upgrade applies its modifiers only once", twice.upgrades.Count == 1 && Mathf.Approximately(twice.stats.jumpBonus, boots.modifiers.jumpBonus));
+                var custom = new RunState();
+                custom.AddResource("arrows", 5); custom.AddResource("arrows", -2);
+                Check("custom resources are counted", custom.GetResource("arrows") == 3 && custom.GetResource("nothing") == 0);
+                Check("every equipment asset has a behaviour", cfg.equipment.All(e => GearRegistry.Get(e.id) != null),
+                      string.Join(",", cfg.equipment.Select(e => e.id)));
             }
             // templates
             {
@@ -426,6 +443,68 @@ namespace Gloomdelve.EditorTools
                 bool exits = new[] { 1, 3 }.All(t => tl.Any(x => x.HasTag("exit") && x.types.Contains(t)));
                 bool special = tl.Any(x => x.HasTag("shop")) && tl.Any(x => x.HasTag("idol")) && tl.Any(x => x.HasTag("vault"));
                 Check($"room templates cover every room type ({tl.Count} templates)", cover && starts && exits && special);
+            }
+            // room template file: save format + rule checks (Room Template Editor)
+            {
+                string src = cfg.roomTemplates.text.Replace("\r", "");
+                var rooms = RoomTemplates.ParseFresh(src);
+                string saved = RoomTemplates.Serialize(rooms);
+                string diff = "";
+                if (saved.TrimEnd() != src.TrimEnd())
+                {
+                    var a = saved.Split('\n'); var b = src.Split('\n');
+                    for (int i = 0; i < Math.Min(a.Length, b.Length); i++)
+                        if (a[i] != b[i]) { diff = $"line {i + 1}: saved '{a[i]}' vs file '{b[i]}'"; break; }
+                    if (diff == "") diff = $"line count {a.Length} vs {b.Length}";
+                }
+                Check("room template file survives parse -> save unchanged", diff == "", diff);
+                int errs = 0, warns = 0; string firstErr = "";
+                var lintReport = new StringBuilder("Room template rule checks (same checks as the Room Template Editor)");
+                lintReport.AppendLine();
+                foreach (var r in rooms)
+                    foreach (var issue in RoomLint.Check(r, cfg.customMarkers))
+                    {
+                        lintReport.AppendLine($"{(issue.error ? "ERROR" : "warn ")}  {r.name}: {issue.message}");
+                        if (!issue.error) { warns++; continue; }
+                        errs++;
+                        if (firstErr == "") firstErr = r.name + ": " + issue.message;
+                    }
+                Directory.CreateDirectory(ResultsDir);
+                File.WriteAllText(Path.Combine(ResultsDir, "room_lint.txt"), lintReport.ToString());
+                Check("room rule checks: shipped templates have no errors", errs == 0, $"{errs} errors, {warns} warnings  {firstErr}");
+                var bad = RoomTemplate.Blank("bad"); bad.types.Clear(); bad.types.Add(2);
+                Check("room rule checks catch a drop room without a hole", RoomLint.Check(bad).Any(x => x.error));
+                var bad2 = RoomTemplate.Blank("bad2"); bad2.cells[3, 3] = '@';
+                Check("room rule checks catch an unknown symbol", RoomLint.Check(bad2).Any(x => x.error));
+            }
+            // forced test template + designer-defined marker
+            {
+                var marker = new MarkerDef { symbol = "Z", label = "test rock", spawnId = "rock", chance = 1f, placement = MarkerPlacement.OnFloor };
+                cfg.customMarkers.Add(marker);
+                try
+                {
+                    var room = RoomTemplate.Blank("forced_test");
+                    room.cells[4, 6] = 'Z';
+                    int used = 0, spawned = 0, valid = 0;
+                    for (int seed = 1; seed <= 6; seed++)
+                    {
+                        var req = new GenRequest
+                        {
+                            seed = seed, area = cfg.stages[0].area, levelNumber = 1, name = "forced", config = cfg,
+                            templates = RoomTemplates.Parse(cfg.roomTemplates.text), forceTemplate = room
+                        };
+                        var d = LevelGenerator.Generate(req);
+                        if (d.validation != null && d.validation.ok) valid++;
+                        used += d.forcedRooms.Count;
+                        foreach (var sp in d.spawns)
+                            if (sp.id == "rock")
+                                foreach (var rr in d.forcedRooms)
+                                    if (rr.Contains(sp.cell) && sp.cell.y == rr.yMin + 1) spawned++;
+                    }
+                    Check("forced template is placed in generated levels", used > 0 && valid == 6, $"{used} rooms in 6 levels, {valid} valid");
+                    Check("custom marker spawns its prefab", spawned > 0 && spawned <= used, $"{spawned} rocks in {used} forced rooms");
+                }
+                finally { cfg.customMarkers.Remove(marker); }
             }
             // determinism
             {

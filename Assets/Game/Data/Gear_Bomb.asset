@@ -16,5 +16,10 @@ MonoBehaviour:
   displayName: Bombs
   description: 'Use: throw a lit bomb.  DOWN + use: place it.  UP + use: throw high.'
   icon: {fileID: 21300000, guid: 2072b74ecaf120e499b27f5b44808ff1, type: 3}
-  kind: 0
   terrainHint: Blasts dirt and cracked rubble (never bedrock).
+  gateBanner: Rubble blocks the tunnels ({0}) - you will need your BOMBS.  Hold R1
+    / D to change gear.
+  gateSign: Cracked rubble blocks the tunnel and the rock around it is unbreakable.
+    Equip your BOMBS (hold R1 / D) and blast it.
+  supplyPickupId: bombbag
+  ammoLabel: bomb(s)

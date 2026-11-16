@@ -22,8 +22,6 @@ namespace Gloomdelve
         [Tooltip("Front hitbox active from whipBackEnd until this time.")] public float whipFrontEnd = 0.2f;
         public Vector2 whipFrontSize = new Vector2(1.25f, 0.6f);
         public int whipDamage = 1;
-        public int ironWhipDamage = 2;
-        public float ironWhipRangeBonus = 0.45f;
 
         [Header("Throwing")]
         public Vector2 throwVelocity = new Vector2(11f, 4f);
@@ -45,9 +43,7 @@ namespace Gloomdelve
         public int fallDamage = 1;
         public float fallStunTime = 1.0f;
 
-        [Header("Upgrades")]
-        public float springBootsJumpMult = 1.17f;
-        public float blastPowderRadiusBonus = 0.9f;
+        // Upgrade bonuses (spring boots, iron whip, blast powder...) live in ShopConfig offers -> modifiers.
 
         [Header("Rope")]
         public int ropeThrowHeight = 7;

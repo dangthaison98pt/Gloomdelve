@@ -142,8 +142,9 @@ MonoBehaviour:
   maxHealth: 1
   flipWithFacing: 0
   artFacesLeft: 0
-  kind: 2
+  resource: ropes
   value: 3
+  label: ROPES
   sfx: pickup
   textColor: {r: 1, g: 1, b: 1, a: 1}
   gravity: 30

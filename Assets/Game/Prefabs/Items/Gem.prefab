@@ -142,8 +142,9 @@ MonoBehaviour:
   maxHealth: 1
   flipWithFacing: 0
   artFacesLeft: 0
-  kind: 0
+  resource: gold
   value: 300
+  label: 
   sfx: gem
   textColor: {r: 0.5, g: 1, b: 0.7, a: 1}
   gravity: 30

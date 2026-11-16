@@ -37,18 +37,77 @@ namespace Gloomdelve
         [Tooltip("Hand-made layout (Final / Tutorial only).")] public TextAsset handcrafted;
     }
 
-    public enum ShopEffect { Bombs, Ropes, Health, SpringBoots, IronWhip, Compass, BlastPowder }
+    /// <summary>Resource ids understood by RunState.AddResource. Any other id is stored as a custom counter.</summary>
+    public static class Res
+    {
+        public const string Gold = "gold", Health = "health", Bombs = "bombs", Ropes = "ropes";
+    }
 
+    /// <summary>Upgrade ids that game code asks about by name (RunState.HasUpgrade). Pure stat upgrades need no entry here.</summary>
+    public static class UpgradeIds
+    {
+        public const string IronWhip = "ironwhip", Compass = "compass";
+    }
+
+    /// <summary>
+    /// Passive stat bonuses of an upgrade. Everything is additive and 0 means "no change", so a new stat-only
+    /// upgrade is just a new ShopConfig offer with numbers in here - no code.
+    /// </summary>
+    [Serializable]
+    public class StatModifiers
+    {
+        [Tooltip("Added to the jump multiplier (0.17 = jump 17% stronger).")] public float jumpBonus;
+        [Tooltip("Added to whip damage.")] public int whipDamageBonus;
+        [Tooltip("Added to whip reach (tiles).")] public float whipRangeBonus;
+        [Tooltip("Added to bomb blast radius (tiles).")] public float blastRadiusBonus;
+
+        public void Add(StatModifiers o)
+        {
+            if (o == null) return;
+            jumpBonus += o.jumpBonus; whipDamageBonus += o.whipDamageBonus;
+            whipRangeBonus += o.whipRangeBonus; blastRadiusBonus += o.blastRadiusBonus;
+        }
+
+        public bool IsZero => jumpBonus == 0f && whipDamageBonus == 0 && whipRangeBonus == 0f && blastRadiusBonus == 0f;
+    }
+
+    /// <summary>
+    /// Something a shop sells. Consumable: gives 'amount' of 'resource'. Upgrade (isUpgrade): owned once per run,
+    /// applies 'modifiers', and code can ask RunState.HasUpgrade(id) for bespoke behaviour.
+    /// </summary>
     [Serializable]
     public class ShopOffer
     {
         public string id;
         public string displayName;
         public int price;
-        public ShopEffect effect;
+        [Tooltip("Resource granted: gold / health / bombs / ropes, or any custom counter id. Empty = none.")]
+        public string resource;
         public int amount = 1;
         public bool isUpgrade;
+        [Tooltip("Passive bonuses while this upgrade is owned (upgrades only).")]
+        public StatModifiers modifiers = new StatModifiers();
         public Sprite icon;
         [TextArea] public string description;
+    }
+
+    public enum MarkerPlacement { Anywhere, OnFloor, UnderCeiling }
+
+    /// <summary>
+    /// A custom room-template symbol (GameConfig.customMarkers): lets designers place a prefab in room templates
+    /// and hand-made levels without touching the generator. Built-in symbols are listed in RoomLegend.
+    /// </summary>
+    [Serializable]
+    public class MarkerDef
+    {
+        [Tooltip("One character used in RoomTemplates.txt. Must not clash with a built-in symbol.")] public string symbol = "";
+        public string label = "";
+        [Tooltip("PrefabRegistry id to spawn in this cell.")] public string spawnId = "";
+        [Range(0, 1)] public float chance = 1f;
+        public MarkerPlacement placement = MarkerPlacement.OnFloor;
+        [Tooltip("Tile written into the cell (usually Empty).")] public TileType tile = TileType.Empty;
+        [Tooltip("Colour in the Room Template Editor.")] public Color color = new Color(0.9f, 0.5f, 0.9f);
+
+        public char Char => string.IsNullOrEmpty(symbol) ? ' ' : symbol[0];
     }
 }
