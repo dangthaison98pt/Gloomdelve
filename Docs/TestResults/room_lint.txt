@@ -16,3 +16,4 @@ warn   side_ladder: 'E' tại cột 6, hàng 5 không có sàn bên dưới.
 warn   idol_spikes: '^' tại cột 3, hàng 5 không có sàn bên dưới.
 warn   idol_spikes: '^' tại cột 6, hàng 5 không có sàn bên dưới.
 warn   idol_pedestal: 'O' tại cột 4, hàng 5 không có sàn bên dưới.
+warn   u_in_plain: 'B' tại cột 3, hàng 2 không có trần phía trên.

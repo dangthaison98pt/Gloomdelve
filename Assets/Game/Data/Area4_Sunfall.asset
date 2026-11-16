@@ -18,10 +18,14 @@ MonoBehaviour:
   musicId: area3
   cameraBackground: {r: 0.19, g: 0.27, b: 0.55, a: 1}
   roomsX: 4
-  roomsY: 3
+  roomsY: 4
   outdoor: 1
   skyRows: 7
   treeChance: 0.3
+  pathUp: 2
+  pathSide: 3
+  pathDown: 0.3
+  pathStartBottom: 1
   groundGrip: 1
   groundEnemies:
   - id: snake

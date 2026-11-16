@@ -26,13 +26,13 @@ namespace Gloomdelve
         public bool ForArea(int a) => areas.Count == 0 || areas.Contains(a);
         public bool HasTag(string t) => tags.Contains(t);
 
-        /// <summary>start / exit / shop / idol / vault / gate_* rooms are only used for that purpose.</summary>
+        /// <summary>start / exit / shop / idol / vault / gate_* / up_* rooms are only used for that purpose.</summary>
         public bool IsSpecial
         {
             get
             {
                 foreach (var t in tags)
-                    if (t == "start" || t == "exit" || t == "shop" || t == "idol" || t == "vault" || t.StartsWith("gate_")) return true;
+                    if (t == "start" || t == "exit" || t == "shop" || t == "idol" || t == "vault" || t.StartsWith("gate_") || t.StartsWith("up_")) return true;
                 return false;
             }
         }

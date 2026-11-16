@@ -175,7 +175,7 @@ namespace Gloomdelve.EditorTools
                     list.Add($"{sp.id} spawns {sp.cell} near entrance");
                 if ((sp.id == "stalactite" || sp.id == "crusher") && Math.Abs(sp.cell.x - e.x) <= 1 && sp.cell.y >= e.y)
                     list.Add($"{sp.id} above entrance");
-                if (sp.id != "arrowtrap" && sp.id != "flamevent" && !g.IsEmpty(sp.cell.x, sp.cell.y)) list.Add($"{sp.id} spawned inside {g.Get(sp.cell.x, sp.cell.y)} at {sp.cell}");
+                if (sp.id != "arrowtrap" && sp.id != "flamevent" && sp.id != "crumble" && !g.IsEmpty(sp.cell.x, sp.cell.y)) list.Add($"{sp.id} spawned inside {g.Get(sp.cell.x, sp.cell.y)} at {sp.cell}");
                 if (cfg.prefabs.Get(sp.id) == null) list.Add($"unknown spawn id {sp.id}");
             }
             return list;

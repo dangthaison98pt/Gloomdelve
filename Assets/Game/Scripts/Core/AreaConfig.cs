@@ -21,6 +21,14 @@ namespace Gloomdelve
         public int skyRows = 7;
         [Range(0, 1)] public float treeChance = 0.25f;
 
+        [Header("Path shape (which way the level leads)")]
+        [Tooltip("0 = classic: enter at the top, leave at the bottom, the path only goes sideways and down. Above 0 the path may also climb: relative weight of a step UP.")]
+        public float pathUp = 0f;
+        [Tooltip("Relative weight of a sideways step (only used when Path Up > 0).")] public float pathSide = 3f;
+        [Tooltip("Relative weight of a step DOWN (only used when Path Up > 0).")] public float pathDown = 1f;
+        [Tooltip("Enter in the bottom row and leave in the top row (a climb) instead of top to bottom. Only used when Path Up > 0.")]
+        public bool pathStartBottom = false;
+
         [Header("Footing")]
         [Tooltip("1 = normal ground. Lower = ice: the player slides when stopping and is slower to turn (0.25 = very slippery).")]
         [Range(0.1f, 1f)] public float groundGrip = 1f;

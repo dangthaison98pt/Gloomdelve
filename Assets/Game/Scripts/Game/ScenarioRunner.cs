@@ -209,6 +209,10 @@ namespace Gloomdelve
             new Scenario { name = "shopkeeper grudge: robbed -> ambush with two brothers; killed -> no more shopkeepers", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => GrudgeCase(c) },
 
+            new Scenario { name = "climb traps: rotten platform gives way and comes back; rock dropper drops on a climber",
+                map = m => { Set(m, 3, 1, 'S'); for (int y = 1; y <= 6; y++) Set(m, 16, y, 'H'); for (int x = 14; x <= 18; x++) Set(m, x, 8, '#'); },
+                run = c => ClimbTrapCase(c) },
+
             new Scenario { name = "hawk dives at the player below it", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => HawkCase(c) },
 
@@ -819,6 +823,45 @@ namespace Gloomdelve
             c.Expect(k3 == null || k3.Dead, "a later shop has no shopkeeper");
 
             run.shopkeeperWanted = false; run.shopkeeperDead = false;
+            c.p.godMode = false;
+        }
+
+        static IEnumerator ClimbTrapCase(Ctx c)
+        {
+            // rotten platform two tiles up: stand on it -> it breaks -> the player drops -> it comes back
+            c.Bot(Seq((900, F())));
+            var cp = c.Spawn<CrumblePlatform>("crumble", 8, 3);
+            c.Expect(cp != null && c.world.Grid.Get(8, 3) == TileType.Platform, "the rotten platform owns a platform tile");
+            if (cp == null) yield break;
+            c.Teleport(8.5f, 4f);
+            yield return c.Frames(12);
+            c.Expect(c.p.grounded && c.p.pos.y > 3.9f, "the player stands on it at first");
+            yield return c.Frames(50);
+            c.Expect(cp.Broken && c.world.Grid.IsEmpty(8, 3) && c.p.pos.y < 3.5f, "after a moment it gives way and the player falls");
+            c.Teleport(4.5f, 1f);
+            yield return c.Frames(260);
+            c.Expect(!cp.Broken && c.world.Grid.Get(8, 3) == TileType.Platform, "a few seconds later it is back");
+            cp.Despawn();
+            c.world.Grid.Set(8, 3, TileType.Empty);
+
+            // rock dropper in the ceiling above a ladder: quiet while nobody is below, drops when a climber is
+            var rd = c.Spawn<RockDropper>("rockdropper", 16, 7);
+            c.Expect(rd != null, "rock dropper spawned under the ceiling block");
+            if (rd == null) yield break;
+            yield return c.Frames(120);
+            c.Expect(c.Count<Stalactite>() == 0, "nothing falls while the player is elsewhere");
+            c.p.godMode = true;
+            c.Teleport(16.5f, 1f);
+            bool warned = false, dropped = false;
+            for (int i = 0; i < 240 && !dropped; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (rd.Warning) warned = true;
+                if (c.Count<Stalactite>() > 0) dropped = true;
+            }
+            c.Expect(warned && dropped, "with the player below it rattles, then drops a rock");
+            rd.Despawn();
+            foreach (var e in c.world.Entities) if (e is Stalactite && !e.Dead) e.Despawn();
             c.p.godMode = false;
         }
 

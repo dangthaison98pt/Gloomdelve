@@ -15,7 +15,7 @@ Cập nhật: 16/11/2026 · Phiên bản 0.1.0 · Unity 6000.3.12f1
 - UI: menu chính, hướng dẫn điều khiển, cài đặt (âm lượng tổng/nhạc/hiệu ứng, toàn màn hình, rung màn hình), tạm dừng, HUD đầy đủ, thẻ chuyển màn, màn kết quả (R chơi lại nhanh, chơi lại seed), kỷ lục.
 - Lưu cài đặt + kỷ lục (JSON), ghi log seed.
 - Art pixel 397 sprite + 42 SFX + 4 nhạc, tất cả sinh bằng code (Editor).
-- Kiểm thử (số liệu mới nhất, chi tiết trong `Docs/TEST_REPORT.md`): 34 test logic, quét 150 seed (1800 màn, 0 lỗi), 51 kịch bản tương tác trong build, bot chơi trọn 3 lượt (54 chặng) trong build, kiểm tra không rò rỉ trạng thái giữa lượt. Build Windows chạy được.
+- Kiểm thử (số liệu mới nhất, chi tiết trong `Docs/TEST_REPORT.md`): 34 test logic, quét 150 seed (1800 màn, 0 lỗi), 52 kịch bản tương tác trong build, bot chơi trọn 3 lượt (54 chặng) trong build, kiểm tra không rò rỉ trạng thái giữa lượt. Build Windows chạy được.
 - Tài liệu: README, DESIGN, REFERENCE, TEST_REPORT.
 
 ## Thay đổi theo phản hồi (14/11)
@@ -64,6 +64,7 @@ Cập nhật: 16/11/2026 · Phiên bản 0.1.0 · Unity 6000.3.12f1
 - Chữ: nhãn trên hình nút (Z, Shift, R1...) và chữ nổi trong màn chơi (giá shop, +vàng, FROZEN) vẽ bằng font thường thay cho font pixel để luôn nét (`GlyphText` viết nhãn lên hình nút trống, `PixelText` dùng TextMesh). Nút đổi đồ trên HUD có hai mũi tên hai bên. Logo GLOOMDELVE vẫn là hình pixel.
 - **Cấu trúc lượt chơi mới (18 chặng):** mỗi bio = 3 màn sinh ngẫu nhiên + 1 đấu trường boss (N-4, `LevelKind.Boss`, cửa ra khoá tới khi hạ boss), sau bio 4 là **The Last Camp** (`LevelKind.Rest`: rương 3 món miễn phí + shop 5 món), rồi **The Sunken Vault** với trùm cuối canh viên đá. Boss: Broodmother (rêu), Forge Brute (mỏ), Yeti King (băng), Storm Hawk (vách núi), Hollow Warden (cuối). Khung chung ở `Scripts/Bosses/Boss.cs`; đấu trường là file chữ `Data/Levels/Boss_*.txt` (dòng `boss: id`, ký hiệu `Z`). Thanh máu boss trên HUD. Hình boss hiện là quái của bio phóng to gấp đôi và đổi màu. Kiểm thử: 50/50 kịch bản, bot 54/54 chặng (bot không đánh boss), quét 1800 màn 0 lỗi.
 - **Chủ shop ghi thù trong cả lượt** (`RunState.shopkeeperWanted` / `shopkeeperDead`): chọc giận mà ông ta còn sống thì mọi shop sau không bán gì và ông ta phục kích cùng 2 người anh em khi người chơi bước vào; giết ông ta thì các shop sau trống hẳn. Áp dụng cả cho shop ở The Last Camp. Kịch bản kiểm thử mới (51/51).
+- **Màn leo lên (bước đầu của hướng Dead Cells):** bộ sinh màn có thêm kiểu đường đi tự do (`AreaConfig.pathUp / pathSide / pathDown / pathStartBottom`): đường chính đi được lên, xuống, ngang và không tự cắt mình. Khu Sunfall Cliffs giờ vào ở tầng đáy, leo lên và ra ở mặt đất. Ba bio còn lại giữ kiểu cũ (pathUp = 0). Mẫu phòng leo mang thẻ `up_out` / `up_in` trong RoomTemplates.txt. Hai bẫy cho đoạn leo: **Rock Dropper** (ký hiệu `r`, thả đá dọc cột thang khi có người bên dưới) và **bệ gỗ mục** (ký hiệu `c`, sập sau nửa giây rồi mọc lại). Quét 150 seed: 1800 màn, 0 lỗi, 456 lần sinh lại; bot 54/54 chặng; 52/52 kịch bản.
 
 ## Đang làm
 - Không có hạng mục dở dang.

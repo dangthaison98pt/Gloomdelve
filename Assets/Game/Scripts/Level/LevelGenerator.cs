@@ -16,7 +16,8 @@ namespace Gloomdelve
     }
 
     /// <summary>
-    /// Room-based generator: a solution path is walked through a grid of rooms (left/right/down, never backtracking),
+    /// Room-based generator: a solution path is walked through a grid of rooms (left/right/down, never backtracking;
+    /// areas with AreaConfig.pathUp > 0 may also climb, and can run bottom to top),
     /// each room gets a template matching its required openings, templates contain probabilistic tiles and marker
     /// slots (enemies, traps, treasure), then the result is proven traversable by LevelValidator. Seeded and deterministic.
     /// </summary>
@@ -85,10 +86,57 @@ namespace Gloomdelve
             bool needsGateRoom = !string.IsNullOrEmpty(area.requiredGear);
             int[,] types = null;
             bool[,] onPath = null;
+            // Climbing levels (AreaConfig.pathUp): rooms the path leaves through the top / enters from below.
+            bool[,] climbOut = new bool[rx, ry], climbIn = new bool[rx, ry];
+            bool freeWalk = area.pathUp > 0f;
+            int startRow = freeWalk && area.pathStartBottom ? ry - 1 : 0;
             int sx = 0, cx = 0, cy = 0;
             // Walk the solution path; areas with gear gates re-walk (same rng stream) until the path has at least
             // one plain left-right room (not start/exit) to turn into a gate.
-            for (int walk = 0; walk < 30; walk++)
+            for (int walk = 0; freeWalk && walk < 80; walk++)
+            {
+                // Free walk: sideways, down or up by the area's weights, never crossing itself. The start and exit
+                // rooms are always entered / left sideways, so they stay plain left-right rooms.
+                types = new int[rx, ry];
+                onPath = new bool[rx, ry];
+                climbOut = new bool[rx, ry]; climbIn = new bool[rx, ry];
+                var openTop = new bool[rx, ry]; var openBottom = new bool[rx, ry];
+                int goalRow = area.pathStartBottom ? 0 : ry - 1;
+                int minLen = ry + 2;
+                sx = rng.Range(0, rx);
+                cx = sx; cy = startRow;
+                onPath[cx, cy] = true;
+                int len = 1;
+                bool lastSide = false, done = false;
+                for (int guard = 0; guard < 200 && !done; guard++)
+                {
+                    if (cy == goalRow && lastSide && len >= minLen && rng.Chance(0.6f)) { done = true; break; }
+                    float wL = cx - 1 >= 0 && !onPath[cx - 1, cy] ? area.pathSide : 0f;
+                    float wR = cx + 1 < rx && !onPath[cx + 1, cy] ? area.pathSide : 0f;
+                    float wD = len > 1 && cy + 1 < ry && !onPath[cx, cy + 1] ? area.pathDown : 0f;
+                    float wU = len > 1 && cy - 1 >= 0 && !onPath[cx, cy - 1] ? area.pathUp : 0f;
+                    float total = wL + wR + wD + wU;
+                    if (total <= 0f) { done = cy == goalRow && lastSide && len >= 3; break; }
+                    float roll = rng.Range(0f, total);
+                    if (roll < wL) { cx--; lastSide = true; }
+                    else if (roll < wL + wR) { cx++; lastSide = true; }
+                    else if (roll < wL + wR + wD) { openBottom[cx, cy] = true; cy++; openTop[cx, cy] = true; lastSide = false; }
+                    else { openTop[cx, cy] = true; climbOut[cx, cy] = true; cy--; openBottom[cx, cy] = true; climbIn[cx, cy] = true; lastSide = false; }
+                    onPath[cx, cy] = true;
+                    len++;
+                }
+                for (int y = 0; y < ry; y++)
+                    for (int x = 0; x < rx; x++)
+                        types[x, y] = !onPath[x, y] ? 0 : openTop[x, y] && openBottom[x, y] ? 4 : openBottom[x, y] ? 2 : openTop[x, y] ? 3 : 1;
+                if (!done) continue;
+                if (!needsGateRoom) break;
+                bool cand = false;
+                for (int y = 0; y < ry && !cand; y++)
+                    for (int x = 0; x < rx; x++)
+                        if (onPath[x, y] && types[x, y] == 1 && !(x == sx && y == startRow) && !(x == cx && y == cy)) { cand = true; break; }
+                if (cand) break;
+            }
+            for (int walk = 0; !freeWalk && walk < 30; walk++)
             {
                 types = new int[rx, ry];
                 onPath = new bool[rx, ry];
@@ -122,7 +170,7 @@ namespace Gloomdelve
                         if (onPath[x, y] && types[x, y] == 1 && !(x == sx && y == 0) && !(x == cx && y == cy)) { hasCandidate = true; break; }
                 if (hasCandidate) break;
             }
-            var startRoom = new Vector2Int(sx, 0);
+            var startRoom = new Vector2Int(sx, startRow);
             var exitRoom = new Vector2Int(cx, cy);
 
             // ---------------------------------------------------------------- 2. special rooms
@@ -201,7 +249,13 @@ namespace Gloomdelve
                     bool RowOk(RoomTemplate rt) => area.outdoor && rowY == 0 ? rt.HasTag("surface") : !rt.HasTag("surface") && !(rt.HasTag("under") && rowY == 0);
                     RoomTemplate t = null;
                     var force = req.forceTemplate;
+                    // a room the path climbs out of / into needs a template with the ladder for it
+                    bool needOut = climbOut[x, y], needIn = climbIn[x, y];
+                    bool UpOk(RoomTemplate rt) => rt.types.Contains(type) && rt.ForArea(areaNo) &&
+                        (!needOut || rt.HasTag("up_out")) && (!needIn || rt.HasTag("up_in")) && (needOut || !rt.HasTag("up_out")) && (needIn || !rt.HasTag("up_in"));
                     if (force != null && force.ForArea(areaNo) && RowOk(force) && ForceFits(force, kind, type, gear)) t = force;
+                    else if (kind == RoomKind.Path && (needOut || needIn))
+                        t = RoomTemplates.Pick(all, rng, tt => UpOk(tt) && RowOk(tt)) ?? RoomTemplates.Pick(all, rng, tt => UpOk(tt));
                     else switch (kind)
                     {
                         case RoomKind.Start: t = RoomTemplates.Pick(all, rng, tt => tt.HasTag("start") && tt.types.Contains(type) && tt.ForArea(areaNo) && RowOk(tt)) ?? RoomTemplates.Pick(all, rng, tt => tt.HasTag("start") && tt.types.Contains(type) && tt.ForArea(areaNo)); break;
@@ -417,7 +471,7 @@ namespace Gloomdelve
                     default:
                         // designer-defined marker (GameConfig.customMarkers): spawn its prefab here
                         if (!custom.TryGetValue(m.ch, out var cm) || string.IsNullOrEmpty(cm.spawnId)) break;
-                        if (!g.IsEmpty(c.x, c.y)) break;
+                        if (!g.IsEmpty(c.x, c.y) && g.Get(c.x, c.y) != cm.tile) break;   // a marker may own the tile it wrote
                         if (cm.placement == MarkerPlacement.OnFloor && !g.IsSolid(c.x, c.y - 1) && !g.IsPlatformTop(c.x, c.y - 1)) break;
                         if (cm.placement == MarkerPlacement.UnderCeiling && !g.IsSolid(c.x, c.y + 1)) break;
                         if (rng.Chance(cm.chance)) spawns.Add(new SpawnPoint(cm.spawnId, c, rng.Chance(0.5f) ? -1 : 1));
@@ -623,7 +677,7 @@ namespace Gloomdelve
                 if (fromCeiling && Mathf.Abs(c.x - d.exit.x) <= 0 && c.y >= d.exit.y && c.y - d.exit.y < 3) return true;
                 if (hostile)
                     foreach (var r in d.shopRects) if (r.Contains(c)) return true;
-                if (!g.IsEmpty(c.x, c.y) && sp.id != "arrowtrap" && sp.id != "flamevent") return true;
+                if (!g.IsEmpty(c.x, c.y) && sp.id != "arrowtrap" && sp.id != "flamevent" && sp.id != "crumble") return true;
                 return false;
             });
         }

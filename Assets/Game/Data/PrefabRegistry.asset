@@ -48,6 +48,10 @@ MonoBehaviour:
     prefab: {fileID: 1924136200737026320, guid: 7288a4b403e39ce4493b5a4d510a4ca7, type: 3}
   - id: gloomorb
     prefab: {fileID: 7832127820332425931, guid: 767c7e73031f16d4a95cceec37d7850a, type: 3}
+  - id: rockdropper
+    prefab: {fileID: 5367929282938394832, guid: 25d876941e26a854b951a62f3280f5ab, type: 3}
+  - id: crumble
+    prefab: {fileID: 514392490230669108, guid: 425020e92eee46643b279d0d54adc3f3, type: 3}
   - id: chest
     prefab: {fileID: 8579868136437712267, guid: 25883a24c04f43d459b04156c7a984b5, type: 3}
   - id: hawk

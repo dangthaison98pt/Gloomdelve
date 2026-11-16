@@ -1203,6 +1203,28 @@ namespace Gloomdelve.EditorTools
                 p.Disc(4f, 4f, 3.4f, C(150, 90, 230)); p.Disc(4f, 4f, 2f, C(214, 170, 255)); p.Set(4, 4, C(255, 255, 255));
                 Save(p, o + "orb", PCenter);
             }
+            {
+                // rock dropper: a carved stone mouth in the ceiling
+                var p = new Px(16, 16);
+                Color32 st = C(126, 118, 112), stD = C(82, 76, 74), stL = C(170, 162, 152), hole = C(16, 12, 16);
+                p.Rect(1, 4, 14, 12, st); p.Rect(1, 14, 14, 2, stL); p.Rect(1, 4, 1, 12, stL); p.Rect(14, 4, 1, 12, stD);
+                p.Rect(4, 4, 8, 5, hole); p.Rect(5, 9, 6, 1, hole);
+                p.Rect(4, 9, 1, 2, stD); p.Rect(11, 9, 1, 2, stD);                      // teeth
+                p.Rect(3, 11, 3, 2, hole); p.Rect(10, 11, 3, 2, hole);                  // eyes
+                p.Set(4, 12, C(255, 150, 60)); p.Set(11, 12, C(255, 150, 60));
+                p.Outline(C(30, 26, 30));
+                Save(p, "Sprites/Traps/dropper", new Vector2(0.5f, 0f));
+            }
+            {
+                // crumbling platform: rotten, cracked planks drawn over the platform tile
+                var p = new Px(16, 16);
+                Color32 w = C(132, 92, 54), wD = C(84, 54, 30), wL = C(170, 128, 80), crack = C(40, 24, 14);
+                p.Rect(0, 11, 16, 5, w); p.Rect(0, 15, 16, 1, wL); p.Rect(0, 11, 16, 1, wD);
+                p.Line(3, 15, 5, 12, crack); p.Line(5, 12, 4, 11, crack); p.Line(10, 15, 9, 13, crack); p.Line(9, 13, 11, 11, crack);
+                p.Set(7, 14, crack); p.Set(13, 13, crack); p.Set(1, 12, crack);
+                p.Rect(6, 10, 2, 1, wD); p.Rect(12, 10, 2, 1, wD);                       // splinters hanging
+                Save(p, "Sprites/Traps/crumble", new Vector2(0.5f, 0f));
+            }
             for (int f = 0; f < 2; f++)
             {
                 // treasure chest: closed / open

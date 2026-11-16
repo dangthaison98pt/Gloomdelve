@@ -1,4 +1,4 @@
-Gloomdelve in-game scenario tests 2026-11-16 18:08:48
+Gloomdelve in-game scenario tests 2026-11-16 20:11:06
 PASS  whip kills an approaching snake  
 PASS  stomping a snake kills it and bounces  
 PASS  snake on a single tile stands still instead of flipping left-right  
@@ -31,6 +31,7 @@ PASS  boss: registered, damage capped per hit, defeat is reported
 PASS  all five bosses run their attack patterns  
 PASS  treasure chest lays out three free items  
 PASS  shopkeeper grudge: robbed -> ambush with two brothers; killed -> no more shopkeepers  
+PASS  climb traps: rotten platform gives way and comes back; rock dropper drops on a climber  
 PASS  hawk dives at the player below it  
 PASS  ledge grab and climb (real controller)  
 PASS  ladder climb to the top  
@@ -51,4 +52,4 @@ PASS  time-pressure wraith spawns and its touch is fatal
 PASS  carrying a golden idol out pays gold  
 PASS  exit door ends the level  
 
-51 passed, 0 failed
+52 passed, 0 failed

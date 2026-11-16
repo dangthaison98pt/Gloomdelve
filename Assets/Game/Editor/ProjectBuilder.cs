@@ -548,6 +548,12 @@ namespace Gloomdelve.EditorTools
                 sunfall.playerLightIntensity = 0.25f; sunfall.torchChance = 0f;
                 sunfall.ambientParticles = AmbientParticles.Pollen; sunfall.ambientParticleCount = 30;
             }
+            // The cliffs are a climb: enter at the bottom, leave at the top, the path goes up as well as sideways.
+            if (sunfall.pathUp <= 0f)
+            {
+                sunfall.pathUp = 2f; sunfall.pathSide = 3f; sunfall.pathDown = 0.3f; sunfall.pathStartBottom = true;
+                sunfall.roomsX = 4; sunfall.roomsY = 4;
+            }
             sunfall.tiles = ts["Sunfall"];
             EditorUtility.SetDirty(sunfall);
 
@@ -605,6 +611,14 @@ namespace Gloomdelve.EditorTools
             EditorUtility.SetDirty(vault);
 
             var cfg = LoadOrCreate<GameConfig>(G + "Data/GameConfig.asset");
+            // room-template symbols for the climbing traps
+            void CustomMarker(string sym, string label, string spawn, float chance, MarkerPlacement place, TileType tile, Color col)
+            {
+                if (cfg.customMarkers.Exists(m => m.symbol == sym)) return;
+                cfg.customMarkers.Add(new MarkerDef { symbol = sym, label = label, spawnId = spawn, chance = chance, placement = place, tile = tile, color = col });
+            }
+            CustomMarker("r", "Rock dropper", "rockdropper", 0.8f, MarkerPlacement.UnderCeiling, TileType.Empty, new Color(0.7f, 0.65f, 0.6f));
+            CustomMarker("c", "Crumbling platform", "crumble", 1f, MarkerPlacement.Anywhere, TileType.Platform, new Color(0.7f, 0.5f, 0.3f));
             cfg.player = player;
             cfg.shop = shop;
             cfg.sfx = sfx;
@@ -880,6 +894,11 @@ namespace Gloomdelve.EditorTools
                 (e, go, sr) => { e.maxHealth = 24; e.stompable = false; e.animFloat = anims["warden_float"]; e.bloodColor = new Color(0.7f, 0.4f, 1f); }));
             Reg("gloomorb", Make<BossShot>("GloomOrb", "Enemies", "gloom orb", new Vector2(0.35f, 0.35f), BS("orb"), null, 32,
                 (e, go, sr) => { e.flipWithFacing = false; }));
+            // traps for climbs
+            Reg("rockdropper", Make<RockDropper>("RockDropper", "Traps", "rock dropper", new Vector2(0.9f, 0.75f), ArtGenerator.S("Sprites/Traps/dropper"), null, 3,
+                (e, g, s) => { e.flipWithFacing = false; }));
+            Reg("crumble", Make<CrumblePlatform>("CrumblePlatform", "Traps", "rotten platform", new Vector2(1f, 0.3f), ArtGenerator.S("Sprites/Traps/crumble"), null, 2,
+                (e, g, s) => { e.flipWithFacing = false; }));
             Reg("chest", Make<Chest>("Chest", "Level", "chest", new Vector2(1.0f, 0.8f), ArtGenerator.S("Sprites/Props/chest_0"), null, 4,
                 (e, g, s) => { e.flipWithFacing = false; e.openSprite = ArtGenerator.S("Sprites/Props/chest_1"); }));
             Reg("hawk", Make<Hawk>("Hawk", "Enemies", "hawk", new Vector2(0.6f, 0.5f), ArtGenerator.S("Sprites/Enemies/hawk_0"), anims["hawk_fly"], 14,
