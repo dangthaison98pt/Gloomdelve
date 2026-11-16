@@ -20,6 +20,9 @@ namespace Gloomdelve
         Vector2 home, diveDir;
         float t, cooldown, diveDist, windupTimer;
 
+        /// <summary>Only the dive hurts.</summary>
+        public override bool Attacking => state == State.Dive;
+
         public override void Configure(SpawnPoint sp)
         {
             pos = new Vector2(sp.cell.x + 0.5f, sp.cell.y);

@@ -34,7 +34,7 @@ namespace Gloomdelve
         public const string Body =
 @"[move]  -  move  (hold [walk] to walk slowly near edges)
 [jump]  -  jump  (hold longer to jump higher)
-[whip]  -  whip;  while holding something: throw it  ([up] + [whip] throws high)
+[whip]  -  blade;  while holding something: throw it  ([up] + [whip] throws high)
 [down] + [whip]  -  pick up an item / put the held item down
 [use]  -  use the equipped GEAR:  bombs ([down] + [use] places, [up] + [use] throws high)
          or rope (thrown up, hooks onto a ceiling or wall; [down] + [use] at a ledge drops it)

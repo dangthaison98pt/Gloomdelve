@@ -34,7 +34,7 @@ namespace Gloomdelve
         public SpriteAnim animDead;
         public SpriteAnim animLookUp;
 
-        [Header("Whip visuals")]
+        [Header("Blade visuals")]
         public SpriteRenderer whipRenderer;
         [Tooltip("Glider canopy shown while gliding.")] public SpriteRenderer gliderRenderer;
         public Sprite whipBackSprite;

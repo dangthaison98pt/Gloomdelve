@@ -64,7 +64,7 @@ MonoBehaviour:
   leapVelocity: 13
   restTime: 1.1
   minionId: bat
-  maxMinions: 3
+  maxMinions: 2
   animIdle: {fileID: 11400000, guid: 53e40c77c1956124d923480fd97369e2, type: 2}
   animJump: {fileID: 11400000, guid: 30aad3d355b46864ba410bcab5bf1026, type: 2}
 --- !u!1 &9021173479815016475

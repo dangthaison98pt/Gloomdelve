@@ -78,7 +78,7 @@ MonoBehaviour:
     icon: {fileID: 21300000, guid: fbfb0a5b4cca04347be78c091c9351b0, type: 3}
     description: jump about 40% higher
   - id: ironwhip
-    displayName: Iron Whip
+    displayName: Tempered Blade
     price: 750
     resource: 
     amount: 1
@@ -92,7 +92,7 @@ MonoBehaviour:
       iceGrip: 0
       coldResist: 0
     icon: {fileID: 21300000, guid: 9573d34ca403fd644976448e13e6c829, type: 3}
-    description: whip deals 2 damage and reaches further
+    description: blade deals 2 damage and reaches further
   - id: compass
     displayName: Compass
     price: 450

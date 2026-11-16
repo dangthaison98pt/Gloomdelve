@@ -444,7 +444,7 @@ namespace Gloomdelve.EditorTools
                     new ShopOffer { id = "ropes", displayName = "Rope Pile", price = 250, resource = Res.Ropes, amount = 3, description = "+3 ropes" },
                     new ShopOffer { id = "heart", displayName = "Heart Tonic", price = 500, resource = Res.Health, amount = 1, description = "+1 health" },
                     new ShopOffer { id = "springboots", displayName = "Spring Boots", price = 900, isUpgrade = true, description = "jump about 40% higher" },
-                    new ShopOffer { id = "ironwhip", displayName = "Iron Whip", price = 750, isUpgrade = true, description = "whip deals 2 damage and reaches further" },
+                    new ShopOffer { id = "ironwhip", displayName = "Tempered Blade", price = 750, isUpgrade = true, description = "blade deals 2 damage and reaches further" },
                     new ShopOffer { id = "compass", displayName = "Compass", price = 450, isUpgrade = true, description = "marks the exit on screen" },
                     new ShopOffer { id = "blastpowder", displayName = "Blast Powder", price = 800, isUpgrade = true, description = "bigger bomb blasts" },
                 };
@@ -1077,7 +1077,7 @@ namespace Gloomdelve.EditorTools
             menu.recordsBack = UIBuilder.Button(rec.transform, "Back", "BACK", new Vector2(0.5f, 0f), new Vector2(170, 50), new Vector2(300, 70));
             menu.recordsPanel = rec.gameObject;
             menu.versionText = UIBuilder.Label(t, "Version", "", 22, new Color(1, 1, 1, 0.5f), TextAnchor.LowerLeft, new Vector2(0f, 0f), new Vector2(20, 16), new Vector2(900, 40), false);
-            UIBuilder.Label(t, "Hint", "[move] navigate   ·   [confirm] select   ·   [jump] jump   ·   [whip] whip   ·   [use] use gear   ·   hold [gear] gear wheel   ·   [enter] enter", 22,
+            UIBuilder.Label(t, "Hint", "[move] navigate   ·   [confirm] select   ·   [jump] jump   ·   [whip] blade   ·   [use] use gear   ·   hold [gear] gear wheel   ·   [enter] enter", 22,
                 new Color(1, 1, 1, 0.55f), TextAnchor.LowerRight, new Vector2(1f, 0f), new Vector2(-20, 16), new Vector2(1300, 40), false);
 
             EditorSceneManager.SaveScene(scene, G + "Scenes/MainMenu.unity");

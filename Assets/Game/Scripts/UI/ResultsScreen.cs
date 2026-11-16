@@ -81,7 +81,7 @@ namespace Gloomdelve
             reached.text = "";
             seedText.text = "";
             statsRoot.SetActive(false);
-            body.text = "You know the basics: run, jump, hang, climb, whip, throw, bomb and rope.\n\nFour areas, each with a boss, lie between you and the Heartstone.";
+            body.text = "You know the basics: run, jump, hang, climb, slash, throw, bomb and rope.\n\nFour areas, each with a boss, lie between you and the Heartstone.";
             records.text = "";
             news.text = $"Time {UIUtil.FormatTime(run.totalTime)}";
             retrySeedButton.gameObject.SetActive(false);

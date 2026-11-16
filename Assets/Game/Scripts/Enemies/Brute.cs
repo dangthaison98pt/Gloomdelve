@@ -18,6 +18,9 @@ namespace Gloomdelve
         State state;
         float timer;
 
+        /// <summary>Only the charge hurts.</summary>
+        public override bool Attacking => state == State.Charge;
+
         public override void OnSpawn()
         {
             base.OnSpawn();

@@ -13,6 +13,9 @@ namespace Gloomdelve
         public SpriteAnim animJump;
 
         bool hanging = true;
+
+        /// <summary>Its attack is the pounce: it only hurts in the air (dropping from the ceiling or mid-hop).</summary>
+        public override bool Attacking => !hanging && !grounded;
         float hopTimer;
 
         public override void Configure(SpawnPoint sp) { HangFromCeiling(sp); }

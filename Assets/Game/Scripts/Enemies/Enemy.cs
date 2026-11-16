@@ -5,6 +5,7 @@ namespace Gloomdelve
     public abstract class Enemy : Entity
     {
         [Header("Enemy")]
+        [Tooltip("Damage of this creature's attack. Merely touching it does nothing: it only hurts while it is attacking.")]
         public int contactDamage = 1;
         public bool stompable = true;
         public float gravity = 40f;
@@ -21,7 +22,12 @@ namespace Gloomdelve
         public override bool IsEnemy => true;
         public override bool CanBeHitByItems => !Dead;
         public override bool IsStompable => stompable;
-        public override int ContactDamage => stunTimer > 0f ? 0 : contactDamage;
+        /// <summary>
+        /// True only while the creature is carrying out an attack (a bite, a swoop, a charge, a pounce...).
+        /// Touching an enemy that is not attacking is harmless.
+        /// </summary>
+        public virtual bool Attacking => melee == MeleePhase.Strike;
+        public override int ContactDamage => stunTimer > 0f || !Attacking ? 0 : contactDamage;
         public virtual DamageType ContactType => DamageType.Contact;
         public override bool TriggersTraps => vel.sqrMagnitude > 0.25f;
 
@@ -31,7 +37,50 @@ namespace Gloomdelve
         {
             hurtTimer -= dt;
             stunTimer -= dt;
+            if (stunTimer > 0f) melee = MeleePhase.None;      // a hit interrupts the attack
         }
+
+        // ---- a simple telegraphed close-range attack, shared by the creatures that have no attack move of their own
+        protected enum MeleePhase { None, Windup, Strike, Recover }
+        protected MeleePhase melee;
+        float meleeT;
+
+        /// <summary>
+        /// Runs the attack: wind-up (the tell) -> strike (the only moment it hurts) -> recover (cannot attack again yet).
+        /// Pass wantStart = true while the player is in reach. Returns true while the creature is busy winding up or
+        /// striking, so the caller should steer it by the phase instead of its normal movement.
+        /// </summary>
+        protected bool Melee(float dt, bool wantStart, float windup, float strike, float recover)
+        {
+            switch (melee)
+            {
+                case MeleePhase.None:
+                    if (!wantStart) return false;
+                    melee = MeleePhase.Windup; meleeT = windup;
+                    OnMeleeWindup();
+                    return true;
+                case MeleePhase.Windup:
+                    meleeT -= dt;
+                    if (meleeT <= 0f) { melee = MeleePhase.Strike; meleeT = strike; OnMeleeStrike(); }
+                    return true;
+                case MeleePhase.Strike:
+                    meleeT -= dt;
+                    if (meleeT <= 0f) { melee = MeleePhase.Recover; meleeT = recover; }
+                    return true;
+                default:
+                    meleeT -= dt;
+                    if (meleeT <= 0f) melee = MeleePhase.None;
+                    return false;
+            }
+        }
+
+        /// <summary>The tell: a "!" over the head when the wind-up starts.</summary>
+        protected virtual void OnMeleeWindup()
+        {
+            Fx.Text(new Vector2(Center.x, pos.y + size.y + 0.35f), "!", new Color(1f, 0.85f, 0.3f), 0.45f);
+        }
+
+        protected virtual void OnMeleeStrike() { }
 
         public override bool TakeDamage(in DamageInfo d)
         {

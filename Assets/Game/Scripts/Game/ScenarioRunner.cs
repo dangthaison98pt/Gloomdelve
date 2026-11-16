@@ -215,6 +215,9 @@ namespace Gloomdelve
             new Scenario { name = "max health: hearts never overfill; a boss drops a heart vessel (+1 max, full heal) and gold", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => MaxHealthCase(c) },
 
+            new Scenario { name = "enemies only hurt while attacking: touching is safe, the snake's bite lands after its wind-up", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => AttackOnlyCase(c) },
+
             new Scenario { name = "shopkeeper grudge: robbed -> ambush with two brothers; killed -> no more shopkeepers", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => GrudgeCase(c) },
 
@@ -964,6 +967,41 @@ namespace Gloomdelve
             foreach (var e in c.world.Entities) if (!e.Dead && e is Pickup) e.Despawn();
             c.run.maxHealth = 10; c.run.health = 4;
             c.p.godMode = false;
+            yield return c.Frames(2);
+        }
+
+        static IEnumerator AttackOnlyCase(Ctx c)
+        {
+            c.Bot(Seq((600, F())));
+            // a yeti has no close-range attack at all: standing inside it costs nothing
+            var yeti = c.Spawn<Yeti>("yeti", 10, 1);
+            yield return c.Frames(2);
+            int h0 = c.run.health;
+            c.Teleport(yeti.pos.x, 1f);
+            yield return c.Frames(60);
+            c.Expect(c.run.health == h0 && !yeti.Attacking, $"touching a yeti for a second is harmless (health {h0} -> {c.run.health})");
+            yeti.Despawn();
+
+            // a snake: nothing on touch, nothing during the wind-up, then the bite
+            c.Teleport(14.5f, 1f);
+            yield return c.Frames(2);
+            var snake = c.Spawn<Snake>("snake", 15, 1);
+            snake.heartDropChance = 0f;
+            h0 = c.run.health;
+            bool attackedEarly = false, struck = false;
+            int hitFrame = -1, firstStrike = -1;
+            for (int i = 0; i < 180 && hitFrame < 0; i++)
+            {
+                yield return c.Frames(1);
+                if (snake.Attacking && firstStrike < 0) firstStrike = i;
+                if (snake.Attacking) struck = true;
+                if (c.run.health < h0) { hitFrame = i; if (!struck) attackedEarly = true; }
+            }
+            c.Expect(firstStrike >= 12, $"the bite comes after a wind-up, not on touch (first strike frame {firstStrike})");
+            c.Expect(hitFrame >= 0 && !attackedEarly && h0 - c.run.health == snake.contactDamage,
+                $"the bite itself costs {snake.contactDamage} (health {h0} -> {c.run.health}, hit frame {hitFrame}, before any strike: {attackedEarly})");
+            snake.Despawn();
+            c.run.health = 4;
             yield return c.Frames(2);
         }
 

@@ -33,7 +33,7 @@ namespace Gloomdelve
         /// <summary>Number of warnings given so far (0..warningsBeforeAngry).</summary>
         public int Strikes => strikes;
 
-        public override int ContactDamage => angry && stunTimer <= 0f ? contactDamage : 0;
+        public override int ContactDamage => angry ? base.ContactDamage : 0;
         public override bool IsStompable => angry;
         public override bool IsHazard => false;   // peaceful until provoked: allowed inside shops / near the entrance
         public override bool TriggersTraps => angry && base.TriggersTraps;
@@ -108,9 +108,12 @@ namespace Gloomdelve
             }
             else if (stunTimer <= 0f && grounded && p != null && !p.IsDead)
             {
-                int dir = p.pos.x >= pos.x ? 1 : -1;
+                int dir = melee == MeleePhase.Strike ? facing : (p.pos.x >= pos.x ? 1 : -1);
                 facing = dir;
-                vel.x = dir * chaseSpeed;
+                // he has to land a blow: stops short, winds up, then lunges - only the lunge hurts
+                bool near = Mathf.Abs(p.pos.x - pos.x) < 1.25f && Mathf.Abs(p.pos.y - pos.y) < 1.1f;
+                if (Melee(dt, near, 0.28f, 0.2f, 0.55f)) vel.x = melee == MeleePhase.Strike ? dir * chaseSpeed * 1.5f : 0f;
+                else vel.x = dir * chaseSpeed;
                 if (jumpCd <= 0f && (WallAhead(dir) || p.pos.y > pos.y + 1.2f))
                 {
                     vel.y = jumpVelocity; grounded = false; jumpCd = 0.8f;

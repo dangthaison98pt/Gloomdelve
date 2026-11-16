@@ -3,7 +3,7 @@ sign1: Welcome, delver!  [move] moves.  Hold [walk] to walk slowly near edges.
 sign2: [jump] jumps.  Tap for a small hop, hold for a high jump.
 sign3: Jump at a ledge and you grab it automatically.  [up] or [jump] climbs up, [down] lets go.
 sign4: Press [up] on a ladder to climb it.  [jump] to leap off.
-sign5: [whip] cracks your whip.  You can also stomp most enemies by landing on their heads.
+sign5: [whip] swings your blade.  You can also stomp most enemies by landing on their heads.
 sign6: [down] + [whip] picks things up, [whip] throws them ([up] + [whip] throws high).  Pots hold treasure - or snakes.
 sign7: Your GEAR is BOMBS (top-left).  [use] uses it: throw a bomb, [down] + [use] places it.  Bombs break dirt and rubble, never the dark bedrock.  Stand back!
 sign8: Hold [gear] to open the GEAR WHEEL, pick the ROPE with [left] [right] and release.  Then press [use] right next to this wall: the rope hooks on, climb with [up].  Ropes vanish after a while.

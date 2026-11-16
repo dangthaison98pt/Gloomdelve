@@ -11,14 +11,18 @@ namespace Gloomdelve
         public float actionGap = 1.5f;
         public float windupTime = 0.5f;
         public float ballGravity = 28f;
-        public int maxPenguins = 2;
+        [Tooltip("Most penguins alive at once.")] public int maxPenguins = 1;
+        [Tooltip("Seconds between two calls at the least (the first call comes after half of this). A skipped call is a snowball volley instead.")] public float summonCooldown = 14f;
         public float leapVelocity = 12f;
         public string projectileId = "snowball";
         public string minionId = "penguin";
         public SpriteAnim animIdle;
         public SpriteAnim animThrow;
 
-        float timer, windup;
+        float timer, windup, summonTimer;
+
+        /// <summary>Up close only his leap hurts (the snowballs are his real attack).</summary>
+        public override bool Attacking => !grounded;
         int step;
         Vector2 aim;
 
@@ -26,12 +30,14 @@ namespace Gloomdelve
         {
             base.OnSpawn();
             timer = 1.6f;
+            summonTimer = summonCooldown * 0.5f;
             anim?.Play(animIdle);
         }
 
         public override void Tick(float dt)
         {
             base.Tick(dt);
+            summonTimer -= dt;
             var p = Target;
             if (grounded) vel.x = Mathf.MoveTowards(vel.x, 0f, 14f * dt);
             if (windup > 0f)
@@ -48,7 +54,7 @@ namespace Gloomdelve
                 {
                     timer = actionGap;
                     int kind = step++ % 4;
-                    if (kind == 2 && CountAlive<Penguin>() < maxPenguins) Summon(p);
+                    if (kind == 2 && summonTimer <= 0f && CountAlive<Penguin>() < maxPenguins) { Summon(p); summonTimer = summonCooldown; }
                     else if (kind == 3)
                     {
                         vel = new Vector2(Mathf.Clamp((p.pos.x - pos.x) * 1.1f, -6f, 6f), leapVelocity);

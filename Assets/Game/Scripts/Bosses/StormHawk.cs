@@ -25,7 +25,9 @@ namespace Gloomdelve
         int dives, rocksLeft;
         Vector2 diveDir;
 
-        public override int ContactDamage => state == State.Grounded ? 0 : contactDamage;
+        /// <summary>Only the dive hurts.</summary>
+        public override bool Attacking => state == State.Dive;
+        public override int ContactDamage => state == State.Dive ? contactDamage : 0;
 
         public override void Configure(SpawnPoint sp)
         {

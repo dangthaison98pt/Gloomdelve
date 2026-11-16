@@ -15,7 +15,7 @@ namespace Gloomdelve
         [Tooltip("Equipment ids the player starts every run with (see GameConfig.equipment).")]
         public string[] startingGear = { "bomb", "rope" };
 
-        [Header("Whip")]
+        [Header("Blade (fields keep the old whip names)")]
         public float whipDuration = 0.3f;
         public float whipCooldown = 0.1f;
         [Tooltip("Back-swing hitbox active until this time.")] public float whipBackEnd = 0.08f;

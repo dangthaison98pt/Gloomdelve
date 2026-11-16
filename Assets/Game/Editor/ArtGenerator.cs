@@ -934,14 +934,19 @@ namespace Gloomdelve.EditorTools
             Save(Humanoid(new Pose { dead = true }, k), d + "dead_0", pv);
             Save(Humanoid(new Pose { lookUp = true }, k), d + "lookup_0", pv);
 
-            // whip strokes (centre pivot, positioned by code)
+            // blade strokes (centre pivot, positioned by code; the files keep their old "whip_" names)
+            Color32 st = C(206, 214, 230), stl = C(244, 248, 255), std = C(120, 128, 152), grip = C(120, 74, 40), guard = C(228, 180, 70);
+            // back swing: the blade raised up and behind the shoulder
             var wb = new Px(16, 16);
-            Color32 w = C(150, 96, 48), wd = C(96, 58, 28), wl = C(196, 140, 80);
-            wb.Line(12, 2, 10, 7, w); wb.Line(10, 7, 7, 11, w); wb.Line(7, 11, 3, 14, wl); wb.Set(2, 15, wd); wb.Set(11, 3, wd);
+            wb.Line(11, 4, 4, 13, st); wb.Line(12, 5, 5, 14, std); wb.Line(10, 4, 3, 13, stl); wb.Set(3, 14, stl);
+            wb.Set(12, 3, guard); wb.Set(13, 4, guard); wb.Set(11, 2, guard); wb.Set(13, 2, grip); wb.Set(14, 1, grip);
             Save(wb, d + "whip_back", PCenter);
+            // forward cut: the blade level in front, with the trail of the swing above it
             var wf = new Px(24, 8);
-            wf.Line(0, 4, 8, 4, w); wf.Line(8, 4, 15, 5, w); wf.Line(15, 5, 21, 4, wl); wf.Set(22, 3, wd); wf.Set(23, 4, C(240, 220, 180));
-            wf.Line(0, 3, 8, 3, wd);
+            wf.Rect(0, 3, 2, 2, grip); wf.Rect(2, 1, 1, 5, guard);
+            wf.Rect(3, 3, 18, 1, st); wf.Rect(3, 4, 17, 1, stl); wf.Rect(3, 2, 16, 1, std);
+            wf.Set(21, 3, stl); wf.Set(20, 4, stl); wf.Set(22, 3, stl);
+            wf.Line(7, 6, 19, 6, C(255, 255, 255, 110)); wf.Line(11, 7, 17, 7, C(255, 255, 255, 60)); wf.Set(20, 5, C(255, 255, 255, 110));
             Save(wf, d + "whip_front", PCenter);
 
             // glider canopy (shown above the player while gliding)
@@ -1456,8 +1461,9 @@ namespace Gloomdelve.EditorTools
             }
             {
                 var p = ItemCanvas(); Color32 m = C(170, 176, 196), md = C(100, 104, 124);
-                p.Ellipse(8, 5f, 4.5f, 3.8f, m); p.Ellipse(8, 5f, 3f, 2.4f, Clear); p.Ellipse(8, 5f, 2f, 1.4f, md);
-                p.Rect(2, 1, 3, 2, C(110, 70, 40)); p.Line(4, 2, 5, 4, m);
+                // tempered blade (the hand upgrade; the id is still "ironwhip")
+                p.Line(6, 5, 12, 13, m); p.Line(7, 5, 13, 13, C(236, 240, 252)); p.Line(5, 5, 11, 13, md); p.Set(13, 14, C(236, 240, 252));
+                p.Line(3, 6, 8, 3, C(228, 180, 70)); p.Line(4, 2, 5, 3, C(110, 70, 40)); p.Set(3, 1, C(228, 180, 70));
                 p.Outline(ol); Save(p, d + "ironwhip", PItem);
             }
             {

@@ -23,6 +23,8 @@ namespace Gloomdelve
         float timer, rest;
 
         public bool Sliding => state == State.Slide;
+        /// <summary>Only the belly slide hurts.</summary>
+        public override bool Attacking => state == State.Slide;
 
         public override void OnSpawn()
         {

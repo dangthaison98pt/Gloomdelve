@@ -21,7 +21,9 @@ namespace Gloomdelve
         State state;
         float timer;
 
-        public override int ContactDamage => state == State.Dazed ? 0 : (state == State.Charge ? 2 : contactDamage);
+        /// <summary>Only the charge hurts.</summary>
+        public override bool Attacking => state == State.Charge;
+        public override int ContactDamage => state == State.Charge ? 2 : 0;
 
         public override void OnSpawn()
         {

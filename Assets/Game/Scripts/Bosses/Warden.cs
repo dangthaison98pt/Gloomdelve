@@ -24,6 +24,9 @@ namespace Gloomdelve
 
         bool Enraged => HealthFraction <= 0.5f;
 
+        /// <summary>Up close only its lunge hurts (the orbs are its real attack).</summary>
+        public override bool Attacking => state == State.Dash;
+
         public override void OnSpawn()
         {
             base.OnSpawn();

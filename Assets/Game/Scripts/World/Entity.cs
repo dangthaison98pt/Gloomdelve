@@ -92,7 +92,7 @@ namespace Gloomdelve
 
         public virtual void OnWhipped(PlayerController p, int damage, int dir)
         {
-            TakeDamage(new DamageInfo(damage, DamageType.Whip, p, new Vector2(dir * 3f, 3f), "a whip"));
+            TakeDamage(new DamageInfo(damage, DamageType.Whip, p, new Vector2(dir * 3f, 3f), "a blade"));
         }
 
         public virtual void OnExplosion(Vector2 center, float radius, Entity source, int generation, int damage)

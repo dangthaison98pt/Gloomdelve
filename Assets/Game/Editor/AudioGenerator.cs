@@ -94,7 +94,7 @@ namespace Gloomdelve.EditorTools
             SfxIds.Clear();
             Sfx("jump", 0.14f, b => Tone(b, 0, 0.14f, 260, 620, p => Sq(p, 0.25f), 0.5f), 0.7f);
             Sfx("land", 0.1f, b => NoiseBurst(b, 0, 0.1f, 0.8f, 0.15f, 0.05f), 0.6f);
-            Sfx("whip", 0.2f, b => { NoiseBurst(b, 0, 0.14f, 0.6f, 0.05f, 0.5f, 1f); NoiseBurst(b, 0.12f, 0.06f, 1f, 0.9f, 0.6f); Tone(b, 0.12f, 0.05f, 1400, 900, p => Sq(p), 0.25f); });
+            Sfx("whip", 0.2f, b => { NoiseBurst(b, 0, 0.17f, 0.75f, 0.12f, 0.75f, 1f); Tone(b, 0.08f, 0.1f, 2500, 2100, p => Sq(p), 0.07f); });
             Sfx("hit", 0.14f, b => { Tone(b, 0, 0.12f, 220, 70, p => Sq(p, 0.3f), 0.6f); NoiseBurst(b, 0, 0.06f, 0.5f, 0.6f, 0.3f); });
             Sfx("enemy_die", 0.3f, b => { Tone(b, 0, 0.28f, 420, 60, p => Sq(p, 0.4f), 0.5f); NoiseBurst(b, 0.02f, 0.2f, 0.4f, 0.4f, 0.1f); });
             Sfx("hurt", 0.3f, b => { Tone(b, 0, 0.28f, 340, 140, p => Sq(p, 0.5f), 0.6f, 0.002f, 0.06f, 30f); NoiseBurst(b, 0, 0.08f, 0.4f, 0.5f, 0.2f); });

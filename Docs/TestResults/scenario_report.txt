@@ -1,4 +1,4 @@
-Gloomdelve in-game scenario tests 2026-11-16 22:43:47
+Gloomdelve in-game scenario tests 2026-11-16 23:15:50
 PASS  whip kills an approaching snake  
 PASS  stomping a snake kills it and bounces  
 PASS  snake on a single tile stands still instead of flipping left-right  
@@ -33,6 +33,7 @@ PASS  treasure chest lays out three free items
 PASS  shop: equipment sells once (no owned pieces, no twins on a shelf, gone once owned)  
 PASS  boss minions pay no gold or hearts; ordinary enemies pay a heart or gold, never both  
 PASS  max health: hearts never overfill; a boss drops a heart vessel (+1 max, full heal) and gold  
+PASS  enemies only hurt while attacking: touching is safe, the snake's bite lands after its wind-up  
 PASS  shopkeeper grudge: robbed -> ambush with two brothers; killed -> no more shopkeepers  
 PASS  climb traps: rotten platform gives way and comes back; rock dropper drops on a climber  
 PASS  area title card and event banner never show at the same time  
@@ -57,4 +58,4 @@ PASS  time-pressure wraith spawns and its touch is fatal
 PASS  carrying a golden idol out pays gold  
 PASS  exit door ends the level  
 
-57 passed, 0 failed
+58 passed, 0 failed

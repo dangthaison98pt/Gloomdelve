@@ -169,7 +169,7 @@ MonoBehaviour:
   actionGap: 1.5
   windupTime: 0.5
   ballGravity: 28
-  maxPenguins: 2
+  maxPenguins: 1
   leapVelocity: 12
   projectileId: snowball
   minionId: penguin

@@ -14,6 +14,9 @@ namespace Gloomdelve
 
         float waitTimer;
 
+        /// <summary>Its attack is the leap: sitting on the ground it is harmless.</summary>
+        public override bool Attacking => !grounded;
+
         public override void OnSpawn()
         {
             base.OnSpawn();

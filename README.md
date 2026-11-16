@@ -1,6 +1,6 @@
 # Gloomdelve
 
-Platformer roguelike 2D pixel art lấy cảm hứng từ cảm giác chơi của Spelunky 2: hang động sinh ngẫu nhiên theo seed, roi/bom/dây, nhặt ném đồ vật, bẫy và chuỗi tương tác vật lý. Nội dung (tên, nhân vật, hình ảnh, âm thanh, màn chơi) hoàn toàn tự tạo bằng code.
+Platformer roguelike 2D pixel art lấy cảm hứng từ cảm giác chơi của Spelunky 2: hang động sinh ngẫu nhiên theo seed, kiếm/bom/dây, nhặt ném đồ vật, bẫy và chuỗi tương tác vật lý. Nội dung (tên, nhân vật, hình ảnh, âm thanh, màn chơi) hoàn toàn tự tạo bằng code.
 
 **Mục tiêu:** đi qua 2 khu hang và 1 khu ngoài trời (mỗi khu 3 màn sinh ngẫu nhiên) tới *The Sunken Vault*, lấy **Heartstone** và mang nó về cổng mặt đất.
 
@@ -23,7 +23,7 @@ Platformer roguelike 2D pixel art lấy cảm hứng từ cảm giác chơi củ
 |---|---|
 | ← → | Di chuyển (giữ Shift: đi chậm) |
 | Z / Space | Nhảy (giữ lâu nhảy cao hơn) |
-| X | Roi · khi cầm đồ: ném (↑+X ném cao) |
+| X | Chém kiếm · khi cầm đồ: ném (↑+X ném cao) |
 | ↓ + X | Nhặt / đặt đồ |
 | C | **Dùng trang bị đang chọn**: bom (ném; ↓+C đặt; ↑+C ném cao) hoặc dây (ném lên, chỉ móc vào trần/vách bên cạnh, tự biến mất sau 20 s; ↓+C ở mép: thả dây xuống) |
 | Giữ D | **Cửa sổ trang bị**: game dừng, ←/→ chọn, thả D để trang bị (bấm nhanh D: đổi về món vừa dùng trước đó) |
@@ -35,7 +35,7 @@ Platformer roguelike 2D pixel art lấy cảm hứng từ cảm giác chơi củ
 
 Bám mép là tự động khi rơi sát mép; ↑ hoặc nhảy để trèo, ↓ để buông.
 
-**Tay cầm:** cần trái/D-pad di chuyển · A/✕ nhảy · X/□ roi, nhặt, ném · B/○ dùng trang bị · **giữ R1, gạt trái/phải để chọn trang bị, thả R1 để trang bị** · Y/△ vào cửa, mua · LT/L2 đi chậm · Start/Options tạm dừng.
+**Tay cầm:** cần trái/D-pad di chuyển · A/✕ nhảy · X/□ chém, nhặt, ném · B/○ dùng trang bị · **giữ R1, gạt trái/phải để chọn trang bị, thả R1 để trang bị** · Y/△ vào cửa, mua · LT/L2 đi chậm · Start/Options tạm dừng.
 
 **Trang bị & giải đố địa hình:** bom, dây và tàu lượn (nhận khi tới khu ngoài trời Sunfall Cliffs: trang bị rồi giữ nút nhảy khi đang rơi để lượn; vực gai rộng 6 ô bắt buộc phải lượn). Mossroot có vách đá cứng cao 4 ô (phải dùng dây), Emberdeep có tường đá vụn bịt đường (phải dùng bom). Mỗi màn có 1–2 chướng ngại như vậy trên đường chính; thiếu đạn thì có kho tiếp tế cạnh lối vào.
 
@@ -48,7 +48,7 @@ Kết quả: `Builds/Windows/Gloomdelve.exe`.
 
 ## Tinh chỉnh
 Tất cả nằm trong `Assets/Game/Data`:
-- `PlayerConfig` – tốc độ, nhảy, coyote/bộ đệm, bám mép, roi, ném, sát thương rơi, máu/bom/dây khởi đầu.
+- `PlayerConfig` – tốc độ, nhảy, coyote/bộ đệm, bám mép, kiếm, ném, sát thương rơi, máu/bom/dây khởi đầu.
 - `Gear_Bomb`, `Gear_Rope`, `Gear_Glider` – tên, mô tả, câu thông báo chướng ngại, kho tiếp tế của từng trang bị.
 - `Area1_Mossroot`, `Area2_Emberdeep`, `Area4_Sunfall`, `Area3_Vault` (màn cuối) – kẻ địch, bẫy, mật độ, kho báu, cửa hàng, nhạc, màu nền.
 - `GameConfig` – danh sách màn, áp lực thời gian (2:30 cảnh báo / 3:00 hồn ma), giới hạn nổ dây chuyền, sinh màn.

@@ -70,7 +70,7 @@ Tất cả thực thể kế thừa `Entity` (pos = đáy giữa hitbox) và ch�
 **Sát thương** (`DamageInfo`: lượng, loại, nguồn, lực đẩy, mô tả → hiện “-2 Shot by an arrow trap” và nguyên nhân chết):
 | Nguồn | Sát thương | Ghi chú |
 |---|---|---|
-| Roi | 1 (Iron Whip: 2, tầm +0,45) | Có hitbox phía sau lúc vung |
+| Kiếm | 1 (Tempered Blade: 2, tầm +0,45) | Có hitbox phía sau lúc vung |
 | Giẫm đầu | 1 + nảy (giữ nhảy nảy cao) | Rắn, dơi, nhện, cóc, gã húc, chủ tiệm khi giận |
 | Vật bị ném / rơi nhanh | 1 (mũi tên nhanh: 2) | Khi tốc độ ≥ ngưỡng; trúng cả người chơi (kể cả đồ mình ném lên rơi xuống) |
 | Chạm kẻ địch | 1 + bật lùi + choáng 0,45 s + bất tử 1,2 s | Gã húc đẩy mạnh ×1,6 |

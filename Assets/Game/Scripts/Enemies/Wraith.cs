@@ -13,6 +13,8 @@ namespace Gloomdelve
         float t;
 
         public override DamageType ContactType => DamageType.Wraith;
+        /// <summary>The wraith is the exception: its touch itself is the attack.</summary>
+        public override bool Attacking => true;
         public override bool CanBeHitByItems => false;
         public override bool TriggersTraps => false;
 
