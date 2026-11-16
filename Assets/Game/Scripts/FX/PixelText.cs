@@ -1,18 +1,25 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Gloomdelve
 {
-    /// <summary>World-space pixel text built from glyph sprites (price tags, floating numbers).</summary>
+    /// <summary>
+    /// World-space text (price tags, floating numbers, "FROZEN"...). Drawn with the normal UI font through
+    /// TextMesh so it stays sharp at any zoom, with a dark copy behind it for contrast.
+    /// (The name is historical: it used to be built from pixel-font sprites.)
+    /// </summary>
     public class PixelText : MonoBehaviour
     {
-        public PixelFont font;
+        [Tooltip("Unused: kept so existing prefabs and scenes still load.")] public PixelFont font;
+        [Tooltip("Font to draw with. Empty = the built-in UI font.")] public Font uiFont;
         public Color color = Color.white;
         public int sortingOrder = 60;
-        public Material material;
+        [Tooltip("Unused: the font's own material is used.")] public Material material;
+        [Tooltip("Height of a line of text in tiles.")] public float lineHeight = 0.4f;
         [SerializeField] string text = "";
 
-        readonly List<SpriteRenderer> glyphs = new List<SpriteRenderer>();
+        const int Raster = 48;      // glyphs are rendered at this size and scaled down, so they stay crisp
+        TextMesh main, shadow;
+        float alpha = 1f;
 
         public string Text => text;
 
@@ -22,38 +29,52 @@ namespace Gloomdelve
         {
             text = t ?? "";
             color = c;
+            alpha = 1f;
             Rebuild();
         }
 
         public void SetAlpha(float a)
         {
-            foreach (var g in glyphs) { var c = g.color; c.a = a; g.color = c; }
+            alpha = a;
+            Apply();
+        }
+
+        TextMesh Make(string name, Vector3 offset, int order)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(transform, false);
+            go.transform.localPosition = offset;
+            var tm = go.AddComponent<TextMesh>();
+            var f = uiFont != null ? uiFont : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            tm.font = f;
+            tm.fontSize = Raster;
+            tm.characterSize = lineHeight * 10f / Raster;
+            tm.fontStyle = FontStyle.Bold;
+            tm.anchor = TextAnchor.MiddleCenter;
+            tm.alignment = TextAlignment.Center;
+            var mr = go.GetComponent<MeshRenderer>();
+            if (f != null) mr.sharedMaterial = f.material;
+            mr.sortingOrder = order;
+            return tm;
         }
 
         void Rebuild()
         {
-            if (font == null) return;
-            while (glyphs.Count < text.Length)
+            if (main == null)
             {
-                var go = new GameObject("g");
-                go.transform.SetParent(transform, false);
-                var sr = go.AddComponent<SpriteRenderer>();
-                if (material != null) sr.sharedMaterial = material;
-                sr.sortingOrder = sortingOrder;
-                glyphs.Add(sr);
+                shadow = Make("Shadow", new Vector3(0.035f, -0.035f, 0f), sortingOrder);
+                main = Make("Text", Vector3.zero, sortingOrder + 1);
             }
-            float width = text.Length * font.advance;
-            float x0 = -width * 0.5f + font.advance * 0.5f;
-            for (int i = 0; i < glyphs.Count; i++)
-            {
-                var g = glyphs[i];
-                if (i >= text.Length) { g.enabled = false; continue; }
-                g.enabled = true;
-                g.sprite = font.Get(text[i]);
-                g.color = color;
-                g.sortingOrder = sortingOrder;
-                g.transform.localPosition = new Vector3(x0 + i * font.advance, 0f, 0f);
-            }
+            main.text = text;
+            shadow.text = text;
+            Apply();
+        }
+
+        void Apply()
+        {
+            if (main == null) return;
+            main.color = new Color(color.r, color.g, color.b, color.a * alpha);
+            shadow.color = new Color(0f, 0f, 0f, 0.85f * color.a * alpha);
         }
     }
 }

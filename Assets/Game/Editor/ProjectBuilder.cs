@@ -58,10 +58,25 @@ namespace Gloomdelve.EditorTools
                 UIBuilder.slotSprite = ArtGenerator.S("UI/slot");
                 // button pictures for the input tokens in UI texts ("[jump]", "[gear]"...)
                 var glyphs = LoadOrCreate<InputGlyphSet>(G + "Data/InputGlyphs.asset");
-                var ge = new List<InputGlyphSet.Entry>();
-                foreach (var tok in ArtGenerator.GlyphTokens)
-                    ge.Add(new InputGlyphSet.Entry { token = tok, keyboard = ArtGenerator.S("UI/Glyphs/kb_" + tok), gamepad = ArtGenerator.S("UI/Glyphs/pad_" + tok) });
-                glyphs.entries = ge.ToArray();
+                Sprite GS(string n) => ArtGenerator.S("UI/Glyphs/" + n);
+                Sprite key = GS("key"), pill = GS("pill"), darkBtn = GS("pad_dark");
+                Color ink = new Color(0.17f, 0.14f, 0.19f), light = new Color(0.97f, 0.96f, 0.93f);
+                InputGlyphSet.Entry GE(string token, string kb, Sprite pad, string padLabel, bool darkInk = false) => new InputGlyphSet.Entry
+                {
+                    token = token, keyboard = key, keyboardLabel = kb, keyboardInk = ink,
+                    gamepad = pad, gamepadLabel = padLabel, gamepadInk = darkInk ? ink : light,
+                };
+                glyphs.entries = new[]
+                {
+                    GE("jump", "Z", GS("pad_green"), "A"), GE("confirm", "Enter", GS("pad_green"), "A"),
+                    GE("whip", "X", GS("pad_blue"), "X"), GE("use", "C", GS("pad_red"), "B"),
+                    GE("enter", "A", GS("pad_yellow"), "Y", true),
+                    GE("gear", "D", pill, "R1"), GE("walk", "Shift", pill, "LT"),
+                    GE("pause", "Esc", pill, "Start"), GE("inventory", "Tab", pill, "Select"),
+                    GE("up", "\u25B2", darkBtn, "\u25B2"), GE("down", "\u25BC", darkBtn, "\u25BC"),
+                    GE("left", "\u25C4", darkBtn, "\u25C4"), GE("right", "\u25BA", darkBtn, "\u25BA"),
+                    GE("move", "\u25C4 \u25B2 \u25BC \u25BA", darkBtn, "L"),
+                };
                 EditorUtility.SetDirty(glyphs);
                 UIBuilder.glyphSet = glyphs;
                 BuildMenuScene(cfg);
@@ -1156,7 +1171,8 @@ namespace Gloomdelve.EditorTools
             hud.equipIcon = UIBuilder.Img(gframe.transform, "Icon", ArtGenerator.S("UI/icon_bomb"), Color.white, new Vector2(0.5f, 0.5f), new Vector2(0, 4), new Vector2(76, 76));
             hud.equipName = null;
             hud.equipAmmo = UIBuilder.Label(gframe.transform, "Ammo", "4", 30, Color.white, TextAnchor.LowerRight, new Vector2(1f, 0f), new Vector2(-12, 8), new Vector2(90, 36), true, FontStyle.Bold);
-            UIBuilder.Label(gearBox.transform, "ChangeKey", "[gear]", 24, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), Vector2.zero, new Vector2(104, 32), false);
+            // arrows either side of the button say "this one switches"
+            UIBuilder.Label(gearBox.transform, "ChangeKey", "\u25C4 [gear] \u25BA", 22, new Color(1f, 0.84f, 0.38f), TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), Vector2.zero, new Vector2(150, 32), false);
             UIBuilder.Label(gearBox.transform, "UseKey", "[use]", 24, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), Vector2.zero, new Vector2(104, 32), false);
             // equipment being worn: a row of small icons next to it
             hud.wornIcons = new Image[5];

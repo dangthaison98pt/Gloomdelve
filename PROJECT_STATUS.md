@@ -61,6 +61,7 @@ Cập nhật: 16/11/2026 · Phiên bản 0.1.0 · Unity 6000.3.12f1
 - Quái riêng của khu băng: **chim cánh cụt** (thấy người chơi thì trượt bụng tới khi đâm tường, bị choáng), **yêu tuyết** (ném cầu tuyết theo vòng cung, đẩy lùi chứ không gây sát thương, `PlayerController.Shove`), **dơi băng** (chết rơi thành cục băng `icechunk`, nhặt ném được, vỡ sau cú va đầu tiên). 3 kịch bản kiểm thử mới (45/45).
 - **Túi đồ / trang bị** (Tab hoặc Select): mỗi nâng cấp có ô mặc (`ShopOffer.slot`: feet / body / hand / charm, charm mặc được 2), chỉ món đang mặc mới có tác dụng (`RunState.worn`, `HasActive`). Món mới: **Ice Cleats** (không trượt trên băng) và **Fur Coat** (cầu tuyết không đóng băng được); shop khu băng luôn bán hai món này (`AreaConfig.shopFeatured`) và màn băng đầu luôn có shop. Cầu tuyết giờ đóng băng người chơi 1,1 giây nếu không có áo.
 - HUD: ô vật phẩm gọn (biểu tượng, số lượng ở góc, nút đổi phía trên, nút dùng phía dưới) thay cho khung chữ; hàng biểu tượng nhỏ cho đồ đang mặc. Kiểm thử: 47/47 kịch bản, bot 39/39, quét 1800 màn 0 lỗi.
+- Chữ: nhãn trên hình nút (Z, Shift, R1...) và chữ nổi trong màn chơi (giá shop, +vàng, FROZEN) vẽ bằng font thường thay cho font pixel để luôn nét (`GlyphText` viết nhãn lên hình nút trống, `PixelText` dùng TextMesh). Nút đổi đồ trên HUD có hai mũi tên hai bên. Logo GLOOMDELVE vẫn là hình pixel.
 
 ## Đang làm
 - Không có hạng mục dở dang.

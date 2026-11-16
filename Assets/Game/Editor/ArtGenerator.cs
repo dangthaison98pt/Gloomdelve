@@ -1734,10 +1734,6 @@ namespace Gloomdelve.EditorTools
 
         // ---- input glyphs: the pictures behind "[jump]", "[use]"... in UI texts (InputGlyphSet / GlyphText)
 
-        /// <summary>Every input token that has a keyboard and a gamepad picture (UI/Glyphs/kb_x, pad_x).</summary>
-        public static readonly string[] GlyphTokens =
-            { "jump", "whip", "use", "gear", "enter", "walk", "pause", "confirm", "up", "down", "left", "right", "move", "inventory" };
-
         static readonly Color32 KeyFace = C(236, 232, 224), KeyLip = C(150, 144, 150), KeyInk = C(44, 36, 48), KeyLine = C(30, 24, 32);
         static readonly Color32 PadBody = C(86, 82, 100), PadLight = C(132, 128, 150), PadInk = C(246, 242, 234);
 
@@ -1780,101 +1776,38 @@ namespace Gloomdelve.EditorTools
             return p;
         }
 
-        static void SaveKey(string token, string label, int arrow = -1)
-        {
-            int w = Mathf.Max(9, (label != null ? TextW(label) : 5) + 4);
-            var p = KeyCap(w, KeyFace, KeyLip);
-            if (label != null) DrawText(p, label, 1 + (w - TextW(label)) / 2, 4, KeyInk);
-            else DrawArrow(p, 1 + (w - 5) / 2, 4, arrow, KeyInk);
-            p.Outline(KeyLine);
-            Save(p, "UI/Glyphs/kb_" + token, PCenter);
-        }
-
-        static void SavePadFace(string token, string letter, Color32 col, Color32 ink)
-        {
-            var p = new Px(13, 13);
-            p.Disc(6f, 6f, 5f, Mul(col, 0.72f));
-            p.Disc(6f, 6.5f, 4.3f, col);
-            p.Set(3, 9, Lerp(col, C(255, 255, 255), 0.6f)); p.Set(4, 10, Lerp(col, C(255, 255, 255), 0.6f));
-            DrawText(p, letter, 5, 4, ink);
-            p.Outline(KeyLine);
-            Save(p, "UI/Glyphs/pad_" + token, PCenter);
-        }
-
-        static void SavePadPill(string token, string label, bool shoulder)
-        {
-            int w = TextW(label) + 8;
-            var p = new Px(w + 2, 13);
-            p.Rect(1, 1, w, 10, PadBody);
-            p.Rect(2, 10, w - 2, 1, PadLight);
-            p.Set(1, 1, Clear); p.Set(w, 1, Clear); p.Set(1, 10, Clear); p.Set(w, 10, Clear);
-            if (shoulder) { p.Set(2, 10, Clear); p.Set(1, 9, Clear); p.Set(w - 1, 10, Clear); p.Set(w, 9, Clear); }
-            DrawText(p, label, 1 + (w - TextW(label)) / 2, 3, PadInk);
-            p.Outline(KeyLine);
-            Save(p, "UI/Glyphs/pad_" + token, PCenter);
-        }
-
-        static void SavePadDpad(string token, int dir)
-        {
-            var p = new Px(15, 15);
-            p.Rect(5, 1, 5, 13, PadBody); p.Rect(1, 5, 13, 5, PadBody);
-            p.Rect(5, 13, 5, 1, PadLight); p.Rect(1, 9, 4, 1, PadLight); p.Rect(10, 9, 4, 1, PadLight);
-            if (dir == 0) p.Rect(6, 10, 3, 3, PadInk);
-            else if (dir == 1) p.Rect(10, 6, 3, 3, PadInk);
-            else if (dir == 2) p.Rect(6, 2, 3, 3, PadInk);
-            else p.Rect(2, 6, 3, 3, PadInk);
-            p.Set(7, 7, Mul(PadBody, 0.6f));
-            p.Outline(KeyLine);
-            Save(p, "UI/Glyphs/pad_" + token, PCenter);
-        }
-
+        /// <summary>
+        /// Blank button shapes for input prompts. The lettering is not drawn here: GlyphText writes it on top with
+        /// the normal UI font so it stays sharp (labels live in Data/InputGlyphs.asset).
+        /// </summary>
         static void GlyphArt()
         {
-            // keyboard
-            SaveKey("jump", "Z"); SaveKey("whip", "X"); SaveKey("use", "C"); SaveKey("gear", "D"); SaveKey("enter", "A");
-            SaveKey("walk", "SHIFT"); SaveKey("pause", "ESC"); SaveKey("confirm", "ENTER"); SaveKey("inventory", "TAB");
-            SaveKey("up", null, 0); SaveKey("right", null, 1); SaveKey("down", null, 2); SaveKey("left", null, 3);
             {
-                // the arrow-key cluster
-                var p = new Px(27, 16);
-                (int x, int y, int dir)[] keys = { (9, 8, 0), (1, 1, 3), (9, 1, 2), (17, 1, 1) };
-                foreach (var k in keys)
-                {
-                    p.Rect(k.x + 1, k.y, 7, 6, KeyLip);
-                    p.Rect(k.x + 1, k.y + 1, 7, 5, KeyFace);
-                    int cx = k.x + 4, cy = k.y + 3;
-                    p.Set(cx, cy, KeyInk);
-                    if (k.dir == 0) { p.Set(cx, cy + 1, KeyInk); p.Set(cx - 1, cy, KeyInk); p.Set(cx + 1, cy, KeyInk); }
-                    else if (k.dir == 2) { p.Set(cx, cy - 1, KeyInk); p.Set(cx - 1, cy, KeyInk); p.Set(cx + 1, cy, KeyInk); }
-                    else if (k.dir == 3) { p.Set(cx - 1, cy, KeyInk); p.Set(cx, cy + 1, KeyInk); p.Set(cx, cy - 1, KeyInk); }
-                    else { p.Set(cx + 1, cy, KeyInk); p.Set(cx, cy + 1, KeyInk); p.Set(cx, cy - 1, KeyInk); }
-                }
+                // keyboard key (9-slice: stretches for "Shift", "Enter"...)
+                var p = KeyCap(10, KeyFace, KeyLip);
                 p.Outline(KeyLine);
-                Save(p, "UI/Glyphs/kb_move", PCenter);
+                Save(p, "UI/Glyphs/key", PCenter, new Vector4(4, 4, 4, 4));
             }
-            // gamepad
-            SavePadFace("jump", "A", C(84, 176, 84), PadInk); SavePadFace("confirm", "A", C(84, 176, 84), PadInk);
-            SavePadFace("whip", "X", C(74, 124, 222), PadInk);
-            SavePadFace("use", "B", C(214, 74, 74), PadInk);
-            SavePadFace("enter", "Y", C(236, 190, 56), KeyInk);
-            SavePadPill("gear", "R1", true); SavePadPill("walk", "LT", true); SavePadPill("inventory", "SEL", false);
             {
-                var p = new Px(15, 11);
-                p.Rect(1, 1, 13, 8, PadBody); p.Rect(2, 8, 11, 1, PadLight);
-                p.Set(1, 1, Clear); p.Set(13, 1, Clear); p.Set(1, 8, Clear); p.Set(13, 8, Clear);
-                p.Rect(4, 6, 7, 1, PadInk); p.Rect(4, 4, 7, 1, PadInk); p.Rect(4, 2, 7, 1, PadInk);
+                // shoulder / trigger / menu button (9-slice)
+                var p = new Px(14, 12);
+                p.Rect(1, 1, 12, 10, PadBody);
+                p.Rect(2, 10, 10, 1, PadLight);
+                p.Set(1, 1, Clear); p.Set(12, 1, Clear); p.Set(1, 10, Clear); p.Set(12, 10, Clear);
                 p.Outline(KeyLine);
-                Save(p, "UI/Glyphs/pad_pause", PCenter);
+                Save(p, "UI/Glyphs/pill", PCenter, new Vector4(4, 4, 4, 4));
             }
-            SavePadDpad("up", 0); SavePadDpad("right", 1); SavePadDpad("down", 2); SavePadDpad("left", 3);
+            void Round(string name, Color32 col)
             {
-                var p = new Px(15, 15);
-                p.Disc(7f, 7f, 6f, PadBody);
-                p.Disc(7f, 7.5f, 3.6f, PadLight);
-                DrawText(p, "L", 6, 5, KeyInk);
+                var p = new Px(13, 13);
+                p.Disc(6f, 6f, 5f, Mul(col, 0.72f));
+                p.Disc(6f, 6.5f, 4.3f, col);
+                p.Set(3, 9, Lerp(col, C(255, 255, 255), 0.6f)); p.Set(4, 10, Lerp(col, C(255, 255, 255), 0.6f));
                 p.Outline(KeyLine);
-                Save(p, "UI/Glyphs/pad_move", PCenter);
+                Save(p, "UI/Glyphs/" + name, PCenter);
             }
+            Round("pad_green", C(84, 176, 84)); Round("pad_blue", C(74, 124, 222)); Round("pad_red", C(214, 74, 74));
+            Round("pad_yellow", C(236, 190, 56)); Round("pad_dark", PadBody);
         }
 
         /// <summary>Reads a sprite written earlier in this run back into a pixel buffer.</summary>

@@ -6,8 +6,9 @@ using UnityEngine.InputSystem.Controls;
 namespace Gloomdelve
 {
     /// <summary>
-    /// Pictures of the buttons behind the input tokens used in UI texts ("[jump]", "[use]", "[gear]"...):
-    /// one sprite for keyboard, one for gamepad. GlyphText swaps a token for the picture of the device in use.
+    /// The buttons behind the input tokens used in UI texts ("[jump]", "[use]", "[gear]"...). Each token has a
+    /// keyboard and a gamepad look: a blank button shape (sprite) plus the label written on it with the normal
+    /// UI font, so the lettering stays sharp at any size. GlyphText swaps a token for the button of the device in use.
     /// To add a token: add an entry here (Data/InputGlyphs.asset) and write "[name]" in any UI text.
     /// </summary>
     public class InputGlyphSet : ScriptableObject
@@ -16,23 +17,32 @@ namespace Gloomdelve
         public class Entry
         {
             public string token;
-            public Sprite keyboard;
+            [Tooltip("Button shape. A sprite with a 9-slice border stretches to fit its label.")] public Sprite keyboard;
+            public string keyboardLabel;
+            public Color keyboardInk = new Color(0.17f, 0.14f, 0.19f);
             public Sprite gamepad;
+            public string gamepadLabel;
+            public Color gamepadInk = Color.white;
         }
 
         public Entry[] entries;
 
         Dictionary<string, Entry> map;
 
-        public Sprite Find(string token, bool gamepad)
+        public bool Find(string token, bool gamepad, out Sprite shape, out string label, out Color ink)
         {
+            shape = null; label = ""; ink = Color.white;
             if (map == null)
             {
                 map = new Dictionary<string, Entry>();
                 if (entries != null) foreach (var e in entries) if (e != null && !string.IsNullOrEmpty(e.token)) map[e.token] = e;
             }
-            if (!map.TryGetValue(token, out var en)) return null;
-            return gamepad && en.gamepad != null ? en.gamepad : en.keyboard;
+            if (!map.TryGetValue(token, out var en)) return false;
+            bool pad = gamepad && en.gamepad != null;
+            shape = pad ? en.gamepad : en.keyboard;
+            label = (pad ? en.gamepadLabel : en.keyboardLabel) ?? "";
+            ink = pad ? en.gamepadInk : en.keyboardInk;
+            return shape != null;
         }
     }
 
