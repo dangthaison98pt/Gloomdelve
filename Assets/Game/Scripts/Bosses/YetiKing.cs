@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Gloomdelve
 {
     /// <summary>
-    /// Frostdeep boss: the yeti king. Five moves in a fixed round: fans of snowballs (they hurt, shove and freeze -
+    /// Frostdeep boss: the yeti king. Five moves in a fixed round: fans of snowballs (no damage: they shove and freeze -
     /// a fur coat stops the freeze), a belly slide across the whole arena (jump it: he is dazed when he hits the
     /// wall), a penguin called in now and then, a leap at the player, and icicles shaken loose above the player.
     /// </summary>

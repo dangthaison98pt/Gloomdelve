@@ -1345,18 +1345,22 @@ namespace Gloomdelve.EditorTools
             var wroot = UIBuilder.Img(wheelGo.transform, "Root", null, new Color(0f, 0f, 0f, 0.45f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
             UIBuilder.Stretch(wroot.rectTransform);
             wheel.root = wroot.gameObject;
-            var wpanel = UIBuilder.Panel(wroot.transform, "Panel", new Vector2(0.5f, 0.5f), new Vector2(0, 30), new Vector2(940, 500));
-            UIBuilder.Label(wpanel.transform, "Title", "GEAR", 40, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -34), new Vector2(800, 50), true, FontStyle.Bold);
-            var row = UIBuilder.Node(wpanel.transform, "Row");
-            UIBuilder.Place(UIBuilder.Rect(row), new Vector2(0.5f, 0.5f), new Vector2(0, 40), new Vector2(800, 150));
+            // Compact: no panel, no title, no description. A row of slots over the dimmed game, arrows either side
+            // of the chosen one, its name underneath and one small line saying how to move.
+            var row = UIBuilder.Node(wroot.transform, "Row");
+            UIBuilder.Place(UIBuilder.Rect(row), new Vector2(0.5f, 0.5f), new Vector2(0, 70), new Vector2(900, 130));
             wheel.row = (RectTransform)row.transform;
-            var slot = UIBuilder.Img(row.transform, "SlotTemplate", UIBuilder.slotSprite, Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(124, 124), true);
-            UIBuilder.Img(slot.transform, "Icon", ArtGenerator.S("UI/icon_bomb"), Color.white, new Vector2(0.5f, 0.5f), new Vector2(0, 8), new Vector2(84, 84));
-            UIBuilder.Label(slot.transform, "Ammo", "x4", 26, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0, -22), new Vector2(120, 36), true, FontStyle.Bold);
+            var slot = UIBuilder.Img(row.transform, "SlotTemplate", UIBuilder.slotSprite, Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(112, 112), true);
+            UIBuilder.Img(slot.transform, "Icon", ArtGenerator.S("UI/icon_bomb"), Color.white, new Vector2(0.5f, 0.5f), new Vector2(0, 4), new Vector2(80, 80));
+            UIBuilder.Label(slot.transform, "Ammo", "4", 28, Color.white, TextAnchor.LowerRight, new Vector2(1f, 0f), new Vector2(-12, 8), new Vector2(90, 34), true, FontStyle.Bold);
             wheel.slotTemplate = slot.gameObject;
-            wheel.nameText = UIBuilder.Label(wpanel.transform, "Name", "", 34, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0, 148), new Vector2(900, 44), true, FontStyle.Bold);
-            wheel.descText = UIBuilder.Label(wpanel.transform, "Desc", "", 22, new Color(1f, 1f, 1f, 0.85f), TextAnchor.UpperCenter, new Vector2(0.5f, 0f), new Vector2(0, 84), new Vector2(900, 70));
-            wheel.hintText = UIBuilder.Label(wpanel.transform, "Hint", "", 20, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0, 24), new Vector2(860, 30), false);
+            var arrowL = UIBuilder.Label(row.transform, "ArrowLeft", "\u25C4", 26, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(30, 40), true);
+            var arrowR = UIBuilder.Label(row.transform, "ArrowRight", "\u25BA", 26, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(30, 40), true);
+            wheel.arrowLeft = arrowL.rectTransform; wheel.arrowRight = arrowR.rectTransform;
+            wheel.spacing = 132f;
+            wheel.nameText = UIBuilder.Label(wroot.transform, "Name", "", 44, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), new Vector2(0, -50), new Vector2(1200, 56), true, FontStyle.Bold);
+            wheel.descText = null;
+            wheel.hintText = UIBuilder.Label(wroot.transform, "Hint", "", 22, new Color(1f, 1f, 1f, 0.85f), TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), new Vector2(0, -116), new Vector2(600, 34), true);
             wheel.input = reader;
             wheel.director = dir;
             dir.gearWheel = wheel;

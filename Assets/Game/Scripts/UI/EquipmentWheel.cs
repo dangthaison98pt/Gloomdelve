@@ -17,15 +17,16 @@ namespace Gloomdelve
         public RectTransform row;
         public GameObject slotTemplate;
         public Text nameText;
-        public Text descText;
+        [Tooltip("Optional: the old description block. Leave empty for the compact look.")] public Text descText;
         public Text hintText;
+        [Tooltip("Small arrows shown either side of the chosen slot.")] public RectTransform arrowLeft, arrowRight;
         public PlayerInputReader input;
         public GameDirector director;
         [Tooltip("Hold the button this long to open the wheel; shorter = quick swap to the next item.")]
         public float holdToOpen = 0.25f;
         [Tooltip("If the wheel opened but nothing was chosen and the button is released before this, it still counts as a tap.")]
         public float tapGrace = 0.4f;
-        public float spacing = 190f;
+        public float spacing = 132f;
 
         class Slot { public RectTransform rt; public Image frame; public Image icon; public Text ammo; }
         readonly List<Slot> slots = new List<Slot>();
@@ -177,6 +178,8 @@ namespace Gloomdelve
             for (int i = 0; i < slots.Count; i++) slots[i].rt.gameObject.SetActive(i < run.gear.Count);
         }
 
+        // Compact look: a row of slots, the chosen one framed in white with an arrow either side, the item in use
+        // on a gold tile, and just the name of the chosen item underneath. No description, no instructions.
         void Refresh()
         {
             var run = RunSession.Current;
@@ -185,20 +188,23 @@ namespace Gloomdelve
             {
                 var def = director.config.FindGear(run.gear[i]);
                 var s = slots[i];
-                bool on = i == sel;
-                s.rt.anchoredPosition = new Vector2((i - (n - 1) * 0.5f) * spacing, on ? 12f : 0f);
-                s.rt.localScale = Vector3.one * (on ? 1.25f : 0.9f);
-                s.frame.color = on ? new Color(1f, 0.8f, 0.35f) : new Color(0.45f, 0.4f, 0.5f, 0.85f);
+                bool on = i == sel, inUse = i == run.equipped;
+                s.rt.anchoredPosition = new Vector2((i - (n - 1) * 0.5f) * spacing, 0f);
+                s.rt.localScale = Vector3.one * (on ? 1.12f : 1f);
+                s.frame.color = on ? Color.white : inUse ? new Color(1f, 0.8f, 0.35f) : new Color(0.5f, 0.46f, 0.54f, 0.9f);
                 s.icon.sprite = def != null ? def.icon : null;
-                s.icon.color = on ? Color.white : new Color(1f, 1f, 1f, 0.6f);
+                s.icon.color = on || inUse ? Color.white : new Color(1f, 1f, 1f, 0.7f);
                 int am = def != null ? run.Ammo(def.id) : 0;
-                s.ammo.text = def != null && am >= 0 ? "x" + am : "";
-                if (i == run.equipped && !on) s.frame.color = new Color(0.55f, 0.75f, 0.55f, 0.9f);
+                s.ammo.text = def != null && am >= 0 ? am.ToString() : "";
             }
+            float selX = (sel - (n - 1) * 0.5f) * spacing;
+            float reach = spacing * 0.5f + 6f;
+            if (arrowLeft != null) { arrowLeft.gameObject.SetActive(n > 1); arrowLeft.anchoredPosition = new Vector2(selX - reach, 0f); }
+            if (arrowRight != null) { arrowRight.gameObject.SetActive(n > 1); arrowRight.anchoredPosition = new Vector2(selX + reach, 0f); }
             var cur = director.config.FindGear(run.gear[sel]);
-            nameText.text = cur != null ? cur.displayName.ToUpperInvariant() : "";
-            descText.text = cur == null ? "" : cur.description + (string.IsNullOrEmpty(cur.terrainHint) ? "" : "\n" + cur.terrainHint);
-            hintText.text = "[left] [right]  choose          release [gear]  equip";
+            nameText.text = cur != null ? cur.displayName : "";
+            if (descText != null) descText.text = "";
+            if (hintText != null) hintText.text = "Select  [move]";
         }
     }
 }

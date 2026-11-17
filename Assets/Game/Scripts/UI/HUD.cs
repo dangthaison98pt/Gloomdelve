@@ -120,7 +120,9 @@ namespace Gloomdelve
             lastHealth = run.health;
             heartPulse -= dt;
             if (heartIcon != null) heartIcon.rectTransform.localScale = Vector3.one * (1f + Mathf.Max(0f, heartPulse) * 0.8f);
-            healthText.color = run.health <= 1 ? new Color(1f, 0.35f, 0.35f) : Color.white;
+            // red when about a third of the health is left (at least at the last point)
+            int lowHealth = Mathf.Max(1, Mathf.CeilToInt(run.maxHealth * 0.3f));
+            healthText.color = run.health <= lowHealth ? new Color(1f, 0.35f, 0.35f) : Color.white;
 
             if (bombText != null) bombText.text = run.bombs.ToString();
             if (ropeText != null) ropeText.text = run.ropes.ToString();
