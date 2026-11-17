@@ -57,6 +57,7 @@ namespace Gloomdelve
         public override void Tick(float dt)
         {
             base.Tick(dt);
+            if (HoldCounterPose(dt)) return;      // busy answering a stomp
             var p = Target;
             timer -= dt;
             switch (state)

@@ -46,6 +46,7 @@ namespace Gloomdelve
         public override void Tick(float dt)
         {
             base.Tick(dt);
+            if (HoldCounterPose(dt)) return;      // busy answering a stomp
             broodTimer -= dt;
             var p = Target;
             if (grounded)

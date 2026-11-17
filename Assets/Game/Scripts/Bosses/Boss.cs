@@ -25,6 +25,22 @@ namespace Gloomdelve
         float stompGuard;
         int stompsInARow;
 
+        /// <summary>How the body moves during the counter-attack.</summary>
+        public enum CounterMotion { Lunge, Buck, Burst, Flap }
+        [Header("Counter-attack animation")]
+        [Tooltip("Pose held during the counter (usually the boss's attack frame).")] public SpriteAnim animCounter;
+        [Tooltip("One-shot effect played over its head: fangs, impact, frost, gust.")] public SpriteAnim counterFx;
+        public CounterMotion counterMotion = CounterMotion.Lunge;
+        [Tooltip("Seconds the counter pose lasts; the boss does nothing else meanwhile.")] public float counterTime = 0.5f;
+        public float counterFxScale = 1.4f;
+        [Tooltip("Play the effect around the body (a burst) instead of rising from the top of the head.")] public bool counterFxOnBody;
+        float counterT;
+        int counterAway = 1;
+        bool counterPosed;
+
+        /// <summary>In the middle of its counter-attack animation.</summary>
+        public bool Countering => counterT > 0f;
+
         public float HealthFraction => maxHealth > 0 ? Mathf.Clamp01(health / (float)maxHealth) : 0f;
         public override bool IsHazard => true;
 
@@ -40,6 +56,57 @@ namespace Gloomdelve
         {
             base.Tick(dt);
             stompGuard -= dt;
+            counterT -= dt;
+        }
+
+        /// <summary>
+        /// Call first thing in a boss's Tick (after base.Tick). While the counter-attack plays it holds the pose,
+        /// keeps the boss in place and returns true: the boss skips its normal behaviour for that step.
+        /// </summary>
+        protected bool HoldCounterPose(float dt, bool onGround = true)
+        {
+            if (counterT <= 0f) return false;
+            if (animCounter != null) anim?.Play(animCounter);
+            if (onGround)
+            {
+                vel.x = Mathf.MoveTowards(vel.x, 0f, 40f * dt);
+                StepPhysics(dt, gravity);
+            }
+            else vel = Vector2.zero;
+            return true;
+        }
+
+        protected override void LateUpdate()
+        {
+            base.LateUpdate();
+            if (sr == null) return;
+            var tr = sr.transform;
+            if (counterT <= 0f)
+            {
+                if (counterPosed) { counterPosed = false; tr.localScale = Vector3.one; tr.localRotation = Quaternion.identity; }
+                return;
+            }
+            counterPosed = true;
+            float k = 1f - Mathf.Clamp01(counterT / Mathf.Max(0.01f, counterTime));     // 0 -> 1 through the move
+            float swing = Mathf.Sin(k * Mathf.PI);                                       // out and back
+            switch (counterMotion)
+            {
+                case CounterMotion.Lunge:   // rears straight up
+                    tr.localScale = new Vector3(1f - 0.18f * swing, 1f + 0.4f * swing, 1f);
+                    break;
+                case CounterMotion.Buck:    // throws its back up towards the side the player flies off
+                    tr.localRotation = Quaternion.Euler(0f, 0f, -counterAway * 26f * swing);
+                    tr.localScale = new Vector3(1f, 1f + 0.12f * swing, 1f);
+                    break;
+                case CounterMotion.Burst:   // shrinks in, then bursts outward
+                    float b = k < 0.25f ? -0.12f * (k / 0.25f) : -0.12f + 0.4f * Mathf.Sin((k - 0.25f) / 0.75f * Mathf.PI);
+                    tr.localScale = Vector3.one * (1f + b);
+                    break;
+                case CounterMotion.Flap:    // two hard wing beats
+                    float beat = Mathf.Abs(Mathf.Sin(k * Mathf.PI * 2f));
+                    tr.localScale = new Vector3(1f + 0.32f * beat, 1f - 0.14f * beat, 1f);
+                    break;
+            }
         }
 
         /// <summary>
@@ -54,7 +121,13 @@ namespace Gloomdelve
             stompGuard = stompCounterWindow;
             if (stompsInARow <= freeStomps || Dead) return false;
             Tell();
-            OnGreedyStomp(p, p.pos.x >= pos.x ? 1 : -1);
+            counterAway = p.pos.x >= pos.x ? 1 : -1;
+            counterT = counterTime;
+            if (animCounter != null) anim?.Play(animCounter);
+            // the effect sprite is 2 tiles tall: sit its lower edge on the head, or centre it on the body
+            Vector2 fxAt = counterFxOnBody ? Center : new Vector2(pos.x, pos.y + size.y + counterFxScale * 0.9f);
+            Fx.PlayAnim(counterFx, fxAt, counterFxScale, counterAway < 0);
+            OnGreedyStomp(p, counterAway);
             return true;
         }
 

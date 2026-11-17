@@ -47,6 +47,7 @@ namespace Gloomdelve
         public override void Tick(float dt)
         {
             base.Tick(dt);
+            if (HoldCounterPose(dt)) return;      // busy answering a stomp
             summonTimer -= dt;
             var p = Target;
             if (grounded && !sliding) vel.x = Mathf.MoveTowards(vel.x, 0f, 14f * dt);

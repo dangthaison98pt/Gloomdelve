@@ -801,6 +801,7 @@ namespace Gloomdelve
                 Vector2 before = c.p.pos;
                 bool countered = b.CounterStomp(c.p);
                 c.Expect(countered, id + ": a third stomp right after is countered");
+                c.Expect(b.Countering && b.counterFx != null && b.animCounter != null, id + ": its counter animation is playing");
                 yield return c.Frames(3);
                 switch (id)
                 {
@@ -809,6 +810,9 @@ namespace Gloomdelve
                     case "yetiking": c.Expect(c.run.health == hp && c.p.Frozen, "yeti king freezes the player, no damage"); break;
                     case "stormhawk": c.Expect(c.run.health == hp && c.p.vel.y > 9f && c.Count<BossShot>() >= 3, $"storm hawk blows the player up and sends feathers after them (vy {c.p.vel.y:0.0}, shots {c.Count<BossShot>()})"); break;
                 }
+                yield return new WaitForSecondsRealtime(0.05f);
+                ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "counter_" + id + ".png"));
+                yield return new WaitForSecondsRealtime(0.05f);
                 // leave its head alone for longer than the window: a stomp counts again
                 b.stunTimer = 99f;
                 c.Teleport(6.5f, 1f);

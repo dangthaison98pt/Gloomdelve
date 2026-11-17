@@ -64,6 +64,12 @@ MonoBehaviour:
   bossShotId: gloomorb
   freeStomps: 2
   stompCounterWindow: 1.5
+  animCounter: {fileID: 0}
+  counterFx: {fileID: 0}
+  counterMotion: 0
+  counterTime: 0.5
+  counterFxScale: 1.4
+  counterFxOnBody: 0
   driftSpeed: 1.6
   attackGap: 2.2
   shotSpeed: 6

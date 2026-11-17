@@ -142,6 +142,7 @@ namespace Gloomdelve.EditorTools
             ItemArt();
             TrapAndPropArt();
             BossArt();
+            CounterFxArt();
             FxArt();
             UiArt();
             FontArt();
@@ -1332,6 +1333,76 @@ namespace Gloomdelve.EditorTools
                 }
                 p.Outline(C(40, 24, 12));
                 Save(p, $"Sprites/Props/chest_{f}", new Vector2(0.5f, 1f / 16f));
+            }
+        }
+
+        /// <summary>
+        /// One-shot effects of the bosses' counter-attacks (4 frames each, 32 x 32): fangs snapping upward, an impact
+        /// burst, a ring of ice shards, rising gusts of wind.
+        /// </summary>
+        static void CounterFxArt()
+        {
+            for (int f = 0; f < 4; f++)
+            {
+                int a = f == 3 ? 130 : 255;
+                {
+                    // bite: two fangs thrusting up, venom at the tips
+                    var p = new Px(32, 32);
+                    int h = 9 + f * 6;
+                    Color32 fang = C(246, 250, 236, a), edge = C(150, 236, 110, a), drip = C(120, 255, 90, a);
+                    foreach (int cx in new[] { 10, 21 })
+                        for (int y = 0; y < h; y++)
+                        {
+                            int w = Mathf.Max(1, Mathf.RoundToInt(4f * (1f - y / (float)h)));
+                            int lean = (cx < 16 ? 1 : -1) * y / 6;
+                            for (int x = -w; x <= w; x++) p.Set(cx + lean + x, 2 + y, Mathf.Abs(x) == w ? edge : fang);
+                        }
+                    if (f >= 1) { p.Set(10 + h / 6, 3 + h, drip); p.Set(21 - h / 6, 3 + h, drip); p.Set(16, 4 + f * 5, drip); p.Set(15, 2 + f * 5, drip); }
+                    Save(p, $"Center/cfx_bite_{f}", PCenter);
+                }
+                {
+                    // buck: an impact burst of rays
+                    var p = new Px(32, 32);
+                    Color32 hot = C(255, 232, 150, a), ray = C(255, 160, 60, a);
+                    float r0 = 2f + f * 3f, r1 = 7f + f * 3.5f;
+                    for (int i = 0; i < 8; i++)
+                    {
+                        float ang = i * Mathf.PI / 4f + 0.2f;
+                        Vector2 d = new Vector2(Mathf.Cos(ang), Mathf.Sin(ang));
+                        p.Line(16 + (int)(d.x * r0), 16 + (int)(d.y * r0), 16 + (int)(d.x * r1), 16 + (int)(d.y * r1), i % 2 == 0 ? hot : ray);
+                        if (i % 2 == 0) p.Line(17 + (int)(d.x * r0), 16 + (int)(d.y * r0), 17 + (int)(d.x * r1), 16 + (int)(d.y * r1), ray);
+                    }
+                    if (f < 2) p.Disc(16f, 16f, 3.5f - f, hot);
+                    Save(p, $"Center/cfx_buck_{f}", PCenter);
+                }
+                {
+                    // frost: a ring of ice shards flying outward
+                    var p = new Px(32, 32);
+                    Color32 ice = C(190, 234, 255, a), core = C(255, 255, 255, a), deep = C(120, 180, 236, a);
+                    float r = 4f + f * 3.4f;
+                    for (int i = 0; i < 8; i++)
+                    {
+                        float ang = i * Mathf.PI / 4f;
+                        int x = 16 + Mathf.RoundToInt(Mathf.Cos(ang) * r), y = 16 + Mathf.RoundToInt(Mathf.Sin(ang) * r);
+                        p.Set(x, y, core); p.Set(x - 1, y, ice); p.Set(x + 1, y, ice); p.Set(x, y - 1, ice); p.Set(x, y + 1, ice);
+                        int ox = Mathf.RoundToInt(Mathf.Cos(ang) * 2f), oy = Mathf.RoundToInt(Mathf.Sin(ang) * 2f);
+                        p.Set(x + ox, y + oy, deep);
+                    }
+                    if (f == 0) { p.Disc(16f, 16f, 3f, core); p.Disc(16f, 16f, 1.5f, ice); }
+                    Save(p, $"Center/cfx_frost_{f}", PCenter);
+                }
+                {
+                    // gust: three chevrons of wind rising
+                    var p = new Px(32, 32);
+                    Color32 wind = C(240, 250, 255, a), soft = C(190, 220, 240, a);
+                    for (int i = 0; i < 3; i++)
+                    {
+                        int y = 3 + i * 7 + f * 3, hw = 10 - i * 2;
+                        p.Line(16 - hw, y, 16, y + 5, wind); p.Line(16, y + 5, 16 + hw, y, wind);
+                        p.Line(16 - hw, y - 1, 16, y + 4, soft); p.Line(16, y + 4, 16 + hw, y - 1, soft);
+                    }
+                    Save(p, $"Center/cfx_gust_{f}", PCenter);
+                }
             }
         }
 

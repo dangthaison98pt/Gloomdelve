@@ -165,9 +165,13 @@ namespace Gloomdelve
                     new Color(0.8f, 0.8f, 0.8f, 0.8f), R(0.5f, 0.9f), -0.5f, 1f, true);
         }
 
-        public static void Explosion(Vector2 pos, float radius)
+        /// <summary>
+        /// Plays a one-shot sprite animation at a spot (glowing, drawn over everything in the level) and cleans it
+        /// up when it ends. Used for explosions and for effects such as a boss's counter-attack.
+        /// </summary>
+        public static void PlayAnim(SpriteAnim clip, Vector2 pos, float scale = 1f, bool flipX = false, Color? tint = null)
         {
-            if (Instance == null) return;
+            if (Instance == null || clip == null || clip.frames == null || clip.frames.Length == 0) return;
             var inst = Instance;
             SpriteAnimator a;
             if (inst.boomPool.Count > 0) a = inst.boomPool.Pop();
@@ -180,12 +184,21 @@ namespace Gloomdelve
                 r.sortingOrder = 45;
                 a = go.AddComponent<SpriteAnimator>();
             }
+            var sr = a.GetComponent<SpriteRenderer>();
+            sr.flipX = flipX;
+            sr.color = tint ?? Color.white;
             a.gameObject.SetActive(true);
             a.transform.position = pos;
-            a.transform.localScale = Vector3.one * (radius / 2.3f);
-            a.Play(inst.explosionAnim, true);
-            float len = inst.explosionAnim != null ? inst.explosionAnim.frames.Length / inst.explosionAnim.fps : 0.4f;
-            inst.booms.Add((a, len));
+            a.transform.localScale = Vector3.one * scale;
+            a.Play(clip, true);
+            inst.booms.Add((a, clip.frames.Length / Mathf.Max(1f, clip.fps)));
+        }
+
+        public static void Explosion(Vector2 pos, float radius)
+        {
+            if (Instance == null) return;
+            var inst = Instance;
+            PlayAnim(inst.explosionAnim, pos, radius / 2.3f);
             Smoke(pos, 9);
             Sparks(pos, new Color(1f, 0.8f, 0.3f), 22, 11f);
             Embers(pos, 10);

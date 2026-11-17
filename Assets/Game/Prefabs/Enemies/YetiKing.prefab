@@ -169,6 +169,12 @@ MonoBehaviour:
   bossShotId: gloomorb
   freeStomps: 2
   stompCounterWindow: 1.5
+  animCounter: {fileID: 11400000, guid: 971cb61e4c13f814489227dd21dfaff3, type: 2}
+  counterFx: {fileID: 11400000, guid: 5d1da62118074ea41b1fa93ac9605c73, type: 2}
+  counterMotion: 2
+  counterTime: 0.5
+  counterFxScale: 2.2
+  counterFxOnBody: 1
   actionGap: 1.5
   windupTime: 0.5
   ballGravity: 28
