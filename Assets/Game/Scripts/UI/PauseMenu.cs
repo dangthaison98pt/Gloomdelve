@@ -7,25 +7,23 @@ namespace Gloomdelve
     {
         public GameObject root;
         public GameObject mainPanel;
-        public GameObject controlsPanel;
         public SettingsPanel settingsPanel;
-        public Button resumeButton, controlsButton, settingsButton, restartButton, retrySeedButton, menuButton, quitButton, controlsBack;
+        [Tooltip("Settings > Keys: the controls list, where keyboard keys can be changed.")] public KeyBindPanel keysPanel;
+        public Button resumeButton, settingsButton, restartButton, retrySeedButton, menuButton, quitButton;
         public Text infoText;
-        public Text controlsBody;
 
         void Awake()
         {
             var d = GetComponentInParent<GameDirector>();
             UIUtil.Wire(resumeButton, () => GameDirector.Instance.SetPaused(false));
-            UIUtil.Wire(controlsButton, () => Open(controlsPanel, controlsBack));
             UIUtil.Wire(settingsButton, () => { Open(settingsPanel.gameObject, settingsPanel.First); });
             UIUtil.Wire(restartButton, () => GameDirector.Instance.RestartRun(false));
             UIUtil.Wire(retrySeedButton, () => GameDirector.Instance.RestartRun(true));
             UIUtil.Wire(menuButton, () => GameDirector.Instance.QuitToMenu());
             UIUtil.Wire(quitButton, GameDirector.QuitGame);
-            UIUtil.Wire(controlsBack, ShowMain);
             settingsPanel.onBack = ShowMain;
-            if (controlsBody != null) controlsBody.text = ControlsText.Body;
+            settingsPanel.onKeys = OpenKeys;
+            if (keysPanel != null) keysPanel.onBack = () => Open(settingsPanel.gameObject, settingsPanel.keys != null ? settingsPanel.keys : settingsPanel.First);
             root.SetActive(false);
         }
 
@@ -41,25 +39,32 @@ namespace Gloomdelve
 
         public void Hide() { root.SetActive(false); }
 
+        /// <summary>The controls / change-keys screen (from the Settings panel).</summary>
+        public void OpenKeys()
+        {
+            if (keysPanel != null) Open(keysPanel.gameObject, keysPanel.First);
+        }
+
         void Open(GameObject panel, Selectable first)
         {
             mainPanel.SetActive(false);
-            controlsPanel.SetActive(panel == controlsPanel);
             settingsPanel.gameObject.SetActive(panel == settingsPanel.gameObject);
+            if (keysPanel != null) keysPanel.gameObject.SetActive(panel == keysPanel.gameObject);
             UIUtil.Select(first);
         }
 
         void ShowMain()
         {
             mainPanel.SetActive(true);
-            controlsPanel.SetActive(false);
             settingsPanel.gameObject.SetActive(false);
+            if (keysPanel != null) keysPanel.gameObject.SetActive(false);
             UIUtil.Select(resumeButton);
         }
 
         /// <summary>Esc inside a sub panel goes back; returns false when already on the main panel.</summary>
         public bool HandleBack()
         {
+            if (keysPanel != null && keysPanel.gameObject.activeSelf) { keysPanel.onBack?.Invoke(); return true; }   // back to Settings
             if (!mainPanel.activeSelf) { ShowMain(); return true; }
             return false;
         }

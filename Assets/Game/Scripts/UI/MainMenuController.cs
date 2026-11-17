@@ -9,14 +9,13 @@ namespace Gloomdelve
     {
         public GameConfig config;
         public GameObject mainPanel;
-        public GameObject controlsPanel;
         public GameObject recordsPanel;
         public SettingsPanel settingsPanel;
-        public Button startButton, tutorialButton, controlsButton, settingsButton, recordsButton, quitButton;
-        public Button controlsBack, recordsBack, resetRecordsButton;
+        public Button startButton, tutorialButton, settingsButton, recordsButton, quitButton;
+        public Button recordsBack;
+        [Tooltip("Settings > Keys: the controls list, where keyboard keys can be changed.")] public KeyBindPanel keysPanel;
         public Text recordsText;
         public Text versionText;
-        public Text controlsBody;
 
         void Start()
         {
@@ -24,15 +23,13 @@ namespace Gloomdelve
             SaveSystem.EnsureLoaded();
             UIUtil.Wire(startButton, StartRun);
             UIUtil.Wire(tutorialButton, StartTutorial);
-            UIUtil.Wire(controlsButton, () => Open(controlsPanel, controlsBack));
             UIUtil.Wire(settingsButton, () => Open(settingsPanel.gameObject, settingsPanel.First));
             UIUtil.Wire(recordsButton, () => { RefreshRecords(); Open(recordsPanel, recordsBack); });
             UIUtil.Wire(quitButton, GameDirector.QuitGame);
-            UIUtil.Wire(controlsBack, ShowMain);
             UIUtil.Wire(recordsBack, ShowMain);
-            UIUtil.Wire(resetRecordsButton, () => { SaveSystem.ResetRecords(); RefreshRecords(); });
             settingsPanel.onBack = ShowMain;
-            if (controlsBody != null) controlsBody.text = ControlsText.Body;
+            settingsPanel.onKeys = OpenKeys;
+            if (keysPanel != null) keysPanel.onBack = () => Open(settingsPanel.gameObject, settingsPanel.keys != null ? settingsPanel.keys : settingsPanel.First);
             if (versionText != null) versionText.text = $"v{GameConst.Version}   ·   last seed {SaveSystem.Records.lastSeed}";
             ShowMain();
             if (AudioManager.Instance != null) { AudioManager.Instance.SetMusicPitch(1f); AudioManager.Instance.PlayMusic("menu"); }
@@ -113,9 +110,13 @@ namespace Gloomdelve
                 System.IO.File.AppendAllText(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_pad.txt"), "\nSwitch: " + swResult);
                 UnityEngine.InputSystem.InputSystem.settings.backgroundBehavior = prevBg;
             }
-            Open(controlsPanel, controlsBack);
+            Open(settingsPanel.gameObject, settingsPanel.First);
             yield return new WaitForSecondsRealtime(0.3f);
-            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_controls.png"));
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_settings.png"));
+            yield return new WaitForSecondsRealtime(0.3f);
+            OpenKeys();
+            yield return new WaitForSecondsRealtime(0.3f);
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_keys.png"));
             yield return new WaitForSecondsRealtime(0.3f);
             RunSession.NewRun(1, true, config.player);
             SceneManager.LoadScene(GameConst.SceneGame);
@@ -124,7 +125,15 @@ namespace Gloomdelve
         void Update()
         {
             var kb = Keyboard.current;
-            if (kb != null && kb.escapeKey.wasPressedThisFrame && !mainPanel.activeSelf) ShowMain();
+            if (kb == null || !kb.escapeKey.wasPressedThisFrame || mainPanel.activeSelf || KeyBindings.Busy) return;   // Busy: Esc is cancelling a key change
+            if (keysPanel != null && keysPanel.gameObject.activeSelf) keysPanel.onBack?.Invoke();                      // back to Settings
+            else ShowMain();
+        }
+
+        /// <summary>The controls / change-keys screen (from the Settings panel).</summary>
+        public void OpenKeys()
+        {
+            if (keysPanel != null) Open(keysPanel.gameObject, keysPanel.First);
         }
 
         void StartRun()
@@ -142,18 +151,18 @@ namespace Gloomdelve
         void Open(GameObject panel, Selectable first)
         {
             mainPanel.SetActive(false);
-            controlsPanel.SetActive(panel == controlsPanel);
             recordsPanel.SetActive(panel == recordsPanel);
             settingsPanel.gameObject.SetActive(panel == settingsPanel.gameObject);
+            if (keysPanel != null) keysPanel.gameObject.SetActive(panel == keysPanel.gameObject);
             UIUtil.Select(first);
         }
 
         void ShowMain()
         {
             mainPanel.SetActive(true);
-            controlsPanel.SetActive(false);
             recordsPanel.SetActive(false);
             settingsPanel.gameObject.SetActive(false);
+            if (keysPanel != null) keysPanel.gameObject.SetActive(false);
             UIUtil.Select(startButton);
         }
 

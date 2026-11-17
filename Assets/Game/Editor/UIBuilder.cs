@@ -185,7 +185,7 @@ namespace Gloomdelve.EditorTools
 
         public static SettingsPanel Settings(Transform parent)
         {
-            var p = Panel(parent, "SettingsPanel", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(760, 640));
+            var p = Panel(parent, "SettingsPanel", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(760, 700));
             Label(p.transform, "Title", "SETTINGS", 46, Gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -50), new Vector2(700, 70));
             var sp = p.gameObject.AddComponent<SettingsPanel>();
             sp.master = Slider(p.transform, "Master", "Master", new Vector2(0, -120), out sp.masterValue);
@@ -193,18 +193,44 @@ namespace Gloomdelve.EditorTools
             sp.sfx = Slider(p.transform, "Sfx", "Effects", new Vector2(0, -260), out sp.sfxValue);
             sp.fullscreen = Toggle(p.transform, "Fullscreen", "Fullscreen  (F11)", new Vector2(0, -340));
             sp.shake = Toggle(p.transform, "Shake", "Screen shake", new Vector2(0, -410));
-            sp.back = Button(p.transform, "Back", "BACK", new Vector2(0.5f, 0f), new Vector2(0, 50), new Vector2(320, 70));
+            sp.keys = Button(p.transform, "Keys", "CONTROLS / KEYS", new Vector2(0.5f, 1f), new Vector2(0, -486), new Vector2(420, 64));
+            sp.back = Button(p.transform, "Back", "BACK", new Vector2(0.5f, 0f), new Vector2(0, 46), new Vector2(320, 70));
             return sp;
         }
 
-        public static GameObject ControlsPanel(Transform parent, out Text body, out Button back)
+        /// <summary>Settings > Keys: one row per KeyBindings.Slots entry - action, keyboard key (can be changed), gamepad button (fixed).</summary>
+        public static KeyBindPanel KeysPanel(Transform parent)
         {
-            var p = Panel(parent, "ControlsPanel", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1240, 900));
-            Label(p.transform, "Title", "CONTROLS", 46, Gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -50), new Vector2(1000, 70));
-            body = Label(p.transform, "Body", ControlsText.Body, 27, Color.white, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(0, -110), new Vector2(1140, 680));
-            body.lineSpacing = 1.3f;
-            back = Button(p.transform, "Back", "BACK", new Vector2(0.5f, 0f), new Vector2(0, 45), new Vector2(320, 70));
-            return p.gameObject;
+            var slots = KeyBindings.Slots;
+            const float rowH = 48f, step = 54f, top = 150f, keyX = -230f, padX = -80f;
+            var p = Panel(parent, "KeysPanel", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(820, top + slots.Length * step + 205f));
+            Label(p.transform, "Title", "CONTROLS", 46, Gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -42), new Vector2(700, 70));
+            var head = Node(p.transform, "Head");
+            Place(Rect(head), new Vector2(0.5f, 1f), new Vector2(0, -top + 34f), new Vector2(700, 30));
+            Color dim = new Color(1f, 1f, 1f, 0.6f);
+            Label(head.transform, "Keyboard", "KEYBOARD", 18, dim, TextAnchor.MiddleCenter, new Vector2(1f, 0.5f), new Vector2(keyX + 80f, 0), new Vector2(160, 30), false);
+            Label(head.transform, "Gamepad", "GAMEPAD", 18, dim, TextAnchor.MiddleCenter, new Vector2(1f, 0.5f), new Vector2(padX + 70f, 0), new Vector2(140, 30), false);
+            var kp = p.gameObject.AddComponent<KeyBindPanel>();
+            kp.rows = new Button[slots.Length];
+            kp.keyTexts = new Text[slots.Length];
+            for (int i = 0; i < slots.Length; i++)
+            {
+                var b = Button(p.transform, "Row_" + slots[i].id, "", new Vector2(0.5f, 1f), new Vector2(0, -top - i * step), new Vector2(700, rowH));
+                Label(b.transform, "Name", slots[i].title, 26, Color.white, TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(24, 0), new Vector2(330, rowH));
+                string token = "[" + slots[i].token + "]";
+                var key = Label(b.transform, "Key", token, 24, Gold, TextAnchor.MiddleCenter, new Vector2(1f, 0.5f), new Vector2(keyX + 80f, 0), new Vector2(160, rowH), false);
+                var g = key.GetComponent<GlyphText>();
+                if (g != null) g.keyboardOnly = true;       // this column is the keyboard even while a pad is in use
+                var pad = Label(b.transform, "Pad", token, 24, Color.white, TextAnchor.MiddleCenter, new Vector2(1f, 0.5f), new Vector2(padX + 70f, 0), new Vector2(140, rowH), false);
+                g = pad.GetComponent<GlyphText>();
+                if (g != null) g.gamepadOnly = true;        // and this one the pad even while the keyboard is in use
+                kp.rows[i] = b;
+                kp.keyTexts[i] = key;
+            }
+            kp.hint = Label(p.transform, "Hint", "", 22, new Color(1f, 1f, 1f, 0.8f), TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0, 124), new Vector2(760, 64));
+            kp.resetButton = Button(p.transform, "Reset", "DEFAULT KEYS", new Vector2(0.5f, 0f), new Vector2(-175, 45), new Vector2(330, 70));
+            kp.back = Button(p.transform, "Back", "BACK", new Vector2(0.5f, 0f), new Vector2(175, 45), new Vector2(300, 70));
+            return kp;
         }
     }
 }

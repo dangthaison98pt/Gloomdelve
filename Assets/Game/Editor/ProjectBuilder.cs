@@ -1073,19 +1073,17 @@ namespace Gloomdelve.EditorTools
             Vector2 bs = new Vector2(460, 64);
             menu.startButton = UIBuilder.Button(mt, "Start", "START RUN", new Vector2(0.5f, 1f), new Vector2(0, -36), bs);
             menu.tutorialButton = UIBuilder.Button(mt, "Tutorial", "TUTORIAL", new Vector2(0.5f, 1f), new Vector2(0, -108), bs);
-            menu.controlsButton = UIBuilder.Button(mt, "Controls", "CONTROLS", new Vector2(0.5f, 1f), new Vector2(0, -180), bs);
-            menu.settingsButton = UIBuilder.Button(mt, "Settings", "SETTINGS", new Vector2(0.5f, 1f), new Vector2(0, -252), bs);
-            menu.recordsButton = UIBuilder.Button(mt, "Records", "RECORDS", new Vector2(0.5f, 1f), new Vector2(0, -324), bs);
-            menu.quitButton = UIBuilder.Button(mt, "Quit", "QUIT", new Vector2(0.5f, 1f), new Vector2(0, -396), bs);
+            menu.settingsButton = UIBuilder.Button(mt, "Settings", "SETTINGS", new Vector2(0.5f, 1f), new Vector2(0, -180), bs);
+            menu.recordsButton = UIBuilder.Button(mt, "Records", "RECORDS", new Vector2(0.5f, 1f), new Vector2(0, -252), bs);
+            menu.quitButton = UIBuilder.Button(mt, "Quit", "QUIT", new Vector2(0.5f, 1f), new Vector2(0, -324), bs);
             menu.mainPanel = main;
 
-            menu.controlsPanel = UIBuilder.ControlsPanel(t, out menu.controlsBody, out menu.controlsBack);
+            menu.keysPanel = UIBuilder.KeysPanel(t);
             menu.settingsPanel = UIBuilder.Settings(t);
             var rec = UIBuilder.Panel(t, "RecordsPanel", new Vector2(0.5f, 0.5f), new Vector2(0, -60), new Vector2(760, 640));
             UIBuilder.Label(rec.transform, "Title", "RECORDS", 46, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -50), new Vector2(700, 70));
             menu.recordsText = UIBuilder.Label(rec.transform, "Body", "", 30, Color.white, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(0, -110), new Vector2(620, 380));
-            menu.resetRecordsButton = UIBuilder.Button(rec.transform, "Reset", "RESET RECORDS", new Vector2(0.5f, 0f), new Vector2(-170, 50), new Vector2(320, 70));
-            menu.recordsBack = UIBuilder.Button(rec.transform, "Back", "BACK", new Vector2(0.5f, 0f), new Vector2(170, 50), new Vector2(300, 70));
+            menu.recordsBack = UIBuilder.Button(rec.transform, "Back", "BACK", new Vector2(0.5f, 0f), new Vector2(0, 50), new Vector2(320, 70));   // records cannot be reset from the game
             menu.recordsPanel = rec.gameObject;
             menu.versionText = UIBuilder.Label(t, "Version", "", 22, new Color(1, 1, 1, 0.5f), TextAnchor.LowerLeft, new Vector2(0f, 0f), new Vector2(20, 16), new Vector2(900, 40), false);
             UIBuilder.Label(t, "Hint", "[move] navigate   ·   [confirm] select   ·   [jump] jump   ·   [whip] blade   ·   [use] use gear   ·   hold [gear] gear wheel   ·   [enter] enter", 22,
@@ -1411,19 +1409,18 @@ namespace Gloomdelve.EditorTools
             var pm = pauseGo.AddComponent<PauseMenu>();
             var proot = UIBuilder.Dimmer(pauseGo.transform, "Root");
             pm.root = proot.gameObject;
-            var pmain = UIBuilder.Panel(proot.transform, "MainPanel", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(760, 820));
+            var pmain = UIBuilder.Panel(proot.transform, "MainPanel", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(760, 746));
             UIBuilder.Label(pmain.transform, "Title", "PAUSED", 56, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -55), new Vector2(700, 80), true, FontStyle.Bold);
             Vector2 pb = new Vector2(480, 64);
             pm.resumeButton = UIBuilder.Button(pmain.transform, "Resume", "RESUME", new Vector2(0.5f, 1f), new Vector2(0, -130), pb);
-            pm.controlsButton = UIBuilder.Button(pmain.transform, "Controls", "CONTROLS", new Vector2(0.5f, 1f), new Vector2(0, -204), pb);
-            pm.settingsButton = UIBuilder.Button(pmain.transform, "Settings", "SETTINGS / VOLUME", new Vector2(0.5f, 1f), new Vector2(0, -278), pb);
-            pm.restartButton = UIBuilder.Button(pmain.transform, "Restart", "NEW RUN", new Vector2(0.5f, 1f), new Vector2(0, -352), pb);
-            pm.retrySeedButton = UIBuilder.Button(pmain.transform, "RetrySeed", "RESTART SAME SEED", new Vector2(0.5f, 1f), new Vector2(0, -426), pb);
-            pm.menuButton = UIBuilder.Button(pmain.transform, "Menu", "MAIN MENU", new Vector2(0.5f, 1f), new Vector2(0, -500), pb);
-            pm.quitButton = UIBuilder.Button(pmain.transform, "Quit", "QUIT GAME", new Vector2(0.5f, 1f), new Vector2(0, -574), pb);
+            pm.settingsButton = UIBuilder.Button(pmain.transform, "Settings", "SETTINGS", new Vector2(0.5f, 1f), new Vector2(0, -204), pb);
+            pm.restartButton = UIBuilder.Button(pmain.transform, "Restart", "NEW RUN", new Vector2(0.5f, 1f), new Vector2(0, -278), pb);
+            pm.retrySeedButton = UIBuilder.Button(pmain.transform, "RetrySeed", "RESTART SAME SEED", new Vector2(0.5f, 1f), new Vector2(0, -352), pb);
+            pm.menuButton = UIBuilder.Button(pmain.transform, "Menu", "MAIN MENU", new Vector2(0.5f, 1f), new Vector2(0, -426), pb);
+            pm.quitButton = UIBuilder.Button(pmain.transform, "Quit", "QUIT GAME", new Vector2(0.5f, 1f), new Vector2(0, -500), pb);
             pm.infoText = UIBuilder.Label(pmain.transform, "Info", "", 22, new Color(1, 1, 1, 0.75f), TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0, 80), new Vector2(720, 90));
             pm.mainPanel = pmain.gameObject;
-            pm.controlsPanel = UIBuilder.ControlsPanel(proot.transform, out pm.controlsBody, out pm.controlsBack);
+            pm.keysPanel = UIBuilder.KeysPanel(proot.transform);
             pm.settingsPanel = UIBuilder.Settings(proot.transform);
             dir.pauseMenu = pm;
 

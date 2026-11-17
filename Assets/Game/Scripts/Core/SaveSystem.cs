@@ -12,6 +12,16 @@ namespace Gloomdelve
         public float sfxVolume = 0.8f;
         public bool fullscreen = false;
         public bool screenShake = true;
+        [Tooltip("Keyboard keys the player changed (Settings > Keys). Empty = all default. See KeyBindings.")]
+        public System.Collections.Generic.List<KeyBind> keys = new System.Collections.Generic.List<KeyBind>();
+    }
+
+    /// <summary>One changed keyboard key: action id (KeyBindings.Slots) and the Input System key name ("z", "leftShift").</summary>
+    [Serializable]
+    public class KeyBind
+    {
+        public string id;
+        public string key;
     }
 
     [Serializable]
@@ -100,12 +110,6 @@ namespace Gloomdelve
                 File.AppendAllText(RunLogPath, $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}  {line}\n");
             }
             catch { /* ignore */ }
-        }
-
-        public static void ResetRecords()
-        {
-            Records = new GameRecords();
-            SaveRecords();
         }
     }
 }

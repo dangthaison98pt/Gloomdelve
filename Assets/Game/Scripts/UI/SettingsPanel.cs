@@ -12,9 +12,11 @@ namespace Gloomdelve
         public Toggle fullscreen;
         public Toggle shake;
         public Button back;
+        [Tooltip("Opens the controls list, where keyboard keys can be changed.")] public Button keys;
         public Text masterValue, musicValue, sfxValue;
 
         public Action onBack;
+        public Action onKeys;
 
         void Awake()
         {
@@ -24,6 +26,7 @@ namespace Gloomdelve
             fullscreen.onValueChanged.AddListener(v => { SaveSystem.Settings.fullscreen = v; Changed(); GameServices.ApplyDisplaySettings(); });
             shake.onValueChanged.AddListener(v => { SaveSystem.Settings.screenShake = v; Changed(); });
             UIUtil.Wire(back, () => onBack?.Invoke());
+            UIUtil.Wire(keys, () => onKeys?.Invoke());
         }
 
         void OnEnable()

@@ -234,6 +234,9 @@ namespace Gloomdelve
             new Scenario { name = "area title card and event banner never show at the same time", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => TitleCardCase(c) },
 
+            new Scenario { name = "keyboard keys can be changed: the new key works, a key in use swaps, defaults come back", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => KeyChangeCase(c) },
+
             new Scenario { name = "hawk dives at the player below it", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => HawkCase(c) },
 
@@ -1215,6 +1218,100 @@ namespace Gloomdelve
             c.Expect(hud.introGroup.alpha > 0.9f && hud.bannerGroup.alpha < 0.01f, "a new title card clears the banner");
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "title_card.png"));
             yield return new WaitForSecondsRealtime(0.3f);
+        }
+
+        static IEnumerator Keys(Keyboard kb, float wait, params Key[] down)
+        {
+            InputSystem.QueueStateEvent(kb, new KeyboardState(down));
+            yield return new WaitForSecondsRealtime(wait);
+        }
+
+        // Real key presses through the Input System (virtual keyboard) against the real action asset and the real screen.
+        static IEnumerator KeyChangeCase(Ctx c)
+        {
+            var saved = new System.Collections.Generic.List<KeyBind>(SaveSystem.Settings.keys ?? new System.Collections.Generic.List<KeyBind>());
+            var prevBg = InputSystem.settings.backgroundBehavior;
+            InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+            var kb = InputSystem.AddDevice<Keyboard>("ScenarioKeys");
+            var map = c.dir.input.actions.FindActionMap("Player", true);
+            InputAction jump = map.FindAction("Jump"), attack = map.FindAction("Attack"), use = map.FindAction("Use"), move = map.FindAction("Move");
+            KeyBindings.ResetAll();
+
+            yield return Keys(kb, 0.1f, Key.Z);
+            c.Expect(jump.IsPressed(), "default: Z jumps");
+            yield return Keys(kb, 0.1f);
+
+            KeyBindings.Assign("jump", "k");
+            yield return Keys(kb, 0.1f, Key.K);
+            c.Expect(jump.IsPressed(), "after the change K jumps");
+            yield return Keys(kb, 0.1f, Key.Z);
+            c.Expect(!jump.IsPressed(), "and Z no longer does");
+            yield return Keys(kb, 0.1f);
+            c.Expect(KeyBindings.GlyphLabel("jump", out var lbl) && lbl == "K", "the [jump] picture now reads K (got " + lbl + ")");
+
+            // a key that another action already has: the two swap
+            var swapped = KeyBindings.Assign("attack", "k");
+            c.Expect(swapped != null && swapped.id == "jump" && KeyBindings.KeyOf("jump") == "x" && KeyBindings.KeyOf("attack") == "k",
+                $"giving K to the blade swaps: jump {KeyBindings.KeyOf("jump")}, blade {KeyBindings.KeyOf("attack")}");
+            yield return Keys(kb, 0.1f, Key.X);
+            c.Expect(jump.IsPressed() && !attack.IsPressed(), "X jumps now, it does not swing the blade");
+            yield return Keys(kb, 0.1f);
+
+            // Space is an extra jump key until the player gives it another job
+            yield return Keys(kb, 0.1f, Key.Space);
+            c.Expect(jump.IsPressed(), "Space still jumps as an extra key");
+            yield return Keys(kb, 0.1f);
+            KeyBindings.Assign("use", "space");
+            yield return Keys(kb, 0.1f, Key.Space);
+            c.Expect(use.IsPressed() && !jump.IsPressed(), "Space given to 'use gear': it uses gear and no longer jumps");
+            yield return Keys(kb, 0.1f);
+
+            c.Expect(!KeyBindings.Allowed("escape") && KeyBindings.Assign("jump", "escape") == null && KeyBindings.KeyOf("jump") == "x", "Esc cannot be given to an action");
+
+            // the screen itself, from the pause menu: choose the 'Up' row, press W
+            c.dir.SetPaused(true);
+            yield return new WaitForSecondsRealtime(0.1f);
+            var pm = c.dir.pauseMenu;
+            pm.OpenKeys();
+            var panel = pm.keysPanel;
+            c.Expect(panel != null && panel.gameObject.activeInHierarchy, "the change-keys screen opens from the pause menu");
+            if (panel != null)
+            {
+                yield return new WaitForSecondsRealtime(0.2f);
+                panel.Begin(0);
+                yield return new WaitForSecondsRealtime(0.15f);
+                c.Expect(panel.Listening && KeyBindings.Busy, "choosing a row waits for a key");
+                ScreenCapture.CaptureScreenshot(Path.Combine(outDir, "keys_listening.png"));
+                yield return new WaitForSecondsRealtime(0.3f);
+                // Esc while it waits cancels the change - and must not close the pause menu
+                yield return Keys(kb, 0.1f, Key.Escape);
+                yield return Keys(kb, 0.2f);
+                c.Expect(!panel.Listening && c.dir.Paused && panel.gameObject.activeInHierarchy && KeyBindings.KeyOf("up") == "upArrow", "Esc cancels and the screen stays open");
+                panel.Begin(0);
+                yield return new WaitForSecondsRealtime(0.15f);
+                yield return Keys(kb, 0.1f, Key.W);
+                yield return Keys(kb, 0.2f);
+                c.Expect(KeyBindings.KeyOf("up") == "w" && !KeyBindings.Busy, "pressing W on the screen makes W the 'up' key (got " + KeyBindings.KeyOf("up") + ")");
+                ScreenCapture.CaptureScreenshot(Path.Combine(outDir, "keys_changed.png"));
+                yield return new WaitForSecondsRealtime(0.3f);
+                yield return Keys(kb, 0.1f, Key.W);
+                c.Expect(move.ReadValue<Vector2>().y > 0.5f, "W now moves up");
+                yield return Keys(kb, 0.1f, Key.UpArrow);
+                c.Expect(move.ReadValue<Vector2>().y < 0.5f, "the up arrow no longer does");
+                yield return Keys(kb, 0.1f);
+            }
+            c.dir.SetPaused(false);
+
+            KeyBindings.ResetAll();
+            yield return Keys(kb, 0.1f, Key.Z);
+            c.Expect(KeyBindings.AllDefault && jump.IsPressed(), "defaults: Z jumps again");
+            yield return Keys(kb, 0.1f);
+
+            KeyBindings.Restore(saved);         // whatever the player had set up on this machine
+            InputSystem.RemoveDevice(kb);
+            InputSystem.settings.backgroundBehavior = prevBg;
+            InputDeviceTracker.ResetToKeyboard();
+            yield return c.Frames(5);
         }
 
         static IEnumerator HawkCase(Ctx c)

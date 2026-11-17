@@ -18,13 +18,15 @@ namespace Gloomdelve
         public InputGlyphSet set;
         [Tooltip("Button height relative to the font size.")] public float scale = 1.35f;
         [Tooltip("Label size relative to the button height.")] public float labelScale = 0.58f;
+        [Tooltip("Always show the keyboard key, even while a gamepad is in use (the change-keys screen).")] public bool keyboardOnly;
+        [Tooltip("Always show the gamepad button, even while the keyboard is in use (the gamepad column of that screen).")] public bool gamepadOnly;
 
         struct Spot { public int index, count; public Sprite sprite; public string label; public Color ink; public float width; }
         class Icon { public Image image; public Text label; }
 
         Text text;
         string raw, shown;
-        int device;
+        int device, keysVersion;
         Vector2 lastSize;
         readonly List<Spot> spots = new List<Spot>();
         readonly List<Icon> icons = new List<Icon>();
@@ -45,7 +47,9 @@ namespace Gloomdelve
                 else { raw = cur; dirty = true; }
             }
             if (raw == null) return;
-            if (device != InputDeviceTracker.Kind) { device = InputDeviceTracker.Kind; dirty = true; }
+            int kind = keyboardOnly ? 0 : gamepadOnly ? Mathf.Max(1, InputDeviceTracker.Kind) : InputDeviceTracker.Kind;
+            if (device != kind) { device = kind; dirty = true; }
+            if (keysVersion != KeyBindings.Version) { keysVersion = KeyBindings.Version; dirty = true; }   // the player changed a key
             var size = text.rectTransform.rect.size;
             if (dirty) Rebuild();
             else if (size != lastSize && spots.Count > 0) Place();

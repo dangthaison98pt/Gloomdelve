@@ -39,7 +39,7 @@ namespace Gloomdelve
             if (!root.activeSelf || done) return;
             t += Time.unscaledDeltaTime;
             var kb = Keyboard.current;
-            bool key = kb != null && t > 0.5f && (kb.zKey.wasPressedThisFrame || kb.spaceKey.wasPressedThisFrame || kb.enterKey.wasPressedThisFrame);
+            bool key = kb != null && t > 0.5f && (KeyBindings.Pressed("jump") || kb.spaceKey.wasPressedThisFrame || kb.enterKey.wasPressedThisFrame);
             var gp = Gamepad.current;
             if (gp != null && t > 0.5f && gp.buttonSouth.wasPressedThisFrame) key = true;
             if (key || t >= autoDelay)

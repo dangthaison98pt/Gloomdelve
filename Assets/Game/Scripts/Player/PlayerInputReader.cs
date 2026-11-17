@@ -44,10 +44,14 @@ namespace Gloomdelve
             walk = map.FindAction("Walk", true);
             pause = map.FindAction("Pause", true);
             inventory = map.FindAction("Inventory", false);
+            KeyBindings.Apply(actions);             // the keyboard keys the player chose
+            KeyBindings.Changed += ApplyKeys;
             map.Enable();
         }
 
-        void OnDisable() { map?.Disable(); }
+        void OnDisable() { KeyBindings.Changed -= ApplyKeys; map?.Disable(); }
+
+        void ApplyKeys() { KeyBindings.Apply(actions); }
 
         Vector2 MoveValue => move != null ? move.ReadValue<Vector2>() : Vector2.zero;
 
@@ -73,11 +77,12 @@ namespace Gloomdelve
             jumpL = attackL = useL = interactL = upL = false;
         }
 
-        public bool PausePressed => pause != null && pause.WasPressedThisFrame();
+        // KeyBindings.Busy: the change-keys screen is waiting for a key, so that key press must not pause or confirm anything
+        public bool PausePressed => !KeyBindings.Busy && pause != null && pause.WasPressedThisFrame();
         /// <summary>Equipment screen button (Tab / Select). Works while the game is frozen.</summary>
-        public bool InventoryPressed => inventory != null && inventory.WasPressedThisFrame();
+        public bool InventoryPressed => !KeyBindings.Busy && inventory != null && inventory.WasPressedThisFrame();
         /// <summary>Jump or Interact pressed this frame (menu confirm), readable while frozen.</summary>
-        public bool ConfirmPressed => (jump != null && jump.WasPressedThisFrame()) || (interact != null && interact.WasPressedThisFrame());
+        public bool ConfirmPressed => !KeyBindings.Busy && ((jump != null && jump.WasPressedThisFrame()) || (interact != null && interact.WasPressedThisFrame()));
         /// <summary>-1 / 0 / 1 vertical direction (stick or arrows), readable while frozen.</summary>
         public int MoveY { get { var v = MoveValue; return v.y > 0.5f ? 1 : (v.y < -0.5f ? -1 : 0); } }
 

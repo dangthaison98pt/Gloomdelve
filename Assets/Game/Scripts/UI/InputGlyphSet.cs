@@ -48,7 +48,11 @@ namespace Gloomdelve
             if (device == 3 && en.nintendo != null) { shape = en.nintendo; label = en.nintendoLabel ?? ""; ink = en.nintendoInk; }
             else if (device == 2 && en.playstation != null) { shape = en.playstation; label = en.playstationLabel ?? ""; ink = en.playstationInk; }
             else if (device >= 1 && en.gamepad != null) { shape = en.gamepad; label = en.gamepadLabel ?? ""; ink = en.gamepadInk; }
-            else { shape = en.keyboard; label = en.keyboardLabel ?? ""; ink = en.keyboardInk; }
+            else
+            {
+                shape = en.keyboard; label = en.keyboardLabel ?? ""; ink = en.keyboardInk;
+                if (KeyBindings.GlyphLabel(token, out var chosen)) label = chosen;      // the key the player chose for it
+            }
             return shape != null;
         }
     }
