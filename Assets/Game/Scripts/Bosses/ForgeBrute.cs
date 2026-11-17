@@ -37,6 +37,16 @@ namespace Gloomdelve
         [Tooltip("Damage of the charge (the leap uses contactDamage).")] public int chargeDamage = 3;
         public override int ContactDamage => !Attacking ? 0 : (state == State.Charge ? chargeDamage : contactDamage);
 
+        /// <summary>Stomped again: it bucks and hurls the player across the arena - no damage, but a long flight and a
+        /// moment on the floor, usually right in the path of its next charge.</summary>
+        protected override void OnGreedyStomp(PlayerController p, int away)
+        {
+            p.Shove(new Vector2(away * 12f, 8.5f), 0.45f);
+            Fx.Shake(0.45f);
+            Fx.Dust(pos, 8);
+            Sfx.Play("brute", pos, 1f, 0.9f);
+        }
+
         public override void OnSpawn()
         {
             base.OnSpawn();

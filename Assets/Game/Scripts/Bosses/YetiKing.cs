@@ -117,6 +117,18 @@ namespace Gloomdelve
             }
         }
 
+        /// <summary>Stomped again: a burst of cold off his back - the player is thrown up and frozen for a moment
+        /// (with cold resistance: only slowed).</summary>
+        protected override void OnGreedyStomp(PlayerController p, int away)
+        {
+            var run = RunSession.Current;
+            p.Shove(new Vector2(away * 4f, 10f), 0.15f);
+            if (run != null && run.stats.coldResist > 0f) p.Slow(0.3f, 1.5f);
+            else p.Freeze(0.7f);
+            Fx.Debris(new Vector2(pos.x, pos.y + size.y), new Color(0.85f, 0.95f, 1f), 12);
+            Fx.Shake(0.3f);
+        }
+
         void Volley()
         {
             Vector2 from = new Vector2(pos.x + facing * 0.6f, pos.y + size.y + 0.1f);

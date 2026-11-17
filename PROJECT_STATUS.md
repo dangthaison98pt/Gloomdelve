@@ -105,3 +105,4 @@ Cập nhật: 16/11/2026 · Phiên bản 0.1.0 · Unity 6000.3.12f1
 1. Đọc file này + `Docs/TEST_REPORT.md`.
 2. Mở project, chạy **Gloomdelve > Tests > Logic Tests** và **Seed Sweep** để xác nhận trạng thái.
 3. Sửa code/config → **Gloomdelve > Build Everything** (nếu đổi art/prefab/scene) → **Build Windows** → chạy `Gloomdelve.exe -scenarios` và `-autotest 3`.
+- **Giẫm boss liên tiếp bị phản đòn** (`Enemy.CounterStomp`, `Boss.OnGreedyStomp`, cửa sổ `stompCounterWindow` 1,5 giây): hai cú giẫm liên tiếp vẫn tính (`freeStomps`); giẫm cú thứ ba khi chưa rời đầu boss đủ 1,5 giây thì Broodmother cắn ngược lên (mất máu, hất cao), Forge Brute hất văng ngang (không mất máu), Yeti King đóng băng (có áo lông thì chỉ chậm), Storm Hawk quạt cánh thổi lên cao kèm lông vũ rồi bay lên. Kịch bản kiểm thử mới (60/60).

@@ -61,6 +61,8 @@ MonoBehaviour:
   goldChunks: 4
   rewardId: heartvessel
   bossShotId: gloomorb
+  freeStomps: 2
+  stompCounterWindow: 1.5
   chargeSpeed: 9.5
   windupTime: 0.7
   dazeTime: 2.2

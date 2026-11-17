@@ -29,6 +29,13 @@ namespace Gloomdelve
         public virtual bool Attacking => melee == MeleePhase.Strike;
         public override int ContactDamage => stunTimer > 0f || !Attacking ? 0 : contactDamage;
         public virtual DamageType ContactType => DamageType.Contact;
+
+        /// <summary>
+        /// Called when the player lands on this creature's head, before the stomp counts. Return true to cancel the
+        /// stomp (no damage, no bounce): the creature has dealt with the player itself. Bosses use it to punish
+        /// stomping again and again (Boss.OnGreedyStomp).
+        /// </summary>
+        public virtual bool CounterStomp(PlayerController p) => false;
         public override bool TriggersTraps => vel.sqrMagnitude > 0.25f;
 
         protected PlayerController Player => World != null ? World.Player : null;

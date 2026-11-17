@@ -311,6 +311,7 @@ namespace Gloomdelve
                 bool above = prevPos.y >= e.pos.y + e.size.y * 0.45f;
                 if (en.IsStompable && falling && above && motor.mode == MotorMode.Normal)
                 {
+                    if (en.CounterStomp(this)) continue;      // it punished the stomp: no damage to it, no bounce
                     en.TakeDamage(new DamageInfo(1, DamageType.Stomp, this, new Vector2(0f, -2f), "a stomp"));
                     motor.vel.y = fi.jumpHeld ? cfg.stompBounceHeld : cfg.stompBounce;
                     motor.jumping = fi.jumpHeld;

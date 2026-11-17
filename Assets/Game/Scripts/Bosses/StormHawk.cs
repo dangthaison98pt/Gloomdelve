@@ -163,6 +163,20 @@ namespace Gloomdelve
             }
         }
 
+        /// <summary>Stomped again: a beat of its wings blows the player high into the air, feathers fly up after them,
+        /// and the hawk takes off - the opening on the ground is over.</summary>
+        protected override void OnGreedyStomp(PlayerController p, int away)
+        {
+            p.Shove(new Vector2(away * 5f, 15f), 0.1f);
+            // the feathers leave from the wing on the far side of the player and fan upward, so they are something
+            // to dodge on the way back down, not an instant hit
+            Vector2 from = new Vector2(pos.x - away * (size.x * 0.5f + 0.5f), pos.y + size.y + 0.2f);
+            FanAt(from, from + new Vector2(away * 2.5f, 6f), 3, 22f, 6.5f, "feathershot");
+            if (state == State.Grounded) state = State.Climb;
+            Fx.Dust(pos, 10);
+            Sfx.Play("bat", pos, 1f, 0.45f);
+        }
+
         void DropRock()
         {
             var e = World.SpawnById(rockId, new Vector2(pos.x, pos.y - 0.3f));

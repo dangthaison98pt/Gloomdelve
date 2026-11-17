@@ -200,6 +200,9 @@ namespace Gloomdelve
             new Scenario { name = "boss: registered, damage capped per hit, defeat is reported", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => BossCase(c) },
 
+            new Scenario { name = "bosses: two stomps in a row count, a third is punished - each boss its own way", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => GreedyStompCase(c) },
+
             new Scenario { name = "all five bosses run their attack patterns", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => BossPatternsCase(c) },
 
@@ -778,6 +781,45 @@ namespace Gloomdelve
             yield return c.Frames(10);
             ClearFight(c);
             c.p.godMode = false;
+        }
+
+        static IEnumerator GreedyStompCase(Ctx c)
+        {
+            c.Bot(Seq((2400, F())));
+            c.run.RemoveUpgrade("warmcoat");
+            foreach (var id in new[] { "broodmother", "forgebrute", "yetiking", "stormhawk" })
+            {
+                c.run.health = 8;
+                c.Teleport(6.5f, 1f);
+                yield return c.Frames(80);              // any invulnerability from the last boss has run out
+                var b = c.Spawn<Boss>(id, 17, 1);
+                c.Expect(b != null, id + " spawned");
+                if (b == null) continue;
+                int hp = c.run.health;
+                c.Expect(!b.CounterStomp(c.p) && !b.CounterStomp(c.p), id + ": two stomps in a row count");
+                c.Teleport(b.pos.x, b.pos.y + b.size.y + 0.3f);
+                Vector2 before = c.p.pos;
+                bool countered = b.CounterStomp(c.p);
+                c.Expect(countered, id + ": a third stomp right after is countered");
+                yield return c.Frames(3);
+                switch (id)
+                {
+                    case "broodmother": c.Expect(c.run.health < hp, $"broodmother bites upward (health {hp} -> {c.run.health})"); break;
+                    case "forgebrute": c.Expect(c.run.health == hp && Mathf.Abs(c.p.vel.x) > 8f, $"forge brute hurls the player away without damage (vx {c.p.vel.x:0.0})"); break;
+                    case "yetiking": c.Expect(c.run.health == hp && c.p.Frozen, "yeti king freezes the player, no damage"); break;
+                    case "stormhawk": c.Expect(c.run.health == hp && c.p.vel.y > 9f && c.Count<BossShot>() >= 3, $"storm hawk blows the player up and sends feathers after them (vy {c.p.vel.y:0.0}, shots {c.Count<BossShot>()})"); break;
+                }
+                // leave its head alone for longer than the window: a stomp counts again
+                b.stunTimer = 99f;
+                c.Teleport(6.5f, 1f);
+                c.p.godMode = true;
+                yield return c.Frames(Mathf.CeilToInt(b.stompCounterWindow / GameConst.Dt) + 20);
+                c.p.godMode = false;
+                c.Expect(!b.Dead && !b.CounterStomp(c.p), id + ": after waiting, a stomp counts again");
+                b.Despawn();
+                ClearFight(c);
+                yield return c.Frames(5);
+            }
         }
 
         static IEnumerator BossPatternsCase(Ctx c)

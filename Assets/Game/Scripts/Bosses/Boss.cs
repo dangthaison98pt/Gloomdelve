@@ -17,6 +17,14 @@ namespace Gloomdelve
 
         [Tooltip("Projectile prefab used by the shots of this boss (venom, embers, feathers, orbs).")] public string bossShotId = "gloomorb";
 
+        [Header("Stomping")]
+        [Tooltip("Stomps in a row that count before the boss answers back (each boss in its own way).")]
+        public int freeStomps = 2;
+        [Tooltip("Leaving its head alone for this many seconds starts the count again.")]
+        public float stompCounterWindow = 1.5f;
+        float stompGuard;
+        int stompsInARow;
+
         public float HealthFraction => maxHealth > 0 ? Mathf.Clamp01(health / (float)maxHealth) : 0f;
         public override bool IsHazard => true;
 
@@ -26,6 +34,37 @@ namespace Gloomdelve
             if (facing == 0) facing = -1;
             if (AutoTest.Active) { Despawn(); return; }      // the test bot only walks the arena
             if (GameDirector.Instance != null) GameDirector.Instance.RegisterBoss(this);
+        }
+
+        public override void Tick(float dt)
+        {
+            base.Tick(dt);
+            stompGuard -= dt;
+        }
+
+        /// <summary>
+        /// A couple of stomps in a row are fair (freeStomps). One more while the boss still remembers them is
+        /// answered by its own counter (OnGreedyStomp) - and so is every further one until the player leaves its
+        /// head alone for stompCounterWindow seconds.
+        /// </summary>
+        public override bool CounterStomp(PlayerController p)
+        {
+            if (stompGuard <= 0f) stompsInARow = 0;
+            stompsInARow++;
+            stompGuard = stompCounterWindow;
+            if (stompsInARow <= freeStomps || Dead) return false;
+            Tell();
+            OnGreedyStomp(p, p.pos.x >= pos.x ? 1 : -1);
+            return true;
+        }
+
+        /// <summary>The boss's answer to being stomped again and again. 'away' is the side the player is on (+1 right).
+        /// Default: throws the player off without hurting.</summary>
+        protected virtual void OnGreedyStomp(PlayerController p, int away)
+        {
+            p.Shove(new Vector2(away * 7f, 9f), 0.2f);
+            Fx.Shake(0.3f);
+            Sfx.Play("thud", pos);
         }
 
         public override bool TakeDamage(in DamageInfo d)

@@ -1,4 +1,4 @@
-Gloomdelve in-game scenario tests 2026-11-17 00:09:28
+Gloomdelve in-game scenario tests 2026-11-17 09:46:06
 PASS  whip kills an approaching snake  
 PASS  stomping a snake kills it and bounces  
 PASS  snake on a single tile stands still instead of flipping left-right  
@@ -28,6 +28,7 @@ PASS  frost bat drops an ice chunk that can be thrown and shatters
 PASS  equipment: slots, wearing and taking off; ice cleats stop the slide  
 PASS  fur coat: a snowball only slows the wearer by 30% for 1 s  
 PASS  boss: registered, damage capped per hit, defeat is reported  
+PASS  bosses: two stomps in a row count, a third is punished - each boss its own way  
 PASS  all five bosses run their attack patterns  
 PASS  treasure chest lays out three free items  
 PASS  shop: equipment sells once (no owned pieces, no twins on a shelf, gone once owned)  
@@ -59,4 +60,4 @@ PASS  the Reaper (time pressure) spawns and its touch is fatal
 PASS  carrying a golden idol out pays gold  
 PASS  exit door ends the level  
 
-59 passed, 0 failed
+60 passed, 0 failed

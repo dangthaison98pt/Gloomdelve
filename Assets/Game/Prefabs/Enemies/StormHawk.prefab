@@ -61,6 +61,8 @@ MonoBehaviour:
   goldChunks: 4
   rewardId: heartvessel
   bossShotId: gloomorb
+  freeStomps: 2
+  stompCounterWindow: 1.5
   hoverHeight: 6.5
   hoverSpeed: 5
   diveSpeed: 14

@@ -120,6 +120,16 @@ namespace Gloomdelve
             }
         }
 
+        /// <summary>Stomped again: she rears up and bites straight upward - it hurts and throws the player high.</summary>
+        protected override void OnGreedyStomp(PlayerController p, int away)
+        {
+            anim?.Play(animJump);
+            p.TakeDamage(new DamageInfo(contactDamage, DamageType.Contact, this, new Vector2(away * 4f, 12f), displayName + "'s fangs"));
+            Fx.Debris(new Vector2(pos.x, pos.y + size.y), Venom, 8);
+            Fx.Shake(0.3f);
+            Sfx.Play("bat", pos, 1f, 0.5f);
+        }
+
         void Brood()
         {
             int room = maxMinions - CountAlive<Bat>();

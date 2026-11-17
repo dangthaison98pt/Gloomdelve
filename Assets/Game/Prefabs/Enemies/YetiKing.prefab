@@ -167,6 +167,8 @@ MonoBehaviour:
   goldChunks: 4
   rewardId: heartvessel
   bossShotId: gloomorb
+  freeStomps: 2
+  stompCounterWindow: 1.5
   actionGap: 1.5
   windupTime: 0.5
   ballGravity: 28
