@@ -388,7 +388,7 @@ namespace Gloomdelve
             Fx.Blood(Center, BloodRed, 8);
             Fx.Shake(0.35f);
             Sfx.Play("hurt", pos);
-            if (GameDirector.Instance != null) GameDirector.Instance.OnPlayerHurt(d, Describe(d));
+            if (GameDirector.Instance != null) GameDirector.Instance.OnPlayerHurt(d, Describe(d, Run.health <= 0));
             if (Run.health <= 0)
             {
                 Run.health = 0;
@@ -451,30 +451,43 @@ namespace Gloomdelve
 
         public override void OnWhipped(PlayerController p, int damage, int dir) { }
 
-        string Describe(in DamageInfo d)
+        /// <summary>"a snake", "an ember bat", "the Broodmother" (names written with a capital are one of a kind).</summary>
+        static string WithArticle(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return "something";
+            if (char.IsUpper(name[0])) return "the " + name;
+            return ("aeiou".IndexOf(char.ToLowerInvariant(name[0])) >= 0 ? "an " : "a ") + name;
+        }
+
+        /// <summary>
+        /// What happened to the player, in words. fatal = this hit killed them (results screen, death text);
+        /// otherwise it is the short line shown next to the damage number, which must not say "killed".
+        /// </summary>
+        string Describe(in DamageInfo d, bool fatal)
         {
             string src = d.source != null ? d.source.displayName : d.cause;
+            string who = WithArticle(src);
             switch (d.type)
             {
-                case DamageType.Spikes: return "Impaled on spikes";
+                case DamageType.Spikes: return fatal ? "Impaled on spikes" : "Spiked";
                 case DamageType.Explosion:
-                    return d.source == this ? "Blown up by your own bomb" : "Caught in an explosion";
-                case DamageType.Arrow: return "Shot by an arrow trap";
-                case DamageType.Fall: return "Fell too far";
-                case DamageType.Contact: return $"Killed by a {src}";
+                    return d.source == this ? (fatal ? "Blown up by your own bomb" : "Caught in your own blast") : "Caught in an explosion";
+                case DamageType.Arrow: return fatal ? "Shot by an arrow trap" : "Hit by an arrow";
+                case DamageType.Fall: return fatal ? "Fell too far" : "Hard landing";
+                case DamageType.Contact: return (fatal ? "Killed by " : "Hit by ") + who;
                 case DamageType.Thrown: return d.source is Item it && it.thrower == this ? $"Hit by your own {src}" : $"Hit by a flying {src}";
-                case DamageType.Crush: return $"Crushed by a {src}";
+                case DamageType.Crush: return $"Crushed by {who}";
                 case DamageType.Falling: return $"Hit by a falling {src}";
                 case DamageType.Fire: return "Burned by a flame vent";
                 case DamageType.Wraith: return "Taken by the Reaper";
-                default: return $"Killed by {src}";
+                default: return (fatal ? "Killed by " : "Hit by ") + who;
             }
         }
 
         void Die(in DamageInfo d)
         {
             IsDead = true;
-            DeathCause = Describe(d);
+            DeathCause = Describe(d, true);
             DropHeld();
             whipTimer = -1f;
             vel = d.knockback != Vector2.zero ? d.knockback : new Vector2(0f, 6f);
