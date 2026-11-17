@@ -67,9 +67,14 @@ namespace Gloomdelve
                 bool playtest = EditorPlaytest.Active;
                 int seed = playtest ? EditorPlaytest.Seed : (debugSeed != 0 ? debugSeed : RunSession.RandomSeed());
                 run = RunSession.NewRun(seed, !playtest && debugStartTutorial, config.player);
+                // a play-test or debug start names a stage of the catalogue: this run walks the whole catalogue in order
+                RunPlan.UseWholeCatalogue(run, config);
                 run.stageIndex = Mathf.Clamp(playtest ? EditorPlaytest.StageIndex : debugStartStage, 0, config.stages.Length - 1);
             }
-            Stage = run.isTutorial ? config.tutorial : config.stages[Mathf.Clamp(run.stageIndex, 0, config.stages.Length - 1)];
+            // every run has its own plan: which areas, in which order (drawn by the seed)
+            RunPlan.Ensure(run, config);
+            int at = Mathf.Clamp(run.stageIndex, 0, run.stageOrder.Length - 1);
+            Stage = run.isTutorial ? config.tutorial : config.stages[Mathf.Clamp(run.stageOrder[at], 0, config.stages.Length - 1)].Named(run.stageNames[at]);
             run.levelTime = 0f;
             run.goldAtLevelStart = run.gold;
             run.reachedStageName = Stage.displayName;
@@ -362,9 +367,51 @@ namespace Gloomdelve
             if (b != Boss) return;
             bool final = Stage != null && Stage.kind == LevelKind.Final;
             if (!final && exitDoor != null) exitDoor.SetLocked(false);
+            if (Run != null && Run.bossPractice)
+            {
+                hud.ShowBanner($"{b.displayName.ToUpperInvariant()} DEFEATED", "", 2.2f);
+                Sfx.PlayUI("victory");
+                if (AudioManager.Instance != null) AudioManager.Instance.SetMusicPitch(1f);
+                PracticeEnding = true;
+                practiceBoss = b.displayName;
+                practiceTime = Run.levelTime;
+                if (Player != null) Player.godMode = true;         // nothing left in the air may spoil the win
+                StartCoroutine(EndPractice(2.2f));
+                return;
+            }
             hud.ShowBanner($"{b.displayName.ToUpperInvariant()} DEFEATED", final ? "The Heartstone is yours. Lift it and run!" : "The way on is open.", 4.5f);
             Sfx.PlayUI("victory");
             if (AudioManager.Instance != null) AudioManager.Instance.SetMusicPitch(1f);
+        }
+
+        /// <summary>A boss test was won: the game is on its way back to the boss list.</summary>
+        public bool PracticeEnding { get; private set; }
+
+        string practiceBoss = "";
+        float practiceTime;
+
+        // A moment to watch the boss fall, then the result screen - it stays until the player chooses.
+        IEnumerator EndPractice(float delay)
+        {
+            yield return new WaitForSecondsRealtime(delay);
+            ShowPracticeResult();
+        }
+
+        void ShowPracticeResult()
+        {
+            if (Ended) return;
+            Ended = true;
+            if (!ScenarioRunner.Active) world.enabled = false;      // tests keep their arena running
+            Run.finished = true;
+            results.ShowBossTest(Run, practiceBoss, practiceTime);
+        }
+
+        public void BackToBossList()
+        {
+            Time.timeScale = 1f;
+            MainMenuController.OpenBossListOnLoad = true;
+            RunSession.Clear();
+            SceneManager.LoadScene(GameConst.SceneMenu);
         }
 
         public void OnPlayerHurt(in DamageInfo d, string description)
@@ -378,6 +425,7 @@ namespace Gloomdelve
         {
             if (Ended || p.IsDead) return;
             var run = Run;
+            if (run.bossPractice && !BossAlive) { ShowPracticeResult(); return; }      // boss test: nothing beyond the arena
             if (Stage.kind == LevelKind.Boss && door.locked)
             {
                 hud.ShowMessage("The gate is sealed until the boss falls!");
@@ -427,7 +475,7 @@ namespace Gloomdelve
         {
             var run = Run;
             run.stageIndex++;
-            if (run.stageIndex >= config.stages.Length)
+            if (run.stageIndex >= run.stageOrder.Length)
             {
                 // Should not happen (the final stage ends with Victory) – treat as victory.
                 Victory();
@@ -453,9 +501,9 @@ namespace Gloomdelve
                 NextAutoRun();
                 return;
             }
-            string news = SaveSystem.RecordRunEnd(run, config.stages.Length);
+            string news = SaveSystem.RecordRunEnd(run, run.stageOrder.Length);
             SaveSystem.AppendRunLog($"seed {run.seed} VICTORY time {run.totalTime:0.0} gold {run.gold}");
-            results.ShowRunEnd(run, true, news, config.stages.Length);
+            results.ShowRunEnd(run, true, news, run.stageOrder.Length);
         }
 
         public void OnPlayerDied(string cause)
@@ -478,6 +526,15 @@ namespace Gloomdelve
                 hud.ShowMessage("Ouch! Try again.");
                 yield return new WaitForSecondsRealtime(0.6f);
                 RunSession.NewRun(run.seed, true, config.player);
+                SceneManager.LoadScene(GameConst.SceneGame);
+                yield break;
+            }
+            if (run.bossPractice)
+            {
+                // boss test: straight back into the same fight
+                hud.ShowMessage("Again!");
+                yield return new WaitForSecondsRealtime(0.6f);
+                RunSession.NewBossPractice(run.stageOrder[0], config.player);
                 SceneManager.LoadScene(GameConst.SceneGame);
                 yield break;
             }
@@ -515,6 +572,12 @@ namespace Gloomdelve
         {
             var old = Run;
             Time.timeScale = 1f;
+            if (old != null && old.bossPractice)        // in a boss test "new run" means: this boss again
+            {
+                RunSession.NewBossPractice(old.stageOrder[0], config.player);
+                SceneManager.LoadScene(GameConst.SceneGame);
+                return;
+            }
             RunSession.NewRun(sameSeed && old != null ? old.seed : RunSession.RandomSeed(), false, config.player);
             SceneManager.LoadScene(GameConst.SceneGame);
         }

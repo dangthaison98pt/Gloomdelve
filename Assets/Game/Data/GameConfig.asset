@@ -43,60 +43,80 @@ MonoBehaviour:
     handcrafted: {fileID: 4900000, guid: 79f76af0d44da8741a53f6b12a7a2a00, type: 3}
   - displayName: 2-1
     kind: 0
-    area: {fileID: 11400000, guid: b2e29995bd4809c489df5d417a7bfb59, type: 2}
+    area: {fileID: 11400000, guid: cf35b1c275b476b43aa8b67a80aefd25, type: 2}
     levelNumber: 1
     handcrafted: {fileID: 0}
   - displayName: 2-2
     kind: 0
-    area: {fileID: 11400000, guid: b2e29995bd4809c489df5d417a7bfb59, type: 2}
+    area: {fileID: 11400000, guid: cf35b1c275b476b43aa8b67a80aefd25, type: 2}
     levelNumber: 2
     handcrafted: {fileID: 0}
   - displayName: 2-3
     kind: 0
-    area: {fileID: 11400000, guid: b2e29995bd4809c489df5d417a7bfb59, type: 2}
+    area: {fileID: 11400000, guid: cf35b1c275b476b43aa8b67a80aefd25, type: 2}
     levelNumber: 3
     handcrafted: {fileID: 0}
   - displayName: 2-4
     kind: 3
-    area: {fileID: 11400000, guid: b2e29995bd4809c489df5d417a7bfb59, type: 2}
+    area: {fileID: 11400000, guid: cf35b1c275b476b43aa8b67a80aefd25, type: 2}
     levelNumber: 4
-    handcrafted: {fileID: 4900000, guid: 8d94d6becd459d74fb800b56b7493676, type: 3}
+    handcrafted: {fileID: 4900000, guid: a253218417f557b41810c0db31688fe7, type: 3}
   - displayName: 3-1
     kind: 0
-    area: {fileID: 11400000, guid: 69f9dbae77aae6a4ab4f675840daa4b0, type: 2}
+    area: {fileID: 11400000, guid: b2e29995bd4809c489df5d417a7bfb59, type: 2}
     levelNumber: 1
     handcrafted: {fileID: 0}
   - displayName: 3-2
     kind: 0
-    area: {fileID: 11400000, guid: 69f9dbae77aae6a4ab4f675840daa4b0, type: 2}
+    area: {fileID: 11400000, guid: b2e29995bd4809c489df5d417a7bfb59, type: 2}
     levelNumber: 2
     handcrafted: {fileID: 0}
   - displayName: 3-3
     kind: 0
-    area: {fileID: 11400000, guid: 69f9dbae77aae6a4ab4f675840daa4b0, type: 2}
+    area: {fileID: 11400000, guid: b2e29995bd4809c489df5d417a7bfb59, type: 2}
     levelNumber: 3
     handcrafted: {fileID: 0}
   - displayName: 3-4
     kind: 3
-    area: {fileID: 11400000, guid: 69f9dbae77aae6a4ab4f675840daa4b0, type: 2}
+    area: {fileID: 11400000, guid: b2e29995bd4809c489df5d417a7bfb59, type: 2}
     levelNumber: 4
-    handcrafted: {fileID: 4900000, guid: f4cbeba4eeb2cda4581be1b6a1a77917, type: 3}
+    handcrafted: {fileID: 4900000, guid: 8d94d6becd459d74fb800b56b7493676, type: 3}
   - displayName: 4-1
     kind: 0
-    area: {fileID: 11400000, guid: a8f7037a9ecbda443befd8e59409c417, type: 2}
+    area: {fileID: 11400000, guid: 69f9dbae77aae6a4ab4f675840daa4b0, type: 2}
     levelNumber: 1
     handcrafted: {fileID: 0}
   - displayName: 4-2
     kind: 0
-    area: {fileID: 11400000, guid: a8f7037a9ecbda443befd8e59409c417, type: 2}
+    area: {fileID: 11400000, guid: 69f9dbae77aae6a4ab4f675840daa4b0, type: 2}
     levelNumber: 2
     handcrafted: {fileID: 0}
   - displayName: 4-3
     kind: 0
-    area: {fileID: 11400000, guid: a8f7037a9ecbda443befd8e59409c417, type: 2}
+    area: {fileID: 11400000, guid: 69f9dbae77aae6a4ab4f675840daa4b0, type: 2}
     levelNumber: 3
     handcrafted: {fileID: 0}
   - displayName: 4-4
+    kind: 3
+    area: {fileID: 11400000, guid: 69f9dbae77aae6a4ab4f675840daa4b0, type: 2}
+    levelNumber: 4
+    handcrafted: {fileID: 4900000, guid: f4cbeba4eeb2cda4581be1b6a1a77917, type: 3}
+  - displayName: 5-1
+    kind: 0
+    area: {fileID: 11400000, guid: a8f7037a9ecbda443befd8e59409c417, type: 2}
+    levelNumber: 1
+    handcrafted: {fileID: 0}
+  - displayName: 5-2
+    kind: 0
+    area: {fileID: 11400000, guid: a8f7037a9ecbda443befd8e59409c417, type: 2}
+    levelNumber: 2
+    handcrafted: {fileID: 0}
+  - displayName: 5-3
+    kind: 0
+    area: {fileID: 11400000, guid: a8f7037a9ecbda443befd8e59409c417, type: 2}
+    levelNumber: 3
+    handcrafted: {fileID: 0}
+  - displayName: 5-4
     kind: 3
     area: {fileID: 11400000, guid: a8f7037a9ecbda443befd8e59409c417, type: 2}
     levelNumber: 4
@@ -111,6 +131,8 @@ MonoBehaviour:
     area: {fileID: 11400000, guid: adeb2330f47fe2a4eb3ec3bf955d22ac, type: 2}
     levelNumber: 1
     handcrafted: {fileID: 4900000, guid: 029a92843949fa845bca2034ac97c53c, type: 3}
+  areasPerRun: 4
+  firstAreaFixed: 1
   tutorial:
     displayName: TUTORIAL
     kind: 2
@@ -133,6 +155,20 @@ MonoBehaviour:
     placement: 0
     tile: 3
     color: {r: 0.7, g: 0.5, b: 0.3, a: 1}
+  - symbol: m
+    label: Bounce mushroom
+    spawnId: bouncecap
+    chance: 1
+    placement: 1
+    tile: 0
+    color: {r: 0.4, g: 1, b: 0.9, a: 1}
+  - symbol: l
+    label: Glowing mushroom
+    spawnId: glowshroom
+    chance: 1
+    placement: 1
+    tile: 0
+    color: {r: 0.3, g: 0.8, b: 0.7, a: 1}
   pressureEnabled: 1
   pressureWarnTime: 270
   pressureSpawnTime: 300

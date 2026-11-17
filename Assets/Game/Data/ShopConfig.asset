@@ -27,6 +27,8 @@ MonoBehaviour:
       blastRadiusBonus: 0
       iceGrip: 0
       coldResist: 0
+      sporeResist: 0
+      lightBonus: 0
     icon: {fileID: 21300000, guid: 22c0851038970d04dafd99a51a258b04, type: 3}
     description: +3 bombs
   - id: ropes
@@ -43,6 +45,8 @@ MonoBehaviour:
       blastRadiusBonus: 0
       iceGrip: 0
       coldResist: 0
+      sporeResist: 0
+      lightBonus: 0
     icon: {fileID: 21300000, guid: 9ad97bda8a453844594bc92a37ef73fe, type: 3}
     description: +3 ropes
   - id: heart
@@ -59,6 +63,8 @@ MonoBehaviour:
       blastRadiusBonus: 0
       iceGrip: 0
       coldResist: 0
+      sporeResist: 0
+      lightBonus: 0
     icon: {fileID: 21300000, guid: 4e142a90c5a0dca4b8d8592ac12cf2cc, type: 3}
     description: +1 health
   - id: springboots
@@ -75,6 +81,8 @@ MonoBehaviour:
       blastRadiusBonus: 0
       iceGrip: 0
       coldResist: 0
+      sporeResist: 0
+      lightBonus: 0
     icon: {fileID: 21300000, guid: fbfb0a5b4cca04347be78c091c9351b0, type: 3}
     description: jump about 40% higher
   - id: ironwhip
@@ -91,6 +99,8 @@ MonoBehaviour:
       blastRadiusBonus: 0
       iceGrip: 0
       coldResist: 0
+      sporeResist: 0
+      lightBonus: 0
     icon: {fileID: 21300000, guid: 9573d34ca403fd644976448e13e6c829, type: 3}
     description: blade deals 2 damage and reaches further
   - id: compass
@@ -107,6 +117,8 @@ MonoBehaviour:
       blastRadiusBonus: 0
       iceGrip: 0
       coldResist: 0
+      sporeResist: 0
+      lightBonus: 0
     icon: {fileID: 21300000, guid: 3a271a22a3e72734c97e1cdc2f00c1e2, type: 3}
     description: points to the exit
   - id: blastpowder
@@ -123,6 +135,8 @@ MonoBehaviour:
       blastRadiusBonus: 0.9
       iceGrip: 0
       coldResist: 0
+      sporeResist: 0
+      lightBonus: 0
     icon: {fileID: 21300000, guid: 8e652c6ec7e4b604e8044920b34b166f, type: 3}
     description: bigger bomb blasts
   - id: iceboots
@@ -139,6 +153,8 @@ MonoBehaviour:
       blastRadiusBonus: 0
       iceGrip: 1
       coldResist: 0
+      sporeResist: 0
+      lightBonus: 0
     icon: {fileID: 21300000, guid: ca46dee40c33a8d45b4551af47ab9e06, type: 3}
     description: 'spiked soles: no sliding on ice'
   - id: warmcoat
@@ -155,7 +171,45 @@ MonoBehaviour:
       blastRadiusBonus: 0
       iceGrip: 0
       coldResist: 1
+      sporeResist: 0
+      lightBonus: 0
     icon: {fileID: 21300000, guid: 4654bf18d521cf74b8ce7b23a5c922b3, type: 3}
     description: snowballs only slow you instead of freezing you
+  - id: sporemask
+    displayName: Spore Mask
+    price: 550
+    resource: 
+    amount: 1
+    isUpgrade: 1
+    slot: charm
+    modifiers:
+      jumpBonus: 0
+      whipDamageBonus: 0
+      whipRangeBonus: 0
+      blastRadiusBonus: 0
+      iceGrip: 0
+      coldResist: 0
+      sporeResist: 1
+      lightBonus: 0
+    icon: {fileID: 21300000, guid: 9340f5070bb37f6478a92d082c8369b0, type: 3}
+    description: spore clouds cannot make you dizzy
+  - id: lantern
+    displayName: Lantern
+    price: 600
+    resource: 
+    amount: 1
+    isUpgrade: 1
+    slot: charm
+    modifiers:
+      jumpBonus: 0
+      whipDamageBonus: 0
+      whipRangeBonus: 0
+      blastRadiusBonus: 0
+      iceGrip: 0
+      coldResist: 0
+      sporeResist: 0
+      lightBonus: 0.6
+    icon: {fileID: 21300000, guid: e5e874b40a3fadb4bbbdd1bfefb5cd1a, type: 3}
+    description: your light reaches much further in the dark
   shopkeeperHealth: 6
   warningsBeforeAngry: 2

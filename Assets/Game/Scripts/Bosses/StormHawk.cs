@@ -68,7 +68,8 @@ namespace Gloomdelve
                     float tx = p != null ? p.pos.x : pos.x;
                     var want = new Vector2(Mathf.Clamp((tx - pos.x) * 2f, -hoverSpeed, hoverSpeed), (top - pos.y) * 3f + Mathf.Sin(Time.time * 3f) * 0.6f);
                     vel = Vector2.MoveTowards(vel, want, 18f * dt);
-                    if (Mathf.Abs(vel.x) > 0.3f) facing = vel.x > 0 ? 1 : -1;
+                    // looks at the player; right above them it keeps its heading instead of flipping left-right every moment
+                    if (p != null && Mathf.Abs(p.pos.x - pos.x) > 1.2f) facing = p.pos.x > pos.x ? 1 : -1;
                     if (rocksLeft > 0)
                     {
                         rockTimer -= dt;
@@ -123,7 +124,7 @@ namespace Gloomdelve
                     anim?.Play(animFly);
                     float low = floorY + sweepHeight;
                     vel = new Vector2(-sweepDir * hoverSpeed * 1.4f, Mathf.Clamp((low - pos.y) * 5f, -11f, 4f));
-                    facing = sweepDir;
+                    facing = -sweepDir;         // flies out to the side nose first, then turns for the run back
                     float px = p != null ? p.pos.x : pos.x;
                     bool far = Mathf.Abs(pos.x - px) > 8f || pos.x < 2.5f || pos.x > World.Grid.Width - 2.5f;
                     if ((far && pos.y < low + 0.6f) || timer <= 0f) { state = State.Sweep; timer = 2.6f; anim?.Play(animDive); Sfx.Play("bat", pos, 1f, 0.6f); }
@@ -161,6 +162,37 @@ namespace Gloomdelve
                 Fx.Shake(0.4f);
                 Fx.Dust(pos, 8);
                 Sfx.Play("thud", pos);
+            }
+        }
+
+        /// <summary>In a dive or a sweep: the folded-wings picture is in use and points along the flight.</summary>
+        public bool Swooping => state == State.Dive || state == State.Sweep;
+        public bool Sweeping => state == State.Sweep;
+        /// <summary>Angle of the picture in degrees (0 while flapping; in a swoop the beak points where it flies).</summary>
+        public float SpriteAngle { get; private set; }
+        bool swoopPosed;
+
+        // The swoop picture is drawn beak-down around its centre. Turn it so the beak leads (a sweep along the ground
+        // is horizontal, a dive slants at the player), and lift it to the middle of the body, where its pivot is.
+        protected override void LateUpdate()
+        {
+            base.LateUpdate();
+            if (sr == null || Countering) return;
+            var tr = sr.transform;
+            if (Swooping && vel.sqrMagnitude > 0.01f)
+            {
+                swoopPosed = true;
+                SpriteAngle = Mathf.Atan2(vel.y, vel.x) * Mathf.Rad2Deg + 90f;
+                sr.flipX = false;
+                tr.localRotation = Quaternion.Euler(0f, 0f, SpriteAngle);
+                tr.localPosition = new Vector3(0f, size.y * 0.5f, 0f);
+            }
+            else if (swoopPosed)
+            {
+                swoopPosed = false;
+                SpriteAngle = 0f;
+                tr.localRotation = Quaternion.identity;
+                tr.localPosition = Vector3.zero;
             }
         }
 

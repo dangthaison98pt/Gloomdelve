@@ -541,6 +541,40 @@ namespace Gloomdelve
                 }
             }
 
+            // ---------------------------------------------------------------- 9c. Sporegloom: bounce mushrooms and glowing plants
+            // Both stand on plain floor. They are extras: the route check ignores them, so a level never depends on a bounce.
+            if (area.bounceCapChance > 0f || area.glowPlantChance > 0f)
+            {
+                var taken = new HashSet<Vector2Int>();
+                foreach (var sp in spawns) taken.Add(sp.cell);
+                bool NearADoor(int x, int y) => (Mathf.Abs(x - data.entrance.x) <= 2 && Mathf.Abs(y - data.entrance.y) <= 2) || (Mathf.Abs(x - data.exit.x) <= 2 && Mathf.Abs(y - data.exit.y) <= 2);
+                var caps = new List<Vector2Int>();
+                var plants = new List<Vector2Int>();
+                for (int y = 2; y < H - 2; y++)
+                    for (int x = 2; x < W - 2; x++)
+                    {
+                        if (!g.IsEmpty(x, y) || !g.IsSolid(x, y - 1) || taken.Contains(new Vector2Int(x, y)) || NearADoor(x, y) || InShop(x, y)) continue;
+                        if (g.IsSpike(x - 1, y) || g.IsSpike(x + 1, y)) continue;
+                        // a bounce mushroom wants at least five cells of air above it, or the bounce just hits the ceiling
+                        bool air = true;
+                        for (int dy = 1; dy <= 5 && air; dy++) if (!g.IsEmpty(x, y + dy)) air = false;
+                        if (air && rng.Chance(area.bounceCapChance))
+                        {
+                            bool near = false;
+                            foreach (var c in caps) if (Mathf.Abs(c.x - x) + Mathf.Abs(c.y - y) < 6) { near = true; break; }
+                            if (!near) { caps.Add(new Vector2Int(x, y)); taken.Add(new Vector2Int(x, y)); continue; }
+                        }
+                        if (rng.Chance(area.glowPlantChance))
+                        {
+                            bool near = false;
+                            foreach (var c in plants) if (Mathf.Abs(c.x - x) + Mathf.Abs(c.y - y) < 5) { near = true; break; }
+                            if (!near) { plants.Add(new Vector2Int(x, y)); taken.Add(new Vector2Int(x, y)); }
+                        }
+                    }
+                foreach (var c in caps) spawns.Add(new SpawnPoint("bouncecap", c));
+                foreach (var c in plants) spawns.Add(new SpawnPoint("glowshroom", c, 0, rng.Range(0, 3)));
+            }
+
             // ---------------------------------------------------------------- 10. safety + cleanup
             SafetyPass(data, cfg, area);
 

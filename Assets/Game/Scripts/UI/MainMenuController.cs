@@ -16,6 +16,13 @@ namespace Gloomdelve
         [Tooltip("Settings > Keys: the controls list, where keyboard keys can be changed.")] public KeyBindPanel keysPanel;
         public Text recordsText;
         public Text versionText;
+        [Header("Boss test")]
+        public Button bossButton, bossBack;
+        public GameObject bossPanel;
+        [Tooltip("One button per boss ...")] public Button[] bossButtons;
+        [Tooltip("... and the stage of the run (GameConfig.stages index) each one starts.")] public int[] bossStages;
+        /// <summary>Set when a boss test ends: the menu opens on the boss list instead of the main panel.</summary>
+        public static bool OpenBossListOnLoad;
 
         void Start()
         {
@@ -27,6 +34,17 @@ namespace Gloomdelve
             UIUtil.Wire(recordsButton, () => { RefreshRecords(); Open(recordsPanel, recordsBack); });
             UIUtil.Wire(quitButton, GameDirector.QuitGame);
             UIUtil.Wire(recordsBack, ShowMain);
+            UIUtil.Wire(bossButton, OpenBossList);
+            UIUtil.Wire(bossBack, ShowMain);
+            if (bossButtons != null)
+                for (int i = 0; i < bossButtons.Length; i++)
+                {
+                    int stage = bossStages != null && i < bossStages.Length ? bossStages[i] : -1;
+                    // the stage list may have been edited since the menu was built: only real boss stages are offered
+                    bool ok = stage >= 0 && stage < config.stages.Length && (config.stages[stage].kind == LevelKind.Boss || config.stages[stage].kind == LevelKind.Final);
+                    bossButtons[i].gameObject.SetActive(ok);
+                    if (ok) UIUtil.Wire(bossButtons[i], () => StartBossPractice(stage));
+                }
             settingsPanel.onBack = ShowMain;
             settingsPanel.onKeys = OpenKeys;
             if (keysPanel != null) keysPanel.onBack = () => Open(settingsPanel.gameObject, settingsPanel.keys != null ? settingsPanel.keys : settingsPanel.First);
@@ -34,6 +52,16 @@ namespace Gloomdelve
             ShowMain();
             if (AudioManager.Instance != null) { AudioManager.Instance.SetMusicPitch(1f); AudioManager.Instance.PlayMusic("menu"); }
             RunSession.Clear();
+            if (OpenBossListOnLoad) { OpenBossListOnLoad = false; OpenBossList(); }
+            // "-bossTest N" on the command line starts boss number N (1 = the first in the list) right away
+            var args = System.Environment.GetCommandLineArgs();
+            for (int i = 0; i + 1 < args.Length; i++)
+                if (args[i] == "-bossTest" && !bossTestArgUsed && int.TryParse(args[i + 1], out int n) && bossStages != null && n >= 1 && n <= bossStages.Length)
+                {
+                    bossTestArgUsed = true;
+                    StartBossPractice(bossStages[n - 1]);
+                    return;
+                }
 
             if (ScenarioRunner.Active) { StartCoroutine(ScenarioStart()); return; }
             if (AutoTest.Active)
@@ -49,6 +77,7 @@ namespace Gloomdelve
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_main.png"));
             yield return new WaitForSecondsRealtime(0.3f);
             // a (virtual) gamepad button here must switch the menu hints to gamepad buttons
+            if (!ScenarioRunner.Filtered)       // a quick run of a few scenarios skips the menu pictures
             {
                 var prevBg = UnityEngine.InputSystem.InputSystem.settings.backgroundBehavior;
                 UnityEngine.InputSystem.InputSystem.settings.backgroundBehavior = UnityEngine.InputSystem.InputSettings.BackgroundBehavior.IgnoreFocus;
@@ -118,6 +147,10 @@ namespace Gloomdelve
             yield return new WaitForSecondsRealtime(0.3f);
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_keys.png"));
             yield return new WaitForSecondsRealtime(0.3f);
+            OpenBossList();
+            yield return new WaitForSecondsRealtime(0.3f);
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_boss.png"));
+            yield return new WaitForSecondsRealtime(0.3f);
             RunSession.NewRun(1, true, config.player);
             SceneManager.LoadScene(GameConst.SceneGame);
         }
@@ -142,6 +175,23 @@ namespace Gloomdelve
             SceneManager.LoadScene(GameConst.SceneGame);
         }
 
+        static bool bossTestArgUsed;
+
+        public void OpenBossList()
+        {
+            if (bossPanel == null) return;
+            Selectable first = bossBack;
+            if (bossButtons != null) foreach (var b in bossButtons) if (b != null && b.gameObject.activeSelf) { first = b; break; }
+            Open(bossPanel, first);
+        }
+
+        /// <summary>Boss test: straight into this boss's arena with a fresh explorer.</summary>
+        public void StartBossPractice(int stageIndex)
+        {
+            RunSession.NewBossPractice(stageIndex, config.player);
+            SceneManager.LoadScene(GameConst.SceneGame);
+        }
+
         void StartTutorial()
         {
             RunSession.NewRun(1, true, config.player);
@@ -152,6 +202,7 @@ namespace Gloomdelve
         {
             mainPanel.SetActive(false);
             recordsPanel.SetActive(panel == recordsPanel);
+            if (bossPanel != null) bossPanel.SetActive(panel == bossPanel);
             settingsPanel.gameObject.SetActive(panel == settingsPanel.gameObject);
             if (keysPanel != null) keysPanel.gameObject.SetActive(panel == keysPanel.gameObject);
             UIUtil.Select(first);
@@ -161,6 +212,7 @@ namespace Gloomdelve
         {
             mainPanel.SetActive(true);
             recordsPanel.SetActive(false);
+            if (bossPanel != null) bossPanel.SetActive(false);
             settingsPanel.gameObject.SetActive(false);
             if (keysPanel != null) keysPanel.gameObject.SetActive(false);
             UIUtil.Select(startButton);

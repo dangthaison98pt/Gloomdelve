@@ -30,11 +30,20 @@ namespace Gloomdelve
             light2d.enabled = on;
         }
 
+        public bool IsOn => on;
+
         public void SetOn(bool value)
         {
             if (on == value) return;
             on = value;
             if (light2d != null) light2d.enabled = value;
+        }
+
+        /// <summary>Changes the colour of the light while it runs (a lurecap turning red when it wakes).</summary>
+        public void SetColor(Color c)
+        {
+            color = c;
+            if (light2d != null) light2d.color = c;
         }
 
         void LateUpdate()

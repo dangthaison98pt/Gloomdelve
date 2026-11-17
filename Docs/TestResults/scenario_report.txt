@@ -1,4 +1,4 @@
-Gloomdelve in-game scenario tests 2026-11-17 21:09:28
+Gloomdelve in-game scenario tests 2026-11-17 21:48:15
 PASS  whip kills an approaching snake  
 PASS  stomping a snake kills it and bounces  
 PASS  snake on a single tile stands still instead of flipping left-right  
@@ -40,6 +40,10 @@ PASS  shopkeeper grudge: robbed -> ambush with two brothers; killed -> no more s
 PASS  climb traps: rotten platform gives way and comes back; rock dropper drops on a climber  
 PASS  area title card and event banner never show at the same time  
 PASS  keyboard keys can be changed: the new key works, a key in use swaps, defaults come back  
+PASS  long fall onto a bounce mushroom: thrown high, no fall damage, higher with jump held  
+PASS  puffshroom swells and puffs: spores swap left and right, a spore mask prevents it  
+PASS  gloom moth drinks the player's light, killing it brings the light back  
+PASS  lurecap looks like a glowing plant until the player walks up, then leaps  
 PASS  hawk dives at the player below it  
 PASS  ledge grab and climb (real controller)  
 PASS  ladder climb to the top  
@@ -61,4 +65,4 @@ PASS  the Reaper (time pressure) spawns and its touch is fatal
 PASS  carrying a golden idol out pays gold  
 PASS  exit door ends the level  
 
-61 passed, 0 failed
+65 passed, 0 failed

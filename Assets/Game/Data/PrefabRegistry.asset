@@ -36,6 +36,18 @@ MonoBehaviour:
     prefab: {fileID: 2113863251027895771, guid: 562f1e798aaa281479aa2992449f5d6f, type: 3}
   - id: icechunk
     prefab: {fileID: 4421726030908069735, guid: b2c8ae4991401ab4eaf60ad9a10291e7, type: 3}
+  - id: puffshroom
+    prefab: {fileID: 1301243544305453917, guid: 5d02074c75b71d84b87186a12ad67c97, type: 3}
+  - id: moth
+    prefab: {fileID: 8554377423846260819, guid: 2458ab3c4170260428a75c733e076ef4, type: 3}
+  - id: lurecap
+    prefab: {fileID: 3811056794362181951, guid: 5b8e368d522c24246bf67beeb60b086e, type: 3}
+  - id: sporecloud
+    prefab: {fileID: 8450593647891945188, guid: de983dfa851c60c4ca4a598b3b0ef431, type: 3}
+  - id: bouncecap
+    prefab: {fileID: 1149403680976024775, guid: ae79151e03c6c4a46b173cfd5fd23ca3, type: 3}
+  - id: glowshroom
+    prefab: {fileID: 8025912556000325444, guid: f1af6dc747b0fc6459d370b0264e9053, type: 3}
   - id: broodmother
     prefab: {fileID: 289697368288821971, guid: 1e9d6fe5c5bb48c46981c3c0a7d7553c, type: 3}
   - id: forgebrute
@@ -44,6 +56,8 @@ MonoBehaviour:
     prefab: {fileID: 9060751091563762651, guid: 9496ee8d8098f3f48bff0befc595892a, type: 3}
   - id: stormhawk
     prefab: {fileID: 3770287293338161348, guid: b30f8b621e349ef41892d3380f2663be, type: 3}
+  - id: sporeheart
+    prefab: {fileID: 6059703618975936108, guid: 0d54f21cf20088d408885f27f395afe7, type: 3}
   - id: warden
     prefab: {fileID: 1924136200737026320, guid: 7288a4b403e39ce4493b5a4d510a4ca7, type: 3}
   - id: gloomorb

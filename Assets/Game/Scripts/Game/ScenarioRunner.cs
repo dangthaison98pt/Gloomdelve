@@ -12,7 +12,9 @@ namespace Gloomdelve
 {
     /// <summary>
     /// Scripted interaction tests that run inside the real game (Game scene, real prefabs, real physics):
-    ///   Gloomdelve.exe -scenarios [-autotestOut path]
+    ///   Gloomdelve.exe -scenarios [-autotestOut path] [-scenarioFilter "moth,lurecap"]
+    /// -scenarioFilter runs only the scenarios whose name contains one of the comma-separated words (quick check
+    /// of one feature); without it everything runs (do that before a commit).
     /// Each scenario builds a small arena, scripts the player's inputs (or places things), then checks the outcome.
     /// </summary>
     public static class ScenarioRunner
@@ -20,6 +22,18 @@ namespace Gloomdelve
         public static bool Active;
         static int index;
         static int pass, fail;
+        static string[] filter;
+        /// <summary>Only some scenarios were asked for (-scenarioFilter): the menu pictures are skipped too.</summary>
+        public static bool Filtered => filter != null && filter.Length > 0;
+
+        static bool Wanted(int i)
+        {
+            if (!Filtered) return true;
+            foreach (var f in filter) if (all[i].name.IndexOf(f, StringComparison.OrdinalIgnoreCase) >= 0) return true;
+            return false;
+        }
+
+        static void SkipUnwanted() { while (index < all.Count && !Wanted(index)) index++; }
         static string outDir;
         static readonly StringBuilder report = new StringBuilder();
 
@@ -203,6 +217,19 @@ namespace Gloomdelve
             new Scenario { name = "bosses: two stomps in a row count, a third is punished - each boss its own way", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => GreedyStompCase(c) },
 
+            new Scenario { name = "bosses: a counter next to a wall throws the player to the open side, never back onto the boss", map = m => { Set(m, 6, 1, 'S'); },
+                run = c => CounterWallCase(c) },
+
+            new Scenario { name = "bosses: the rot heart hangs from the ceiling, runs its moves, darkens the room, and is reached by a bounce mushroom",
+                map = m => { for (int x = 1; x < W - 1; x++) Set(m, x, 1, '#'); Set(m, 3, 2, 'S'); },
+                run = c => SporeHeartCase(c) },
+
+            new Scenario { name = "boss test: winning shows the result screen and waits; storm hawk points along its flight", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => BossTestCase(c) },
+
+            new Scenario { name = "run plan: each run draws 4 areas by its seed, starts in the first, ends with camp and vault", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => RunPlanCase(c) },
+
             new Scenario { name = "all five bosses run their attack patterns", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => BossPatternsCase(c) },
 
@@ -236,6 +263,21 @@ namespace Gloomdelve
 
             new Scenario { name = "keyboard keys can be changed: the new key works, a key in use swaps, defaults come back", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => KeyChangeCase(c) },
+
+            new Scenario { name = "long fall onto a bounce mushroom: thrown high, no fall damage, higher with jump held", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => BounceCapCase(c) },
+
+            new Scenario { name = "puffshroom swells and puffs: spores swap left and right, a spore mask prevents it", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => PuffshroomCase(c) },
+
+            new Scenario { name = "gloom moth drinks the player's light, killing it brings the light back", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => MothCase(c) },
+
+            new Scenario { name = "lantern makes the player's light reach further, and takes nothing to wear", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => LanternCase(c) },
+
+            new Scenario { name = "lurecap looks like a glowing plant until the player walks up, then leaps", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => LurecapCase(c) },
 
             new Scenario { name = "hawk dives at the player below it", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => HawkCase(c) },
@@ -838,6 +880,212 @@ namespace Gloomdelve
             }
         }
 
+        // The case from play: the boss stands against the wall, the player comes down on the wall side of its back.
+        static IEnumerator CounterWallCase(Ctx c)
+        {
+            c.Bot(Seq((3000, F())));
+            c.run.RemoveUpgrade("warmcoat");
+            foreach (var id in new[] { "broodmother", "forgebrute", "yetiking", "stormhawk" })
+            {
+                c.run.health = 8;
+                c.Teleport(12.5f, 1f);
+                yield return c.Frames(80);
+                var b = c.Spawn<Boss>(id, 2, 1);
+                c.Expect(b != null, id + " spawned");
+                if (b == null) continue;
+                b.pos = b.prevPos = new Vector2(1f + b.size.x * 0.5f + 0.02f, 1f);      // flush against the left wall
+                b.stunTimer = 99f;
+                yield return c.Frames(3);
+                // two stomps count, the third (and any after) is countered - all from the wall side of its back
+                float px = Mathf.Max(b.pos.x - b.size.x * 0.3f, 1.45f);      // on the wall side of its back, clear of the wall itself
+                c.Teleport(px, b.pos.y + b.size.y + 0.3f);
+                b.CounterStomp(c.p); b.CounterStomp(c.p);
+                bool countered = b.CounterStomp(c.p);
+                c.Expect(countered, id + ": third stomp countered");
+                yield return c.Frames(2);
+                c.Expect(c.p.vel.x > 0.5f, $"{id}: thrown away from the wall (vx {c.p.vel.x:0.0})");
+                // wherever the counter throws them, the player must end up on the floor beside the boss, not bouncing on it
+                bool clear = false;
+                for (int i = 0; i < 240 && !clear; i++)
+                {
+                    yield return new WaitForFixedUpdate();
+                    if (c.p.grounded && c.p.pos.x > b.pos.x + b.size.x * 0.5f) clear = true;
+                }
+                c.Expect(clear, $"{id}: the player comes down on the floor on the open side (x {c.p.pos.x:0.0}, boss edge {b.pos.x + b.size.x * 0.5f:0.0})");
+                b.Despawn();
+                ClearFight(c);
+                yield return c.Frames(5);
+            }
+        }
+
+        // Same proportions as its arena: floor surface at y = 2, ceiling at y = 11.
+        static IEnumerator SporeHeartCase(Ctx c)
+        {
+            c.Bot(Seq((4000, F())));
+            c.run.RemoveUpgrade("sporemask");
+            for (int i = 0; i < 4; i++) c.Spawn<Scenery>("glowshroom", 5 + i * 5, 2);
+            var cap = c.Spawn<BounceCap>("bouncecap", 11, 2);
+            var b = c.Spawn<SporeHeart>("sporeheart", 12, 9);
+            c.Expect(b != null, "rot heart spawned");
+            if (b == null) yield break;
+            yield return c.Frames(3);
+            float hangY = b.pos.y;
+            c.Expect(Mathf.Abs(hangY - (11f - b.hangDepth - b.size.y)) < 0.05f, $"it hangs on its stalk under the ceiling (y {hangY:0.00})");
+            c.Expect(!b.IsStompable && b.ContactDamage == 0, "it cannot be stomped and touching it does not hurt");
+            // its round, watched from a safe corner
+            c.p.godMode = true;
+            c.Teleport(4.5f, 2f);
+            bool darts = false, rain = false, pulse = false, lure = false;
+            for (int i = 0; i < 1500 && !(darts && rain && pulse && lure); i++)
+            {
+                yield return new WaitForFixedUpdate();
+                foreach (var e in c.world.Entities)
+                {
+                    if (e.Dead) continue;
+                    if (e is BossShot bs) { if (Mathf.Abs(bs.vel.y) < 0.01f && bs.pos.y < 3f) pulse = true; else darts = true; }
+                    else if (e is SporeCloud) rain = true;
+                    else if (e is Lurecap) lure = true;
+                }
+                if (i == 400) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_sporeheart.png"));
+            }
+            c.Expect(darts, "it fires spore darts at the player");
+            c.Expect(rain, "it rains spore clouds on the floor");
+            c.Expect(pulse, "its pulse sends shockwaves along the floor");
+            c.Expect(lure, "it wakes a lurecap among the plants");
+            c.Expect(Mathf.Abs(b.pos.y - hangY) < 0.01f, "it never moves");
+            // clear what it threw - not the heart itself (ClearFight would remove it too)
+            foreach (var e in c.world.Entities) if (!e.Dead && e != b && (e is SporeCloud || e is BossShot || e is Lurecap)) e.Despawn();
+            c.Expect(!b.Dead, "the heart is still there");
+            // reached from a bounce mushroom: fall onto the cap beside it, slash at the top of the bounce
+            c.p.godMode = false;
+            b.stunTimer = 0f;
+            int hp0 = b.health;
+            c.Teleport(cap.pos.x, 4f);
+            c.p.motor.facing = 1;
+            var slash = new List<FrameInput>();
+            for (int i = 0; i < 150; i++) slash.Add(F(atk: i % 6 == 0));
+            c.Bot(slash);
+            for (int i = 0; i < 150 && b.health == hp0; i++) yield return new WaitForFixedUpdate();
+            c.Expect(b.health < hp0, $"a slash at the top of a bounce hits it (health {hp0} -> {b.health})");
+            c.p.godMode = true;
+            c.Bot(Seq((2000, F())));
+            c.Teleport(4.5f, 2f);
+            // losing health puts lights out: one third down, half the plants; two thirds down, half of the rest
+            int Lit() { int n = 0; foreach (var e in c.world.Entities) if (!e.Dead && e is Scenery) { var gl = e.GetComponent<GlowLight>(); if (gl != null && gl.IsOn) n++; } return n; }
+            int lit0 = Lit();
+            for (int i = 0; i < 40 && !b.Dead && b.HealthFraction > 2f / 3f; i++) { b.TakeDamage(new DamageInfo(1, DamageType.Whip, c.p, Vector2.zero, "test")); yield return c.Frames(14); }
+            int lit1 = Lit();
+            c.Expect(b.LightsOut == 1 && lit1 < lit0, $"at two thirds of its health some plants go dark ({lit0} -> {lit1})");
+            for (int i = 0; i < 40 && !b.Dead && b.HealthFraction > 1f / 3f; i++) { b.TakeDamage(new DamageInfo(1, DamageType.Whip, c.p, Vector2.zero, "test")); yield return c.Frames(14); }
+            int lit2 = Lit();
+            c.Expect(b.LightsOut == 2 && lit2 < lit1, $"at one third more go dark ({lit1} -> {lit2})");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_sporeheart_dark.png"));
+            yield return new WaitForEndOfFrame();
+            yield return null;
+            for (int i = 0; i < 40 && !b.Dead; i++) { b.TakeDamage(new DamageInfo(3, DamageType.Whip, c.p, Vector2.zero, "test")); yield return c.Frames(14); }
+            yield return c.Frames(5);
+            c.Expect(b.Dead, "it can be killed");
+            c.Expect(Lit() == lit0, $"and the room lights up again ({Lit()} of {lit0})");
+            bool vessel = false;
+            foreach (var e in c.world.Entities) if (!e.Dead && e is Pickup pk && pk.resource == Res.MaxHealth) vessel = true;
+            c.Expect(vessel || c.run.maxHealth > 10, "it leaves a heart vessel");
+            ClearFight(c);
+        }
+
+        static IEnumerator BossTestCase(Ctx c)
+        {
+            c.p.godMode = true;
+            c.Teleport(4.5f, 1f);
+            c.Bot(Seq((4000, F())));
+            // the hawk in flight: flapping it is level; in a sweep the folded picture is turned along the ground
+            var hawk = c.Spawn<StormHawk>("stormhawk", 14, 1);
+            c.Expect(hawk != null, "storm hawk spawned");
+            if (hawk != null)
+            {
+                yield return c.Frames(30);
+                yield return null;
+                c.Expect(!hawk.Swooping && Mathf.Abs(hawk.SpriteAngle) < 0.1f, "hovering: the picture is level");
+                bool swept = false, dived = false; float sweepAngle = 0f, diveAngle = 0f; float sweepVx = 0f;
+                for (int i = 0; i < 2400 && !(swept && dived); i++)
+                {
+                    yield return new WaitForFixedUpdate();
+                    if (i % 4 == 0) yield return null;      // let LateUpdate pose the picture
+                    if (hawk.Sweeping && !swept && Mathf.Abs(hawk.vel.x) > 5f && Mathf.Abs(hawk.vel.y) < 1.5f)      // level with the ground, past the drop into the sweep
+                    {
+                        yield return null;
+                        swept = true; sweepAngle = hawk.SpriteAngle; sweepVx = hawk.vel.x;
+                        ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "hawk_sweep.png"));
+                        yield return new WaitForEndOfFrame();
+                    }
+                    else if (hawk.Swooping && !hawk.Sweeping && !dived && hawk.vel.sqrMagnitude > 25f)
+                    {
+                        yield return null;
+                        dived = true; diveAngle = hawk.SpriteAngle;
+                    }
+                }
+                c.Expect(swept, "it made a sweep");
+                float wantSweep = sweepVx > 0f ? 90f : 270f;
+                c.Expect(swept && Mathf.Abs(Mathf.DeltaAngle(sweepAngle, wantSweep)) < 25f, $"in the sweep the beak points along the ground (angle {sweepAngle:0}, wanted about {wantSweep:0})");
+                c.Expect(dived && Mathf.Abs(Mathf.DeltaAngle(diveAngle, 0f)) < 80f, $"in a dive the beak points down at the player (angle {diveAngle:0})");
+                hawk.Despawn();
+                ClearFight(c);
+            }
+            // a boss test that is won: the result screen comes up and stays
+            c.run.bossPractice = true;
+            var b = c.Spawn<Broodmother>("broodmother", 16, 1);
+            for (int i = 0; i < 40 && !b.Dead; i++) { b.TakeDamage(new DamageInfo(99, DamageType.Explosion, c.p, Vector2.zero, "test")); yield return c.Frames(2); }
+            c.Expect(b.Dead && c.dir.PracticeEnding, "the boss falls and the boss test is over");
+            c.Expect(!c.dir.results.Showing, "the result screen waits a moment so the fall can be seen");
+            yield return new WaitForSecondsRealtime(2.8f);
+            c.Expect(c.dir.results.Showing, "then the result screen is shown");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_test_result.png"));
+            yield return new WaitForSecondsRealtime(2.5f);
+            c.Expect(c.dir.results.Showing && UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == GameConst.SceneGame, "and it stays until the player chooses");
+            c.dir.results.root.SetActive(false);
+            c.run.bossPractice = false;
+            ClearFight(c);
+        }
+
+        static IEnumerator RunPlanCase(Ctx c)
+        {
+            var cfg = c.dir.config;
+            var areas = new List<AreaConfig>();
+            foreach (var st in cfg.stages) if ((st.kind == LevelKind.Area || st.kind == LevelKind.Boss) && !areas.Contains(st.area)) areas.Add(st.area);
+            c.Expect(areas.Count > cfg.areasPerRun && cfg.areasPerRun == 4, $"the catalogue has more areas ({areas.Count}) than one run uses ({cfg.areasPerRun})");
+            var seenSecond = new HashSet<AreaConfig>();
+            var seenAny = new HashSet<AreaConfig>();
+            bool allOk = true; string bad = "";
+            for (int seed = 1; seed <= 200; seed++)
+            {
+                RunPlan.Build(cfg, seed, out var order, out var names);
+                var runAreas = new List<AreaConfig>();
+                bool ok = order.Length == names.Length;
+                for (int i = 0; i < order.Length && ok; i++)
+                {
+                    var st = cfg.stages[order[i]];
+                    if (st.kind != LevelKind.Area && st.kind != LevelKind.Boss) continue;
+                    if (!runAreas.Contains(st.area)) runAreas.Add(st.area);
+                    // each area: its levels in order, then its boss, numbered by its place in this run
+                    int place = runAreas.IndexOf(st.area) + 1;
+                    if (!names[i].StartsWith(place + "-")) ok = false;
+                    if (i > 0 && cfg.stages[order[i - 1]].area == st.area && cfg.stages[order[i - 1]].kind == LevelKind.Boss) ok = false;
+                }
+                ok &= runAreas.Count == cfg.areasPerRun && runAreas[0] == areas[0];
+                ok &= cfg.stages[order[order.Length - 1]].kind == LevelKind.Final && cfg.stages[order[order.Length - 2]].kind == LevelKind.Rest;
+                foreach (var a in runAreas) { int n = 0; foreach (int i in order) if (cfg.stages[i].area == a && cfg.stages[i].kind == LevelKind.Boss) n++; if (n != 1) ok = false; }
+                if (!ok) { allOk = false; bad += seed + " "; }
+                if (runAreas.Count > 1) seenSecond.Add(runAreas[1]);
+                foreach (var a in runAreas) seenAny.Add(a);
+                // the same seed gives the same plan
+                RunPlan.Build(cfg, seed, out var again, out _);
+                for (int i = 0; i < order.Length; i++) if (again[i] != order[i]) { allOk = false; bad += seed + "(not repeatable) "; break; }
+            }
+            c.Expect(allOk, "200 seeds: 4 areas each (levels then boss), first area fixed, then camp and vault; repeatable " + bad);
+            c.Expect(seenAny.Count == areas.Count, $"every area turns up in some run ({seenAny.Count} of {areas.Count})");
+            c.Expect(seenSecond.Count == areas.Count - 1, $"the second area differs from run to run ({seenSecond.Count} different ones)");
+            yield return c.Frames(2);
+        }
+
         static IEnumerator BossPatternsCase(Ctx c)
         {
             c.p.godMode = true;
@@ -1323,6 +1571,191 @@ namespace Gloomdelve
             yield return c.Frames(5);
         }
 
+        static IEnumerator BounceCapCase(Ctx c)
+        {
+            var cap = c.Spawn<BounceCap>("bouncecap", 12, 1);
+            c.Expect(cap != null, "bounce cap spawned");
+            if (cap == null) yield break;
+            c.Bot(Seq((400, F())));
+            yield return c.Frames(2);
+            int hp0 = c.run.health;
+            // a fall that would hurt on bare floor (the plain long-fall case uses the same height)
+            c.Teleport(cap.pos.x, 1f + 10.5f);
+            float top = 0f; bool up = false;
+            for (int i = 0; i < 200; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (c.p.vel.y > 15f) up = true;
+                if (up) top = Mathf.Max(top, c.p.pos.y);
+                if (up && c.p.vel.y < -1f && i > 60) break;
+            }
+            c.Expect(up, "the cap threw the player up");
+            c.Expect(top > 5.2f && top < 7.5f, $"a bounce of about 4.6 tiles (peak y {top:0.00})");
+            c.Expect(c.run.health == hp0, $"no fall damage (health {hp0} -> {c.run.health})");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "bounce_cap.png"));
+            yield return new WaitForEndOfFrame();       // the picture is taken at the end of this frame: nothing may move before
+            yield return null;
+            // the same with jump held: higher
+            c.Bot(Seq((400, F(jh: true))));
+            c.Teleport(cap.pos.x, 4f);
+            float topHeld = 0f; up = false;
+            for (int i = 0; i < 200; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (c.p.vel.y > 15f) up = true;
+                if (up) topHeld = Mathf.Max(topHeld, c.p.pos.y);
+                if (up && c.p.vel.y < -1f && i > 60) break;
+            }
+            c.Expect(topHeld > top + 1f, $"holding jump bounces higher ({topHeld:0.00} vs {top:0.00})");
+            // walking into it from the side does nothing
+            c.Bot(Seq((200, F())));
+            c.Teleport(cap.pos.x - 0.3f, 1f);
+            yield return c.Frames(40);
+            c.Expect(c.p.grounded && c.p.pos.y < 1.2f, "standing next to / inside the cap does not bounce");
+            cap.Despawn();
+        }
+
+        static IEnumerator PuffshroomCase(Ctx c)
+        {
+            c.run.RemoveUpgrade("sporemask");
+            c.Teleport(9.2f, 1f);
+            c.Bot(Seq((600, F())));
+            var ps = c.Spawn<Puffshroom>("puffshroom", 10, 1);
+            c.Expect(ps != null, "puffshroom spawned");
+            if (ps == null) yield break;
+            int hp0 = c.run.health;
+            bool swelled = false, cloud = false, dizzy = false;
+            for (int i = 0; i < 240 && !dizzy; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (ps.Swelling) swelled = true;
+                if (c.Count<SporeCloud>() > 0) cloud = true;
+                if (c.p.Confused) dizzy = true;
+            }
+            c.Expect(swelled, "it swells first (the tell)");
+            c.Expect(cloud, "then bursts a spore cloud");
+            c.Expect(dizzy, "the player in the cloud is dizzy");
+            c.Expect(c.run.health == hp0, $"spores do no damage (health {hp0} -> {c.run.health})");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "spore_cloud.png"));
+            yield return new WaitForEndOfFrame();       // the picture is taken at the end of this frame: nothing may move before
+            yield return null;
+            // dizzy: pressing right walks left. Out of the cloud first, so the dizziness only runs down.
+            ps.Despawn();
+            foreach (var e in c.world.Entities) if (!e.Dead && e is SporeCloud) e.Despawn();
+            c.p.Confuse(1.2f);
+            c.Teleport(12.5f, 1f);
+            float x0 = 12.5f;
+            c.Bot(Seq((30, F(x: 1)), (120, F())));
+            yield return c.Frames(30);
+            c.Expect(c.p.pos.x < x0 - 0.5f, $"dizzy: holding right moves left (x {x0:0.00} -> {c.p.pos.x:0.00})");
+            yield return c.Frames(115);         // up to 2 s of dizziness from the cloud itself
+            c.Expect(!c.p.Confused, "the dizziness wears off");
+            float x1 = c.p.pos.x;
+            c.Bot(Seq((30, F(x: 1)), (60, F())));
+            yield return c.Frames(30);
+            c.Expect(c.p.pos.x > x1 + 0.5f, "afterwards right is right again");
+            // killing it also releases a cloud
+            var ps2 = c.Spawn<Puffshroom>("puffshroom", 20, 1);
+            ps2.heartDropChance = 0f;
+            yield return c.Frames(3);
+            ps2.TakeDamage(new DamageInfo(5, DamageType.Whip, c.p, Vector2.zero, "test"));
+            yield return c.Frames(2);
+            c.Expect(c.Count<SporeCloud>() > 0, "a puffshroom that dies puffs too");
+            foreach (var e in c.world.Entities) if (!e.Dead && e is SporeCloud) e.Despawn();
+            // with a spore mask the cloud does nothing
+            c.run.AddUpgrade(c.dir.config.shop.Find("sporemask"));
+            c.Expect(c.run.IsWorn("sporemask") && c.run.stats.sporeResist > 0f, "the spore mask is worn");
+            c.Teleport(8.5f, 1f);
+            c.Bot(Seq((200, F())));
+            c.world.SpawnById("sporecloud", c.p.Center);
+            yield return c.Frames(40);
+            c.Expect(!c.p.Confused, "with the mask on, standing in a cloud does not make the player dizzy");
+            foreach (var e in c.world.Entities) if (!e.Dead && e is SporeCloud) e.Despawn();
+            c.run.RemoveUpgrade("sporemask");
+        }
+
+        static IEnumerator MothCase(Ctx c)
+        {
+            c.Teleport(8.5f, 1f);
+            c.Bot(Seq((1200, F())));
+            c.p.godMode = false;
+            var moth = c.Spawn<GloomMoth>("moth", 11, 6);
+            c.Expect(moth != null, "moth spawned");
+            if (moth == null) yield break;
+            int hp0 = c.run.health;
+            bool woke = false, drank = false;
+            float low = 1f;
+            for (int i = 0; i < 360; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (moth.IsAwake) woke = true;
+                if (moth.Draining) drank = true;
+                low = Mathf.Min(low, LevelLighting.PlayerLightScale);
+            }
+            c.Expect(woke, "the moth wakes when the light comes near");
+            c.Expect(drank, "it flutters around the player and drinks the light");
+            c.Expect(low < 0.6f, $"the player's light shrinks (down to {low:0.00} of normal)");
+            c.Expect(c.run.health == hp0, "the moth does no damage");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "moth_dim.png"));
+            yield return new WaitForSecondsRealtime(0.1f);
+            moth.heartDropChance = 0f;
+            moth.TakeDamage(new DamageInfo(5, DamageType.Whip, c.p, Vector2.zero, "test"));
+            c.Expect(moth.Dead, "one hit kills it");
+            yield return new WaitForSecondsRealtime(1.6f);
+            c.Expect(LevelLighting.PlayerLightScale > 0.95f, $"the light comes back ({LevelLighting.PlayerLightScale:0.00})");
+        }
+
+        static IEnumerator LanternCase(Ctx c)
+        {
+            c.run.RemoveUpgrade("lantern");
+            c.Bot(Seq((400, F())));
+            yield return new WaitForSecondsRealtime(0.3f);
+            float bare = LevelLighting.PlayerLightRadius;
+            c.Expect(bare > 1f, $"the player carries a light (reach {bare:0.0})");
+            c.run.AddUpgrade(c.dir.config.shop.Find("lantern"));
+            c.Expect(c.run.IsWorn("lantern") && c.run.stats.lightBonus > 0f, "the lantern is worn");
+            yield return new WaitForSecondsRealtime(0.3f);
+            float lit = LevelLighting.PlayerLightRadius;
+            c.Expect(lit > bare * 1.5f, $"the light reaches further with it ({bare:0.0} -> {lit:0.0})");
+            // it shares the charm slots with the spore mask: both can be worn at once
+            c.run.RemoveUpgrade("sporemask");
+            c.run.AddUpgrade(c.dir.config.shop.Find("sporemask"));
+            c.Expect(c.run.IsWorn("lantern") && c.run.IsWorn("sporemask"), "lantern and spore mask are worn together");
+            c.run.RemoveUpgrade("lantern");
+            c.run.RemoveUpgrade("sporemask");
+            yield return new WaitForSecondsRealtime(0.3f);
+            c.Expect(Mathf.Abs(LevelLighting.PlayerLightRadius - bare) < 0.2f, "taken off: the light is back to normal");
+        }
+
+        static IEnumerator LurecapCase(Ctx c)
+        {
+            c.Teleport(6.5f, 1f);
+            c.Bot(Seq((900, F())));
+            var lc = c.Spawn<Lurecap>("lurecap", 14, 1);
+            c.Expect(lc != null, "lurecap spawned");
+            if (lc == null) yield break;
+            int hp0 = c.run.health;
+            yield return c.Frames(90);
+            c.Expect(!lc.IsAwake && !lc.IsStompable && lc.ContactDamage == 0, "far away it just sits there glowing: asleep, harmless");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "lurecap_asleep.png"));
+            yield return new WaitForSecondsRealtime(0.1f);
+            // touching it while it sleeps would be harmless too, but coming close wakes it
+            c.Teleport(lc.pos.x - 1.5f, 1f);
+            yield return c.Frames(4);
+            c.Expect(lc.IsAwake, "it wakes when the player walks up");
+            c.Expect(lc.ContactDamage == 0, "standing up is only the tell: no damage yet");
+            bool leapt = false, hit = false;
+            for (int i = 0; i < 300 && !hit; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (!lc.Dead && !lc.grounded && lc.IsAwake) leapt = true;
+                if (c.run.health < hp0) hit = true;
+            }
+            c.Expect(leapt, "then it leaps after the player");
+            c.Expect(hit, $"and the leap hurts (health {hp0} -> {c.run.health})");
+            if (!lc.Dead) lc.Despawn();
+        }
+
         static IEnumerator HawkCase(Ctx c)
         {
             c.Teleport(12.5f, 1f);
@@ -1619,8 +2052,13 @@ namespace Gloomdelve
             {
                 if (args[i] == "-scenarios") Active = true;
                 if (args[i] == "-autotestOut" && i + 1 < args.Length) outDir = args[i + 1];
+                if (args[i] == "-scenarioFilter" && i + 1 < args.Length)
+                    filter = args[i + 1].Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             }
             if (!Active) return;
+            if (filter != null) for (int i = 0; i < filter.Length; i++) filter[i] = filter[i].Trim();
+            SkipUnwanted();
+            if (index >= all.Count) { Debug.LogError("[Scenario] -scenarioFilter matches no scenario"); Active = false; return; }
             if (string.IsNullOrEmpty(outDir)) outDir = Path.Combine(Application.persistentDataPath, "autotest");
             Directory.CreateDirectory(outDir);
             report.Clear();
@@ -1633,7 +2071,7 @@ namespace Gloomdelve
         /// <summary>Called by GameDirector instead of the normal level creation.</summary>
         public static LevelData BuildLevel()
         {
-            int height = all[index].name.StartsWith("long fall") || all[index].name.StartsWith("rope into open air") || all[index].name.StartsWith("gliding down") || all[index].name.StartsWith("rope hook visibly") ? 16 : H;
+            int height = all[index].name.StartsWith("bosses: the rot heart") ? 12 : all[index].name.StartsWith("long fall") || all[index].name.StartsWith("rope into open air") || all[index].name.StartsWith("gliding down") || all[index].name.StartsWith("rope hook visibly") ? 16 : H;
             W = all[index].name.StartsWith("waypoint") ? 64 : 26;
             var m = new char[W, height];
             for (int y = 0; y < height; y++)
@@ -1678,6 +2116,7 @@ namespace Gloomdelve
             ScreenCapture.CaptureScreenshot(Path.Combine(outDir, $"scenario_{index:00}.png"));
             yield return new WaitForSecondsRealtime(0.2f);
             index++;
+            SkipUnwanted();
             if (index < all.Count)
             {
                 RunSession.NewRun(1, true, dir.config.player);
@@ -1686,8 +2125,8 @@ namespace Gloomdelve
             }
             else
             {
-                report.AppendLine($"\n{pass} passed, {fail} failed");
-                File.WriteAllText(Path.Combine(outDir, "scenario_report.txt"), report.ToString());
+                report.AppendLine($"\n{pass} passed, {fail} failed" + (Filtered ? $"   (only: {string.Join(", ", filter)})" : ""));
+                File.WriteAllText(Path.Combine(outDir, Filtered ? "scenario_report_partial.txt" : "scenario_report.txt"), report.ToString());
                 Application.Quit(fail == 0 ? 0 : 1);
             }
         }

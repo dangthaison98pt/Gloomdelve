@@ -23,7 +23,26 @@ namespace Gloomdelve
         public int minTorchSpacing = 7;
 
         Light2D global, playerLight;
-        float playerBase;
+        float playerBase, playerRadius;
+        // light drunk by gloom moths: the smallest factor asked for this frame, and the smoothed value in use
+        float dimWanted = 1f, dim = 1f;
+        int dimFrame = -1;
+        /// <summary>Current size of the player's light relative to normal (1 = untouched).</summary>
+        public static float PlayerLightScale => Instance != null ? Instance.dim : 1f;
+        /// <summary>Reach of the player's light right now (tiles), with equipment and moths counted in.</summary>
+        public static float PlayerLightRadius => Instance != null && Instance.playerLight != null ? Instance.playerLight.pointLightOuterRadius : 0f;
+
+        /// <summary>
+        /// Shrinks the light the player carries to this fraction for as long as it keeps being called (every
+        /// simulation step); it grows back by itself a moment after the calls stop. Visual only.
+        /// </summary>
+        public static void DimPlayerLight(float fraction)
+        {
+            var inst = Instance;
+            if (inst == null) return;
+            inst.dimWanted = Mathf.Min(inst.dimWanted, Mathf.Clamp(fraction, 0.1f, 1f));
+            inst.dimFrame = Time.frameCount;
+        }
         Transform torchRoot;
 
         struct Torch { public Light2D light; public SpriteRenderer flame; public float seed; }
@@ -73,7 +92,9 @@ namespace Gloomdelve
             global.color = area != null ? area.ambientColor : Color.white;
             global.intensity = ambient;
             playerBase = area != null ? area.playerLightIntensity : 0.8f;
-            playerLight.pointLightOuterRadius = area != null ? area.playerLightRadius : 7.5f;
+            playerRadius = area != null ? area.playerLightRadius : 7.5f;
+            playerLight.pointLightOuterRadius = playerRadius;
+            dim = dimWanted = 1f;
             playerLight.intensity = playerBase;
             playerLight.enabled = playerBase > 0.01f;
 
@@ -149,7 +170,12 @@ namespace Gloomdelve
             if (player != null && playerLight.enabled)
             {
                 playerLight.transform.position = (Vector2)player.transform.position + new Vector2(0f, 0.6f);
-                playerLight.intensity = playerBase * (0.96f + 0.04f * Mathf.PerlinNoise(t * 3f, 0.3f));
+                if (Time.frameCount - dimFrame > 6) dimWanted = 1f;        // nobody is drinking the light any more
+                dim = Mathf.MoveTowards(dim, dimWanted, Time.deltaTime * (dimWanted < dim ? 1.6f : 0.8f));
+                var run = RunSession.Current;
+                float reach = 1f + (run != null ? Mathf.Max(0f, run.stats.lightBonus) : 0f);      // a lantern carries further
+                playerLight.pointLightOuterRadius = playerRadius * reach * dim;
+                playerLight.intensity = playerBase * (0.5f + 0.5f * dim) * (0.96f + 0.04f * Mathf.PerlinNoise(t * 3f, 0.3f));
             }
             for (int i = 0; i < torches.Count; i++)
             {

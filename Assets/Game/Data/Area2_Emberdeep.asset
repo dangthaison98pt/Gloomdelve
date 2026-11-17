@@ -64,6 +64,8 @@ MonoBehaviour:
   arrowTrapDensity: 0.012
   ceilingHazardChance: 0.6
   markedTrapChance: 0.75
+  bounceCapChance: 0
+  glowPlantChance: 0
   perLevelDensityBonus: 0.15
   requiredGear: bomb
   gatesByLevel: 010000000100000002000000

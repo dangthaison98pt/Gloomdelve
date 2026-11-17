@@ -9,8 +9,17 @@ namespace Gloomdelve
     public class RunState
     {
         public int seed;
+        /// <summary>Position in this run's plan (stageOrder), not in GameConfig.stages.</summary>
         public int stageIndex;
+        /// <summary>This run's stages as indices into GameConfig.stages, and the name each has in this run. Filled by RunPlan.</summary>
+        public int[] stageOrder;
+        public string[] stageNames;
         public bool isTutorial;
+        /// <summary>Boss test from the main menu: the run is just one boss arena. Dying starts it again, winning goes
+        /// back to the boss list, and nothing is written to the records.</summary>
+        public bool bossPractice;
+        /// <summary>Health lost in this run (shown on the boss test result).</summary>
+        public int damageTaken;
 
         public int health;
         /// <summary>Health can never go above this; only a max-health item raises it. 0 = no limit (tests).</summary>
@@ -200,6 +209,16 @@ namespace Gloomdelve
             else { Current.gear.Add("bomb"); Current.gear.Add("rope"); }
             if (tutorial) { Current.bombs = 3; Current.ropes = 3; }
             return Current;
+        }
+
+        /// <summary>Starts a boss test: a fresh explorer dropped straight into the boss arena at this stage of the run.</summary>
+        public static RunState NewBossPractice(int catalogueIndex, PlayerConfig cfg)
+        {
+            var run = NewRun(RandomSeed(), false, cfg);
+            RunPlan.UseSingleStage(run, catalogueIndex, "CHALLENGE");
+            run.stageIndex = 0;
+            run.bossPractice = true;
+            return run;
         }
 
         public static void Clear() => Current = null;

@@ -325,6 +325,10 @@ namespace Gloomdelve.EditorTools
             Anim("frostbat_hang", F(e + "frostbat_2"), 1); Anim("frostbat_fly", F(e + "frostbat_0", e + "frostbat_1"), 10f);
             Anim("penguin_idle", F(e + "penguin_0"), 1); Anim("penguin_windup", F(e + "penguin_1"), 1); Anim("penguin_slide", F(e + "penguin_2"), 1);
             Anim("yeti_idle", F(e + "yeti_0"), 1); Anim("yeti_throw", F(e + "yeti_1"), 1);
+            // Sporegloom
+            Anim("puffshroom_walk", F(e + "puffshroom_0", e + "puffshroom_1"), 4f); Anim("puffshroom_swell", F(e + "puffshroom_2"), 1); Anim("puffshroom_deflated", F(e + "puffshroom_3"), 1);
+            Anim("moth_hang", F(e + "moth_2"), 1); Anim("moth_fly", F(e + "moth_0", e + "moth_1"), 14f);
+            Anim("lurecap_dormant", F(e + "lurecap_0"), 1); Anim("lurecap_idle", F(e + "lurecap_1"), 1); Anim("lurecap_jump", F(e + "lurecap_2"), 1);
             const string bo = "Sprites/Bosses/";
             Anim("venom_fly", F(bo + "venom_0", bo + "venom_1"), 10f);
             Anim("shock_run", F(bo + "shock_0", bo + "shock_1"), 12f);
@@ -333,6 +337,7 @@ namespace Gloomdelve.EditorTools
             Anim("yetiking_idle", F(bo + "yetiking_0"), 1); Anim("yetiking_throw", F(bo + "yetiking_1"), 1);
             Anim("stormhawk_fly", F(bo + "stormhawk_0", bo + "stormhawk_1"), 6f); Anim("stormhawk_dive", F(bo + "stormhawk_2"), 1);
             Anim("warden_float", F(bo + "warden_0", bo + "warden_1"), 3f);
+            Anim("sporeheart_beat", F(bo + "sporeheart_0", bo + "sporeheart_1"), 2.4f); Anim("sporeheart_swell", F(bo + "sporeheart_2"), 1);
             Anim("hawk_fly", F(e + "hawk_0", e + "hawk_1"), 7f);
             Anim("hawk_dive", F(e + "hawk_2"), 1);
             Anim("keeper_idle", ArtGenerator.Frames("Sprites/Shopkeeper/idle", 2), 1.5f);
@@ -364,7 +369,7 @@ namespace Gloomdelve.EditorTools
         static Dictionary<string, TileSet> CreateTileSets()
         {
             var result = new Dictionary<string, TileSet>();
-            foreach (var area in new[] { "Mossroot", "Emberdeep", "Vault", "Sunfall", "Frost" })
+            foreach (var area in new[] { "Mossroot", "Emberdeep", "Vault", "Sunfall", "Frost", "Sporegloom" })
             {
                 string d = "Tiles/" + area + "/";
                 var ts = LoadOrCreate<TileSet>($"{G}Data/TileSet_{area}.asset");
@@ -474,6 +479,12 @@ namespace Gloomdelve.EditorTools
             if (shop.Find("warmcoat") == null)
                 shop.offers.Add(new ShopOffer { id = "warmcoat", displayName = "Fur Coat", price = 650, isUpgrade = true, slot = "body",
                     description = "snowballs only slow you instead of freezing you", modifiers = new StatModifiers { coldResist = 1f } });
+            if (shop.Find("sporemask") == null)
+                shop.offers.Add(new ShopOffer { id = "sporemask", displayName = "Spore Mask", price = 550, isUpgrade = true, slot = "charm",
+                    description = "spore clouds cannot make you dizzy", modifiers = new StatModifiers { sporeResist = 1f } });
+            if (shop.Find("lantern") == null)
+                shop.offers.Add(new ShopOffer { id = "lantern", displayName = "Lantern", price = 600, isUpgrade = true, slot = "charm",
+                    description = "your light reaches much further in the dark", modifiers = new StatModifiers { lightBonus = 0.6f } });
             foreach (var o in shop.offers)
             {
                 if (!o.isUpgrade || !string.IsNullOrEmpty(o.slot)) continue;
@@ -481,7 +492,7 @@ namespace Gloomdelve.EditorTools
             }
             var icons = new Dictionary<string, string>
             {
-                ["iceboots"] = "Sprites/Items/iceboots", ["warmcoat"] = "Sprites/Items/warmcoat",
+                ["iceboots"] = "Sprites/Items/iceboots", ["warmcoat"] = "Sprites/Items/warmcoat", ["sporemask"] = "Sprites/Items/sporemask", ["lantern"] = "Sprites/Items/lantern",
                 ["bombs"] = "Sprites/Items/bombbag", ["ropes"] = "Sprites/Items/ropepile", ["heart"] = "Sprites/Items/heart",
                 ["springboots"] = "Sprites/Items/springboots", ["ironwhip"] = "Sprites/Items/ironwhip", ["compass"] = "Sprites/Items/compass",
                 ["blastpowder"] = "Sprites/Items/blastpowder",
@@ -597,6 +608,37 @@ namespace Gloomdelve.EditorTools
             frost.tiles = ts["Frost"];
             EditorUtility.SetDirty(frost);
 
+            // Sporegloom: a fungus forest in the dark. Almost no ambient light: the player's own light, the glowing
+            // plants and the bounce mushrooms are all there is to see by. No arrow traps (unfair in the dark).
+            var spore = LoadOrCreate<AreaConfig>(G + "Data/Area6_Sporegloom.asset", out bool newSpore);
+            if (newSpore)
+            {
+                spore.displayName = "Sporegloom"; spore.areaNumber = 6; spore.musicId = "area1";
+                spore.cameraBackground = new Color(0.03f, 0.025f, 0.055f);
+                spore.groundEnemies = new[] { new WeightedId("puffshroom", 2f), new WeightedId("lurecap", 1.5f), new WeightedId("snake", 1f) };
+                spore.ceilingEnemies = new[] { new WeightedId("moth", 2f), new WeightedId("spider", 1f), new WeightedId("bat", 1f) };
+                spore.spikes = true; spore.arrowTraps = false; spore.stalactites = true; spore.crushers = false; spore.flameVents = false;
+                spore.spikeDensity = 0.03f; spore.arrowTrapDensity = 0f; spore.ceilingHazardChance = 0.4f;
+                spore.gemVeinChance = 0.012f;
+                spore.requiredGear = ""; spore.gatesByLevel = new[] { 0, 0, 0 };
+                spore.bounceCapChance = 0.06f; spore.glowPlantChance = 0.12f;
+                spore.shopFeatured = new[] { "sporemask" };
+                spore.shopChanceByLevel = new[] { 1f, 0.6f, 0.5f };
+            }
+            if (spore.ambientIntensity < 0f)
+            {
+                spore.ambientColor = new Color(0.55f, 0.62f, 0.95f); spore.ambientIntensity = 0.17f;
+                spore.playerLightIntensity = 0.9f; spore.playerLightRadius = 5.5f;
+                spore.torchChance = 0f;
+                spore.ambientParticles = AmbientParticles.Pollen; spore.ambientParticleCount = 60;
+                spore.backdropTint = new Color(0.3f, 0.24f, 0.44f);
+            }
+            // both helpers of the dark are on every shelf here (they make the area easier; neither is needed to get through)
+            if (spore.shopFeatured == null || !System.Array.Exists(spore.shopFeatured, f => f == "lantern"))
+                spore.shopFeatured = new[] { "lantern", "sporemask" };
+            spore.tiles = ts["Sporegloom"];
+            EditorUtility.SetDirty(spore);
+
             var vault = LoadOrCreate<AreaConfig>(G + "Data/Area3_Vault.asset", out bool newVault);
             if (newVault)
             {
@@ -623,6 +665,8 @@ namespace Gloomdelve.EditorTools
                 cfg.customMarkers.Add(new MarkerDef { symbol = sym, label = label, spawnId = spawn, chance = chance, placement = place, tile = tile, color = col });
             }
             CustomMarker("r", "Rock dropper", "rockdropper", 0.8f, MarkerPlacement.UnderCeiling, TileType.Empty, new Color(0.7f, 0.65f, 0.6f));
+            CustomMarker("m", "Bounce mushroom", "bouncecap", 1f, MarkerPlacement.OnFloor, TileType.Empty, new Color(0.4f, 1f, 0.9f));
+            CustomMarker("l", "Glowing mushroom", "glowshroom", 1f, MarkerPlacement.OnFloor, TileType.Empty, new Color(0.3f, 0.8f, 0.7f));
             CustomMarker("c", "Crumbling platform", "crumble", 1f, MarkerPlacement.Anywhere, TileType.Platform, new Color(0.7f, 0.5f, 0.3f));
             cfg.player = player;
             cfg.shop = shop;
@@ -728,6 +772,43 @@ namespace Gloomdelve.EditorTools
                 runList.Add(new StageDef { displayName = "THE SUNKEN VAULT", kind = LevelKind.Final, area = vault, levelNumber = 1, handcrafted = final });
                 cfg.stages = runList.ToArray();
             }
+            // Sporegloom joins an existing run right after the first area and its boss: three levels (it has no
+            // boss of its own yet). Areas and bosses are renumbered along the run.
+            if (!System.Array.Exists(cfg.stages, st => st.area == spore))
+            {
+                var list = new List<StageDef>(cfg.stages);
+                int at = list.FindLastIndex(st => st.area == moss) + 1;
+                if (at == 0) { at = list.FindIndex(st => st.kind == LevelKind.Rest || st.kind == LevelKind.Final); if (at < 0) at = list.Count; }
+                for (int lv = 3; lv >= 1; lv--)
+                    list.Insert(at, new StageDef { displayName = "", kind = LevelKind.Area, area = spore, levelNumber = lv });
+                int areaNo = 0; AreaConfig prev = null;
+                foreach (var st in list)
+                {
+                    if (st.kind != LevelKind.Area && st.kind != LevelKind.Boss) continue;
+                    if (st.area != prev) { areaNo++; prev = st.area; }
+                    st.displayName = $"{areaNo}-{(st.kind == LevelKind.Boss ? 4 : st.levelNumber)}";
+                }
+                cfg.stages = list.ToArray();
+            }
+            // ...and its boss arena follows its three levels (also added to a run saved before the Rot Heart existed)
+            if (!System.Array.Exists(cfg.stages, st => st.area == spore && st.kind == LevelKind.Boss))
+            {
+                var list = new List<StageDef>(cfg.stages);
+                int at = list.FindLastIndex(st => st.area == spore) + 1;
+                if (at > 0)
+                {
+                    list.Insert(at, new StageDef { displayName = "", kind = LevelKind.Boss, area = spore, levelNumber = 4,
+                        handcrafted = AssetDatabase.LoadAssetAtPath<TextAsset>(G + "Data/Levels/Boss_Sporegloom.txt") });
+                    int areaNo = 0; AreaConfig prev = null;
+                    foreach (var st in list)
+                    {
+                        if (st.kind != LevelKind.Area && st.kind != LevelKind.Boss) continue;
+                        if (st.area != prev) { areaNo++; prev = st.area; }
+                        st.displayName = $"{areaNo}-{(st.kind == LevelKind.Boss ? 4 : st.levelNumber)}";
+                    }
+                    cfg.stages = list.ToArray();
+                }
+            }
             cfg.tutorial = new StageDef { displayName = "TUTORIAL", kind = LevelKind.Tutorial, area = moss, levelNumber = 1, handcrafted = tut };
             EditorUtility.SetDirty(cfg);
             AssetDatabase.SaveAssets();
@@ -799,6 +880,11 @@ namespace Gloomdelve.EditorTools
             ["GloomOrb"] = (new Color(0.75f, 0.5f, 1f), 2.4f, 1f, 0.2f, false, true, new Vector2(0f, 0.15f)),
             ["Shopkeeper"] = (new Color(1f, 0.8f, 0.5f), 7f, 0.9f, 0.08f, false, true, new Vector2(0f, 1.5f)),
             ["DoorExit"] = (new Color(0.6f, 0.9f, 1f), 3.6f, 0.8f, 0.15f, true, true, new Vector2(0f, 0.7f)),
+            // Sporegloom: the plants are the lamps of the dark; a sleeping lurecap glows exactly like one
+            ["Glowshroom"] = (new Color(0.35f, 1f, 0.82f), 4.2f, 0.95f, 0.2f, true, true, new Vector2(0f, 0.4f)),
+            ["Lurecap"] = (new Color(0.35f, 1f, 0.82f), 4.2f, 0.95f, 0.2f, true, true, new Vector2(0f, 0.4f)),
+            ["BounceCap"] = (new Color(0.4f, 1f, 0.9f), 5f, 1.1f, 0.25f, true, true, new Vector2(0f, 0.5f)),
+            ["SporeHeart"] = (new Color(0.95f, 0.45f, 1f), 7f, 1.25f, 0.35f, true, true, new Vector2(0f, 0.8f)),
         };
 
         static T Make<T>(string id, string folder, string display, Vector2 size, Sprite sprite, SpriteAnim anim, int order, Action<T, GameObject, SpriteRenderer> setup = null)
@@ -885,6 +971,19 @@ namespace Gloomdelve.EditorTools
                 (e, go, sr) => { e.flipWithFacing = false; }));
             Reg("icechunk", Make<IceChunk>("IceChunk", "Items", "ice chunk", new Vector2(0.45f, 0.4f), ArtGenerator.S(I("icechunk")), null, 12,
                 (e, g, s) => { e.flipWithFacing = false; e.impactSfx = "thud"; }));
+            // Sporegloom: its creatures, the spore cloud and the plants
+            Reg("puffshroom", Make<Puffshroom>("Puffshroom", "Enemies", "puffshroom", new Vector2(0.7f, 0.75f), ArtGenerator.S("Sprites/Enemies/puffshroom_0"), anims["puffshroom_walk"], 14,
+                (e, go, sr) => { e.animWalk = anims["puffshroom_walk"]; e.animSwell = anims["puffshroom_swell"]; e.animDeflated = anims["puffshroom_deflated"]; e.bloodColor = new Color(0.7f, 1f, 0.5f); }));
+            Reg("moth", Make<GloomMoth>("GloomMoth", "Enemies", "gloom moth", new Vector2(0.55f, 0.5f), ArtGenerator.S("Sprites/Enemies/moth_2"), anims["moth_hang"], 14,
+                (e, go, sr) => { e.animHang = anims["moth_hang"]; e.animFly = anims["moth_fly"]; e.goldDrop = 50; e.bloodColor = new Color(0.8f, 0.75f, 1f); }));
+            Reg("lurecap", Make<Lurecap>("Lurecap", "Enemies", "lurecap", new Vector2(0.7f, 0.6f), ArtGenerator.S("Sprites/Enemies/lurecap_0"), anims["lurecap_dormant"], 14,
+                (e, go, sr) => { e.maxHealth = 2; e.goldDrop = 100; e.animDormant = anims["lurecap_dormant"]; e.animIdle = anims["lurecap_idle"]; e.animJump = anims["lurecap_jump"]; e.jumpX = 3.8f; e.jumpY = 10f; e.bloodColor = new Color(0.4f, 1f, 0.85f); }));
+            Reg("sporecloud", Make<SporeCloud>("SporeCloud", "Enemies", "spore cloud", new Vector2(3.4f, 2.6f), ArtGenerator.S("Center/sporecloud"), null, 25,
+                (e, go, sr) => { e.flipWithFacing = false; sr.transform.localPosition = new Vector3(0f, 1.3f, 0f); }));
+            Reg("bouncecap", Make<BounceCap>("BounceCap", "Traps", "bounce cap", new Vector2(1.3f, 0.6f), ArtGenerator.S("Sprites/Props/bouncecap_0"), null, 4,
+                (e, go, sr) => { e.flipWithFacing = false; e.restSprite = ArtGenerator.S("Sprites/Props/bouncecap_0"); e.squashSprite = ArtGenerator.S("Sprites/Props/bouncecap_1"); }));
+            Reg("glowshroom", Make<Scenery>("Glowshroom", "Level", "glowing mushroom", new Vector2(0.8f, 0.6f), ArtGenerator.S("Sprites/Props/glowshroom_0"), null, 1,
+                (e, go, sr) => { e.flipWithFacing = false; e.variants = new[] { ArtGenerator.S("Sprites/Props/glowshroom_0"), ArtGenerator.S("Sprites/Props/glowshroom_1"), ArtGenerator.S("Sprites/Props/glowshroom_2") }; }));
             // bosses (one per area + the final guardian), their projectile, and the treasure chest
             Sprite BS(string n) => ArtGenerator.S("Sprites/Bosses/" + n);
             Reg("broodmother", Make<Broodmother>("Broodmother", "Enemies", "Broodmother", new Vector2(1.5f, 1.0f), BS("broodmother_0"), anims["broodmother_idle"], 15,
@@ -895,6 +994,8 @@ namespace Gloomdelve.EditorTools
                 (e, go, sr) => { e.maxHealth = 16; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animIdle = anims["yetiking_idle"]; e.animThrow = anims["yetiking_throw"]; e.animCounter = anims["yetiking_throw"]; e.counterFx = anims["cfx_frost"]; e.counterMotion = Boss.CounterMotion.Burst; e.counterFxScale = 2.2f; e.counterFxOnBody = true; e.bloodColor = new Color(0.85f, 0.92f, 1f); }));
             Reg("stormhawk", Make<StormHawk>("StormHawk", "Enemies", "Storm Hawk", new Vector2(1.3f, 0.9f), BS("stormhawk_0"), anims["stormhawk_fly"], 15,
                 (e, go, sr) => { e.maxHealth = 12; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animFly = anims["stormhawk_fly"]; e.animDive = anims["stormhawk_dive"]; e.animCounter = anims["stormhawk_fly"]; e.counterFx = anims["cfx_gust"]; e.counterMotion = Boss.CounterMotion.Flap; e.counterFxScale = 1.5f; e.bloodColor = new Color(0.5f, 0.6f, 0.9f); }));
+            Reg("sporeheart", Make<SporeHeart>("SporeHeart", "Enemies", "Rot Heart", new Vector2(1.7f, 1.6f), BS("sporeheart_0"), anims["sporeheart_beat"], 15,
+                (e, go, sr) => { e.maxHealth = 14; e.contactDamage = 0; e.stompable = false; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.flipWithFacing = false; e.animBeat = anims["sporeheart_beat"]; e.animSwell = anims["sporeheart_swell"]; e.bloodColor = new Color(0.62f, 1f, 0.5f); }));
             Reg("warden", Make<Warden>("Warden", "Enemies", "Hollow Warden", new Vector2(1.4f, 1.8f), BS("warden_0"), anims["warden_float"], 31,
                 (e, go, sr) => { e.maxHealth = 24; e.contactDamage = 2; e.stompable = false; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = ""; e.animFloat = anims["warden_float"]; e.bloodColor = new Color(0.7f, 0.4f, 1f); }));
             Reg("gloomorb", Make<BossShot>("GloomOrb", "Enemies", "gloom orb", new Vector2(0.35f, 0.35f), BS("orb"), null, 32,
@@ -1068,17 +1169,53 @@ namespace Gloomdelve.EditorTools
             menu.config = cfg;
 
             var main = UIBuilder.Node(t, "MainPanel");
-            UIBuilder.Place(UIBuilder.Rect(main), new Vector2(0.5f, 0.5f), new Vector2(0, -90), new Vector2(520, 470));
+            UIBuilder.Place(UIBuilder.Rect(main), new Vector2(0.5f, 0.5f), new Vector2(0, -110), new Vector2(520, 480));
             var mt = main.transform;
             Vector2 bs = new Vector2(460, 64);
             menu.startButton = UIBuilder.Button(mt, "Start", "START RUN", new Vector2(0.5f, 1f), new Vector2(0, -36), bs);
             menu.tutorialButton = UIBuilder.Button(mt, "Tutorial", "TUTORIAL", new Vector2(0.5f, 1f), new Vector2(0, -108), bs);
-            menu.settingsButton = UIBuilder.Button(mt, "Settings", "SETTINGS", new Vector2(0.5f, 1f), new Vector2(0, -180), bs);
-            menu.recordsButton = UIBuilder.Button(mt, "Records", "RECORDS", new Vector2(0.5f, 1f), new Vector2(0, -252), bs);
-            menu.quitButton = UIBuilder.Button(mt, "Quit", "QUIT", new Vector2(0.5f, 1f), new Vector2(0, -324), bs);
+            menu.bossButton = UIBuilder.Button(mt, "BossTest", "CHALLENGE", new Vector2(0.5f, 1f), new Vector2(0, -180), bs);
+            menu.settingsButton = UIBuilder.Button(mt, "Settings", "SETTINGS", new Vector2(0.5f, 1f), new Vector2(0, -252), bs);
+            menu.recordsButton = UIBuilder.Button(mt, "Records", "RECORDS", new Vector2(0.5f, 1f), new Vector2(0, -324), bs);
+            menu.quitButton = UIBuilder.Button(mt, "Quit", "QUIT", new Vector2(0.5f, 1f), new Vector2(0, -396), bs);
             menu.mainPanel = main;
 
             menu.keysPanel = UIBuilder.KeysPanel(t);
+            // boss test: one button per boss stage of the run (area bosses and the final guardian)
+            {
+                var bossReg = AssetDatabase.LoadAssetAtPath<PrefabRegistry>(G + "Data/PrefabRegistry.asset");
+                var bossStages = new List<int>();
+                var bossNames = new List<string>();
+                for (int si = 0; si < cfg.stages.Length; si++)
+                {
+                    var st = cfg.stages[si];
+                    if ((st.kind != LevelKind.Boss && st.kind != LevelKind.Final) || st.handcrafted == null) continue;
+                    string bossId = "";
+                    foreach (var line in st.handcrafted.text.Split('\n'))
+                    {
+                        string l = line.Trim();
+                        if (l == "---") break;
+                        if (l.StartsWith("boss:")) bossId = l.Substring(5).Trim();
+                    }
+                    // looked up in the registry asset itself (cfg.prefabs is not reliable while scenes are being rebuilt)
+                    var entry = bossId.Length > 0 && bossReg != null ? bossReg.entries.Find(en => en != null && en.id == bossId) : null;
+                    var prefab = entry != null ? entry.prefab : null;
+                    if (prefab == null) continue;
+                    bossStages.Add(si);
+                    bossNames.Add(prefab.displayName.ToUpperInvariant());       // just the name: areas come in a different order every run
+                }
+                float rowStep = 72f;
+                var bp = UIBuilder.Panel(t, "BossPanel", new Vector2(0.5f, 0.5f), new Vector2(0, -40), new Vector2(820, 330 + bossStages.Count * rowStep));
+                UIBuilder.Label(bp.transform, "Title", "CHALLENGE", 46, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -36), new Vector2(700, 64));
+                UIBuilder.Label(bp.transform, "Hint", "Pick a boss and fight it straight away.\nDying starts the fight again. Nothing is recorded.", 22, new Color(1f, 1f, 1f, 0.75f),
+                    TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -112), new Vector2(760, 64));
+                menu.bossButtons = new Button[bossStages.Count];
+                for (int i = 0; i < bossStages.Count; i++)
+                    menu.bossButtons[i] = UIBuilder.Button(bp.transform, "Boss_" + i, bossNames[i], new Vector2(0.5f, 1f), new Vector2(0, -196 - i * rowStep), new Vector2(700, 62));
+                menu.bossStages = bossStages.ToArray();
+                menu.bossBack = UIBuilder.Button(bp.transform, "Back", "BACK", new Vector2(0.5f, 0f), new Vector2(0, 36), new Vector2(320, 66));
+                menu.bossPanel = bp.gameObject;
+            }
             menu.settingsPanel = UIBuilder.Settings(t);
             var rec = UIBuilder.Panel(t, "RecordsPanel", new Vector2(0.5f, 0.5f), new Vector2(0, -60), new Vector2(760, 640));
             UIBuilder.Label(rec.transform, "Title", "RECORDS", 46, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -50), new Vector2(700, 70));

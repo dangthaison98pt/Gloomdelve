@@ -66,6 +66,12 @@ namespace Gloomdelve
         [Range(0, 1)] public float ceilingHazardChance = 0.6f;
         [Range(0, 1)] public float markedTrapChance = 0.75f;
 
+        [Header("Sporegloom plants")]
+        [Tooltip("Chance of a bounce mushroom on each suitable floor spot (open air above). 0 = none.")]
+        [Range(0, 0.3f)] public float bounceCapChance = 0f;
+        [Tooltip("Chance of a small glowing mushroom on each floor spot: the lights of a dark area. 0 = none.")]
+        [Range(0, 0.3f)] public float glowPlantChance = 0f;
+
         [Header("Difficulty scaling per level (added per level beyond the first)")]
         public float perLevelDensityBonus = 0.15f;
 

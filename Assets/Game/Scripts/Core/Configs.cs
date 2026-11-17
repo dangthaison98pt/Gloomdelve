@@ -35,6 +35,9 @@ namespace Gloomdelve
         public AreaConfig area;
         [Tooltip("1-based level number inside the area (used for difficulty scaling).")] public int levelNumber = 1;
         [Tooltip("Hand-made layout (Final / Tutorial only).")] public TextAsset handcrafted;
+
+        /// <summary>The same stage under the name it has in one particular run ("3-2": third area of that run).</summary>
+        public StageDef Named(string name) => new StageDef { displayName = name, kind = kind, area = area, levelNumber = levelNumber, handcrafted = handcrafted };
     }
 
     /// <summary>Resource ids understood by RunState.AddResource. Any other id is stored as a custom counter.</summary>
@@ -64,21 +67,23 @@ namespace Gloomdelve
         [Tooltip("Added to bomb blast radius (tiles).")] public float blastRadiusBonus;
         [Tooltip("Footing on ice: 1 = never slides (the ground grip of the level is raised to at least this).")] public float iceGrip;
         [Tooltip("Above 0: snowballs and other cold attacks cannot freeze the wearer.")] public float coldResist;
+        [Tooltip("Above 0: spore clouds cannot make the wearer dizzy.")] public float sporeResist;
+        [Tooltip("Added to the reach of the light the player carries (0.6 = 60% further). Helps in dark areas.")] public float lightBonus;
 
         public void Add(StatModifiers o)
         {
             if (o == null) return;
             jumpBonus += o.jumpBonus; whipDamageBonus += o.whipDamageBonus;
             whipRangeBonus += o.whipRangeBonus; blastRadiusBonus += o.blastRadiusBonus;
-            iceGrip = Mathf.Max(iceGrip, o.iceGrip); coldResist += o.coldResist;
+            iceGrip = Mathf.Max(iceGrip, o.iceGrip); coldResist += o.coldResist; sporeResist += o.sporeResist; lightBonus += o.lightBonus;
         }
 
         public void Clear()
         {
-            jumpBonus = 0f; whipDamageBonus = 0; whipRangeBonus = 0f; blastRadiusBonus = 0f; iceGrip = 0f; coldResist = 0f;
+            jumpBonus = 0f; whipDamageBonus = 0; whipRangeBonus = 0f; blastRadiusBonus = 0f; iceGrip = 0f; coldResist = 0f; sporeResist = 0f; lightBonus = 0f;
         }
 
-        public bool IsZero => jumpBonus == 0f && whipDamageBonus == 0 && whipRangeBonus == 0f && blastRadiusBonus == 0f && iceGrip == 0f && coldResist == 0f;
+        public bool IsZero => jumpBonus == 0f && whipDamageBonus == 0 && whipRangeBonus == 0f && blastRadiusBonus == 0f && iceGrip == 0f && coldResist == 0f && sporeResist == 0f && lightBonus == 0f;
     }
 
     /// <summary>

@@ -24,6 +24,7 @@ namespace Gloomdelve
 
         bool tutorialMode;
         float shownAt;
+        public bool Showing => root != null && root.activeSelf;
 
         void Awake()
         {
@@ -68,6 +69,54 @@ namespace Gloomdelve
             retrySeedButton.gameObject.SetActive(true);
             if (newRunLabel) newRunLabel.text = "NEW RUN";
             UIUtil.Select(newRunButton);
+        }
+
+        /// <summary>
+        /// Challenge (boss fight from the main menu) won: what the fight cost. Stays up until the player picks "fight again" or "boss list".
+        /// </summary>
+        public void ShowBossTest(RunState run, string bossName, float fightTime)
+        {
+            tutorialMode = false;
+            root.SetActive(true);
+            shownAt = Time.unscaledTime;
+            title.text = "BOSS DEFEATED";
+            title.color = new Color(1f, 0.85f, 0.3f);
+            cause.text = string.IsNullOrEmpty(bossName) ? "" : bossName.ToUpperInvariant();
+            reached.text = "";
+            seedText.text = "";
+            body.text = "";
+            records.text = "";
+            // the four big tiles, relabelled for a fight (this screen is not reused: the scene reloads afterwards)
+            statsRoot.SetActive(true);
+            // only two numbers matter for a fight: how long it took and how much health it cost (the two middle tiles)
+            Tile(statTime, "TIME", UIUtil.FormatTime(fightTime), true);
+            Tile(statKills, "HEALTH LOST", run.damageTaken.ToString(), false);
+            if (statGold != null) statGold.transform.parent.gameObject.SetActive(false);
+            if (statLevels != null) statLevels.transform.parent.gameObject.SetActive(false);
+            news.text = "Challenge - nothing is recorded.";
+            retrySeedButton.gameObject.SetActive(false);
+            if (newRunLabel) newRunLabel.text = "FIGHT AGAIN";
+            var menuLabel = menuButton != null ? menuButton.GetComponentInChildren<Text>() : null;
+            if (menuLabel != null) menuLabel.text = "BOSS LIST";
+            UIUtil.Wire(menuButton, () => GameDirector.Instance.BackToBossList());
+            UIUtil.Select(newRunButton);
+        }
+
+        /// <summary>Sets one stat tile: its caption, its value, and whether its small icon shows.</summary>
+        static void Tile(Text value, string caption, string text, bool icon)
+        {
+            if (value == null) return;
+            value.text = text;
+            var tile = value.transform.parent;
+            var label = tile.Find("Label");
+            if (label != null)
+            {
+                var lt = label.GetComponent<Text>();
+                if (lt != null) lt.text = caption;
+                if (!icon) ((RectTransform)label).anchoredPosition = new Vector2(0f, ((RectTransform)label).anchoredPosition.y);
+            }
+            var ic = tile.Find("Icon");
+            if (ic != null) ic.gameObject.SetActive(icon);
         }
 
         public void ShowTutorialComplete(RunState run)

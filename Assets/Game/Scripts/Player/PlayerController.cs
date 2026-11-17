@@ -56,8 +56,13 @@ namespace Gloomdelve
         float frozen;
         /// <summary>Chilled: moving slower for a moment (a snowball on someone with cold resistance).</summary>
         public bool Slowed => slowTimer > 0f;
+        /// <summary>Breathing spores: left and right are swapped (Sporegloom).</summary>
+        public bool Confused => confused > 0f;
+        float confused;
+        /// <summary>Jump was held in the last simulation step (bounce mushrooms throw higher then).</summary>
+        public bool JumpHeld { get; private set; }
         float slowTimer, slowAmount;
-        bool frozenTint;
+        int tintState;      // 0 normal, 1 frozen (blue), 2 dizzy (green)
 
         float whipTimer = -1f, whipCooldown, invuln, stunTimer, lookTimer, throwAnimTimer;
         readonly HashSet<Entity> whipHits = new HashSet<Entity>();
@@ -93,7 +98,9 @@ namespace Gloomdelve
             if (IsDead) { TickCorpse(dt); return; }
 
             FrameInput fi = bot != null ? bot.Next() : (input != null ? input.Consume() : default);
-            invuln -= dt; stunTimer -= dt; whipCooldown -= dt; throwAnimTimer -= dt; frozen -= dt; slowTimer -= dt;
+            invuln -= dt; stunTimer -= dt; whipCooldown -= dt; throwAnimTimer -= dt; frozen -= dt; slowTimer -= dt; confused -= dt;
+            if (confused > 0f) fi.x = -fi.x;        // dizzy from spores: left is right
+            JumpHeld = fi.jumpHeld;
             bool stunned = stunTimer > 0f;
 
             var mi = new MotorInput
@@ -384,6 +391,7 @@ namespace Gloomdelve
             bool bypass = d.type == DamageType.Wraith || d.type == DamageType.Explosion || d.amount >= 99;
             if (invuln > 0f && !bypass) return false;
             Run.health -= d.amount;
+            Run.damageTaken += d.amount;
             Flash(0.25f);
             Fx.Blood(Center, BloodRed, 8);
             Fx.Shake(0.35f);
@@ -419,6 +427,32 @@ namespace Gloomdelve
             motor.jumping = false;
             vel = motor.vel;
             Fx.Shake(0.15f);
+        }
+
+        /// <summary>Thrown straight up by something springy (bounce mushroom): the fall so far is forgotten, so no fall damage.</summary>
+        public void Bounce(float upSpeed)
+        {
+            if (IsDead || godMode) return;
+            motor.mode = MotorMode.Normal;
+            motor.vel.y = upSpeed;
+            motor.grounded = false;
+            motor.jumping = false;
+            motor.apexY = motor.pos.y;
+            vel = motor.vel;
+            squash = new Vector2(0.78f, 1.25f);
+        }
+
+        /// <summary>Dizzy for a while: left and right are swapped. No damage. A spore mask (stats.sporeResist) prevents it.</summary>
+        public void Confuse(float seconds)
+        {
+            if (IsDead || godMode) return;
+            if (Run != null && Run.stats.sporeResist > 0f) return;
+            if (confused <= 0f)
+            {
+                Fx.Text(Center + Vector2.up * 0.9f, "DIZZY", new Color(0.7f, 1f, 0.5f), 0.9f);
+                Sfx.Play("shatter", pos, 0.35f, 0.6f);
+            }
+            confused = Mathf.Max(confused, seconds);
         }
 
         /// <summary>Moves slower by the given fraction (0.3 = 30%) for a while. No damage, full control.</summary>
@@ -517,10 +551,11 @@ namespace Gloomdelve
         protected override void LateUpdate()
         {
             base.LateUpdate();
-            if (sr != null && frozenTint != Frozen)
+            int tint = Frozen ? 1 : Confused ? 2 : 0;
+            if (sr != null && tintState != tint)
             {
-                frozenTint = Frozen;
-                sr.color = frozenTint ? new Color(0.55f, 0.82f, 1f) : Color.white;
+                tintState = tint;
+                sr.color = tint == 1 ? new Color(0.55f, 0.82f, 1f) : tint == 2 ? new Color(0.72f, 1f, 0.6f) : Color.white;
             }
             if (sr != null)
             {

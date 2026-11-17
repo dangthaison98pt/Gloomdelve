@@ -223,8 +223,21 @@ namespace Gloomdelve.EditorTools
             style = 0
         };
 
+        // Sporegloom: dark violet soil under a skin of glowing teal mycelium, purple rock, pale thorn spikes.
+        static readonly Pal Spore = new Pal
+        {
+            b = C(74, 58, 96), d = C(54, 42, 74), l = C(102, 84, 126), deep = C(30, 22, 44),
+            top = C(64, 170, 150), topL = C(130, 236, 206), topD = C(36, 110, 104),
+            rock = C(52, 50, 78), rockD = C(34, 32, 54), rockL = C(84, 82, 118), rockDeep = C(18, 16, 30),
+            bg = C(26, 20, 36), bgD = C(18, 14, 27), bgL = C(38, 30, 52),
+            wood = C(120, 98, 120), woodD = C(74, 58, 78), woodL = C(164, 140, 160),
+            spike = C(150, 110, 170), spikeD = C(92, 62, 112), spikeL = C(206, 170, 220), spikeTip = C(140, 255, 210),
+            style = 0
+        };
+
         static void AllTiles()
         {
+            TileSetArt("Sporegloom", Spore, 83);
             TileSetArt("Frost", Frost, 67);
             TileSetArt("Mossroot", Moss, 11);
             TileSetArt("Emberdeep", Ember, 23);
@@ -1007,6 +1020,7 @@ namespace Gloomdelve.EditorTools
             HawkArt(pv18);
             BatArt(d + "frostbat", C(150, 202, 238), C(92, 148, 204), C(255, 255, 255), pv18);
             FrostEnemyArt(pv18);
+            SporeArt(pv18);
             TreeArt();
             // Spider
             {
@@ -1198,6 +1212,153 @@ namespace Gloomdelve.EditorTools
             }
         }
 
+        /// <summary>Upper half of an ellipse standing on row 'baseY': a mushroom cap.</summary>
+        static void Cap(Px p, float cx, int baseY, float rx, float ry, Color32 col)
+        {
+            for (int y = baseY; y <= baseY + Mathf.CeilToInt(ry); y++)
+                for (int x = Mathf.FloorToInt(cx - rx); x <= Mathf.CeilToInt(cx + rx); x++)
+                {
+                    float u = (x + 0.5f - cx) / rx, v = (y + 0.5f - baseY) / ry;
+                    if (u * u + v * v <= 1f) p.Set(x, y, col);
+                }
+        }
+
+        /// <summary>One small glowing mushroom: pale stem, teal cap with a bright rim and two light spots.</summary>
+        static void SmallShroom(Px p, int x, int y0, int stemH, float capR, Color32 stem, Color32 cap, Color32 capL, Color32 capD)
+        {
+            p.Rect(x, y0, 2, stemH, stem);
+            Cap(p, x + 1f, y0 + stemH, capR, capR * 0.8f, cap);
+            Cap(p, x + 1f, y0 + stemH, capR, 1f, capD);
+            p.Set(x, y0 + stemH + Mathf.Max(1, (int)(capR * 0.5f)), capL);
+            if (capR >= 3f) p.Set(x + 2, y0 + stemH + 1, capL);
+        }
+
+        /// <summary>
+        /// Sporegloom: the glowing plants (decor mushrooms, the bounce cap), its three creatures (puffshroom, gloom
+        /// moth, lurecap) and the spore cloud.
+        /// </summary>
+        static void SporeArt(Vector2 pv)
+        {
+            Color32 stem = C(206, 196, 214), stemD = C(150, 138, 168);
+            Color32 teal = C(70, 214, 186), tealL = C(190, 255, 236), tealD = C(34, 132, 128);
+            Color32 ol = C(20, 16, 34);
+            // decor: three little clusters. Variant 0 is also what a sleeping lurecap looks like.
+            for (int v = 0; v < 3; v++)
+            {
+                var p = new Px(16, 16);
+                if (v == 0) { SmallShroom(p, 6, 0, 4, 4.2f, stem, teal, tealL, tealD); SmallShroom(p, 12, 0, 2, 2.2f, stem, teal, tealL, tealD); }
+                else if (v == 1) { SmallShroom(p, 3, 0, 3, 2.6f, stem, teal, tealL, tealD); SmallShroom(p, 9, 0, 6, 3.4f, stem, teal, tealL, tealD); }
+                else { SmallShroom(p, 2, 0, 2, 2.2f, stem, teal, tealL, tealD); SmallShroom(p, 7, 0, 3, 2.6f, stem, teal, tealL, tealD); SmallShroom(p, 12, 0, 5, 2.4f, stem, teal, tealL, tealD); }
+                p.Outline(ol);
+                Save(p, $"Sprites/Props/glowshroom_{v}", new Vector2(0.5f, 0f));
+            }
+            // bounce cap: a wide, low trampoline of a mushroom (rest, squashed)
+            for (int f = 0; f < 2; f++)
+            {
+                var p = new Px(26, 14);
+                int stemH = f == 0 ? 4 : 2;
+                float ry = f == 0 ? 6f : 4f, rx = f == 0 ? 11f : 12.4f;
+                p.Rect(10, 0, 6, stemH, stem); p.Rect(14, 0, 2, stemH, stemD);
+                Cap(p, 13f, stemH, rx, ry, teal);
+                Cap(p, 13f, stemH, rx, 1.2f, tealD);
+                for (int i = 0; i < 4; i++) p.Rect(5 + i * 5, stemH + 2 + (i % 2), 2, 1, tealL);
+                p.Rect(9, stemH + (int)ry - 2, 8, 1, tealL);
+                p.Outline(ol);
+                Save(p, $"Sprites/Props/bouncecap_{f}", new Vector2(0.5f, 0f));
+            }
+            // puffshroom: 0/1 walk, 2 swollen, 3 deflated
+            {
+                Color32 cap = C(168, 92, 196), capL = C(226, 168, 240), capD = C(104, 52, 130), spot = C(214, 255, 170), eye = C(24, 20, 30);
+                for (int f = 0; f < 4; f++)
+                {
+                    var p = new Px(18, 18);
+                    int lift = f == 1 ? 1 : 0;
+                    float rx = f == 2 ? 8f : f == 3 ? 5.5f : 6.5f, ry = f == 2 ? 9f : f == 3 ? 3.5f : 6.5f;
+                    int bodyH = f == 3 ? 4 : 5;
+                    p.Rect(5, 0, 2, 2 - lift, stemD); p.Rect(11, 0, 2, 1 + lift, stemD);          // feet
+                    p.Rect(5, 1, 8, bodyH, stem); p.Rect(11, 1, 2, bodyH, stemD);
+                    p.Set(7, 3, eye); p.Set(10, 3, eye);
+                    if (f == 2) p.Rect(8, 2, 2, 1, eye);                                            // cheeks puffed, mouth tight
+                    Cap(p, 9f, 1 + bodyH, rx, ry, cap);
+                    Cap(p, 9f, 1 + bodyH, rx, 1.2f, capD);
+                    p.Set(6, 2 + bodyH + (int)(ry * 0.4f), spot); p.Set(11, 2 + bodyH + (int)(ry * 0.3f), spot); p.Set(9, bodyH + (int)ry - 1, capL);
+                    if (f == 2) { p.Set(4, 4 + bodyH, spot); p.Set(13, 5 + bodyH, spot); p.Set(8, 5 + bodyH, spot); }
+                    p.Outline(ol);
+                    if (f == 3) { p.Set(3, 12, spot); p.Set(14, 13, spot); p.Set(9, 15, spot); }   // the last spores hanging in the air
+                    Save(p, $"Sprites/Enemies/puffshroom_{f}", pv);
+                }
+            }
+            // gloom moth: 0/1 flying (wings up / down), 2 hanging with folded wings
+            {
+                Color32 wing = C(112, 96, 150), wingL = C(170, 156, 206), wingD = C(70, 58, 100), body = C(58, 46, 70), glowC = C(255, 236, 150);
+                for (int f = 0; f < 3; f++)
+                {
+                    var p = new Px(18, 18);
+                    if (f < 2)
+                    {
+                        int wy = f == 0 ? 9 : 6;
+                        p.Ellipse(5f, wy + 1f, 4f, f == 0 ? 3.4f : 2.4f, wing); p.Ellipse(13f, wy + 1f, 4f, f == 0 ? 3.4f : 2.4f, wing);
+                        p.Ellipse(5.5f, wy - 2f, 2.6f, 1.8f, wingD); p.Ellipse(12.5f, wy - 2f, 2.6f, 1.8f, wingD);
+                        p.Set(4, wy + 1, wingL); p.Set(5, wy + 2, wingL); p.Set(13, wy + 1, wingL); p.Set(12, wy + 2, wingL);
+                        p.Set(4, wy, glowC); p.Set(13, wy, glowC);                                 // eye spots on the wings
+                        p.Rect(8, 4, 2, 7, body);
+                        p.Set(8, 11, glowC); p.Set(9, 11, glowC);                                  // head lit by what it drank
+                        p.Set(7, 12, body); p.Set(10, 12, body); p.Set(6, 13, body); p.Set(11, 13, body);   // feelers
+                    }
+                    else
+                    {
+                        p.Rect(8, 8, 2, 9, body);
+                        p.Ellipse(9f, 11f, 3.2f, 5f, wing);
+                        p.Line(9, 7, 9, 15, wingD);
+                        p.Set(7, 11, wingL); p.Set(11, 11, wingL);
+                        p.Set(8, 6, glowC); p.Set(9, 6, glowC);
+                    }
+                    p.Outline(ol);
+                    Save(p, $"Sprites/Enemies/moth_{f}", pv);
+                }
+            }
+            // lurecap: 0 asleep (the decor cluster), 1 awake on its feet, 2 leaping
+            {
+                Color32 red = C(255, 90, 80), tooth = C(250, 250, 240), eye = C(24, 20, 30);
+                for (int f = 0; f < 3; f++)
+                {
+                    var p = new Px(18, 18);
+                    if (f == 0)
+                    {
+                        SmallShroom(p, 7, 1, 4, 4.2f, stem, teal, tealL, tealD); SmallShroom(p, 13, 1, 2, 2.2f, stem, teal, tealL, tealD);
+                    }
+                    else
+                    {
+                        int up = f == 2 ? 3 : 0;
+                        if (f == 1) { p.Rect(5, 0, 2, 2, stemD); p.Rect(11, 0, 2, 2, stemD); }
+                        else { p.Line(5, 2, 3, 0, stemD); p.Line(12, 2, 14, 0, stemD); }
+                        p.Rect(5, 2 + up, 8, 5, stem);
+                        p.Rect(6, 3 + up, 6, 2, eye);                                               // a wide mouth
+                        p.Set(6, 4 + up, tooth); p.Set(8, 4 + up, tooth); p.Set(10, 4 + up, tooth); p.Set(7, 3 + up, tooth); p.Set(9, 3 + up, tooth); p.Set(11, 3 + up, tooth);
+                        Cap(p, 9f, 7 + up, 6.5f, 5.6f, teal);
+                        Cap(p, 9f, 7 + up, 6.5f, 1.2f, tealD);
+                        p.Set(6, 8 + up, red); p.Set(7, 8 + up, red); p.Set(10, 8 + up, red); p.Set(11, 8 + up, red);   // eyes under the brim
+                        p.Set(8, 11 + up, tealL); p.Set(12, 9 + up, tealL);
+                    }
+                    p.Outline(ol);
+                    Save(p, $"Sprites/Enemies/lurecap_{f}", pv);
+                }
+            }
+            // spore cloud: a loose puff of dots, white - tinted and faded at runtime
+            {
+                var p = new Px(40, 36);
+                Color32 w = C(255, 255, 255, 150), wl = C(255, 255, 255, 230), wd = C(255, 255, 255, 80);
+                p.Disc(20, 18, 11f, wd); p.Disc(12, 15, 7.5f, wd); p.Disc(28, 16, 8f, wd); p.Disc(19, 25, 7.5f, wd); p.Disc(22, 10, 7f, wd);
+                p.Disc(20, 18, 7f, w); p.Disc(13, 15, 4f, w); p.Disc(27, 17, 4.5f, w); p.Disc(19, 24, 4f, w);
+                for (int i = 0; i < 46; i++)
+                {
+                    int x = 3 + (int)(N(i, 7, 91) * 34f), y = 3 + (int)(N(i, 13, 57) * 30f);
+                    p.Set(x, y, wl);
+                }
+                Save(p, "Center/sporecloud", PCenter);
+            }
+        }
+
         static Px Scale(Px s, int n)
         {
             var p = new Px(s.w * n, s.h * n);
@@ -1246,6 +1407,36 @@ namespace Gloomdelve.EditorTools
             Big("hawk_0", "stormhawk_0", 0.8f, 0.85f, 1.2f); Big("hawk_1", "stormhawk_1", 0.8f, 0.85f, 1.2f);
             Big("hawk_2", "stormhawk_2", 0.8f, 0.85f, 1.2f, null, true);
             Big("specter_0", "warden_0", 1.25f, 0.75f, 1.3f); Big("specter_1", "warden_1", 1.25f, 0.75f, 1.3f);
+            // The Rot Heart (Sporegloom): a fungus heart on a long stalk that hangs from the ceiling.
+            // 0 / 1 = the beat, 2 = swollen and bright (the tell before a move). The pivot is the bottom of the heart.
+            for (int f = 0; f < 3; f++)
+            {
+                var p = new Px(30, 70);
+                Color32 flesh = C(150, 70, 170), fleshD = C(96, 40, 116), fleshL = C(214, 140, 230), vein = C(70, 214, 186), veinL = C(190, 255, 236), stalk = C(92, 76, 110), stalkD = C(58, 46, 74);
+                if (f == 2) { flesh = C(190, 96, 200); fleshL = C(244, 190, 250); vein = C(150, 255, 220); }
+                // stalk: a twisted column from the heart up to the ceiling, with a few side roots at the top
+                for (int y = 22; y < 70; y++)
+                {
+                    int sway = (int)Mathf.Round(Mathf.Sin(y * 0.35f) * 1.2f);
+                    p.Rect(13 + sway, y, 4, 1, stalk); p.Set(16 + sway, y, stalkD);
+                    if (y % 9 == 3) p.Set(12 + sway, y, vein);
+                }
+                p.Line(13, 66, 7, 69, stalk); p.Line(17, 65, 23, 69, stalk); p.Line(14, 60, 10, 64, stalkD);
+                // the heart
+                float rx = f == 0 ? 11.5f : f == 1 ? 12.6f : 13.6f, ry = f == 0 ? 11.5f : f == 1 ? 12.2f : 12.8f;
+                p.Ellipse(15f, 13f, rx, ry, flesh);
+                p.Ellipse(11f, 20f, 6f, 5f, flesh); p.Ellipse(19.5f, 20f, 6f, 5f, flesh);           // two lobes on top
+                p.Ellipse(15f, 8f, rx - 3f, 5f, fleshD);                                           // shadow underneath
+                p.Ellipse(10f, 17f, 3.4f, 3f, fleshL); p.Set(9, 19, veinL);
+                // glowing veins
+                p.Line(15, 23, 13, 15, vein); p.Line(13, 15, 16, 9, vein); p.Line(16, 9, 14, 3, vein);
+                p.Line(13, 15, 7, 12, vein); p.Line(16, 12, 23, 14, vein); p.Line(20, 19, 23, 14, vein);
+                p.Set(7, 12, veinL); p.Set(23, 14, veinL); p.Set(14, 3, veinL); p.Set(16, 9, veinL);
+                // spore pores along the bottom
+                for (int i = 0; i < 5; i++) p.Set(8 + i * 3, 3 + (i % 2), fleshD);
+                p.Outline(C(22, 14, 34));
+                Save(p, o + $"sporeheart_{f}", new Vector2(0.5f, 0f));
+            }
             {
                 var p = new Px(9, 9);
                 p.Disc(4f, 4f, 3.4f, C(150, 90, 230)); p.Disc(4f, 4f, 2f, C(214, 170, 255)); p.Set(4, 4, C(255, 255, 255));
@@ -1594,6 +1785,25 @@ namespace Gloomdelve.EditorTools
                 p.Set(9, 5, bd); p.Set(12, 5, bd);
                 p.Set(6, 2, sp); p.Set(8, 2, sp); p.Set(10, 2, sp); p.Set(12, 2, sp); p.Set(6, 1, sp); p.Set(10, 1, sp);
                 p.Outline(ol); Save(p, d + "iceboots", PItem);
+            }
+            {
+                // lantern: a brass frame, a glass body with a flame, a ring to carry it by
+                var p = ItemCanvas(); Color32 br = C(196, 150, 60), brD = C(128, 92, 34), glass = C(255, 226, 130), fl = C(255, 250, 220), fo = C(255, 150, 50);
+                p.Rect(5, 1, 6, 2, br); p.Rect(5, 1, 6, 1, brD);
+                p.Rect(5, 3, 6, 6, glass); p.Rect(5, 3, 1, 6, br); p.Rect(10, 3, 1, 6, brD);
+                p.Rect(7, 4, 2, 3, fo); p.Set(7, 6, fl); p.Set(8, 5, fl); p.Set(7, 7, fo);
+                p.Rect(5, 9, 6, 1, br); p.Rect(6, 10, 4, 1, brD);
+                p.Set(6, 11, br); p.Set(9, 11, br); p.Rect(6, 12, 4, 1, br);
+                p.Outline(ol); Save(p, d + "lantern", PItem);
+            }
+            {
+                // spore mask: a leather face mask with a round filter and goggles
+                var p = ItemCanvas(); Color32 lea = C(120, 84, 60), leaD = C(78, 52, 38), glass = C(120, 230, 210), met = C(176, 180, 196), metD = C(110, 114, 132);
+                p.Ellipse(8, 7.5f, 5f, 5f, lea); p.Rect(4, 9, 8, 1, leaD);
+                p.Disc(6f, 9.5f, 1.6f, glass); p.Disc(10f, 9.5f, 1.6f, glass); p.Set(6, 10, C(230, 255, 250)); p.Set(10, 10, C(230, 255, 250));
+                p.Disc(8f, 4.5f, 2.6f, met); p.Set(7, 4, metD); p.Set(9, 4, metD); p.Set(8, 5, metD); p.Set(8, 3, metD);
+                p.Rect(2, 8, 2, 1, leaD); p.Rect(12, 8, 2, 1, leaD);
+                p.Outline(ol); Save(p, d + "sporemask", PItem);
             }
             {
                 // fur coat

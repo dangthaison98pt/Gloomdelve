@@ -14,7 +14,12 @@ namespace Gloomdelve
         public EquipmentDef[] equipment;
 
         [Header("Run structure")]
+        [Tooltip("The catalogue: one block of stages per area (its levels, then its boss arena), followed by the stages every run ends with (camp, final vault). Each run draws 'Areas Per Run' of the area blocks by its seed. See RunPlan.")]
         public StageDef[] stages;
+        [Tooltip("How many areas one run goes through, drawn at random (by the run seed) from the catalogue. 0 = all of them in the written order.")]
+        public int areasPerRun = 4;
+        [Tooltip("Every run starts in the first area of the catalogue (the gentlest one); only the others are drawn at random.")]
+        public bool firstAreaFixed = true;
         public StageDef tutorial;
         public TextAsset roomTemplates;
         [Tooltip("Extra room-template symbols: place any PrefabRegistry id in rooms without code (see Docs/EXTENDING.md).")]

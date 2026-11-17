@@ -127,12 +127,30 @@ namespace Gloomdelve
             if (stompsInARow <= freeStomps || Dead) return false;
             Tell();
             counterAway = p.pos.x >= pos.x ? 1 : -1;
+            // Backed against a wall, the side the player stands on may have no room: thrown that way they would hit
+            // the wall, drop straight back onto the boss and be countered again, for ever. Throw them to the open side.
+            if (!RoomBeside(counterAway) && RoomBeside(-counterAway)) counterAway = -counterAway;
             counterT = counterTime;
             if (animCounter != null) anim?.Play(animCounter);
             // the effect sprite is 2 tiles tall: sit its lower edge on the head, or centre it on the body
             Vector2 fxAt = counterFxOnBody ? Center : new Vector2(pos.x, pos.y + size.y + counterFxScale * 0.9f);
             Fx.PlayAnim(counterFx, fxAt, counterFxScale, counterAway < 0);
             OnGreedyStomp(p, counterAway);
+            return true;
+        }
+
+        /// <summary>Is there open air next to the boss on this side (+1 right), at head height and above, wide enough
+        /// for a thrown player to come down clear of it?</summary>
+        bool RoomBeside(int side)
+        {
+            var g = World.Grid;
+            float edge = pos.x + side * size.x * 0.5f;
+            int y0 = Mathf.FloorToInt(pos.y + size.y * 0.5f), y1 = Mathf.FloorToInt(pos.y + size.y + 1.5f);
+            for (float d = 0.3f; d <= 2.3f; d += 1f)
+            {
+                int x = Mathf.FloorToInt(edge + side * d);
+                for (int y = y0; y <= y1; y++) if (g.IsSolid(x, y)) return false;
+            }
             return true;
         }
 
