@@ -455,6 +455,9 @@ namespace Gloomdelve
         static string WithArticle(string name)
         {
             if (string.IsNullOrEmpty(name)) return "something";
+            // already has one ("a snowball", "the Reaper", "the Yeti's snowball")
+            string low = name.ToLowerInvariant();
+            if (low.StartsWith("a ") || low.StartsWith("an ") || low.StartsWith("the ")) return name;
             if (char.IsUpper(name[0])) return "the " + name;
             return ("aeiou".IndexOf(char.ToLowerInvariant(name[0])) >= 0 ? "an " : "a ") + name;
         }

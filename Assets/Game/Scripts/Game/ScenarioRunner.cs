@@ -815,6 +815,15 @@ namespace Gloomdelve
                 }
                 yield return new WaitForSecondsRealtime(0.05f);
                 ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "counter_" + id + ".png"));
+                if (id == "broodmother")
+                {
+                    // still invulnerable from that bite: the next one cannot hurt, but must throw the player off all the same
+                    int hp2 = c.run.health;
+                    c.Teleport(b.pos.x, b.pos.y + b.size.y + 0.3f);
+                    c.Expect(b.CounterStomp(c.p), "broodmother counters a stomp while the player is invulnerable");
+                    yield return c.Frames(1);
+                    c.Expect(c.run.health == hp2 && c.p.vel.y > 6f, $"no damage, but the player is still thrown off her (health {hp2} -> {c.run.health}, vy {c.p.vel.y:0.0})");
+                }
                 yield return new WaitForSecondsRealtime(0.05f);
                 // leave its head alone for longer than the window: a stomp counts again
                 b.stunTimer = 99f;

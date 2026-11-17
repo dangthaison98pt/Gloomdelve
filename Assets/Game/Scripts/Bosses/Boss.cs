@@ -70,11 +70,16 @@ namespace Gloomdelve
             if (onGround)
             {
                 vel.x = Mathf.MoveTowards(vel.x, 0f, 40f * dt);
-                StepPhysics(dt, gravity);
+                var b = StepPhysics(dt, gravity);
+                if (b.landed) OnLandedDuringCounter();      // a jump that ends while the pose is held still has to finish
             }
             else vel = Vector2.zero;
             return true;
         }
+
+        /// <summary>The boss came down from a jump while holding its counter pose: finish whatever that landing does
+        /// (its normal Tick, which usually handles it, is skipped during the pose).</summary>
+        protected virtual void OnLandedDuringCounter() { }
 
         protected override void LateUpdate()
         {

@@ -66,15 +66,20 @@ namespace Gloomdelve
                 }
             }
             var b = StepPhysics(dt, gravity);
-            if (b.landed)
-            {
-                timer = restTime;
-                Fx.Shake(slamming ? 0.5f : 0.25f);
-                Fx.Dust(pos, 6);
-                Sfx.Play("thud", pos, 1f, slamming ? 0.7f : 1f);
-                if (slamming) { slamming = false; Shockwave(shockSpeed, Venom); timer = restTime * 1.6f; }   // a longer opening after the slam
-            }
+            if (b.landed) Landed();
         }
+
+        void Landed()
+        {
+            timer = restTime;
+            Fx.Shake(slamming ? 0.5f : 0.25f);
+            Fx.Dust(pos, 6);
+            Sfx.Play("thud", pos, 1f, slamming ? 0.7f : 1f);
+            if (slamming) { slamming = false; Shockwave(shockSpeed, Venom); timer = restTime * 1.6f; }   // a longer opening after the slam
+        }
+
+        /// <summary>Stomped in mid-air: the leap or slam still ends properly (shockwave, rest) when she comes down.</summary>
+        protected override void OnLandedDuringCounter() { Landed(); }
 
         /// <summary>The round: leap, leap, spit, leap, slam, call a bat (or leap when the call is not ready).</summary>
         void NextMove(PlayerController p)
@@ -125,7 +130,11 @@ namespace Gloomdelve
         protected override void OnGreedyStomp(PlayerController p, int away)
         {
             anim?.Play(animJump);
-            p.TakeDamage(new DamageInfo(contactDamage, DamageType.Contact, this, new Vector2(away * 4f, 12f), displayName + "'s fangs"));
+            var throwOff = new Vector2(away * 4f, 12f);
+            // the bite throws the player by its knockback; when they cannot be hurt right now (just hit, god mode in
+            // tests) they are thrown off all the same, or they would sink into her and be countered again every step
+            if (!p.TakeDamage(new DamageInfo(contactDamage, DamageType.Contact, this, throwOff, displayName + "'s fangs")))
+                p.Shove(throwOff, 0.2f);
             Fx.Debris(new Vector2(pos.x, pos.y + size.y), Venom, 8);
             Fx.Shake(0.3f);
             Sfx.Play("bat", pos, 1f, 0.5f);
