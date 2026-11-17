@@ -21,6 +21,9 @@ namespace Gloomdelve
         public GameObject bossPanel;
         [Tooltip("One button per boss ...")] public Button[] bossButtons;
         [Tooltip("... and the stage of the run (GameConfig.stages index) each one starts.")] public int[] bossStages;
+        [Tooltip("Display name of each boss (the key of its Challenge record).")] public string[] bossNames;
+        [Tooltip("Best time / no-damage badge shown on each boss button.")] public Text[] bossBest;
+        [Tooltip("Records screen: the Challenge times of every boss.")] public Text bossRecordsText;
         /// <summary>Set when a boss test ends: the menu opens on the boss list instead of the main panel.</summary>
         public static bool OpenBossListOnLoad;
 
@@ -151,6 +154,10 @@ namespace Gloomdelve
             yield return new WaitForSecondsRealtime(0.3f);
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_boss.png"));
             yield return new WaitForSecondsRealtime(0.3f);
+            RefreshRecords(); Open(recordsPanel, recordsBack);
+            yield return new WaitForSecondsRealtime(0.3f);
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_records.png"));
+            yield return new WaitForSecondsRealtime(0.3f);
             RunSession.NewRun(1, true, config.player);
             SceneManager.LoadScene(GameConst.SceneGame);
         }
@@ -177,9 +184,20 @@ namespace Gloomdelve
 
         static bool bossTestArgUsed;
 
+        /// <summary>"01:00.2  [flawless]" for a boss that was beaten in Challenge, "" otherwise.</summary>
+        static string BossBest(string boss, string never)
+        {
+            var rec = SaveSystem.BossRecordOf(boss);
+            if (rec == null) return never;
+            return UIUtil.FormatTime(rec.bestTime) + (rec.noDamage ? "  [flawless]" : "");
+        }
+
         public void OpenBossList()
         {
             if (bossPanel == null) return;
+            if (bossBest != null && bossNames != null)
+                for (int i = 0; i < bossBest.Length && i < bossNames.Length; i++)
+                    if (bossBest[i] != null) bossBest[i].text = BossBest(bossNames[i], "");
             Selectable first = bossBack;
             if (bossButtons != null) foreach (var b in bossButtons) if (b != null && b.gameObject.activeSelf) { first = b; break; }
             Open(bossPanel, first);
@@ -230,6 +248,12 @@ namespace Gloomdelve
                 $"Fastest victory    {(r.fastestWin < 0 ? "--" : UIUtil.FormatTime(r.fastestWin))}\n" +
                 $"Total kills        {r.totalKills}\n" +
                 $"Last seed          {r.lastSeed}";
+            if (bossRecordsText != null && bossNames != null)
+            {
+                var sb = new System.Text.StringBuilder();
+                foreach (var n in bossNames) sb.Append(n).Append("     ").Append(BossBest(n, "--")).Append((char)10);
+                bossRecordsText.text = sb.ToString();
+            }
         }
     }
 }

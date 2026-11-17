@@ -1407,6 +1407,18 @@ namespace Gloomdelve.EditorTools
             Big("hawk_0", "stormhawk_0", 0.8f, 0.85f, 1.2f); Big("hawk_1", "stormhawk_1", 0.8f, 0.85f, 1.2f);
             Big("hawk_2", "stormhawk_2", 0.8f, 0.85f, 1.2f, null, true);
             Big("specter_0", "warden_0", 1.25f, 0.75f, 1.3f); Big("specter_1", "warden_1", 1.25f, 0.75f, 1.3f);
+            {
+                // "no damage" badge (the [flawless] token in UI texts): a whole golden heart behind a little shield rim
+                var p = new Px(16, 16);
+                Color32 gold = C(255, 210, 80), goldL = C(255, 244, 170), goldD = C(196, 140, 40), red = C(236, 60, 84), redL = C(255, 150, 170);
+                p.Disc(5.5f, 10f, 3.6f, gold); p.Disc(10.5f, 10f, 3.6f, gold);
+                for (int y = 2; y <= 9; y++) { int hw = (y - 2) + 1; if (hw > 7) hw = 7; p.Rect(8 - hw, y, hw * 2, 1, gold); }
+                p.Disc(5.5f, 10f, 2.2f, red); p.Disc(10.5f, 10f, 2.2f, red);
+                for (int y = 4; y <= 9; y++) { int hw = (y - 4) + 1; if (hw > 5) hw = 5; p.Rect(8 - hw, y, hw * 2, 1, red); }
+                p.Set(5, 11, redL); p.Set(4, 10, redL); p.Set(3, 12, goldL); p.Set(12, 12, goldL); p.Set(8, 2, goldD); p.Set(7, 2, goldD);
+                p.Outline(C(60, 34, 14));
+                Save(p, "UI/Glyphs/flawless", PCenter);
+            }
             // The Rot Heart (Sporegloom): a fungus heart on a long stalk that hangs from the ceiling.
             // 0 / 1 = the beat, 2 = swollen and bright (the tell before a move). The pivot is the bottom of the heart.
             for (int f = 0; f < 3; f++)

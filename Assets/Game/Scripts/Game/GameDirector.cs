@@ -403,7 +403,11 @@ namespace Gloomdelve
             Ended = true;
             if (!ScenarioRunner.Active) world.enabled = false;      // tests keep their arena running
             Run.finished = true;
-            results.ShowBossTest(Run, practiceBoss, practiceTime);
+            bool flawless = Run.damageTaken == 0;
+            // tests fight in the player's save folder: they compare but never write
+            SaveSystem.RecordBossWin(practiceBoss, practiceTime, flawless, !ScenarioRunner.Active && !AutoTest.Active, out bool newBest, out bool firstFlawless);
+            var rec = SaveSystem.BossRecordOf(practiceBoss);
+            results.ShowBossTest(Run, practiceBoss, practiceTime, newBest, firstFlawless, rec != null ? rec.bestTime : practiceTime, rec != null && rec.noDamage);
         }
 
         public void BackToBossList()

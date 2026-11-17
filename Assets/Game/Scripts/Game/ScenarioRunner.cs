@@ -1038,6 +1038,20 @@ namespace Gloomdelve
             c.Expect(!c.dir.results.Showing, "the result screen waits a moment so the fall can be seen");
             yield return new WaitForSecondsRealtime(2.8f);
             c.Expect(c.dir.results.Showing, "then the result screen is shown");
+            c.Expect(c.dir.results.cause.text.Contains("NO DAMAGE") || c.run.damageTaken > 0, "a win without losing health shows the no-damage badge");
+            {
+                // the record book (nothing is written by tests: save = false only compares)
+                var kept = SaveSystem.Records.bosses;
+                SaveSystem.Records.bosses = new List<BossRecord>();
+                SaveSystem.RecordBossWin("Test Boss", 50f, false, false, out bool nb, out bool ff);
+                c.Expect(nb && !ff && SaveSystem.BossRecordOf("Test Boss") == null, "compare only: a first win would be a new best, nothing stored");
+                SaveSystem.Records.bosses.Add(new BossRecord { boss = "Test Boss", bestTime = 50f });
+                SaveSystem.RecordBossWin("Test Boss", 60f, true, false, out nb, out ff);
+                c.Expect(!nb && ff, "a slower win is no new best, but the first one without damage earns the badge");
+                SaveSystem.RecordBossWin("Test Boss", 40f, false, false, out nb, out ff);
+                c.Expect(nb && !ff, "a faster win is a new best");
+                SaveSystem.Records.bosses = kept;
+            }
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_test_result.png"));
             yield return new WaitForSecondsRealtime(2.5f);
             c.Expect(c.dir.results.Showing && UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == GameConst.SceneGame, "and it stays until the player chooses");

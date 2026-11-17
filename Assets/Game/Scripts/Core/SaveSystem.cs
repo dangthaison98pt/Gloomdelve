@@ -36,6 +36,17 @@ namespace Gloomdelve
         public float fastestWin = -1f;
         public int lastSeed;
         public int totalKills;
+        [Tooltip("Challenge: best time against each boss, and whether it was ever beaten without losing health.")]
+        public System.Collections.Generic.List<BossRecord> bosses = new System.Collections.Generic.List<BossRecord>();
+    }
+
+    /// <summary>Challenge record of one boss (by its display name).</summary>
+    [Serializable]
+    public class BossRecord
+    {
+        public string boss;
+        [Tooltip("Fastest win in seconds; below 0 = never beaten.")] public float bestTime = -1f;
+        [Tooltip("Beaten at least once without losing any health.")] public bool noDamage;
     }
 
     /// <summary>Settings and best records are saved as JSON in Application.persistentDataPath.</summary>
@@ -100,6 +111,34 @@ namespace Gloomdelve
             if (run.gold > r.bestGold) { r.bestGold = run.gold; news += "NEW BEST GOLD!"; }
             SaveRecords();
             return news.Trim();
+        }
+
+        /// <summary>The Challenge record of a boss, or null when it was never beaten there.</summary>
+        public static BossRecord BossRecordOf(string boss)
+        {
+            EnsureLoaded();
+            if (Records.bosses == null || string.IsNullOrEmpty(boss)) return null;
+            foreach (var b in Records.bosses) if (b != null && b.boss == boss && b.bestTime >= 0f) return b;
+            return null;
+        }
+
+        /// <summary>
+        /// A Challenge win: keeps the fastest time, and remembers a win without any health lost for good.
+        /// newBest: this time beat the old one (or is the first). firstFlawless: the badge was earned just now.
+        /// save = false only compares (tests must not write the player's records).
+        /// </summary>
+        public static void RecordBossWin(string boss, float time, bool noDamage, bool save, out bool newBest, out bool firstFlawless)
+        {
+            EnsureLoaded();
+            if (Records.bosses == null) Records.bosses = new System.Collections.Generic.List<BossRecord>();
+            var rec = Records.bosses.Find(b => b != null && b.boss == boss);
+            newBest = rec == null || rec.bestTime < 0f || time < rec.bestTime;
+            firstFlawless = noDamage && (rec == null || !rec.noDamage);
+            if (!save || string.IsNullOrEmpty(boss)) return;
+            if (rec == null) { rec = new BossRecord { boss = boss }; Records.bosses.Add(rec); }
+            if (newBest) rec.bestTime = time;
+            if (noDamage) rec.noDamage = true;
+            SaveRecords();
         }
 
         public static void AppendRunLog(string line)

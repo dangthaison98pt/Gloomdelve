@@ -81,6 +81,8 @@ namespace Gloomdelve.EditorTools
                     GE("up", "\u25B2", darkBtn, "\u25B2"), GE("down", "\u25BC", darkBtn, "\u25BC"),
                     GE("left", "\u25C4", darkBtn, "\u25C4"), GE("right", "\u25BA", darkBtn, "\u25BA"),
                     GE("move", "\u25C4 \u25B2 \u25BC \u25BA", darkBtn, "L"),
+                    // not a button: the "beaten without damage" badge, so any UI text can show it with "[flawless]"
+                    new InputGlyphSet.Entry { token = "flawless", keyboard = GS("flawless"), keyboardLabel = "" },
                 };
                 EditorUtility.SetDirty(glyphs);
                 UIBuilder.glyphSet = glyphs;
@@ -1186,6 +1188,7 @@ namespace Gloomdelve.EditorTools
                 var bossReg = AssetDatabase.LoadAssetAtPath<PrefabRegistry>(G + "Data/PrefabRegistry.asset");
                 var bossStages = new List<int>();
                 var bossNames = new List<string>();
+                var bossKeys = new List<string>();        // display name as written on the prefab: the key of its record
                 for (int si = 0; si < cfg.stages.Length; si++)
                 {
                     var st = cfg.stages[si];
@@ -1202,24 +1205,36 @@ namespace Gloomdelve.EditorTools
                     var prefab = entry != null ? entry.prefab : null;
                     if (prefab == null) continue;
                     bossStages.Add(si);
+                    bossKeys.Add(prefab.displayName);
                     bossNames.Add(prefab.displayName.ToUpperInvariant());       // just the name: areas come in a different order every run
                 }
                 float rowStep = 72f;
                 var bp = UIBuilder.Panel(t, "BossPanel", new Vector2(0.5f, 0.5f), new Vector2(0, -40), new Vector2(820, 330 + bossStages.Count * rowStep));
                 UIBuilder.Label(bp.transform, "Title", "CHALLENGE", 46, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -36), new Vector2(700, 64));
-                UIBuilder.Label(bp.transform, "Hint", "Pick a boss and fight it straight away.\nDying starts the fight again. Nothing is recorded.", 22, new Color(1f, 1f, 1f, 0.75f),
+                UIBuilder.Label(bp.transform, "Hint", "Pick a boss and fight it straight away.\nDying starts the fight again. Your best time against each boss is kept.", 22, new Color(1f, 1f, 1f, 0.75f),
                     TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -112), new Vector2(760, 64));
                 menu.bossButtons = new Button[bossStages.Count];
+                menu.bossBest = new Text[bossStages.Count];
+                menu.bossNames = bossKeys.ToArray();
                 for (int i = 0; i < bossStages.Count; i++)
+                {
                     menu.bossButtons[i] = UIBuilder.Button(bp.transform, "Boss_" + i, bossNames[i], new Vector2(0.5f, 1f), new Vector2(0, -196 - i * rowStep), new Vector2(700, 62));
+                    // best time and the no-damage badge, at the right end of the button
+                    menu.bossBest[i] = UIBuilder.Label(menu.bossButtons[i].transform, "Best", "", 22, new Color(1f, 0.84f, 0.38f), TextAnchor.MiddleRight, new Vector2(1f, 0.5f), new Vector2(-18, 0), new Vector2(220, 50), false);
+                }
                 menu.bossStages = bossStages.ToArray();
                 menu.bossBack = UIBuilder.Button(bp.transform, "Back", "BACK", new Vector2(0.5f, 0f), new Vector2(0, 36), new Vector2(320, 66));
                 menu.bossPanel = bp.gameObject;
             }
             menu.settingsPanel = UIBuilder.Settings(t);
-            var rec = UIBuilder.Panel(t, "RecordsPanel", new Vector2(0.5f, 0.5f), new Vector2(0, -60), new Vector2(760, 640));
-            UIBuilder.Label(rec.transform, "Title", "RECORDS", 46, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -50), new Vector2(700, 70));
-            menu.recordsText = UIBuilder.Label(rec.transform, "Body", "", 30, Color.white, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(0, -110), new Vector2(620, 380));
+            var rec = UIBuilder.Panel(t, "RecordsPanel", new Vector2(0.5f, 0.5f), new Vector2(0, -20), new Vector2(1180, 820));
+            UIBuilder.Label(rec.transform, "Title", "RECORDS", 46, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -44), new Vector2(700, 70));
+            menu.recordsText = UIBuilder.Label(rec.transform, "Body", "", 28, Color.white, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(-270, -196), new Vector2(520, 460));
+            UIBuilder.Label(rec.transform, "RunsHead", "RUNS", 24, new Color(1f, 0.84f, 0.38f), TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(-270, -146), new Vector2(520, 34), true, FontStyle.Bold);
+            UIBuilder.Label(rec.transform, "BossHead", "CHALLENGE  -  best time against each boss", 24, new Color(1f, 0.84f, 0.38f), TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(290, -146), new Vector2(520, 34), true, FontStyle.Bold);
+            menu.bossRecordsText = UIBuilder.Label(rec.transform, "Bosses", "", 28, Color.white, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(290, -196), new Vector2(520, 460));
+            menu.bossRecordsText.lineSpacing = 1.35f;
+            menu.recordsText.lineSpacing = 1.2f;
             menu.recordsBack = UIBuilder.Button(rec.transform, "Back", "BACK", new Vector2(0.5f, 0f), new Vector2(0, 50), new Vector2(320, 70));   // records cannot be reset from the game
             menu.recordsPanel = rec.gameObject;
             menu.versionText = UIBuilder.Label(t, "Version", "", 22, new Color(1, 1, 1, 0.5f), TextAnchor.LowerLeft, new Vector2(0f, 0f), new Vector2(20, 16), new Vector2(900, 40), false);

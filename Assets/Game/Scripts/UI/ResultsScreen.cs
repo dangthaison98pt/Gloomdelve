@@ -72,34 +72,48 @@ namespace Gloomdelve
         }
 
         /// <summary>
-        /// Challenge (boss fight from the main menu) won: what the fight cost. Stays up until the player picks "fight again" or "boss list".
+        /// Challenge (boss fight from the main menu) won: time and health lost, the record for this boss, and the
+        /// no-damage badge ("[flawless]") when the fight cost no health. Stays up until the player picks
+        /// "fight again" or "boss list".
         /// </summary>
-        public void ShowBossTest(RunState run, string bossName, float fightTime)
+        public void ShowBossTest(RunState run, string bossName, float fightTime, bool newBest, bool firstFlawless, float bestTime, bool everFlawless)
         {
             tutorialMode = false;
             root.SetActive(true);
             shownAt = Time.unscaledTime;
+            bool flawless = run.damageTaken == 0;
             title.text = "BOSS DEFEATED";
             title.color = new Color(1f, 0.85f, 0.3f);
-            cause.text = string.IsNullOrEmpty(bossName) ? "" : bossName.ToUpperInvariant();
+            cause.text = (string.IsNullOrEmpty(bossName) ? "" : bossName.ToUpperInvariant()) + (flawless ? "    [flawless]  NO DAMAGE" : "");
             reached.text = "";
             seedText.text = "";
             body.text = "";
-            records.text = "";
-            // the four big tiles, relabelled for a fight (this screen is not reused: the scene reloads afterwards)
-            statsRoot.SetActive(true);
             // only two numbers matter for a fight: how long it took and how much health it cost (the two middle tiles)
+            statsRoot.SetActive(true);
             Tile(statTime, "TIME", UIUtil.FormatTime(fightTime), true);
             Tile(statKills, "HEALTH LOST", run.damageTaken.ToString(), false);
             if (statGold != null) statGold.transform.parent.gameObject.SetActive(false);
             if (statLevels != null) statLevels.transform.parent.gameObject.SetActive(false);
-            news.text = "Challenge - nothing is recorded.";
+            news.text = newBest && firstFlawless ? "NEW BEST TIME!     FIRST WIN WITHOUT DAMAGE!"
+                      : newBest ? "NEW BEST TIME!"
+                      : firstFlawless ? "FIRST WIN WITHOUT DAMAGE!" : "";
+            records.text = $"Best time   {UIUtil.FormatTime(bestTime)}" + (everFlawless ? "      [flawless]  beaten without damage" : "");
             retrySeedButton.gameObject.SetActive(false);
             if (newRunLabel) newRunLabel.text = "FIGHT AGAIN";
             var menuLabel = menuButton != null ? menuButton.GetComponentInChildren<Text>() : null;
             if (menuLabel != null) menuLabel.text = "BOSS LIST";
             UIUtil.Wire(menuButton, () => GameDirector.Instance.BackToBossList());
+            // with the middle button gone the other two sit side by side in the middle
+            SetX(newRunButton, -172f);
+            SetX(menuButton, 172f);
             UIUtil.Select(newRunButton);
+        }
+
+        static void SetX(Button b, float x)
+        {
+            if (b == null) return;
+            var rt = (RectTransform)b.transform;
+            rt.anchoredPosition = new Vector2(x, rt.anchoredPosition.y);
         }
 
         /// <summary>Sets one stat tile: its caption, its value, and whether its small icon shows.</summary>
