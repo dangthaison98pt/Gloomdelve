@@ -121,6 +121,26 @@ MonoBehaviour:
     area: {fileID: 11400000, guid: a8f7037a9ecbda443befd8e59409c417, type: 2}
     levelNumber: 4
     handcrafted: {fileID: 4900000, guid: 64792e85a437ac44eb63131da203f75f, type: 3}
+  - displayName: 6-1
+    kind: 0
+    area: {fileID: 11400000, guid: a199ac98bfebe1d479870dec34617f3e, type: 2}
+    levelNumber: 1
+    handcrafted: {fileID: 0}
+  - displayName: 6-2
+    kind: 0
+    area: {fileID: 11400000, guid: a199ac98bfebe1d479870dec34617f3e, type: 2}
+    levelNumber: 2
+    handcrafted: {fileID: 0}
+  - displayName: 6-3
+    kind: 0
+    area: {fileID: 11400000, guid: a199ac98bfebe1d479870dec34617f3e, type: 2}
+    levelNumber: 3
+    handcrafted: {fileID: 0}
+  - displayName: 6-4
+    kind: 3
+    area: {fileID: 11400000, guid: a199ac98bfebe1d479870dec34617f3e, type: 2}
+    levelNumber: 4
+    handcrafted: {fileID: 4900000, guid: 88f1659e4ee352f4b808c0a762f42eed, type: 3}
   - displayName: THE LAST CAMP
     kind: 4
     area: {fileID: 11400000, guid: adeb2330f47fe2a4eb3ec3bf955d22ac, type: 2}
@@ -169,6 +189,20 @@ MonoBehaviour:
     placement: 1
     tile: 0
     color: {r: 0.3, g: 0.8, b: 0.7, a: 1}
+  - symbol: <
+    label: Conveyor running left
+    spawnId: conveyor
+    chance: 1
+    placement: 1
+    tile: 0
+    color: {r: 0.6, g: 0.6, b: 0.7, a: 1}
+  - symbol: '>'
+    label: Conveyor running right
+    spawnId: conveyor_r
+    chance: 1
+    placement: 1
+    tile: 0
+    color: {r: 0.7, g: 0.7, b: 0.6, a: 1}
   pressureEnabled: 1
   pressureWarnTime: 270
   pressureSpawnTime: 300

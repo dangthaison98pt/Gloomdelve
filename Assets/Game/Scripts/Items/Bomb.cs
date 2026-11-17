@@ -15,6 +15,8 @@ namespace Gloomdelve
         [NonSerialized] public Entity owner;
         float timer;
         bool lit;
+        /// <summary>The fuse is burning (scrap beetles go for lit bombs).</summary>
+        public bool IsLit => lit;
         float tickTimer;
         GlowLight glow;
 

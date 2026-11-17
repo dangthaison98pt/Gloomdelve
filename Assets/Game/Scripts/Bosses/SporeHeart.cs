@@ -7,9 +7,11 @@ namespace Gloomdelve
     /// Sporegloom boss: the Rot Heart. A beating fungus heart hanging from the ceiling on a stalk - it never moves
     /// and cannot be stomped. It hangs too high for a jump: bounce on the bounce mushrooms under it (or jump off
     /// the side platforms) and slash it in the air, or throw things at it.
-    /// A fixed round of moves: a fan of spore darts at the player, a rain of spore clouds on the floor (dizzy, no
-    /// damage), darts again, a pulse that sends a shockwave along the floor both ways, and a lurecap woken among
-    /// the glowing plants. The lower its health, the faster it beats - and at two thirds and one third of its
+    /// A fixed round of moves: a fan of spore darts aimed at the player (so bouncing on the mushrooms and
+    /// slashing is never safe for long: the darts knock a bouncing player out of the air), a tendril that lashes
+    /// across the whole room low along the floor (jump it), a rain of spore clouds on the floor (dizzy, no
+    /// damage), darts again, a tendril at head height (stay on the ground: it passes over a standing player and
+    /// catches a jumping one), and a lurecap woken among the glowing plants. The tendrils cannot be cut. The lower its health, the faster it beats - and at two thirds and one third of its
     /// health half of the glowing plants in the room go dark.
     /// </summary>
     public class SporeHeart : Boss
@@ -23,12 +25,15 @@ namespace Gloomdelve
         public float dartSpread = 20f;
         public float dartSpeed = 6.5f;
         public string dartId = "venomshot";
+        [Header("Tendril lash")]
+        public float lashSpeed = 8.5f;
+        public string tendrilId = "tendril";
+        [Tooltip("Height of the low lash above the floor (jump over it) ...")] public float lashLowY = 0.15f;
+        [Tooltip("... and of the high one (it passes over a standing player).")] public float lashHighY = 1.1f;
         [Header("Spore rain")]
         public int clouds = 3;
         public float cloudSpacing = 3.5f;
         public string cloudId = "sporecloud";
-        [Header("Pulse")]
-        public float shockSpeed = 6.5f;
         [Header("Lurecaps")]
         public int maxLurecaps = 2;
         public float summonCooldown = 11f;
@@ -36,10 +41,10 @@ namespace Gloomdelve
         public SpriteAnim animBeat, animSwell;
 
         static readonly Color Spore = new Color(0.62f, 1f, 0.5f);
-        enum Move { None, Darts, Rain, Pulse }
+        enum Move { None, Darts, LashLow, LashHigh, Rain }
         Move pending;
         float timer, tell, summonTimer, floorY;
-        int step, lightsOut;
+        int step, lightsOut, lashSide = 1;
         float[] rainX;
 
         /// <summary>Touching it never hurts: its moves do.</summary>
@@ -86,12 +91,13 @@ namespace Gloomdelve
             timer -= dt;
             if (timer > 0f || p == null) return;
             timer = Mathf.Lerp(actionGapLow, actionGap, HealthFraction);
-            // the round: darts, rain, darts, pulse, a lurecap (or rain when the call is not ready)
-            switch (step++ % 5)
+            // the round: darts, low lash, rain, darts, high lash, a lurecap (or rain when the call is not ready)
+            switch (step++ % 6)
             {
-                case 0: case 2: Begin(Move.Darts); break;
-                case 1: Begin(Move.Rain, p); break;
-                case 3: Begin(Move.Pulse); break;
+                case 0: case 3: Begin(Move.Darts); break;
+                case 1: Begin(Move.LashLow); break;
+                case 2: Begin(Move.Rain, p); break;
+                case 4: Begin(Move.LashHigh); break;
                 default:
                     if (summonTimer <= 0f && CountAlive<Lurecap>() < maxLurecaps) { Summon(p); summonTimer = summonCooldown; }
                     else Begin(Move.Rain, p);
@@ -105,6 +111,15 @@ namespace Gloomdelve
             tell = tellTime;
             Tell();
             Sfx.Play("toad", pos, 0.9f, 0.5f);
+            if (m == Move.LashLow || m == Move.LashHigh)
+            {
+                // the tendril comes out of a wall, the other one each time: a mark shows where and how high
+                lashSide = -lashSide;
+                float wx = lashSide < 0 ? 1.8f : World.Grid.Width - 1.8f;
+                float wy = floorY + (m == Move.LashLow ? lashLowY : lashHighY);
+                Fx.Text(new Vector2(wx, wy + 0.5f), m == Move.LashLow ? "! JUMP" : "! STAY LOW", Spore, tellTime + 0.4f);
+                Fx.Debris(new Vector2(wx, wy + 0.2f), Spore, 8);
+            }
             if (m == Move.Rain && p != null)
             {
                 // where the clouds will come down: under the player and to both sides; spores trickle down there first
@@ -131,18 +146,19 @@ namespace Gloomdelve
                         Sfx.Play("throw", pos);
                     }
                     break;
+                case Move.LashLow:
+                case Move.LashHigh:
+                {
+                    float wx = lashSide < 0 ? 1.8f : World.Grid.Width - 1.8f;
+                    float wy = floorY + (pending == Move.LashLow ? lashLowY : lashHighY);
+                    FireShot(new Vector2(wx, wy), new Vector2(-lashSide * lashSpeed, 0f), tendrilId);
+                    Sfx.Play("throw", pos, 1f, 0.5f);
+                    break;
+                }
                 case Move.Rain:
                     if (rainX != null)
                         foreach (float x in rainX) World.SpawnById(cloudId, new Vector2(x, floorY + 1.3f));
                     Sfx.Play("thud", pos, 0.7f, 1.6f);
-                    break;
-                case Move.Pulse:
-                    FireShot(new Vector2(pos.x - 0.7f, floorY + 0.2f), new Vector2(-shockSpeed, 0f), "shockwave", Spore);
-                    FireShot(new Vector2(pos.x + 0.7f, floorY + 0.2f), new Vector2(shockSpeed, 0f), "shockwave", Spore);
-                    Fx.Dust(new Vector2(pos.x, floorY), 10);
-                    Fx.Shake(0.4f);
-                    LevelLighting.Flash(Center, Spore, 7f, 1.6f, 0.35f);
-                    Sfx.Play("thud", pos, 1f, 0.6f);
                     break;
             }
             pending = Move.None;

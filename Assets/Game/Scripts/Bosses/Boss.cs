@@ -12,6 +12,7 @@ namespace Gloomdelve
     {
         [Header("Boss")]
         [Tooltip("Largest damage a single hit can do.")] public int maxHitDamage = 3;
+        [Tooltip("Damage one bomb blast does to a boss, whatever its size (bombs are for terrain and crowds, not for melting bosses).")] public int blastDamage = 1;
         [Tooltip("Gold chunks dropped on death.")] public int goldChunks = 4;
         [Tooltip("Prefab id dropped on death along with the gold (the max-health item). Empty = nothing.")] public string rewardId = "heartvessel";
 
@@ -165,7 +166,8 @@ namespace Gloomdelve
 
         public override bool TakeDamage(in DamageInfo d)
         {
-            return base.TakeDamage(new DamageInfo(Mathf.Min(d.amount, maxHitDamage), d.type, d.source, Vector2.zero, d.cause));
+            int amount = d.type == DamageType.Explosion ? Mathf.Min(d.amount, blastDamage) : Mathf.Min(d.amount, maxHitDamage);
+            return base.TakeDamage(new DamageInfo(amount, d.type, d.source, Vector2.zero, d.cause));
         }
 
         protected override void OnHurt(in DamageInfo d) { }

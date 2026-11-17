@@ -72,6 +72,12 @@ namespace Gloomdelve
         [Tooltip("Chance of a small glowing mushroom on each floor spot: the lights of a dark area. 0 = none.")]
         [Range(0, 0.3f)] public float glowPlantChance = 0f;
 
+        [Header("Gearworks machinery")]
+        [Tooltip("Chance that a long, plain stretch of floor carries a conveyor belt. 0 = none.")]
+        [Range(0, 1)] public float conveyorChance = 0f;
+        [Tooltip("Chance that a stretch of plain floor (with room to jump) carries a saw blade on a rail. 0 = none.")]
+        [Range(0, 1)] public float sawChance = 0f;
+
         [Header("Difficulty scaling per level (added per level beyond the first)")]
         public float perLevelDensityBonus = 0.15f;
 

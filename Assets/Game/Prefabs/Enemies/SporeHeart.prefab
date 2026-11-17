@@ -59,6 +59,7 @@ MonoBehaviour:
   goldDrop: 0
   heartDropChance: 0
   maxHitDamage: 3
+  blastDamage: 1
   goldChunks: 4
   rewardId: heartvessel
   bossShotId: gloomorb
@@ -78,10 +79,13 @@ MonoBehaviour:
   dartSpread: 20
   dartSpeed: 6.5
   dartId: venomshot
+  lashSpeed: 8.5
+  tendrilId: tendril
+  lashLowY: 0.15
+  lashHighY: 1.1
   clouds: 3
   cloudSpacing: 3.5
   cloudId: sporecloud
-  shockSpeed: 6.5
   maxLurecaps: 2
   summonCooldown: 11
   minionId: lurecap

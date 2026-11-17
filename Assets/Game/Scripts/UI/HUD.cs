@@ -140,7 +140,8 @@ namespace Gloomdelve
             goldText.text = "$" + Mathf.RoundToInt(shownGold);
 
             if (dir.Stage != null)
-                stageText.text = dir.Stage.kind == LevelKind.Area || dir.Stage.kind == LevelKind.Boss ? $"{dir.Stage.displayName}  {dir.Stage.area.displayName}" : dir.Stage.displayName;
+                stageText.text = run.bossPractice ? "CHALLENGE"           // one word: the area name next to it did not fit the frame
+                    : dir.Stage.kind == LevelKind.Area || dir.Stage.kind == LevelKind.Boss ? $"{dir.Stage.displayName}  {dir.Stage.area.displayName}" : dir.Stage.displayName;
             timeText.text = UIUtil.FormatTime(run.levelTime);
             if (dir.WraithActive) timeText.color = Color.Lerp(new Color(1f, 0.2f, 0.2f), Color.white, Mathf.PingPong(Time.unscaledTime * 3f, 1f) * 0.4f);
             else if (dir.PressureWarned) timeText.color = new Color(1f, 0.6f, 0.2f);

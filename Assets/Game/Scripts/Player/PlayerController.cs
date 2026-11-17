@@ -442,6 +442,28 @@ namespace Gloomdelve
             squash = new Vector2(0.78f, 1.25f);
         }
 
+        /// <summary>
+        /// Carried sideways by a conveyor belt under the feet (Gearworks). Stops at walls. Heavy boots
+        /// (stats.beltGrip) make the player ignore belts; the test bot (god mode) is not carried either.
+        /// </summary>
+        public void BeltCarry(float dx)
+        {
+            if (Run != null && Run.stats.beltGrip > 0f) return;
+            Push(dx);
+        }
+
+        /// <summary>Moved sideways by something that is not a hit (a belt, a gale): no stun, no damage. Stops at walls.</summary>
+        public void Push(float dx)
+        {
+            if (IsDead || godMode || dx == 0f) return;
+            float edge = motor.pos.x + Mathf.Sign(dx) * HalfW + dx;
+            int cx = Mathf.FloorToInt(edge);
+            var g = World.Grid;
+            if (g.IsSolid(cx, Mathf.FloorToInt(motor.pos.y + 0.1f)) || g.IsSolid(cx, Mathf.FloorToInt(motor.pos.y + cfg.motor.height - 0.1f))) return;
+            motor.pos.x += dx;
+            pos = motor.pos;
+        }
+
         /// <summary>Dizzy for a while: left and right are swapped. No damage. A spore mask (stats.sporeResist) prevents it.</summary>
         public void Confuse(float seconds)
         {
@@ -459,8 +481,10 @@ namespace Gloomdelve
         public void Slow(float amount, float seconds)
         {
             if (IsDead || godMode) return;
+            bool already = slowTimer > 0f;       // kept slow by something (a web underfoot): say it once, not every step
             slowAmount = Mathf.Clamp01(amount);
             slowTimer = Mathf.Max(slowTimer, seconds);
+            if (already) return;
             Fx.Text(Center + Vector2.up * 0.9f, "SLOWED", new Color(0.7f, 0.9f, 1f), 0.8f);
             Sfx.Play("shatter", pos, 0.4f, 1.7f);
         }

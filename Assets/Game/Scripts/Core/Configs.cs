@@ -69,21 +69,23 @@ namespace Gloomdelve
         [Tooltip("Above 0: snowballs and other cold attacks cannot freeze the wearer.")] public float coldResist;
         [Tooltip("Above 0: spore clouds cannot make the wearer dizzy.")] public float sporeResist;
         [Tooltip("Added to the reach of the light the player carries (0.6 = 60% further). Helps in dark areas.")] public float lightBonus;
+        [Tooltip("Above 0: conveyor belts do not carry the wearer.")] public float beltGrip;
+        [Tooltip("Above 0: the wearer's blade goes through a sentry's shield.")] public float shieldPierce;
 
         public void Add(StatModifiers o)
         {
             if (o == null) return;
             jumpBonus += o.jumpBonus; whipDamageBonus += o.whipDamageBonus;
             whipRangeBonus += o.whipRangeBonus; blastRadiusBonus += o.blastRadiusBonus;
-            iceGrip = Mathf.Max(iceGrip, o.iceGrip); coldResist += o.coldResist; sporeResist += o.sporeResist; lightBonus += o.lightBonus;
+            iceGrip = Mathf.Max(iceGrip, o.iceGrip); coldResist += o.coldResist; sporeResist += o.sporeResist; lightBonus += o.lightBonus; beltGrip += o.beltGrip; shieldPierce += o.shieldPierce;
         }
 
         public void Clear()
         {
-            jumpBonus = 0f; whipDamageBonus = 0; whipRangeBonus = 0f; blastRadiusBonus = 0f; iceGrip = 0f; coldResist = 0f; sporeResist = 0f; lightBonus = 0f;
+            jumpBonus = 0f; whipDamageBonus = 0; whipRangeBonus = 0f; blastRadiusBonus = 0f; iceGrip = 0f; coldResist = 0f; sporeResist = 0f; lightBonus = 0f; beltGrip = 0f; shieldPierce = 0f;
         }
 
-        public bool IsZero => jumpBonus == 0f && whipDamageBonus == 0 && whipRangeBonus == 0f && blastRadiusBonus == 0f && iceGrip == 0f && coldResist == 0f && sporeResist == 0f && lightBonus == 0f;
+        public bool IsZero => jumpBonus == 0f && whipDamageBonus == 0 && whipRangeBonus == 0f && blastRadiusBonus == 0f && iceGrip == 0f && coldResist == 0f && sporeResist == 0f && lightBonus == 0f && beltGrip == 0f && shieldPierce == 0f;
     }
 
     /// <summary>

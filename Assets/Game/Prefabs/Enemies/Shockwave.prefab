@@ -55,6 +55,7 @@ MonoBehaviour:
   burstColor: {r: 0.9, g: 0.9, b: 0.95, a: 1}
   faceVelocity: 0
   flipByVelocity: 1
+  unbreakable: 0
 --- !u!1 &5941358818380162450
 GameObject:
   m_ObjectHideFlags: 0

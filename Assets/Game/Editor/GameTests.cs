@@ -170,7 +170,7 @@ namespace Gloomdelve.EditorTools
             foreach (var sp in d.spawns)
             {
                 bool hostile = sp.id == "snake" || sp.id == "bat" || sp.id == "spider" || sp.id == "toad" || sp.id == "brute" || sp.id == "emberbat" || sp.id == "hawk"
-                    || sp.id == "penguin" || sp.id == "yeti" || sp.id == "frostbat" || sp.id == "puffshroom" || sp.id == "lurecap" || sp.id == "moth";
+                    || sp.id == "penguin" || sp.id == "yeti" || sp.id == "frostbat" || sp.id == "puffshroom" || sp.id == "lurecap" || sp.id == "moth" || sp.id == "sentry" || sp.id == "drone" || sp.id == "beetle";
                 if (hostile && Math.Abs(sp.cell.x - e.x) <= cfg.enemySafeRadius && Math.Abs(sp.cell.y - e.y) <= cfg.enemySafeRadius)
                     list.Add($"{sp.id} spawns {sp.cell} near entrance");
                 if ((sp.id == "stalactite" || sp.id == "crusher") && Math.Abs(sp.cell.x - e.x) <= 1 && sp.cell.y >= e.y)

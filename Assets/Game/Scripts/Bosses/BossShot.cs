@@ -10,6 +10,7 @@ namespace Gloomdelve
         public Color burstColor = new Color(0.7f, 0.5f, 1f);
         [Tooltip("Turn the picture along the flight direction (art must point right): feathers, venom.")] public bool faceVelocity;
         [Tooltip("Mirror the picture when flying left (art must run right): shockwaves.")] public bool flipByVelocity;
+        [Tooltip("The blade and blasts do nothing to it (the Rot Heart's tendril): it has to be avoided.")] public bool unbreakable;
 
         [System.NonSerialized] public Entity owner;
         float life;
@@ -60,7 +61,7 @@ namespace Gloomdelve
             Despawn();
         }
 
-        public override void OnWhipped(PlayerController p, int damage, int dir) { Sfx.Play("hit", pos); Burst(); }
-        public override void OnExplosion(Vector2 center, float radius, Entity source, int generation, int damage) { Burst(); }
+        public override void OnWhipped(PlayerController p, int damage, int dir) { if (unbreakable) return; Sfx.Play("hit", pos); Burst(); }
+        public override void OnExplosion(Vector2 center, float radius, Entity source, int generation, int damage) { if (!unbreakable) Burst(); }
     }
 }

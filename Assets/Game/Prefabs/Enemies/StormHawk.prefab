@@ -58,6 +58,7 @@ MonoBehaviour:
   goldDrop: 0
   heartDropChance: 0
   maxHitDamage: 3
+  blastDamage: 1
   goldChunks: 4
   rewardId: heartvessel
   bossShotId: gloomorb
@@ -71,7 +72,7 @@ MonoBehaviour:
   counterFxOnBody: 0
   hoverHeight: 6.5
   hoverSpeed: 5
-  diveSpeed: 14
+  diveSpeed: 18.5
   hoverTime: 2.4
   windupTime: 0.55
   groundedTime: 1.7
@@ -80,7 +81,7 @@ MonoBehaviour:
   feathers: 5
   featherSpeed: 8
   featherTell: 0.45
-  sweepSpeed: 11
+  sweepSpeed: 15
   sweepHeight: 0.35
   animFly: {fileID: 11400000, guid: 39a221b9659c3db4294d72ebfdf406cb, type: 2}
   animDive: {fileID: 11400000, guid: 85bdca71b48ee5f48a5175d975f40cdc, type: 2}

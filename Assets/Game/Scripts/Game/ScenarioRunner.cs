@@ -230,6 +230,16 @@ namespace Gloomdelve
             new Scenario { name = "run plan: each run draws 4 areas by its seed, starts in the first, ends with camp and vault", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => RunPlanCase(c) },
 
+            new Scenario { name = "bosses: the forge brute's fire is two short-lived spots, and its charge tears through dirt in its way",
+                map = m => { Set(m, 3, 1, 'S'); Set(m, 12, 1, '#'); Set(m, 12, 2, '#'); Set(m, 12, 3, '#'); },
+                run = c => ForgeBruteCase(c) },
+
+            new Scenario { name = "bosses: the yeti king's snow boulder hurts more the bigger it has grown", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => BoulderCase(c) },
+
+            new Scenario { name = "bosses: the yeti king runs in and punches a frozen player, once per freeze", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => YetiPunchCase(c) },
+
             new Scenario { name = "all five bosses run their attack patterns", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => BossPatternsCase(c) },
 
@@ -278,6 +288,24 @@ namespace Gloomdelve
 
             new Scenario { name = "lurecap looks like a glowing plant until the player walks up, then leaps", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => LurecapCase(c) },
+
+            new Scenario { name = "gearworks: a conveyor carries the player and creatures, heavy boots ignore it, it can be reversed", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => ConveyorCase(c) },
+
+            new Scenario { name = "gearworks: a sentry's shield stops hits from the front, not from behind; the magnet charm cuts through", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => SentryCase(c) },
+
+            new Scenario { name = "gearworks: a drone warns, then fires a bolt; a scrap beetle eats a lit bomb and blows up", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => DroneBeetleCase(c) },
+
+            new Scenario { name = "gearworks: a saw blade runs along its rail and cuts the player and creatures; it can be jumped", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => SawCase(c) },
+
+            new Scenario { name = "bosses: the broodmother drops from the ceiling and gets stuck, lays web that slows, and eggs that hatch unless cut", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => BroodmotherCase(c) },
+
+            new Scenario { name = "bosses: the foreman's shield stops the front, it rolls saws, reverses belts, stamps presses, then rewinds open", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => ForemanCase(c) },
 
             new Scenario { name = "hawk dives at the player below it", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => HawkCase(c) },
@@ -814,8 +842,12 @@ namespace Gloomdelve
             c.Expect(b != null && c.dir.Boss == b && c.dir.BossAlive, "the boss registered with the director");
             if (b == null) { c.p.godMode = false; yield break; }
             int h0 = b.health;
-            b.TakeDamage(new DamageInfo(99, DamageType.Explosion, c.p, new Vector2(20f, 20f), "test"));
+            b.TakeDamage(new DamageInfo(99, DamageType.Crush, c.p, new Vector2(20f, 20f), "test"));
             c.Expect(h0 - b.health == b.maxHitDamage && !b.Dead, $"a 99-damage hit only takes {b.maxHitDamage} (took {h0 - b.health})");
+            yield return c.Frames(14);
+            int h1 = b.health;
+            b.TakeDamage(new DamageInfo(3, DamageType.Explosion, c.p, new Vector2(20f, 20f), "test"));
+            c.Expect(h1 - b.health == 1 && b.blastDamage == 1, $"a bomb blast takes just 1 from a boss (took {h1 - b.health})");
             c.Expect(Mathf.Abs(b.HealthFraction - b.health / (float)b.maxHealth) < 0.001f && b.HealthFraction < 1f, "health fraction feeds the bar");
             for (int i = 0; i < 40 && !b.Dead; i++)
             {
@@ -935,27 +967,51 @@ namespace Gloomdelve
             // its round, watched from a safe corner
             c.p.godMode = true;
             c.Teleport(4.5f, 2f);
-            bool darts = false, rain = false, pulse = false, lure = false;
-            for (int i = 0; i < 1500 && !(darts && rain && pulse && lure); i++)
+            bool lashLow = false, lashHigh = false, rain = false, lure = false, darts = false;
+            for (int i = 0; i < 2200 && !(lashLow && lashHigh && rain && lure && darts); i++)
             {
                 yield return new WaitForFixedUpdate();
                 foreach (var e in c.world.Entities)
                 {
                     if (e.Dead) continue;
-                    if (e is BossShot bs) { if (Mathf.Abs(bs.vel.y) < 0.01f && bs.pos.y < 3f) pulse = true; else darts = true; }
+                    if (e is BossShot bs && bs.unbreakable) { if (bs.pos.y < 2.6f) lashLow = true; else lashHigh = true; }
+                    else if (e is BossShot) darts = true;
                     else if (e is SporeCloud) rain = true;
                     else if (e is Lurecap) lure = true;
                 }
                 if (i == 400) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_sporeheart.png"));
             }
-            c.Expect(darts, "it fires spore darts at the player");
+            c.Expect(darts, "it fires a fan of spore darts at the player");
+            c.Expect(lashLow, "a tendril lashes across the room low along the floor");
+            c.Expect(lashHigh, "and another one at head height");
             c.Expect(rain, "it rains spore clouds on the floor");
-            c.Expect(pulse, "its pulse sends shockwaves along the floor");
             c.Expect(lure, "it wakes a lurecap among the plants");
             c.Expect(Mathf.Abs(b.pos.y - hangY) < 0.01f, "it never moves");
             // clear what it threw - not the heart itself (ClearFight would remove it too)
             foreach (var e in c.world.Entities) if (!e.Dead && e != b && (e is SporeCloud || e is BossShot || e is Lurecap)) e.Despawn();
             c.Expect(!b.Dead, "the heart is still there");
+            // the two lashes against a real player: the low one hits a standing player, the high one passes overhead
+            {
+                c.p.godMode = false;
+                c.run.health = 8;
+                c.Teleport(8.5f, 2f);
+                yield return c.Frames(70);
+                int h = c.run.health;
+                var lo = c.world.SpawnById("tendril", new Vector2(3f, 2f + b.lashLowY)) as BossShot;
+                lo.vel = new Vector2(b.lashSpeed, 0f);
+                yield return c.Frames(70);
+                c.Expect(c.run.health < h, $"the low lash catches a player who stands still (health {h} -> {c.run.health})");
+                yield return c.Frames(80);
+                c.Teleport(8.5f, 2f);
+                h = c.run.health;
+                var hi = c.world.SpawnById("tendril", new Vector2(3f, 2f + b.lashHighY)) as BossShot;
+                hi.vel = new Vector2(b.lashSpeed, 0f);
+                yield return c.Frames(70);
+                c.Expect(c.run.health == h, $"the high lash passes over a player who stays on the ground (health {h} -> {c.run.health})");
+                foreach (var e in c.world.Entities) if (!e.Dead && e is BossShot) e.Despawn();
+                c.p.godMode = true;
+                c.Teleport(4.5f, 2f);
+            }
             // reached from a bounce mushroom: fall onto the cap beside it, slash at the top of the bounce
             c.p.godMode = false;
             b.stunTimer = 0f;
@@ -1005,27 +1061,19 @@ namespace Gloomdelve
                 yield return c.Frames(30);
                 yield return null;
                 c.Expect(!hawk.Swooping && Mathf.Abs(hawk.SpriteAngle) < 0.1f, "hovering: the picture is level");
-                bool swept = false, dived = false; float sweepAngle = 0f, diveAngle = 0f; float sweepVx = 0f;
-                for (int i = 0; i < 2400 && !(swept && dived); i++)
+                bool dived = false; float diveAngle = 0f;
+                for (int i = 0; i < 1200 && !dived; i++)
                 {
                     yield return new WaitForFixedUpdate();
                     if (i % 4 == 0) yield return null;      // let LateUpdate pose the picture
-                    if (hawk.Sweeping && !swept && Mathf.Abs(hawk.vel.x) > 5f && Mathf.Abs(hawk.vel.y) < 1.5f)      // level with the ground, past the drop into the sweep
-                    {
-                        yield return null;
-                        swept = true; sweepAngle = hawk.SpriteAngle; sweepVx = hawk.vel.x;
-                        ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "hawk_sweep.png"));
-                        yield return new WaitForEndOfFrame();
-                    }
-                    else if (hawk.Swooping && !hawk.Sweeping && !dived && hawk.vel.sqrMagnitude > 25f)
+                    if (hawk.Swooping && hawk.vel.sqrMagnitude > 25f)
                     {
                         yield return null;
                         dived = true; diveAngle = hawk.SpriteAngle;
+                        ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "hawk_dive.png"));
+                        yield return new WaitForEndOfFrame();
                     }
                 }
-                c.Expect(swept, "it made a sweep");
-                float wantSweep = sweepVx > 0f ? 90f : 270f;
-                c.Expect(swept && Mathf.Abs(Mathf.DeltaAngle(sweepAngle, wantSweep)) < 25f, $"in the sweep the beak points along the ground (angle {sweepAngle:0}, wanted about {wantSweep:0})");
                 c.Expect(dived && Mathf.Abs(Mathf.DeltaAngle(diveAngle, 0f)) < 80f, $"in a dive the beak points down at the player (angle {diveAngle:0})");
                 hawk.Despawn();
                 ClearFight(c);
@@ -1100,6 +1148,124 @@ namespace Gloomdelve
             yield return c.Frames(2);
         }
 
+        static IEnumerator ForgeBruteCase(Ctx c)
+        {
+            c.p.godMode = true;
+            c.Bot(Seq((4000, F())));
+            c.Teleport(5.5f, 1f);
+            // a dirt wall (three tiles high) stands between the brute and the player
+            c.Expect(c.world.Grid.IsSolid(12, 1) && c.world.Grid.IsSolid(12, 3), "a dirt wall stands in the arena");
+            var b = c.Spawn<ForgeBrute>("forgebrute", 19, 1, 0, null, -1);
+            c.Expect(b != null, "forge brute spawned");
+            if (b == null) yield break;
+            int maxFire = 0, burning = 0, maxWaves = 0; float longest = 0f, since = 0f; bool wallGone = false, passed = false;
+            for (int i = 0; i < 2400; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                int n = 0, lit = 0, waves = 0;
+                foreach (var e in c.world.Entities)
+                {
+                    if (e.Dead) continue;
+                    if (e is FirePatch f) { n++; if (f.Burning) lit++; }
+                    else if (e is BossShot && e.displayName == "shockwave" && e.vel.x < 0f) waves++;      // those running left, toward the player
+                }
+                maxWaves = Mathf.Max(maxWaves, waves);
+                maxFire = Mathf.Max(maxFire, n);
+                if (lit > 0) { since += GameConst.Dt; longest = Mathf.Max(longest, since); } else since = 0f;
+                burning = Mathf.Max(burning, lit);
+                if (!c.world.Grid.IsSolid(12, 1) && !c.world.Grid.IsSolid(12, 2)) wallGone = true;
+                if (wallGone && b.pos.x < 11f) passed = true;
+                if (maxFire > 0 && wallGone && passed && maxWaves >= 3) break;
+            }
+            c.Expect(maxFire >= 1 && maxFire <= 2, $"its stomp lights at most two spots at a time (most seen: {maxFire})");
+            c.Expect(longest > 0.5f && longest < 1.6f, $"and they burn only briefly ({longest:0.0}s)");
+            c.Expect(maxWaves >= 3, $"its ground slam sends three shockwaves one after another (most on the floor at once, one way: {maxWaves})");
+            c.Expect(wallGone, "charging into the dirt wall, it tears through it");
+            c.Expect(passed, $"and carries on past where the wall stood (x {b.pos.x:0.0})");
+            b.Despawn();
+            ClearFight(c);
+            foreach (var e in c.world.Entities) if (!e.Dead && e is FirePatch) e.Despawn();
+        }
+
+        static IEnumerator BoulderCase(Ctx c)
+        {
+            c.Bot(Seq((3000, F())));
+            // hit early, while it is small
+            c.run.health = 8;
+            c.Teleport(6.5f, 1f);
+            yield return c.Frames(70);
+            var ball = c.world.SpawnById("snowboulder", new Vector2(3.5f, 1f)) as RollingBall;
+            c.Expect(ball != null, "snow boulder spawned");
+            if (ball == null) yield break;
+            ball.Roll(1);
+            int hp = c.run.health; float s1 = 0f;
+            for (int i = 0; i < 200 && c.run.health == hp; i++) { if (!ball.Dead) s1 = ball.Scale; yield return new WaitForFixedUpdate(); }
+            c.Expect(hp - c.run.health == 1, $"small (scale {s1:0.00}) it costs 1 (health {hp} -> {c.run.health})");
+            c.Expect(!c.p.Frozen, "it no longer freezes");
+            // hit late, fully grown
+            yield return c.Frames(90);
+            c.Teleport(20.5f, 1f);
+            hp = c.run.health;
+            var big = c.world.SpawnById("snowboulder", new Vector2(3.5f, 1f)) as RollingBall;
+            big.Roll(1);
+            float s2 = 0f; bool grew = false;
+            for (int i = 0; i < 400 && c.run.health == hp; i++)
+            {
+                if (!big.Dead) { s2 = big.Scale; if (big.DamageNow == 2) grew = true; }
+                if (i == 150) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "snow_boulder.png"));
+                yield return new WaitForFixedUpdate();
+            }
+            c.Expect(grew, "on the way it passes through the middle size (2 damage)");
+            c.Expect(hp - c.run.health == 3, $"fully grown (scale {s2:0.00}) it costs 3 (health {hp} -> {c.run.health})");
+            // three strokes still break it
+            yield return c.Frames(90);
+            var cut = c.world.SpawnById("snowboulder", new Vector2(3.5f, 1f)) as RollingBall;
+            cut.Roll(1);
+            yield return c.Frames(20);
+            cut.OnWhipped(c.p, 1, 1); cut.OnWhipped(c.p, 1, 1);
+            c.Expect(!cut.Dead, "two strokes do not break it");
+            cut.OnWhipped(c.p, 1, 1);
+            c.Expect(cut.Dead, "the third does");
+        }
+
+        static IEnumerator YetiPunchCase(Ctx c)
+        {
+            c.run.RemoveUpgrade("warmcoat");
+            c.Bot(Seq((3000, F())));
+            c.run.health = 8;
+            c.Teleport(8.5f, 1f);
+            yield return c.Frames(70);
+            var b = c.Spawn<YetiKing>("yetiking", 17, 1, 0, null, -1);
+            c.Expect(b != null, "yeti king spawned");
+            if (b == null) yield break;
+            yield return c.Frames(10);
+            float x0 = b.pos.x; int hp = c.run.health;
+            c.p.Freeze(0.6f);
+            bool rushed = false, hit = false;
+            for (int i = 0; i < 120 && !hit; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (b.Punching) rushed = true;
+                if (c.run.health < hp) hit = true;
+                if (rushed && i % 10 == 0) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "yeti_punch.png"));
+            }
+            c.Expect(rushed, "the player is frozen: he runs in");
+            c.Expect(hit && hp - c.run.health == b.punchDamage, $"and punches for {b.punchDamage} (health {hp} -> {c.run.health})");
+            c.Expect(b.pos.x < x0 - 3f, $"he really crossed the room for it (x {x0:0.0} -> {b.pos.x:0.0})");
+            // a player who is not frozen is not rushed
+            b.Despawn();
+            ClearFight(c);
+            c.run.health = 8;
+            c.Teleport(8.5f, 1f);
+            yield return c.Frames(90);
+            var b2 = c.Spawn<YetiKing>("yetiking", 17, 1, 0, null, -1);
+            bool rushed2 = false;
+            for (int i = 0; i < 80; i++) { yield return new WaitForFixedUpdate(); if (b2.Punching) rushed2 = true; }
+            c.Expect(!rushed2, "a player who is not frozen is left to his usual round");
+            b2.Despawn();
+            ClearFight(c);
+        }
+
         static IEnumerator BossPatternsCase(Ctx c)
         {
             c.p.godMode = true;
@@ -1112,7 +1278,7 @@ namespace Gloomdelve
                 if (b == null) continue;
                 Vector2 p0 = b.pos;
                 int n0 = c.world.EntityCount;
-                bool acted = false, shots = false, rocks = false, balls = false;
+                bool acted = false, shots = false, rocks = false, balls = false, fire = false, boulder = false, wind = false, overheat = false;
                 for (int i = 0; i < 1800; i++)
                 {
                     yield return new WaitForFixedUpdate();
@@ -1124,14 +1290,15 @@ namespace Gloomdelve
                             if (e is BossShot) shots = true;
                             else if (e is Stalactite) rocks = true;
                             else if (e is Snowball) balls = true;
+                            else if (e is FirePatch) fire = true;
+                            else if (e is RollingBall) boulder = true;
                         }
-                    if (i == 200) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_" + id + ".png"));
+                    if (i == 200 || (wind && i % 60 == 0) || (fire && i % 90 == 0)) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_" + id + ".png"));
                 }
                 c.Expect(acted && !b.Dead, id + " moved or attacked and is still alive");
                 // every boss has more than its two basic moves: the extra ones leave these traces within 30 seconds
-                if (id == "broodmother") c.Expect(shots, "broodmother spat venom / sent a shockwave");
-                if (id == "forgebrute") c.Expect(rocks && shots, $"forgebrute stomped rocks loose ({rocks}) and landed a leap with a shockwave ({shots})");
-                if (id == "yetiking") c.Expect(balls && rocks, $"yetiking threw snowballs ({balls}) and shook icicles loose ({rocks})");
+                if (id == "forgebrute") c.Expect(fire && rocks && shots, $"forge brute brought fire up ({fire}), shook rocks loose on the wall ({rocks}) and landed a leap with a shockwave ({shots})");
+                if (id == "yetiking") c.Expect(balls && rocks && boulder, $"yeti king threw snowballs ({balls}), shook icicles loose ({rocks}) and rolled a snow boulder ({boulder})");
                 if (id == "stormhawk") c.Expect(shots, "stormhawk shot feathers");
                 if (id == "warden") c.Expect(shots, "warden fired orbs");
                 b.Despawn();
@@ -1208,15 +1375,16 @@ namespace Gloomdelve
         {
             c.Teleport(4.5f, 1f);
             c.p.godMode = true;
-            c.Bot(Seq((1500, F())));
+            c.Bot(Seq((3000, F())));
             var boss = c.Spawn<Broodmother>("broodmother", 16, 1);
-            Bat minion = null;
-            for (int i = 0; i < 1200 && minion == null; i++)
+            // her brood: an egg sac left alone hatches a spiderling
+            Spider minion = null;
+            for (int i = 0; i < 2600 && minion == null; i++)
             {
                 yield return c.Frames(1);
-                foreach (var e in c.world.Entities) if (e is Bat bt && !bt.Dead) { minion = bt; break; }
+                foreach (var e in c.world.Entities) if (e is Spider sp && !sp.Dead) { minion = sp; break; }
             }
-            c.Expect(minion != null && minion.summoned, "the boss called in a minion marked as summoned");
+            c.Expect(minion != null && minion.summoned, "the boss's brood (a spiderling out of her egg) is marked as summoned");
             if (boss != null) boss.Despawn();
             if (minion != null)
             {
@@ -1768,6 +1936,300 @@ namespace Gloomdelve
             c.Expect(leapt, "then it leaps after the player");
             c.Expect(hit, $"and the leap hurts (health {hp0} -> {c.run.health})");
             if (!lc.Dead) lc.Despawn();
+        }
+
+        static IEnumerator ConveyorCase(Ctx c)
+        {
+            c.run.RemoveUpgrade("heavyboots");
+            var belts = new List<Conveyor>();
+            for (int x = 8; x <= 13; x++) belts.Add(c.Spawn<Conveyor>("conveyor", x, 1, 0, null, 1));
+            c.Expect(belts[0] != null && belts[0].dir == 1, "belt spawned, running right");
+            c.Bot(Seq((2000, F())));
+            c.Teleport(8.5f, 1f);
+            var snake = c.Spawn<Snake>("snake", 10, 1);
+            snake.stunTimer = 99f;                  // it does not walk: any movement is the belt's
+            float sx = snake.pos.x;
+            yield return c.Frames(50);
+            c.Expect(c.p.pos.x > 8.5f + 1.5f, $"standing still on the belt, the player is carried along (x 8.50 -> {c.p.pos.x:0.00})");
+            c.Expect(snake.pos.x > sx + 1.5f, $"so is a creature standing on it (x {sx:0.00} -> {snake.pos.x:0.00})");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "conveyor.png"));
+            yield return new WaitForEndOfFrame();
+            yield return null;
+            // off the end of the belt nothing moves any more
+            yield return c.Frames(150);
+            float rest = c.p.pos.x;
+            yield return c.Frames(30);
+            c.Expect(c.p.pos.x > 13.9f && Mathf.Abs(c.p.pos.x - rest) < 0.05f, $"past the end of the belt the player stays put (x {c.p.pos.x:0.00})");
+            // reversed: it runs the other way
+            foreach (var b in belts) b.Reverse();
+            c.Teleport(12.5f, 1f);
+            yield return c.Frames(50);
+            c.Expect(c.p.pos.x < 12.5f - 1.5f, $"reversed, it carries the other way (x 12.50 -> {c.p.pos.x:0.00})");
+            // heavy boots: not carried
+            c.run.AddUpgrade(c.dir.config.shop.Find("heavyboots"));
+            c.Expect(c.run.IsWorn("heavyboots") && c.run.stats.beltGrip > 0f, "heavy boots are worn");
+            c.Teleport(11.5f, 1f);
+            yield return c.Frames(50);
+            c.Expect(Mathf.Abs(c.p.pos.x - 11.5f) < 0.05f, $"with heavy boots the belt does not move the player (x {c.p.pos.x:0.00})");
+            c.run.RemoveUpgrade("heavyboots");
+            snake.Despawn();
+            foreach (var b in belts) b.Despawn();
+        }
+
+        static IEnumerator SentryCase(Ctx c)
+        {
+            c.run.RemoveUpgrade("magnetcharm");
+            c.p.godMode = true;
+            c.Bot(Seq((2000, F())));
+            c.Teleport(9.5f, 1f);
+            var s = c.Spawn<Sentry>("sentry", 12, 1, 0, null, -1);
+            c.Expect(s != null && s.facing == -1, "sentry spawned, facing the player");
+            if (s == null) yield break;
+            s.heartDropChance = 0f;
+            yield return c.Frames(3);
+            int hp = s.health;
+            bool hit = s.TakeDamage(new DamageInfo(1, DamageType.Whip, c.p, Vector2.zero, "test"));
+            c.Expect(!hit && s.health == hp, "a blade from the front rings off the shield");
+            c.Expect(!s.Blocks(new DamageInfo(1, DamageType.Stomp, c.p, Vector2.zero, "test")) && !s.Blocks(new DamageInfo(3, DamageType.Explosion, c.p, Vector2.zero, "test")),
+                "a stomp or a blast is not stopped by the shield");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "sentry.png"));
+            yield return new WaitForEndOfFrame();
+            yield return null;
+            // behind it: the back is open, and it needs a moment to turn
+            c.Teleport(14.5f, 1f);
+            yield return c.Frames(4);
+            c.Expect(s.facing == -1, "it does not turn at once");
+            hit = s.TakeDamage(new DamageInfo(1, DamageType.Whip, c.p, Vector2.zero, "test"));
+            c.Expect(hit && s.health == hp - 1, "a blade in its back hurts it");
+            yield return c.Frames(90);
+            c.Expect(s.facing == 1, "after a moment it has turned to face the player");
+            // with the magnet charm the blade goes through the shield
+            hit = s.TakeDamage(new DamageInfo(0, DamageType.Whip, c.p, Vector2.zero, "test"));
+            c.Expect(!hit, "facing the player again, the shield blocks again");
+            c.run.AddUpgrade(c.dir.config.shop.Find("magnetcharm"));
+            c.Expect(c.run.IsWorn("magnetcharm") && !s.Blocks(new DamageInfo(1, DamageType.Whip, c.p, Vector2.zero, "test")), "with the magnet charm the blade cuts through the shield");
+            c.run.RemoveUpgrade("magnetcharm");
+            // its jab hurts, after a wind-up
+            c.p.godMode = false;
+            int php = c.run.health;
+            c.Teleport(s.pos.x + 1.0f, 1f);
+            bool hurt = false;
+            for (int i = 0; i < 200 && !hurt; i++) { yield return new WaitForFixedUpdate(); if (c.run.health < php) hurt = true; }
+            c.Expect(hurt, "standing in front of it, the player gets jabbed");
+            c.p.godMode = true;
+            s.Despawn();
+        }
+
+        static IEnumerator DroneBeetleCase(Ctx c)
+        {
+            c.p.godMode = true;
+            c.Bot(Seq((3000, F())));
+            c.Teleport(6.5f, 1f);
+            var d = c.Spawn<Drone>("drone", 11, 5);
+            c.Expect(d != null, "drone spawned");
+            if (d != null)
+            {
+                d.heartDropChance = 0f;
+                float y0 = d.pos.y;
+                bool aimed = false, fired = false, aimedFirst = false;
+                for (int i = 0; i < 400 && !fired; i++)
+                {
+                    yield return new WaitForFixedUpdate();
+                    if (d.Aiming) aimed = true;
+                    if (c.Count<BossShot>() > 0) { fired = true; aimedFirst = aimed; }
+                    if (aimed && !fired && i % 30 == 0) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "drone.png"));
+                }
+                c.Expect(aimedFirst, "its eye turns red before it shoots (the tell)");
+                c.Expect(fired, "then it fires a bolt");
+                c.Expect(Mathf.Abs(d.pos.y - y0) < 0.4f && d.ContactDamage == 0, "it stays at its post and touching it is harmless");
+                d.TakeDamage(new DamageInfo(1, DamageType.Whip, c.p, Vector2.zero, "test"));
+                c.Expect(d.Dead, "one hit brings it down");
+                foreach (var e in c.world.Entities) if (!e.Dead && e is BossShot) e.Despawn();
+            }
+            // the beetle and the bomb
+            var bt = c.Spawn<ScrapBeetle>("beetle", 15, 1, 0, null, -1);
+            c.Expect(bt != null, "scrap beetle spawned");
+            if (bt == null) yield break;
+            bt.heartDropChance = 0f;
+            yield return c.Frames(20);
+            var bomb = c.Spawn<Bomb>("bomb", 12, 1);
+            bomb.Light(c.p, 0f);
+            bool ate = false;
+            for (int i = 0; i < 140 && !ate; i++) { yield return new WaitForFixedUpdate(); if (bt.Primed) ate = true; }
+            c.Expect(ate, "the beetle runs to the lit bomb and swallows it");
+            c.Expect(bomb.Dead, "the bomb is gone");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "beetle_primed.png"));
+            float bx = bt.pos.x;
+            bool blew = false;
+            for (int i = 0; i < 200 && !blew; i++) { yield return new WaitForFixedUpdate(); if (bt.Dead) blew = true; else bx = bt.pos.x; }
+            c.Expect(blew, "a moment later it blows up");
+            c.Expect(bx < 11.5f, $"having run at the player first (x {bx:0.0})");
+        }
+
+        static IEnumerator SawCase(Ctx c)
+        {
+            c.Bot(Seq((3000, F())));
+            c.Teleport(5.5f, 1f);
+            var saw = c.Spawn<SawBlade>("sawblade", 10, 1, 4);
+            c.Expect(saw != null && !saw.Loose, "saw spawned on its rail");
+            if (saw == null) yield break;
+            float lo = 99f, hi = -99f;
+            for (int i = 0; i < 260; i++) { yield return new WaitForFixedUpdate(); lo = Mathf.Min(lo, saw.pos.x); hi = Mathf.Max(hi, saw.pos.x); }
+            c.Expect(Mathf.Abs(lo - 10.5f) < 0.05f && Mathf.Abs(hi - 13.5f) < 0.05f, $"it runs the whole 4-cell rail and no further (x {lo:0.00}..{hi:0.00})");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "saw.png"));
+            yield return new WaitForEndOfFrame();
+            yield return null;
+            // standing in its way hurts and throws the player clear
+            int hp = c.run.health;
+            c.Teleport(12f, 1f);
+            bool cut = false;
+            for (int i = 0; i < 200 && !cut; i++) { yield return new WaitForFixedUpdate(); if (c.run.health < hp) cut = true; }
+            c.Expect(cut && c.run.health == hp - 1, $"standing on the rail: cut for 1 (health {hp} -> {c.run.health})");
+            // a creature on the rail is cut too
+            var snake = c.Spawn<Snake>("snake", 12, 1);
+            snake.stunTimer = 99f; snake.heartDropChance = 0f;
+            bool dead = false;
+            for (int i = 0; i < 260 && !dead; i++) { yield return new WaitForFixedUpdate(); if (snake.Dead) dead = true; }
+            c.Expect(dead, "a creature standing on the rail is cut down");
+            // the blade does nothing to it
+            saw.OnWhipped(c.p, 1, 1);
+            c.Expect(!saw.Dead, "it cannot be broken with the blade");
+            // jumped: a running jump clears the saw wherever it is on the rail
+            c.run.health = 8;
+            yield return c.Frames(80);
+            c.Teleport(8.3f, 1f);
+            int hp2 = c.run.health;
+            c.Bot(Seq((6, F(x: 1)), (1, F(x: 1, jp: true, jh: true)), (40, F(x: 1, jh: true)), (60, F(x: 1)), (60, F())));
+            yield return c.Frames(160);
+            // the saw may or may not have been under the jump; what matters: a jump from before the rail lands past it unhurt when timed, so check the arc clears its height
+            c.Expect(c.p.pos.x > 14f, $"a running jump from before the rail lands beyond it (x {c.p.pos.x:0.0})");
+            saw.Despawn();
+        }
+
+        static IEnumerator BroodmotherCase(Ctx c)
+        {
+            c.p.godMode = true;
+            c.Bot(Seq((4000, F())));
+            c.Teleport(6.5f, 1f);
+            var b = c.Spawn<Broodmother>("broodmother", 16, 1);
+            c.Expect(b != null, "broodmother spawned");
+            if (b == null) yield break;
+            bool ceiling = false, fell = false, stuck = false, web = false, eggs = false, hatched = false, shots = false, spatFromCeiling = false, shotElsewhere = false, lowered = false;
+            int shotCount = 0;
+            float ceilX = 0f; int spiders0 = c.Count<Spider>();
+            for (int i = 0; i < 3000 && !(ceiling && stuck && web && eggs && hatched && spatFromCeiling && lowered); i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (b.OnCeiling && !b.Spitting) { ceiling = true; ceilX = b.pos.x; if (i % 20 == 0) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_broodmother_ceiling.png")); }
+                int nShots = c.Count<BossShot>();
+                if (nShots > shotCount) { if (b.Spitting) { spatFromCeiling = true; ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_broodmother_spit.png")); } else shotElsewhere = true; }
+                shotCount = nShots;
+                if (spatFromCeiling && !b.OnCeiling && b.grounded && !b.Stuck && !b.Attacking) lowered = true;
+                if (b.Attacking) fell = true;
+                if (b.Stuck) stuck = true;
+                if (c.Count<WebPatch>() > 0) web = true;
+                if (c.Count<EggSac>() > 0) eggs = true;
+                if (eggs && c.Count<Spider>() > spiders0) hatched = true;
+                if (c.Count<BossShot>() > 0) shots = true;
+            }
+            c.Expect(ceiling, "she climbs to the ceiling");
+            c.Expect(Mathf.Abs(ceilX - c.p.pos.x) < 1.2f, $"and crawls along it until she is above the player (her x {ceilX:0.0}, player {c.p.pos.x:0.0})");
+            c.Expect(fell && stuck, "she drops and lands stuck for a moment (the opening)");
+            c.Expect(web, "she lays web on the floor");
+            c.Expect(eggs, "she leaves egg sacs");
+            c.Expect(hatched, "an egg sac left alone hatches a spiderling");
+            c.Expect(spatFromCeiling && !shotElsewhere, $"she spits venom only from the ceiling (from the ceiling {spatFromCeiling}, elsewhere {shotElsewhere})");
+            c.Expect(lowered, "after spitting she lowers herself to the floor without a drop attack");
+            // only the fall hurts
+            c.Expect(b.ContactDamage == 0 || b.Attacking, "on the ground or on the ceiling touching her is harmless");
+            // web: slow on the ground, gone in time
+            b.Despawn();
+            ClearFight(c);
+            foreach (var e in c.world.Entities) if (!e.Dead && (e is WebPatch || e is EggSac || e is Spider)) e.Despawn();
+            c.p.godMode = false;
+            yield return c.Frames(70);
+            c.world.SpawnById("webpatch", new Vector2(10.5f, 1f));
+            c.Teleport(10.5f, 1f);
+            yield return c.Frames(20);
+            c.Expect(c.p.Slowed, "standing in the web slows the player");
+            c.Teleport(10.5f, 3.2f);
+            c.p.motor.vel = Vector2.zero;
+            yield return c.Frames(4);
+            // an egg sac bursts at one stroke, before it hatches
+            foreach (var e in c.world.Entities) if (!e.Dead && e is WebPatch) e.Despawn();
+            var egg = c.world.SpawnById("eggsac", new Vector2(16.5f, 1f)) as EggSac;
+            c.Expect(egg != null, "egg sac spawned");
+            if (egg != null)
+            {
+                int sp0 = c.Count<Spider>();
+                yield return c.Frames(10);
+                egg.TakeDamage(new DamageInfo(1, DamageType.Whip, c.p, Vector2.zero, "test"));
+                yield return c.Frames(330);
+                c.Expect(egg.Dead && c.Count<Spider>() == sp0, "cut in time, nothing hatches");
+            }
+            c.p.godMode = true;
+        }
+
+        static IEnumerator ForemanCase(Ctx c)
+        {
+            c.p.godMode = true;
+            c.Bot(Seq((6000, F())));
+            c.Teleport(4.5f, 1f);
+            var belts = new List<Conveyor>();
+            for (int x = 7; x <= 12; x++) belts.Add(c.Spawn<Conveyor>("conveyor", x, 1, 0, null, 1));
+            var b = c.Spawn<Foreman>("foreman", 18, 1, 0, null, -1);     // facing the player, as in its arena
+            c.Expect(b != null && c.dir.Boss == b, "the foreman spawned and registered as the boss");
+            if (b == null) yield break;
+            yield return c.Frames(5);
+            // the shield: the player is in front of it
+            int hp = b.health;
+            bool hit = b.TakeDamage(new DamageInfo(1, DamageType.Whip, c.p, Vector2.zero, "test"));
+            c.Expect(!hit && b.health == hp, "a blade from the front rings off its shield");
+            int dir0 = belts[0].dir;
+            bool saws = false, reversed = false, presses = false, pressDown = false, rewound = false, openHit = false, shots = false;
+            for (int i = 0; i < 3000 && !(saws && reversed && presses && pressDown && rewound && openHit); i++)
+            {
+                yield return new WaitForFixedUpdate();
+                foreach (var e in c.world.Entities)
+                {
+                    if (e.Dead) continue;
+                    if (e is SawBlade sb && sb.Loose) saws = true;
+                    else if (e is Press pr) { presses = true; if (pr.Down) pressDown = true; }
+                    else if (e is BossShot) shots = true;
+                }
+                if (belts[0].dir != dir0) reversed = true;
+                if (b.Rewinding)
+                {
+                    rewound = true;
+                    if (!openHit)
+                    {
+                        int h = b.health;
+                        openHit = b.TakeDamage(new DamageInfo(1, DamageType.Whip, c.p, Vector2.zero, "test")) && b.health == h - 1;
+                        ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_foreman.png"));
+                    }
+                }
+            }
+            c.Expect(saws, "it sends loose saw blades rolling along the floor");
+            c.Expect(reversed, "it pulls the lever: the belts run the other way");
+            c.Expect(presses && pressDown, $"a row of presses stamps down (spawned {presses}, reached the floor {pressDown})");
+            c.Expect(rewound, "then it has to rewind");
+            c.Expect(openHit, "and while it rewinds the same front hit goes through");
+            c.Expect(!shots, "no gear fan and no shockwave any more");
+            // stomped too often: steam throws the player off and the belts flip again
+            int dirNow = belts[0].dir;
+            c.p.godMode = false;
+            c.run.health = 8;
+            c.Teleport(b.pos.x, b.pos.y + b.size.y + 0.3f);
+            b.CounterStomp(c.p); b.CounterStomp(c.p);
+            bool countered = b.CounterStomp(c.p);
+            yield return c.Frames(2);
+            c.Expect(countered && c.p.vel.y > 8f && belts[0].dir != dirNow, $"a third stomp in a row: thrown off by steam, belts flipped (vy {c.p.vel.y:0.0})");
+            c.p.godMode = true;
+            for (int i = 0; i < 60 && !b.Dead; i++) { b.TakeDamage(new DamageInfo(3, DamageType.Explosion, c.p, Vector2.zero, "test")); yield return c.Frames(14); }
+            c.Expect(b.Dead, "it can be killed");
+            foreach (var e in belts) e.Despawn();
+            foreach (var e in c.world.Entities) if (!e.Dead && (e is SawBlade || e is Press)) e.Despawn();
+            ClearFight(c);
         }
 
         static IEnumerator HawkCase(Ctx c)

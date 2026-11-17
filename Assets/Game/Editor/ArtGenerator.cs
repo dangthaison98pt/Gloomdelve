@@ -235,8 +235,21 @@ namespace Gloomdelve.EditorTools
             style = 0
         };
 
+        // Gearworks: riveted brass plates over dark iron, copper trim, steel spikes.
+        static readonly Pal Gear = new Pal
+        {
+            b = C(132, 100, 62), d = C(100, 74, 46), l = C(170, 134, 84), deep = C(58, 42, 28),
+            top = C(196, 122, 70), topL = C(244, 180, 110), topD = C(132, 76, 44),
+            rock = C(58, 62, 72), rockD = C(38, 42, 50), rockL = C(92, 98, 112), rockDeep = C(20, 22, 28),
+            bg = C(34, 30, 28), bgD = C(24, 21, 20), bgL = C(48, 42, 38),
+            wood = C(110, 112, 122), woodD = C(68, 70, 80), woodL = C(160, 164, 176),
+            spike = C(190, 196, 206), spikeD = C(108, 114, 128), spikeL = C(236, 240, 246), spikeTip = C(255, 200, 90),
+            style = 2
+        };
+
         static void AllTiles()
         {
+            TileSetArt("Gearworks", Gear, 97);
             TileSetArt("Sporegloom", Spore, 83);
             TileSetArt("Frost", Frost, 67);
             TileSetArt("Mossroot", Moss, 11);
@@ -1021,6 +1034,8 @@ namespace Gloomdelve.EditorTools
             BatArt(d + "frostbat", C(150, 202, 238), C(92, 148, 204), C(255, 255, 255), pv18);
             FrostEnemyArt(pv18);
             SporeArt(pv18);
+            GearworksArt(pv18);
+            BroodArt(pv18);
             TreeArt();
             // Spider
             {
@@ -1043,6 +1058,22 @@ namespace Gloomdelve.EditorTools
                     p.Outline(C(14, 10, 18));
                     Save(p, d + $"spider_{f}", pv18);
                 }
+            }
+            // Spider falling (only the source picture of the Broodmother's drop): all eight legs trail upward
+            {
+                Color32 b = C(52, 40, 64), bl = C(98, 78, 120), eye = C(255, 60, 60), leg = C(36, 28, 44);
+                var p = new Px(18, 18);
+                for (int i = 0; i < 4; i++)
+                {
+                    int dx = 2 + i;
+                    p.Line(8, 6, 8 - dx - 1, 8, leg); p.Line(8 - dx - 1, 8, 8 - dx, 13 + (i % 2), leg);
+                    p.Line(9, 6, 9 + dx + 1, 8, leg); p.Line(9 + dx + 1, 8, 9 + dx, 13 + (i % 2), leg);
+                }
+                p.Ellipse(8.5f, 5f, 3.6f, 3f, b);
+                p.Set(7, 7, bl); p.Set(8, 7, bl);
+                p.Set(7, 3, eye); p.Set(10, 3, eye); p.Set(8, 2, eye);
+                p.Outline(C(14, 10, 18));
+                Save(p, d + "spider_3", pv18);
             }
             // Toad
             for (int f = 0; f < 2; f++)
@@ -1209,6 +1240,132 @@ namespace Gloomdelve.EditorTools
                 p.Set(7, 15, furD); p.Set(13, 15, furD);
                 p.Outline(C(40, 56, 92));
                 Save(p, d + $"yeti_{f}", new Vector2(0.5f, 1f / 20f));
+            }
+        }
+
+        /// <summary>The Broodmother's leavings: a sheet of web on the floor, and an egg sac (two frames: it throbs).</summary>
+        static void BroodArt(Vector2 pv)
+        {
+            {
+                var p = new Px(40, 8);
+                Color32 w = C(236, 240, 246, 230), wd = C(190, 198, 214, 170);
+                p.Rect(1, 0, 38, 1, wd);
+                for (int x = 1; x < 39; x += 4) { p.Line(x, 0, x + 2, 5 + (x / 4) % 2, w); p.Line(x + 2, 5 + (x / 4) % 2, x + 4, 0, w); }
+                for (int x = 3; x < 37; x += 6) p.Rect(x, 2, 4, 1, wd);
+                p.Line(0, 0, 4, 7, w); p.Line(39, 0, 35, 7, w);
+                Save(p, "Sprites/Props/web", new Vector2(0.5f, 0f));
+            }
+            for (int f = 0; f < 2; f++)
+            {
+                var p = new Px(18, 18);
+                Color32 sac = C(214, 224, 190), sacD = C(150, 166, 130), sacL = C(250, 255, 236), vein = C(110, 150, 90);
+                float rx = f == 0 ? 4.6f : 5.4f, ry = f == 0 ? 5.6f : 5f;
+                p.Ellipse(9f, ry, rx, ry, sac); p.Ellipse(9f, 2.2f, rx - 1f, 1.8f, sacD);
+                p.Line(7, 3, 6, 8, vein); p.Line(11, 3, 12, 7, vein); p.Set(9, 9, sacL); p.Set(8, 8, sacL);
+                p.Set(9, 5, C(40, 30, 50)); p.Set(10, 6, C(40, 30, 50));          // something moving inside
+                p.Outline(C(40, 50, 34));
+                Save(p, $"Sprites/Enemies/eggsac_{f}", pv);
+            }
+        }
+
+        /// <summary>
+        /// Gearworks: the conveyor belt, its three machines (sentry, drone, scrap beetle), their bolt, and the
+        /// Foreman's gear.
+        /// </summary>
+        static void GearworksArt(Vector2 pv)
+        {
+            Color32 ol = C(20, 18, 22);
+            Color32 steel = C(150, 156, 170), steelD = C(92, 98, 114), steelL = C(214, 220, 232);
+            Color32 brass = C(206, 160, 74), brassD = C(138, 100, 42), brassL = C(250, 220, 130);
+            // conveyor belt: a low band on the floor; the ridges shift from frame to frame
+            for (int f = 0; f < 3; f++)
+            {
+                var p = new Px(16, 16);
+                Color32 belt = C(54, 52, 60), beltL = C(92, 90, 104), ridge = C(140, 138, 152);
+                p.Rect(0, 0, 16, 4, belt); p.Rect(0, 3, 16, 1, beltL); p.Rect(0, 0, 16, 1, C(30, 28, 34));
+                for (int x = f * 2 - 6; x < 16; x += 6) { p.Rect(x, 1, 2, 2, ridge); p.Set(x + 2, 2, ridge); }
+                p.Set(0, 4, brassD); p.Set(15, 4, brassD);
+                Save(p, $"Sprites/Props/conveyor_{f}", new Vector2(0.5f, 0f));
+            }
+            // sentry: a wind-up guard, a tall shield in front. 0 / 1 walk, 2 jab (spear out)
+            for (int f = 0; f < 3; f++)
+            {
+                var p = new Px(18, 18);
+                int step = f == 1 ? 1 : 0;
+                p.Rect(4, 0, 2, 2 - step, steelD); p.Rect(8, 0, 2, 1 + step, steelD);              // feet
+                p.Rect(3, 2, 8, 7, steel); p.Rect(3, 2, 2, 7, steelD);                              // body
+                p.Disc(7f, 11.5f, 3.2f, brass); p.Rect(5, 11, 5, 1, C(30, 26, 30)); p.Set(8, 11, C(255, 90, 60));   // head, visor slit, eye
+                p.Set(6, 15, brassL); p.Set(7, 15, brassL);
+                p.Rect(0, 5, 3, 1, brassD); p.Rect(0, 4 + (f == 1 ? 2 : 0), 1, 3, brassD);            // wind-up key on its back
+                if (f == 2) { p.Line(10, 7, 17, 7, steelL); p.Set(17, 8, steelL); p.Set(17, 6, steelL); }   // spear thrust
+                // the shield
+                p.Rect(11, 1, 4, 12, brass); p.Rect(11, 1, 1, 12, brassD); p.Rect(14, 1, 1, 12, brassL);
+                p.Rect(12, 6, 2, 2, steelL); p.Set(12, 11, brassD); p.Set(13, 3, brassL);
+                p.Outline(ol);
+                Save(p, $"Sprites/Enemies/sentry_{f}", pv);
+            }
+            // drone: 0 / 1 hovering (rotor turns), 2 aiming (red eye)
+            for (int f = 0; f < 3; f++)
+            {
+                var p = new Px(18, 18);
+                Color32 eye = f == 2 ? C(255, 70, 50) : C(110, 230, 220), eyeL = f == 2 ? C(255, 200, 170) : C(220, 255, 250);
+                p.Ellipse(9f, 7f, 5f, 4f, steel); p.Ellipse(9f, 5.5f, 4f, 2f, steelD);
+                p.Disc(9f, 7.5f, 2.2f, eye); p.Set(9, 8, eyeL);
+                p.Rect(8, 11, 2, 2, steelD);
+                if (f == 1) p.Rect(5, 13, 8, 1, steelL); else p.Rect(2, 13, 14, 1, steelL);
+                p.Set(5, 3, brass); p.Set(12, 3, brass); p.Rect(8, 2, 2, 1, brassD);
+                p.Outline(ol);
+                Save(p, $"Sprites/Enemies/drone_{f}", pv);
+            }
+            // scrap beetle: 0 / 1 scuttling, 2 with a lit bomb inside (glowing)
+            for (int f = 0; f < 3; f++)
+            {
+                var p = new Px(18, 18);
+                Color32 shell = f == 2 ? C(236, 96, 60) : C(120, 112, 96), shellD = f == 2 ? C(160, 50, 36) : C(78, 72, 62), shellL = f == 2 ? C(255, 220, 150) : C(176, 168, 148);
+                int leg = f == 1 ? 1 : 0;
+                for (int i = 0; i < 3; i++) p.Set(4 + i * 4, (i + leg) % 2, shellD);
+                p.Ellipse(8.5f, 3.5f, 6.5f, 3f, shell); p.Ellipse(8.5f, 2.5f, 5.5f, 1.6f, shellD);
+                p.Line(8, 2, 8, 6, shellD);
+                p.Set(5, 5, shellL); p.Set(11, 5, shellL);
+                p.Rect(14, 3, 2, 2, shellD); p.Set(16, 4, C(250, 240, 200)); p.Set(16, 2, shellD); p.Set(17, 5, shellD);   // head and jaws
+                p.Outline(ol);
+                Save(p, $"Sprites/Enemies/beetle_{f}", pv);
+            }
+            {
+                // saw blade: a toothed disc (it spins at runtime), and the rail it runs on
+                var p = new Px(14, 14);
+                for (int i = 0; i < 10; i++)
+                {
+                    float a = i * Mathf.PI / 5f;
+                    p.Set(Mathf.RoundToInt(6.5f + Mathf.Cos(a) * 6f), Mathf.RoundToInt(6.5f + Mathf.Sin(a) * 6f), steelL);
+                    p.Set(Mathf.RoundToInt(6.5f + Mathf.Cos(a + 0.2f) * 5.2f), Mathf.RoundToInt(6.5f + Mathf.Sin(a + 0.2f) * 5.2f), steel);
+                }
+                p.Disc(6.5f, 6.5f, 4.6f, steel); p.Disc(6.5f, 6.5f, 3f, steelD); p.Disc(6.5f, 6.5f, 1.2f, brass);
+                p.Set(4, 9, steelL); p.Set(5, 10, steelL); p.Set(9, 4, C(70, 74, 86));
+                p.Outline(ol);
+                Save(p, "Sprites/Traps/saw", PCenter);
+                var r = new Px(16, 3);
+                r.Rect(0, 0, 16, 1, C(40, 38, 44)); r.Rect(0, 1, 16, 1, steelD); r.Rect(0, 2, 16, 1, C(60, 62, 72));
+                r.Set(3, 1, brassD); r.Set(11, 1, brassD);
+                Save(r, "Sprites/Traps/sawrail", new Vector2(0.5f, 0f));
+            }
+            {
+                // the drone's bolt
+                var p = new Px(8, 8);
+                p.Disc(3.5f, 3.5f, 2.6f, C(255, 120, 60)); p.Disc(3.5f, 3.5f, 1.3f, C(255, 240, 190));
+                Save(p, "Sprites/Bosses/bolt", PCenter);
+            }
+            {
+                // the Foreman's thrown gear
+                var p = new Px(12, 12);
+                for (int i = 0; i < 8; i++)
+                {
+                    float a = i * Mathf.PI / 4f;
+                    p.Rect(Mathf.RoundToInt(5.5f + Mathf.Cos(a) * 4.6f), Mathf.RoundToInt(5.5f + Mathf.Sin(a) * 4.6f), 1, 1, brassD);
+                }
+                p.Disc(5.5f, 5.5f, 4f, brass); p.Disc(5.5f, 5.5f, 1.6f, C(40, 34, 30)); p.Set(4, 8, brassL); p.Set(5, 8, brassL);
+                p.Outline(ol);
+                Save(p, "Sprites/Bosses/gear", PCenter);
             }
         }
 
@@ -1392,6 +1549,7 @@ namespace Gloomdelve.EditorTools
                 Save(p, o + dst, centre ? PCenter : new Vector2(0.5f, 2f / p.h));
             }
             Big("spider_0", "broodmother_0", 1.9f, 1.35f, 2.1f); Big("spider_1", "broodmother_1", 1.9f, 1.35f, 2.1f);
+            Big("spider_3", "broodmother_2", 1.9f, 1.35f, 2.1f);        // falling: legs trailing above her
             for (int f = 0; f < 4; f++) Big($"brute_{f}", $"forgebrute_{f}", 1.25f, 0.72f, 0.6f);
             void Crown(Px p)
             {
@@ -1407,6 +1565,25 @@ namespace Gloomdelve.EditorTools
             Big("hawk_0", "stormhawk_0", 0.8f, 0.85f, 1.2f); Big("hawk_1", "stormhawk_1", 0.8f, 0.85f, 1.2f);
             Big("hawk_2", "stormhawk_2", 0.8f, 0.85f, 1.2f, null, true);
             Big("specter_0", "warden_0", 1.25f, 0.75f, 1.3f); Big("specter_1", "warden_1", 1.25f, 0.75f, 1.3f);
+            // The Foreman (Gearworks): the sentry at double size in dark iron and copper.
+            for (int f = 0; f < 3; f++) Big($"sentry_{f}", $"foreman_{f}", 0.8f, 0.72f, 0.7f);
+            {
+                // the Yeti King's snow boulder (it grows and turns at runtime)
+                var p = new Px(20, 20);
+                p.Disc(9.5f, 9.5f, 9f, C(236, 244, 252)); p.Disc(8f, 11f, 6f, C(255, 255, 255)); p.Disc(12f, 7f, 4f, C(196, 214, 236));
+                p.Set(5, 6, C(176, 198, 226)); p.Set(13, 13, C(176, 198, 226)); p.Set(9, 15, C(210, 226, 244)); p.Set(15, 9, C(160, 184, 216));
+                p.Outline(C(70, 96, 140));
+                Save(p, o + "snowboulder", PCenter);
+            }
+            {
+                // the Rot Heart's tendril: a thick thorny whip, tip to the right
+                var p = new Px(28, 8);
+                Color32 t = C(96, 60, 120), tl = C(160, 110, 190), tv = C(70, 214, 186);
+                for (int x = 0; x < 28; x++) { int w = x < 20 ? 4 : 4 - (x - 20) / 2; int y = 2 + (int)Mathf.Round(Mathf.Sin(x * 0.55f)); if (w > 0) p.Rect(x, y, 1, w, t); }
+                for (int x = 2; x < 24; x += 5) { p.Set(x, 7, tv); p.Set(x + 2, 0, tv); p.Set(x + 1, 4, tl); }
+                p.Outline(C(22, 14, 34));
+                Save(p, o + "tendril", PCenter);
+            }
             {
                 // "no damage" badge (the [flawless] token in UI texts): a whole golden heart behind a little shield rim
                 var p = new Px(16, 16);
@@ -1797,6 +1974,21 @@ namespace Gloomdelve.EditorTools
                 p.Set(9, 5, bd); p.Set(12, 5, bd);
                 p.Set(6, 2, sp); p.Set(8, 2, sp); p.Set(10, 2, sp); p.Set(12, 2, sp); p.Set(6, 1, sp); p.Set(10, 1, sp);
                 p.Outline(ol); Save(p, d + "iceboots", PItem);
+            }
+            {
+                // heavy boots: thick iron-soled boots
+                var p = ItemCanvas(); Color32 b = C(96, 84, 76), bd = C(60, 52, 48), iron = C(176, 182, 196), ironD = C(110, 116, 132);
+                p.Rect(5, 5, 4, 7, b); p.Rect(5, 3, 8, 3, b); p.Rect(5, 11, 4, 1, bd);
+                p.Rect(4, 1, 10, 2, iron); p.Rect(4, 1, 10, 1, ironD); p.Set(6, 4, iron); p.Set(9, 4, iron); p.Set(12, 4, iron);
+                p.Outline(ol); Save(p, d + "heavyboots", PItem);
+            }
+            {
+                // magnet charm: a horseshoe magnet on a cord
+                var p = ItemCanvas(); Color32 red = C(220, 60, 60), redD = C(150, 30, 36), tip = C(220, 224, 232);
+                p.Rect(4, 3, 3, 7, red); p.Rect(9, 3, 3, 7, red); p.Rect(4, 9, 8, 3, red); p.Rect(4, 9, 1, 3, redD); p.Rect(11, 3, 1, 9, redD);
+                p.Rect(4, 1, 3, 2, tip); p.Rect(9, 1, 3, 2, tip);
+                p.Set(7, 13, C(150, 110, 70)); p.Set(8, 13, C(150, 110, 70));
+                p.Outline(ol); Save(p, d + "magnetcharm", PItem);
             }
             {
                 // lantern: a brass frame, a glass body with a flame, a ring to carry it by

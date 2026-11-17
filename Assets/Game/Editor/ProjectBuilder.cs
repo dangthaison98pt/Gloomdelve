@@ -327,6 +327,11 @@ namespace Gloomdelve.EditorTools
             Anim("frostbat_hang", F(e + "frostbat_2"), 1); Anim("frostbat_fly", F(e + "frostbat_0", e + "frostbat_1"), 10f);
             Anim("penguin_idle", F(e + "penguin_0"), 1); Anim("penguin_windup", F(e + "penguin_1"), 1); Anim("penguin_slide", F(e + "penguin_2"), 1);
             Anim("yeti_idle", F(e + "yeti_0"), 1); Anim("yeti_throw", F(e + "yeti_1"), 1);
+            Anim("eggsac_pulse", F(e + "eggsac_0", e + "eggsac_1"), 3f);
+            // Gearworks
+            Anim("sentry_walk", F(e + "sentry_0", e + "sentry_1"), 4f); Anim("sentry_jab", F(e + "sentry_2"), 1);
+            Anim("drone_hover", F(e + "drone_0", e + "drone_1"), 14f); Anim("drone_aim", F(e + "drone_2", e + "drone_1"), 14f);
+            Anim("beetle_walk", F(e + "beetle_0", e + "beetle_1"), 9f); Anim("beetle_primed", F(e + "beetle_2", e + "beetle_1"), 14f);
             // Sporegloom
             Anim("puffshroom_walk", F(e + "puffshroom_0", e + "puffshroom_1"), 4f); Anim("puffshroom_swell", F(e + "puffshroom_2"), 1); Anim("puffshroom_deflated", F(e + "puffshroom_3"), 1);
             Anim("moth_hang", F(e + "moth_2"), 1); Anim("moth_fly", F(e + "moth_0", e + "moth_1"), 14f);
@@ -334,11 +339,12 @@ namespace Gloomdelve.EditorTools
             const string bo = "Sprites/Bosses/";
             Anim("venom_fly", F(bo + "venom_0", bo + "venom_1"), 10f);
             Anim("shock_run", F(bo + "shock_0", bo + "shock_1"), 12f);
-            Anim("broodmother_idle", F(bo + "broodmother_0"), 1); Anim("broodmother_jump", F(bo + "broodmother_1"), 1);
+            Anim("broodmother_idle", F(bo + "broodmother_0"), 1); Anim("broodmother_jump", F(bo + "broodmother_1"), 1); Anim("broodmother_fall", F(bo + "broodmother_2"), 1);
             Anim("forgebrute_walk", F(bo + "forgebrute_0", bo + "forgebrute_1"), 4f); Anim("forgebrute_charge", F(bo + "forgebrute_2"), 1); Anim("forgebrute_dazed", F(bo + "forgebrute_3"), 1);
             Anim("yetiking_idle", F(bo + "yetiking_0"), 1); Anim("yetiking_throw", F(bo + "yetiking_1"), 1);
             Anim("stormhawk_fly", F(bo + "stormhawk_0", bo + "stormhawk_1"), 6f); Anim("stormhawk_dive", F(bo + "stormhawk_2"), 1);
             Anim("warden_float", F(bo + "warden_0", bo + "warden_1"), 3f);
+            Anim("foreman_walk", F(bo + "foreman_0", bo + "foreman_1"), 3f); Anim("foreman_charge", F(bo + "foreman_2"), 1); Anim("foreman_dazed", F(bo + "foreman_1"), 1);
             Anim("sporeheart_beat", F(bo + "sporeheart_0", bo + "sporeheart_1"), 2.4f); Anim("sporeheart_swell", F(bo + "sporeheart_2"), 1);
             Anim("hawk_fly", F(e + "hawk_0", e + "hawk_1"), 7f);
             Anim("hawk_dive", F(e + "hawk_2"), 1);
@@ -371,7 +377,7 @@ namespace Gloomdelve.EditorTools
         static Dictionary<string, TileSet> CreateTileSets()
         {
             var result = new Dictionary<string, TileSet>();
-            foreach (var area in new[] { "Mossroot", "Emberdeep", "Vault", "Sunfall", "Frost", "Sporegloom" })
+            foreach (var area in new[] { "Mossroot", "Emberdeep", "Vault", "Sunfall", "Frost", "Sporegloom", "Gearworks" })
             {
                 string d = "Tiles/" + area + "/";
                 var ts = LoadOrCreate<TileSet>($"{G}Data/TileSet_{area}.asset");
@@ -484,6 +490,12 @@ namespace Gloomdelve.EditorTools
             if (shop.Find("sporemask") == null)
                 shop.offers.Add(new ShopOffer { id = "sporemask", displayName = "Spore Mask", price = 550, isUpgrade = true, slot = "charm",
                     description = "spore clouds cannot make you dizzy", modifiers = new StatModifiers { sporeResist = 1f } });
+            if (shop.Find("heavyboots") == null)
+                shop.offers.Add(new ShopOffer { id = "heavyboots", displayName = "Heavy Boots", price = 600, isUpgrade = true, slot = "feet",
+                    description = "iron soles: conveyor belts cannot carry you", modifiers = new StatModifiers { beltGrip = 1f } });
+            if (shop.Find("magnetcharm") == null)
+                shop.offers.Add(new ShopOffer { id = "magnetcharm", displayName = "Magnet Charm", price = 650, isUpgrade = true, slot = "charm",
+                    description = "pulls shields aside: your blade cuts through a sentry's guard", modifiers = new StatModifiers { shieldPierce = 1f } });
             if (shop.Find("lantern") == null)
                 shop.offers.Add(new ShopOffer { id = "lantern", displayName = "Lantern", price = 600, isUpgrade = true, slot = "charm",
                     description = "your light reaches much further in the dark", modifiers = new StatModifiers { lightBonus = 0.6f } });
@@ -494,7 +506,7 @@ namespace Gloomdelve.EditorTools
             }
             var icons = new Dictionary<string, string>
             {
-                ["iceboots"] = "Sprites/Items/iceboots", ["warmcoat"] = "Sprites/Items/warmcoat", ["sporemask"] = "Sprites/Items/sporemask", ["lantern"] = "Sprites/Items/lantern",
+                ["iceboots"] = "Sprites/Items/iceboots", ["warmcoat"] = "Sprites/Items/warmcoat", ["sporemask"] = "Sprites/Items/sporemask", ["heavyboots"] = "Sprites/Items/heavyboots", ["magnetcharm"] = "Sprites/Items/magnetcharm", ["lantern"] = "Sprites/Items/lantern",
                 ["bombs"] = "Sprites/Items/bombbag", ["ropes"] = "Sprites/Items/ropepile", ["heart"] = "Sprites/Items/heart",
                 ["springboots"] = "Sprites/Items/springboots", ["ironwhip"] = "Sprites/Items/ironwhip", ["compass"] = "Sprites/Items/compass",
                 ["blastpowder"] = "Sprites/Items/blastpowder",
@@ -641,6 +653,34 @@ namespace Gloomdelve.EditorTools
             spore.tiles = ts["Sporegloom"];
             EditorUtility.SetDirty(spore);
 
+            // Gearworks: an old machine hall. Conveyor belts on the long floors, crushers overhead, three machines.
+            var gear = LoadOrCreate<AreaConfig>(G + "Data/Area7_Gearworks.asset", out bool newGear);
+            if (newGear)
+            {
+                gear.displayName = "Gearworks"; gear.areaNumber = 7; gear.musicId = "area2";
+                gear.cameraBackground = new Color(0.07f, 0.06f, 0.055f);
+                gear.groundEnemies = new[] { new WeightedId("sentry", 2f), new WeightedId("beetle", 2f) };
+                gear.ceilingEnemies = new[] { new WeightedId("drone", 2f), new WeightedId("bat", 1f) };
+                gear.items = new[] { new WeightedId("rock", 3f), new WeightedId("pot", 1f), new WeightedId("crate", 2f) };
+                gear.spikes = true; gear.arrowTraps = true; gear.stalactites = false; gear.crushers = true; gear.flameVents = false;
+                gear.spikeDensity = 0.025f; gear.arrowTrapDensity = 0.012f; gear.ceilingHazardChance = 0.5f;
+                gear.goldVeinChance = 0.04f;
+                gear.requiredGear = ""; gear.gatesByLevel = new[] { 0, 0, 0 };
+                gear.conveyorChance = 0.6f;
+                gear.shopFeatured = new[] { "heavyboots", "magnetcharm" };
+                gear.shopChanceByLevel = new[] { 1f, 0.6f, 0.5f };
+            }
+            if (gear.ambientIntensity < 0f)
+            {
+                gear.ambientColor = new Color(1f, 0.86f, 0.68f); gear.ambientIntensity = 0.6f;
+                gear.torchColor = new Color(1f, 0.7f, 0.35f); gear.torchChance = 0.06f;
+                gear.ambientParticles = AmbientParticles.Embers; gear.ambientParticleCount = 18;
+                gear.backdropTint = new Color(0.42f, 0.34f, 0.26f);
+            }
+            if (gear.sawChance <= 0f) gear.sawChance = 0.45f;        // its own trap: saw blades on rails
+            gear.tiles = ts["Gearworks"];
+            EditorUtility.SetDirty(gear);
+
             var vault = LoadOrCreate<AreaConfig>(G + "Data/Area3_Vault.asset", out bool newVault);
             if (newVault)
             {
@@ -667,6 +707,8 @@ namespace Gloomdelve.EditorTools
                 cfg.customMarkers.Add(new MarkerDef { symbol = sym, label = label, spawnId = spawn, chance = chance, placement = place, tile = tile, color = col });
             }
             CustomMarker("r", "Rock dropper", "rockdropper", 0.8f, MarkerPlacement.UnderCeiling, TileType.Empty, new Color(0.7f, 0.65f, 0.6f));
+            CustomMarker("<", "Conveyor running left", "conveyor", 1f, MarkerPlacement.OnFloor, TileType.Empty, new Color(0.6f, 0.6f, 0.7f));
+            CustomMarker(">", "Conveyor running right", "conveyor_r", 1f, MarkerPlacement.OnFloor, TileType.Empty, new Color(0.7f, 0.7f, 0.6f));
             CustomMarker("m", "Bounce mushroom", "bouncecap", 1f, MarkerPlacement.OnFloor, TileType.Empty, new Color(0.4f, 1f, 0.9f));
             CustomMarker("l", "Glowing mushroom", "glowshroom", 1f, MarkerPlacement.OnFloor, TileType.Empty, new Color(0.3f, 0.8f, 0.7f));
             CustomMarker("c", "Crumbling platform", "crumble", 1f, MarkerPlacement.Anywhere, TileType.Platform, new Color(0.7f, 0.5f, 0.3f));
@@ -811,6 +853,22 @@ namespace Gloomdelve.EditorTools
                     cfg.stages = list.ToArray();
                 }
             }
+            // Gearworks joins the catalogue as its own block (three levels + boss arena) before the ending stages.
+            // Which areas a run actually visits is drawn per run (RunPlan), so its place in this list does not matter.
+            if (!System.Array.Exists(cfg.stages, st => st.area == gear))
+            {
+                var list = new List<StageDef>(cfg.stages);
+                int at = list.FindIndex(st => st.kind == LevelKind.Rest || st.kind == LevelKind.Final);
+                if (at < 0) at = list.Count;
+                int blocks = 1; AreaConfig prevA = null;
+                foreach (var st in list) if ((st.kind == LevelKind.Area || st.kind == LevelKind.Boss) && st.area != prevA) { blocks++; prevA = st.area; }
+                var add = new List<StageDef>();
+                for (int lv = 1; lv <= 3; lv++) add.Add(new StageDef { displayName = $"{blocks}-{lv}", kind = LevelKind.Area, area = gear, levelNumber = lv });
+                add.Add(new StageDef { displayName = $"{blocks}-4", kind = LevelKind.Boss, area = gear, levelNumber = 4,
+                    handcrafted = AssetDatabase.LoadAssetAtPath<TextAsset>(G + "Data/Levels/Boss_Gearworks.txt") });
+                list.InsertRange(at, add);
+                cfg.stages = list.ToArray();
+            }
             cfg.tutorial = new StageDef { displayName = "TUTORIAL", kind = LevelKind.Tutorial, area = moss, levelNumber = 1, handcrafted = tut };
             EditorUtility.SetDirty(cfg);
             AssetDatabase.SaveAssets();
@@ -887,6 +945,7 @@ namespace Gloomdelve.EditorTools
             ["Lurecap"] = (new Color(0.35f, 1f, 0.82f), 4.2f, 0.95f, 0.2f, true, true, new Vector2(0f, 0.4f)),
             ["BounceCap"] = (new Color(0.4f, 1f, 0.9f), 5f, 1.1f, 0.25f, true, true, new Vector2(0f, 0.5f)),
             ["SporeHeart"] = (new Color(0.95f, 0.45f, 1f), 7f, 1.25f, 0.35f, true, true, new Vector2(0f, 0.8f)),
+            ["FirePatch"] = (new Color(1f, 0.5f, 0.15f), 3.6f, 1.3f, 0.35f, false, true, new Vector2(0f, 0.4f)),
         };
 
         static T Make<T>(string id, string folder, string display, Vector2 size, Sprite sprite, SpriteAnim anim, int order, Action<T, GameObject, SpriteRenderer> setup = null)
@@ -922,6 +981,7 @@ namespace Gloomdelve.EditorTools
             var manualEntries = new List<PrefabRegistry.Entry>(reg.entries);
             reg.entries.Clear();
             void Reg(string id, Entity e) => reg.entries.Add(new PrefabRegistry.Entry { id = id, prefab = e });
+            Sprite BS2(string n) => ArtGenerator.S("Sprites/Bosses/" + n);
             string I(string n) => "Sprites/Items/" + n;
 
             // player
@@ -973,6 +1033,40 @@ namespace Gloomdelve.EditorTools
                 (e, go, sr) => { e.flipWithFacing = false; }));
             Reg("icechunk", Make<IceChunk>("IceChunk", "Items", "ice chunk", new Vector2(0.45f, 0.4f), ArtGenerator.S(I("icechunk")), null, 12,
                 (e, g, s) => { e.flipWithFacing = false; e.impactSfx = "thud"; }));
+            // Gearworks: its machines, their bolt, the conveyor belt
+            Reg("sentry", Make<Sentry>("Sentry", "Enemies", "sentry", new Vector2(0.75f, 0.95f), ArtGenerator.S("Sprites/Enemies/sentry_0"), anims["sentry_walk"], 14,
+                (e, go, sr) => { e.maxHealth = 2; e.goldDrop = 100; e.animWalk = anims["sentry_walk"]; e.animJab = anims["sentry_jab"]; e.bloodColor = new Color(0.85f, 0.75f, 0.45f); }));
+            Reg("drone", Make<Drone>("Drone", "Enemies", "drone", new Vector2(0.6f, 0.55f), ArtGenerator.S("Sprites/Enemies/drone_0"), anims["drone_hover"], 14,
+                (e, go, sr) => { e.goldDrop = 100; e.animHover = anims["drone_hover"]; e.animAim = anims["drone_aim"]; e.bloodColor = new Color(0.7f, 0.75f, 0.85f); }));
+            Reg("beetle", Make<ScrapBeetle>("ScrapBeetle", "Enemies", "scrap beetle", new Vector2(0.7f, 0.4f), ArtGenerator.S("Sprites/Enemies/beetle_0"), anims["beetle_walk"], 14,
+                (e, go, sr) => { e.speed = 2f; e.animWalk = anims["beetle_walk"]; e.animPrimed = anims["beetle_primed"]; e.bloodColor = new Color(0.7f, 0.65f, 0.55f); }));
+            Reg("bolt", Make<BossShot>("Bolt", "Enemies", "bolt", new Vector2(0.3f, 0.3f), ArtGenerator.S("Sprites/Bosses/bolt"), null, 32,
+                (e, go, sr) => { e.flipWithFacing = false; e.lifetime = 5f; e.burstColor = new Color(1f, 0.6f, 0.3f); }));
+            Reg("gearshot", Make<BossShot>("GearShot", "Enemies", "gear", new Vector2(0.45f, 0.45f), ArtGenerator.S("Sprites/Bosses/gear"), null, 32,
+                (e, go, sr) => { e.flipWithFacing = false; e.burstColor = new Color(0.9f, 0.75f, 0.4f); }));
+            foreach (var (cid, cname, cdir) in new[] { ("conveyor", "Conveyor", 0), ("conveyor_r", "ConveyorRight", 1) })
+                Reg(cid, Make<Conveyor>(cname, "Traps", "conveyor belt", new Vector2(1f, 0.25f), ArtGenerator.S("Sprites/Props/conveyor_0"), null, 2,
+                    (e, go, sr) => { e.flipWithFacing = false; e.forceDir = cdir; e.frames = new[] { ArtGenerator.S("Sprites/Props/conveyor_0"), ArtGenerator.S("Sprites/Props/conveyor_1"), ArtGenerator.S("Sprites/Props/conveyor_2") }; }));
+            Reg("sawblade", Make<SawBlade>("SawBlade", "Traps", "saw blade", new Vector2(0.7f, 0.7f), ArtGenerator.S("Sprites/Traps/saw"), null, 7,
+                (e, go, sr) =>
+                {
+                    e.flipWithFacing = false;
+                    sr.transform.localPosition = new Vector3(0f, 0.35f, 0f);        // the disc turns about its centre
+                    var rg = new GameObject("Rail");
+                    rg.transform.SetParent(go.transform, false);
+                    var rsr = rg.AddComponent<SpriteRenderer>();
+                    rsr.sprite = ArtGenerator.S("Sprites/Traps/sawrail"); rsr.sharedMaterial = spriteMat; rsr.sortingOrder = 1;
+                    rsr.drawMode = SpriteDrawMode.Tiled; rsr.size = new Vector2(1f, 3f / 16f);
+                    e.rail = rsr;
+                }));
+            Reg("press", Make<Press>("Press", "Traps", "stamping press", new Vector2(0.9f, 0.95f), ArtGenerator.S("Sprites/Traps/crusher"), null, 6,
+                (e, go, sr) => { e.flipWithFacing = false; }));
+            Reg("webpatch", Make<WebPatch>("WebPatch", "Traps", "web", new Vector2(2.4f, 0.45f), ArtGenerator.S("Sprites/Props/web"), null, 9,
+                (e, go, sr) => { e.flipWithFacing = false; }));
+            Reg("eggsac", Make<EggSac>("EggSac", "Enemies", "egg sac", new Vector2(0.6f, 0.65f), ArtGenerator.S("Sprites/Enemies/eggsac_0"), anims["eggsac_pulse"], 13,
+                (e, go, sr) => { e.goldDrop = 0; e.heartDropChance = 0f; e.animPulse = anims["eggsac_pulse"]; e.flipWithFacing = false; e.bloodColor = new Color(0.85f, 0.9f, 0.75f); }));
+            Reg("foreman", Make<Foreman>("Foreman", "Enemies", "Foreman", new Vector2(1.6f, 1.9f), BS2("foreman_0"), anims["foreman_walk"], 15,
+                (e, go, sr) => { e.maxHealth = 16; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animWalk = anims["foreman_walk"]; e.animCharge = anims["foreman_charge"]; e.animDazed = anims["foreman_dazed"]; e.animCounter = anims["foreman_charge"]; e.counterFx = anims["cfx_buck"]; e.counterMotion = Boss.CounterMotion.Burst; e.counterFxScale = 1.6f; e.bloodColor = new Color(0.85f, 0.7f, 0.4f); }));
             // Sporegloom: its creatures, the spore cloud and the plants
             Reg("puffshroom", Make<Puffshroom>("Puffshroom", "Enemies", "puffshroom", new Vector2(0.7f, 0.75f), ArtGenerator.S("Sprites/Enemies/puffshroom_0"), anims["puffshroom_walk"], 14,
                 (e, go, sr) => { e.animWalk = anims["puffshroom_walk"]; e.animSwell = anims["puffshroom_swell"]; e.animDeflated = anims["puffshroom_deflated"]; e.bloodColor = new Color(0.7f, 1f, 0.5f); }));
@@ -989,15 +1083,28 @@ namespace Gloomdelve.EditorTools
             // bosses (one per area + the final guardian), their projectile, and the treasure chest
             Sprite BS(string n) => ArtGenerator.S("Sprites/Bosses/" + n);
             Reg("broodmother", Make<Broodmother>("Broodmother", "Enemies", "Broodmother", new Vector2(1.5f, 1.0f), BS("broodmother_0"), anims["broodmother_idle"], 15,
-                (e, go, sr) => { e.maxHealth = 14; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animIdle = anims["broodmother_idle"]; e.animJump = anims["broodmother_jump"]; e.animCounter = anims["broodmother_jump"]; e.counterFx = anims["cfx_bite"]; e.counterMotion = Boss.CounterMotion.Lunge; e.counterFxScale = 1.2f; e.bloodColor = new Color(0.5f, 0.3f, 0.6f); }));
+                (e, go, sr) => { e.maxHealth = 14; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animIdle = anims["broodmother_idle"]; e.animJump = anims["broodmother_jump"]; e.animFall = anims["broodmother_fall"]; e.animCounter = anims["broodmother_jump"]; e.counterFx = anims["cfx_bite"]; e.counterMotion = Boss.CounterMotion.Lunge; e.counterFxScale = 1.2f; e.bloodColor = new Color(0.5f, 0.3f, 0.6f); }));
             Reg("forgebrute", Make<ForgeBrute>("ForgeBrute", "Enemies", "Forge Brute", new Vector2(1.6f, 1.7f), BS("forgebrute_0"), anims["forgebrute_walk"], 15,
                 (e, go, sr) => { e.maxHealth = 16; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animWalk = anims["forgebrute_walk"]; e.animCharge = anims["forgebrute_charge"]; e.animCounter = anims["forgebrute_charge"]; e.counterFx = anims["cfx_buck"]; e.counterMotion = Boss.CounterMotion.Buck; e.animDazed = anims["forgebrute_dazed"]; e.bloodColor = new Color(0.9f, 0.4f, 0.2f); }));
             Reg("yetiking", Make<YetiKing>("YetiKing", "Enemies", "Yeti King", new Vector2(1.5f, 1.9f), BS("yetiking_0"), anims["yetiking_idle"], 15,
                 (e, go, sr) => { e.maxHealth = 16; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animIdle = anims["yetiking_idle"]; e.animThrow = anims["yetiking_throw"]; e.animCounter = anims["yetiking_throw"]; e.counterFx = anims["cfx_frost"]; e.counterMotion = Boss.CounterMotion.Burst; e.counterFxScale = 2.2f; e.counterFxOnBody = true; e.bloodColor = new Color(0.85f, 0.92f, 1f); }));
             Reg("stormhawk", Make<StormHawk>("StormHawk", "Enemies", "Storm Hawk", new Vector2(1.3f, 0.9f), BS("stormhawk_0"), anims["stormhawk_fly"], 15,
-                (e, go, sr) => { e.maxHealth = 12; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animFly = anims["stormhawk_fly"]; e.animDive = anims["stormhawk_dive"]; e.animCounter = anims["stormhawk_fly"]; e.counterFx = anims["cfx_gust"]; e.counterMotion = Boss.CounterMotion.Flap; e.counterFxScale = 1.5f; e.bloodColor = new Color(0.5f, 0.6f, 0.9f); }));
+                (e, go, sr) => { e.maxHealth = 12; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.diveSpeed = 18.5f; e.sweepSpeed = 15f; e.animFly = anims["stormhawk_fly"]; e.animDive = anims["stormhawk_dive"]; e.animCounter = anims["stormhawk_fly"]; e.counterFx = anims["cfx_gust"]; e.counterMotion = Boss.CounterMotion.Flap; e.counterFxScale = 1.5f; e.bloodColor = new Color(0.5f, 0.6f, 0.9f); }));
             Reg("sporeheart", Make<SporeHeart>("SporeHeart", "Enemies", "Rot Heart", new Vector2(1.7f, 1.6f), BS("sporeheart_0"), anims["sporeheart_beat"], 15,
                 (e, go, sr) => { e.maxHealth = 14; e.contactDamage = 0; e.stompable = false; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.flipWithFacing = false; e.animBeat = anims["sporeheart_beat"]; e.animSwell = anims["sporeheart_swell"]; e.bloodColor = new Color(0.62f, 1f, 0.5f); }));
+            // things the reworked bosses use: fire on the floor, the snow boulder, the tendril
+            Reg("firepatch", Make<FirePatch>("FirePatch", "Traps", "fire", new Vector2(0.8f, 0.75f), null, null, 8,
+                (e, g, s) =>
+                {
+                    e.flipWithFacing = false;
+                    s.sprite = ArtGenerator.S("Sprites/Traps/flame_0");
+                    var fa = s.gameObject.AddComponent<SpriteAnimator>();
+                    fa.initial = anims["flame"];
+                }));
+            Reg("snowboulder", Make<RollingBall>("SnowBoulder", "Enemies", "snow boulder", new Vector2(0.6f, 0.6f), BS("snowboulder"), null, 16,
+                (e, g, s) => { e.flipWithFacing = false; }));
+            Reg("tendril", Make<BossShot>("Tendril", "Enemies", "tendril", new Vector2(1.6f, 0.45f), BS("tendril"), null, 32,
+                (e, g, s) => { e.flipWithFacing = false; e.flipByVelocity = true; e.unbreakable = true; e.lifetime = 6f; e.burstColor = new Color(0.62f, 1f, 0.5f); }));
             Reg("warden", Make<Warden>("Warden", "Enemies", "Hollow Warden", new Vector2(1.4f, 1.8f), BS("warden_0"), anims["warden_float"], 31,
                 (e, go, sr) => { e.maxHealth = 24; e.contactDamage = 2; e.stompable = false; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = ""; e.animFloat = anims["warden_float"]; e.bloodColor = new Color(0.7f, 0.4f, 1f); }));
             Reg("gloomorb", Make<BossShot>("GloomOrb", "Enemies", "gloom orb", new Vector2(0.35f, 0.35f), BS("orb"), null, 32,
@@ -1403,7 +1510,9 @@ namespace Gloomdelve.EditorTools
             UIBuilder.Label(gearBox.transform, "ChangeKey", "\u25C4 [gear] \u25BA", 22, new Color(1f, 0.84f, 0.38f), TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), Vector2.zero, new Vector2(150, 32), false);
             UIBuilder.Label(gearBox.transform, "UseKey", "[use]", 24, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), Vector2.zero, new Vector2(104, 32), false);
             // boss health bar (top centre, only during a boss fight)
-            var bossBar = UIBuilder.Panel(hudGo.transform, "BossBar", new Vector2(0.5f, 1f), new Vector2(0, -112), new Vector2(600, 76));
+            // no frame: just the boss's name and its health bar
+            var bossBar = UIBuilder.Node(hudGo.transform, "BossBar");
+            UIBuilder.Place(UIBuilder.Rect(bossBar), new Vector2(0.5f, 1f), new Vector2(0, -112), new Vector2(600, 76));
             hud.bossRoot = bossBar.gameObject;
             hud.bossName = UIBuilder.Label(bossBar.transform, "Name", "", 24, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -8), new Vector2(560, 28), true, FontStyle.Bold);
             var bossBack = UIBuilder.Img(bossBar.transform, "Back", UIBuilder.buttonSprite, new Color(0.12f, 0.08f, 0.1f), new Vector2(0.5f, 0f), new Vector2(0, 14), new Vector2(544, 22), true);
@@ -1423,6 +1532,9 @@ namespace Gloomdelve.EditorTools
             var rowPivot = new Vector2(1f, 0.5f);
             hud.stageText = UIBuilder.Label(tr.transform, "Stage", "1-1", 28, gold, TextAnchor.MiddleRight, new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
             UIBuilder.Place(hud.stageText.rectTransform, new Vector2(1f, 1f), new Vector2(-28, -38), new Vector2(404, 36), rowPivot);
+            // a long area name shrinks to stay on its one line inside the frame instead of wrapping over the clock
+            hud.stageText.resizeTextForBestFit = true; hud.stageText.resizeTextMinSize = 14; hud.stageText.resizeTextMaxSize = 28;
+            hud.stageText.verticalOverflow = VerticalWrapMode.Truncate;
             var clock = UIBuilder.Img(tr.transform, "Clock", ArtGenerator.S("UI/icon_clock"), Color.white, new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
             UIBuilder.Place(clock.rectTransform, new Vector2(1f, 1f), new Vector2(-178, -80), new Vector2(34, 34), rowPivot);
             hud.timeText = UIBuilder.Label(tr.transform, "Time", "00:00.0", 36, Color.white, TextAnchor.MiddleRight, new Vector2(1f, 1f), Vector2.zero, Vector2.zero, true, FontStyle.Bold);

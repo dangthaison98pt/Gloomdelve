@@ -1,4 +1,4 @@
-Gloomdelve in-game scenario tests 2026-11-17 21:48:15
+Gloomdelve in-game scenario tests 2026-11-18 01:27:21
 PASS  whip kills an approaching snake  
 PASS  stomping a snake kills it and bounces  
 PASS  snake on a single tile stands still instead of flipping left-right  
@@ -29,6 +29,13 @@ PASS  equipment: slots, wearing and taking off; ice cleats stop the slide
 PASS  fur coat: a snowball only slows the wearer by 30% for 1 s  
 PASS  boss: registered, damage capped per hit, defeat is reported  
 PASS  bosses: two stomps in a row count, a third is punished - each boss its own way  
+PASS  bosses: a counter next to a wall throws the player to the open side, never back onto the boss  
+PASS  bosses: the rot heart hangs from the ceiling, runs its moves, darkens the room, and is reached by a bounce mushroom  
+PASS  boss test: winning shows the result screen and waits; storm hawk points along its flight  
+PASS  run plan: each run draws 4 areas by its seed, starts in the first, ends with camp and vault  
+PASS  bosses: the forge brute's fire is two short-lived spots, and its charge tears through dirt in its way  
+PASS  bosses: the yeti king's snow boulder hurts more the bigger it has grown  
+PASS  bosses: the yeti king runs in and punches a frozen player, once per freeze  
 PASS  all five bosses run their attack patterns  
 PASS  treasure chest lays out three free items  
 PASS  shop: equipment sells once (no owned pieces, no twins on a shelf, gone once owned)  
@@ -43,7 +50,14 @@ PASS  keyboard keys can be changed: the new key works, a key in use swaps, defau
 PASS  long fall onto a bounce mushroom: thrown high, no fall damage, higher with jump held  
 PASS  puffshroom swells and puffs: spores swap left and right, a spore mask prevents it  
 PASS  gloom moth drinks the player's light, killing it brings the light back  
+PASS  lantern makes the player's light reach further, and takes nothing to wear  
 PASS  lurecap looks like a glowing plant until the player walks up, then leaps  
+PASS  gearworks: a conveyor carries the player and creatures, heavy boots ignore it, it can be reversed  
+PASS  gearworks: a sentry's shield stops hits from the front, not from behind; the magnet charm cuts through  
+PASS  gearworks: a drone warns, then fires a bolt; a scrap beetle eats a lit bomb and blows up  
+PASS  gearworks: a saw blade runs along its rail and cuts the player and creatures; it can be jumped  
+PASS  bosses: the broodmother drops from the ceiling and gets stuck, lays web that slows, and eggs that hatch unless cut  
+PASS  bosses: the foreman's shield stops the front, it rolls saws, reverses belts, stamps presses, then rewinds open  
 PASS  hawk dives at the player below it  
 PASS  ledge grab and climb (real controller)  
 PASS  ladder climb to the top  
@@ -65,4 +79,4 @@ PASS  the Reaper (time pressure) spawns and its touch is fatal
 PASS  carrying a golden idol out pays gold  
 PASS  exit door ends the level  
 
-65 passed, 0 failed
+79 passed, 0 failed

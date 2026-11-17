@@ -58,6 +58,7 @@ MonoBehaviour:
   goldDrop: 0
   heartDropChance: 0
   maxHitDamage: 3
+  blastDamage: 1
   goldChunks: 4
   rewardId: heartvessel
   bossShotId: gloomorb
@@ -69,19 +70,26 @@ MonoBehaviour:
   counterTime: 0.5
   counterFxScale: 1.2
   counterFxOnBody: 0
-  leapSpeedX: 6.5
-  leapVelocity: 13
-  restTime: 1.1
-  minionId: bat
-  maxMinions: 2
-  minionsPerCall: 1
-  broodCooldown: 12
-  spitSpeed: 7
+  restTime: 1.5
   tellTime: 0.5
-  slamVelocity: 17
-  shockSpeed: 7.5
+  climbSpeed: 11
+  crawlSpeed: 5.5
+  ceilingTime: 1.7
+  aimTime: 0.4
+  dropSpeed: 21
+  stuckTime: 1.4
+  webId: webpatch
+  eggId: eggsac
+  eggs: 2
+  maxBrood: 3
+  spits: 3
+  spitInterval: 0.6
+  spitSpeed: 8
+  spitId: venomshot
+  lowerSpeed: 7
   animIdle: {fileID: 11400000, guid: 53e40c77c1956124d923480fd97369e2, type: 2}
   animJump: {fileID: 11400000, guid: 30aad3d355b46864ba410bcab5bf1026, type: 2}
+  animFall: {fileID: 11400000, guid: 27745f9b6b9811d4d99587b2666bc1ce, type: 2}
 --- !u!1 &9021173479815016475
 GameObject:
   m_ObjectHideFlags: 0

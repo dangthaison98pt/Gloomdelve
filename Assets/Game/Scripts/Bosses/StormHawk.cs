@@ -11,7 +11,7 @@ namespace Gloomdelve
     {
         public float hoverHeight = 6.5f;
         public float hoverSpeed = 5f;
-        public float diveSpeed = 14f;
+        [Tooltip("Speed of the stoop at the player. Fast: the pressure of this fight.")] public float diveSpeed = 18.5f;
         public float hoverTime = 2.4f;
         public float windupTime = 0.55f;
         public float groundedTime = 1.7f;
@@ -22,7 +22,7 @@ namespace Gloomdelve
         public float featherSpeed = 8f;
         public float featherTell = 0.45f;
         [Header("Sweep")]
-        public float sweepSpeed = 11f;
+        [Tooltip("Speed of the low sweep across the arena.")] public float sweepSpeed = 15f;
         public float sweepHeight = 0.35f;
         public SpriteAnim animFly;
         public SpriteAnim animDive;
