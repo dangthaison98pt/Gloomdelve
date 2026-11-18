@@ -6,33 +6,33 @@ namespace Gloomdelve
 {
     public class HUD : MonoBehaviour
     {
-        public Text healthText;
-        public Text bombText;
-        public Text ropeText;
-        public Text goldText;
-        public Text stageText;
-        public Text timeText;
-        public Text totalTimeText;
-        public Text upgradesText;
+        public TMPro.TMP_Text healthText;
+        public TMPro.TMP_Text bombText;
+        public TMPro.TMP_Text ropeText;
+        public TMPro.TMP_Text goldText;
+        public TMPro.TMP_Text stageText;
+        public TMPro.TMP_Text timeText;
+        public TMPro.TMP_Text totalTimeText;
+        public TMPro.TMP_Text upgradesText;
         public GameObject promptPanel;
-        public Text promptText;
+        public TMPro.TMP_Text promptText;
         public CanvasGroup bannerGroup;
-        public Text bannerTitle;
-        public Text bannerSub;
+        public TMPro.TMP_Text bannerTitle;
+        public TMPro.TMP_Text bannerSub;
         [Header("Area introduction (start of a level)")]
         public CanvasGroup introGroup;
-        public Text introName;
+        public TMPro.TMP_Text introName;
         public RectTransform introRule;
         public RectTransform introGem;
         public float introRuleWidth = 560f;
         public CanvasGroup messageGroup;
-        public Text messageText;
+        public TMPro.TMP_Text messageText;
         public CanvasGroup hurtGroup;
-        public Text hurtText;
+        public TMPro.TMP_Text hurtText;
         public Image damageVignette;
         [Header("Waypoint (Compass upgrade)")]
         public GameObject compassRoot;          // full-screen layer holding the marker
-        public Text compassText;                // distance label
+        public TMPro.TMP_Text compassText;                // distance label
         public RectTransform wpMarker;
         public RectTransform wpArrowPivot;
         public Image wpRing, wpPing, wpChevron, wpTail, wpIcon;
@@ -51,14 +51,17 @@ namespace Gloomdelve
         public Image heartIcon;
         [Header("Equipped gear")]
         public Image equipIcon;
-        public Text equipName;
-        public Text equipAmmo;
+        public TMPro.TMP_Text equipName;
+        public TMPro.TMP_Text equipAmmo;
         [Tooltip("Small icons of the equipment being worn.")] public Image[] wornIcons;
         [Header("Boss health bar")]
         public GameObject bossRoot;
-        public Text bossName;
+        public TMPro.TMP_Text bossName;
         public Image bossFill;
         public float bossFillWidth = 752f;
+
+        [Tooltip("The corner panels (health, gear, stage and clock): hidden while the result screen is up, which needs the room.")]
+        public GameObject[] corners;
 
         GameDirector dir;
         float bannerT, msgT, hurtT, vignette;
@@ -148,6 +151,17 @@ namespace Gloomdelve
             else timeText.color = Color.white;
             totalTimeText.text = "TOTAL " + UIUtil.FormatTime(run.totalTime);
 
+            // A screen over the game (pause, equipment, gear wheel, level summary, results): the passing texts of the
+            // HUD - title card, banner, messages, the prompt - step aside so nothing shows through or under it.
+            bool results = dir.results != null && dir.results.Showing;
+            bool covered = dir.Paused || dir.Ended || results
+                || (dir.gearWheel != null && dir.gearWheel.IsOpen)
+                || (dir.inventory != null && dir.inventory.IsOpen)
+                || (dir.transition != null && dir.transition.root != null && dir.transition.root.activeSelf);
+            if (corners != null)
+                foreach (var c in corners)
+                    if (c != null && c.activeSelf == results) c.SetActive(!results);
+
             if (upgradesText != null) upgradesText.text = "";
             if (wornIcons != null)
             {
@@ -155,7 +169,7 @@ namespace Gloomdelve
                 foreach (var id in run.worn)
                 {
                     var offer = run.Owned(id);
-                    if (offer == null || offer.icon == null || k >= wornIcons.Length) continue;
+                    if (results || offer == null || offer.icon == null || k >= wornIcons.Length) continue;
                     wornIcons[k].sprite = offer.icon;
                     wornIcons[k].enabled = true;
                     k++;
@@ -165,12 +179,13 @@ namespace Gloomdelve
 
             var p = dir.Player;
             string prompt = p != null && !p.IsDead && !dir.Ended ? p.Prompt : null;
+            if (covered) prompt = null;
             promptPanel.SetActive(!string.IsNullOrEmpty(prompt));
             if (!string.IsNullOrEmpty(prompt)) promptText.text = prompt;
 
             if (introGroup != null)
             {
-                bool hideIntro = dir.Paused || dir.Ended || (dir.gearWheel != null && dir.gearWheel.IsOpen);
+                bool hideIntro = covered;
                 if (introT >= 0f)
                 {
                     introT += dt;
@@ -185,9 +200,9 @@ namespace Gloomdelve
                 else introGroup.alpha = 0f;
             }
             bannerT -= dt; msgT -= dt; hurtT -= dt;
-            bannerGroup.alpha = dir.Paused || dir.Ended || (dir.gearWheel != null && dir.gearWheel.IsOpen) ? 0f : Mathf.Clamp01(bannerT);
-            messageGroup.alpha = Mathf.Clamp01(msgT);
-            hurtGroup.alpha = Mathf.Clamp01(hurtT);
+            bannerGroup.alpha = covered ? 0f : Mathf.Clamp01(bannerT);
+            messageGroup.alpha = covered ? 0f : Mathf.Clamp01(msgT);
+            hurtGroup.alpha = covered ? 0f : Mathf.Clamp01(hurtT);
             vignette = Mathf.Max(0f, vignette - dt * 0.8f);
             if (p != null && p.IsDead) vignette = Mathf.Max(vignette, 0.35f);
             damageVignette.color = new Color(0.8f, 0f, 0f, vignette);
@@ -195,7 +210,7 @@ namespace Gloomdelve
             if (bossRoot != null)
             {
                 var boss = dir.Boss;
-                bool showBoss = boss != null && !boss.Dead && !dir.Ended;
+                bool showBoss = boss != null && !boss.Dead && !dir.Ended && !results;
                 if (bossRoot.activeSelf != showBoss) bossRoot.SetActive(showBoss);
                 if (showBoss)
                 {

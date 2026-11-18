@@ -2591,6 +2591,13 @@ namespace Gloomdelve
                 yield return cur;
             }
             if (err != null) { c.ok = false; c.detail += "EXCEPTION " + err.Message; }
+            // whatever is on screen at the end of a scenario must be laid out cleanly: no text over another,
+            // none sticking out of its frame or off the screen
+            yield return null;
+            {
+                var faults = UIOverlap.Find();
+                if (faults.Count > 0) { c.ok = false; c.detail += " UI LAYOUT: " + string.Join(" | ", faults.GetRange(0, Mathf.Min(4, faults.Count))) + (faults.Count > 4 ? $" (+{faults.Count - 4} more)" : ""); }
+            }
             if (c.ok) pass++; else fail++;
             string line = $"{(c.ok ? "PASS" : "FAIL")}  {sc.name}  {c.detail}";
             report.AppendLine(line);

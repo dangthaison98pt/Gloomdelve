@@ -15,16 +15,16 @@ namespace Gloomdelve
         public GameObject root;
         public RectTransform grid;
         public GameObject cellTemplate;
-        public Text nameText;
-        public Text descText;
-        public Text hintText;
-        public Text emptyText;
+        public TMPro.TMP_Text nameText;
+        public TMPro.TMP_Text descText;
+        public TMPro.TMP_Text hintText;
+        public TMPro.TMP_Text emptyText;
         public PlayerInputReader input;
         public GameDirector director;
         public int columns = 5;
         public float spacing = 156f;
 
-        class Cell { public RectTransform rt; public Image frame; public Image icon; public Text slot; public GameObject worn; }
+        class Cell { public RectTransform rt; public Image frame; public Image icon; public TMPro.TMP_Text slot; public GameObject worn; }
         readonly List<Cell> cells = new List<Cell>();
 
         bool open;
@@ -123,7 +123,7 @@ namespace Gloomdelve
                     rt = (RectTransform)go.transform,
                     frame = go.GetComponent<Image>(),
                     icon = go.transform.Find("Icon").GetComponent<Image>(),
-                    slot = go.transform.Find("Slot").GetComponent<Text>(),
+                    slot = go.transform.Find("Slot").GetComponent<TMPro.TMP_Text>(),
                     worn = go.transform.Find("Worn").gameObject,
                 });
             }

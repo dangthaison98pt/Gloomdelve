@@ -10,7 +10,7 @@ namespace Gloomdelve
         public SettingsPanel settingsPanel;
         [Tooltip("Settings > Keys: the controls list, where keyboard keys can be changed.")] public KeyBindPanel keysPanel;
         public Button resumeButton, settingsButton, restartButton, retrySeedButton, menuButton, quitButton;
-        public Text infoText;
+        public TMPro.TMP_Text infoText;
 
         void Awake()
         {

@@ -14,8 +14,8 @@ namespace Gloomdelve
         public Button startButton, tutorialButton, settingsButton, recordsButton, quitButton;
         public Button recordsBack;
         [Tooltip("Settings > Keys: the controls list, where keyboard keys can be changed.")] public KeyBindPanel keysPanel;
-        public Text recordsText;
-        public Text versionText;
+        public TMPro.TMP_Text recordsText;
+        public TMPro.TMP_Text versionText;
         [Tooltip("The title, its subtitle and the story line: shown on the main list only, hidden behind a sub panel.")] public GameObject[] titleObjects;
         [Header("Boss test")]
         public Button bossButton, bossBack;
@@ -23,8 +23,8 @@ namespace Gloomdelve
         [Tooltip("One button per boss ...")] public Button[] bossButtons;
         [Tooltip("... and the stage of the run (GameConfig.stages index) each one starts.")] public int[] bossStages;
         [Tooltip("Display name of each boss (the key of its Challenge record).")] public string[] bossNames;
-        [Tooltip("Best time / no-damage badge shown on each boss button.")] public Text[] bossBest;
-        [Tooltip("Records screen: the Challenge times of every boss.")] public Text bossRecordsText;
+        [Tooltip("Best time / no-damage badge shown on each boss button.")] public TMPro.TMP_Text[] bossBest;
+        [Tooltip("Records screen: the Challenge times of every boss.")] public TMPro.TMP_Text bossRecordsText;
         /// <summary>Set when a boss test ends: the menu opens on the boss list instead of the main panel.</summary>
         public static bool OpenBossListOnLoad;
 
@@ -68,6 +68,7 @@ namespace Gloomdelve
                 }
 
             if (ScenarioRunner.Active) { StartCoroutine(ScenarioStart()); return; }
+            if (LoadingScreen.ShotDir != null && !loadingShotUsed) { loadingShotUsed = true; Invoke(nameof(StartRun), 0.8f); return; }
             if (AutoTest.Active)
             {
                 RunSession.NewRun(AutoTest.CurrentSeed, false, config.player);
@@ -77,6 +78,12 @@ namespace Gloomdelve
 
         System.Collections.IEnumerator ScenarioStart()
         {
+            // the tests look at the screens in a normal wide window, whatever shape the desktop left the last one in
+            if (Screen.fullScreen || Screen.width < Screen.height * 1.5f || Screen.width > Screen.height * 2f)
+            {
+                Screen.SetResolution(1280, 720, FullScreenMode.Windowed);
+                yield return new WaitForSecondsRealtime(0.6f);
+            }
             // the snow over the title picture must be falling: where the flakes are now, and again a moment later
             var snow = FindFirstObjectByType<MenuSnow>();
             Vector2[] before = null;
@@ -104,6 +111,16 @@ namespace Gloomdelve
             }
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_main.png"));
             yield return new WaitForSecondsRealtime(0.3f);
+            // every menu screen is checked for texts over one another or out of their frames
+            var layout = new System.Text.StringBuilder();
+            void Layout(string screen)
+            {
+                var faults = UIOverlap.Find();
+                layout.AppendLine(screen + ": " + (faults.Count == 0 ? "clean" : faults.Count + " fault(s)"));
+                foreach (var f in faults) layout.AppendLine("    " + f);
+                System.IO.File.WriteAllText(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_layout.txt"), layout.ToString());
+            }
+            Layout("main");
             // a (virtual) gamepad button here must switch the menu hints to gamepad buttons
             if (!ScenarioRunner.Filtered)       // a quick run of a few scenarios skips the menu pictures
             {
@@ -170,18 +187,22 @@ namespace Gloomdelve
             Open(settingsPanel.gameObject, settingsPanel.First);
             yield return new WaitForSecondsRealtime(0.3f);
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_settings.png"));
+            Layout("settings");
             yield return new WaitForSecondsRealtime(0.3f);
             OpenKeys();
             yield return new WaitForSecondsRealtime(0.3f);
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_keys.png"));
+            Layout("keys");
             yield return new WaitForSecondsRealtime(0.3f);
             OpenBossList();
             yield return new WaitForSecondsRealtime(0.3f);
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_boss.png"));
+            Layout("challenge");
             yield return new WaitForSecondsRealtime(0.3f);
             RefreshRecords(); Open(recordsPanel, recordsBack);
             yield return new WaitForSecondsRealtime(0.3f);
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_records.png"));
+            Layout("records");
             yield return new WaitForSecondsRealtime(0.3f);
             RunSession.NewRun(1, true, config.player);
             SceneManager.LoadScene(GameConst.SceneGame);
@@ -203,11 +224,12 @@ namespace Gloomdelve
 
         void StartRun()
         {
+            if (LoadingScreen.Busy) return;
             RunSession.NewRun(RunSession.RandomSeed(), false, config.player);
-            SceneManager.LoadScene(GameConst.SceneGame);
+            LoadingScreen.Load(GameConst.SceneGame);
         }
 
-        static bool bossTestArgUsed;
+        static bool bossTestArgUsed, loadingShotUsed;
 
         /// <summary>"01:00.2  [flawless]" for a boss that was beaten in Challenge, "" otherwise.</summary>
         static string BossBest(string boss, string never)
@@ -231,8 +253,9 @@ namespace Gloomdelve
         /// <summary>Boss test: straight into this boss's arena with a fresh explorer.</summary>
         public void StartBossPractice(int stageIndex)
         {
+            if (LoadingScreen.Busy) return;
             RunSession.NewBossPractice(stageIndex, config.player);
-            SceneManager.LoadScene(GameConst.SceneGame);
+            LoadingScreen.Load(GameConst.SceneGame);
         }
 
         void ShowTitle(bool on)
@@ -243,8 +266,9 @@ namespace Gloomdelve
 
         void StartTutorial()
         {
+            if (LoadingScreen.Busy) return;
             RunSession.NewRun(1, true, config.player);
-            SceneManager.LoadScene(GameConst.SceneGame);
+            LoadingScreen.Load(GameConst.SceneGame);
         }
 
         void Open(GameObject panel, Selectable first)

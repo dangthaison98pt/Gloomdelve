@@ -8,19 +8,19 @@ namespace Gloomdelve
     public class ResultsScreen : MonoBehaviour
     {
         public GameObject root;
-        public Text title;
-        [Tooltip("One line under the title: how the run ended.")] public Text cause;
-        [Tooltip("How far the run got.")] public Text reached;
+        public TMPro.TMP_Text title;
+        [Tooltip("One line under the title: how the run ended.")] public TMPro.TMP_Text cause;
+        [Tooltip("How far the run got.")] public TMPro.TMP_Text reached;
         [Tooltip("The four stat tiles (hidden for the tutorial).")] public GameObject statsRoot;
-        public Text statGold, statTime, statKills, statLevels;
-        public Text seedText;
-        [Tooltip("Free text block (tutorial only).")] public Text body;
-        public Text records;
-        public Text news;
+        public TMPro.TMP_Text statGold, statTime, statKills, statLevels;
+        public TMPro.TMP_Text seedText;
+        [Tooltip("Free text block (tutorial only).")] public TMPro.TMP_Text body;
+        public TMPro.TMP_Text records;
+        public TMPro.TMP_Text news;
         public Button newRunButton;
         public Button retrySeedButton;
         public Button menuButton;
-        public Text newRunLabel;
+        public TMPro.TMP_Text newRunLabel;
 
         bool tutorialMode;
         float shownAt;
@@ -39,8 +39,9 @@ namespace Gloomdelve
             if (tutorialMode)
             {
                 Time.timeScale = 1f;
+                if (LoadingScreen.Busy) return;
                 RunSession.NewRun(RunSession.RandomSeed(), false, GameDirector.Instance.config.player);
-                SceneManager.LoadScene(GameConst.SceneGame);
+                LoadingScreen.Load(GameConst.SceneGame);
             }
             else GameDirector.Instance.RestartRun(false);
         }
@@ -50,6 +51,7 @@ namespace Gloomdelve
             tutorialMode = false;
             root.SetActive(true);
             shownAt = Time.unscaledTime;
+            ShowRule(true);
             title.text = victory ? "VICTORY!" : "YOU DIED";
             title.color = victory ? new Color(1f, 0.85f, 0.3f) : new Color(1f, 0.35f, 0.35f);
             cause.text = victory ? "You carried the Sunstone home. Brindlemoor is warm again." : run.deathCause;
@@ -67,6 +69,8 @@ namespace Gloomdelve
                 $"{r.runs} runs     {r.wins} wins     {r.deaths} deaths";
             news.text = newsText;
             retrySeedButton.gameObject.SetActive(true);
+            SetX(newRunButton, -340f);
+            SetX(menuButton, 340f);
             if (newRunLabel) newRunLabel.text = "NEW RUN";
             UIUtil.Select(newRunButton);
         }
@@ -82,6 +86,7 @@ namespace Gloomdelve
             root.SetActive(true);
             shownAt = Time.unscaledTime;
             bool flawless = run.damageTaken == 0;
+            ShowRule(true);
             title.text = "BOSS DEFEATED";
             title.color = new Color(1f, 0.85f, 0.3f);
             cause.text = (string.IsNullOrEmpty(bossName) ? "" : bossName.ToUpperInvariant()) + (flawless ? "    [flawless]  NO DAMAGE" : "");
@@ -100,13 +105,20 @@ namespace Gloomdelve
             records.text = $"Best time   {UIUtil.FormatTime(bestTime)}" + (everFlawless ? "      [flawless]  beaten without damage" : "");
             retrySeedButton.gameObject.SetActive(false);
             if (newRunLabel) newRunLabel.text = "FIGHT AGAIN";
-            var menuLabel = menuButton != null ? menuButton.GetComponentInChildren<Text>() : null;
+            var menuLabel = menuButton != null ? menuButton.GetComponentInChildren<TMPro.TMP_Text>() : null;
             if (menuLabel != null) menuLabel.text = "BOSS LIST";
             UIUtil.Wire(menuButton, () => GameDirector.Instance.BackToBossList());
             // with the middle button gone the other two sit side by side in the middle
             SetX(newRunButton, -172f);
             SetX(menuButton, 172f);
             UIUtil.Select(newRunButton);
+        }
+
+        /// <summary>The thin gold line under the heading.</summary>
+        void ShowRule(bool on)
+        {
+            var rule = title != null ? title.transform.parent.Find("Rule") : null;
+            if (rule != null) rule.gameObject.SetActive(on);
         }
 
         static void SetX(Button b, float x)
@@ -117,7 +129,7 @@ namespace Gloomdelve
         }
 
         /// <summary>Sets one stat tile: its caption, its value, and whether its small icon shows.</summary>
-        static void Tile(Text value, string caption, string text, bool icon)
+        static void Tile(TMPro.TMP_Text value, string caption, string text, bool icon)
         {
             if (value == null) return;
             value.text = text;
@@ -125,7 +137,7 @@ namespace Gloomdelve
             var label = tile.Find("Label");
             if (label != null)
             {
-                var lt = label.GetComponent<Text>();
+                var lt = label.GetComponent<TMPro.TMP_Text>();
                 if (lt != null) lt.text = caption;
                 if (!icon) ((RectTransform)label).anchoredPosition = new Vector2(0f, ((RectTransform)label).anchoredPosition.y);
             }
@@ -138,6 +150,7 @@ namespace Gloomdelve
             tutorialMode = true;
             root.SetActive(true);
             shownAt = Time.unscaledTime;
+            ShowRule(false);        // the text block of this screen sits where the rule is drawn
             title.text = "TUTORIAL COMPLETE";
             title.color = new Color(0.6f, 1f, 0.6f);
             cause.text = "";
@@ -148,6 +161,9 @@ namespace Gloomdelve
             records.text = "";
             news.text = $"Time {UIUtil.FormatTime(run.totalTime)}";
             retrySeedButton.gameObject.SetActive(false);
+            // with the middle button gone the other two sit side by side in the middle, not out at the corners
+            SetX(newRunButton, -172f);
+            SetX(menuButton, 172f);
             if (newRunLabel) newRunLabel.text = "START A RUN";
             UIUtil.Select(newRunButton);
         }

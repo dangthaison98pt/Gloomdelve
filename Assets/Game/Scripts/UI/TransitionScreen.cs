@@ -8,9 +8,9 @@ namespace Gloomdelve
     public class TransitionScreen : MonoBehaviour
     {
         public GameObject root;
-        public UnityEngine.UI.Text title;
-        public UnityEngine.UI.Text body;
-        public UnityEngine.UI.Text hint;
+        public TMPro.TMP_Text title;
+        public TMPro.TMP_Text body;
+        public TMPro.TMP_Text hint;
         public float autoContinue = 4f;
 
         Action onContinue;

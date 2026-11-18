@@ -53,12 +53,14 @@ namespace Gloomdelve.EditorTools
                 CreatePrefabs(cfg, font);
                 CreateServicesPrefab(cfg, sfx);
                 EditorUtility.DisplayProgressBar("Gloomdelve", "Scenes", 0.85f);
-                UIBuilder.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                TmpFonts.Build();
+                UIBuilder.font = TmpFonts.font; UIBuilder.matPlain = TmpFonts.plain; UIBuilder.matShadow = TmpFonts.shadow; UIBuilder.matTitle = TmpFonts.title;
                 UIBuilder.panelSprite = ArtGenerator.S("UI/panel");
                 UIBuilder.buttonSprite = ArtGenerator.S("UI/button");
                 UIBuilder.slotSprite = ArtGenerator.S("UI/slot");
                 UIBuilder.softPanelSprite = ArtGenerator.S("UI/panel_soft");
                 UIBuilder.softRowSprite = ArtGenerator.S("UI/row_soft");
+                UIBuilder.softSlotSprite = ArtGenerator.S("UI/slot_soft");
                 // button pictures for the input tokens in UI texts ("[jump]", "[gear]"...)
                 var glyphs = LoadOrCreate<InputGlyphSet>(G + "Data/InputGlyphs.asset");
                 Sprite GS(string n) => ArtGenerator.S("UI/Glyphs/" + n);
@@ -1300,32 +1302,21 @@ namespace Gloomdelve.EditorTools
             var vig = UIBuilder.Img(t, "Vignette", ArtGenerator.S("UI/vignette"), new Color(0f, 0f, 0f, 0.3f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
             UIBuilder.Stretch(vig.rectTransform);
 
-            // The title, "Brindlemoor: The Sunstone Hunt", set in a serif face (SerifFont picks one from the system):
+            // The title, "Brindlemoor: The Sunstone Hunt":
             // the series name in tall gold capitals with a larger first letter, the name of this part spaced out
             // under it, then one line of story.
-            var serifTexts = new List<Text>();
             var title = UIBuilder.Label(t, "Title", "<size=178>B</size>RINDLEMOOR", 128, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -50), new Vector2(1700, 200));
-            title.horizontalOverflow = HorizontalWrapMode.Overflow;
-            var titleOutline = title.GetComponent<UnityEngine.UI.Outline>();
-            if (titleOutline != null) UnityEngine.Object.DestroyImmediate(titleOutline);
-            title.gameObject.AddComponent<VerticalGradient>();
-            var titleShadow = title.gameObject.AddComponent<UnityEngine.UI.Shadow>();
-            titleShadow.effectColor = new Color(0.02f, 0.03f, 0.1f, 0.75f); titleShadow.effectDistance = new Vector2(4f, -7f);
-            serifTexts.Add(title);
+            title.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
+            UIBuilder.GoldGradient(title);
             string spaced = string.Join(" ", GameConst.PartName.ToUpperInvariant().Replace(" ", "  ").ToCharArray());
             var part = UIBuilder.Label(t, "Part", spaced, 40, new Color(0.96f, 0.9f, 0.74f), TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -236), new Vector2(1500, 56));
-            var partOutline = part.GetComponent<UnityEngine.UI.Outline>();
-            if (partOutline != null) { partOutline.effectColor = new Color(0.03f, 0.04f, 0.12f, 0.85f); partOutline.effectDistance = new Vector2(2f, -3f); }
-            serifTexts.Add(part);
             var story = UIBuilder.Label(t, "Subtitle", "Winter will not leave Brindlemoor. Bring the Sunstone home.", 28, new Color(0.84f, 0.88f, 0.98f, 0.9f), TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -296), new Vector2(1400, 44), true, FontStyle.Italic);
-            serifTexts.Add(story);
 
             var menu = new GameObject("MainMenu").AddComponent<MainMenuController>();
             menu.config = cfg;
             menu.titleObjects = new[] { title.gameObject, part.gameObject, story.gameObject };
             // everything built from here on in this scene - the list, Settings, Controls, Challenge, Records - gets
             // the title-screen look (quiet panels, strip buttons, serif texts). Switched off again before saving.
-            UIBuilder.styledTexts.Clear();
             UIBuilder.menuStyle = true;
 
             // the main list: plain words, a gold marker beside the one in focus
@@ -1336,7 +1327,6 @@ namespace Gloomdelve.EditorTools
             Button Entry(string name, string label, int row)
             {
                 var b = UIBuilder.TextButton(mt, name, label, new Vector2(0.5f, 1f), new Vector2(0, -20 - row * 66), bs, 42, out var tx);
-                serifTexts.Add(tx);
                 return b;
             }
             menu.startButton = Entry("Start", "Start Run", 0);
@@ -1348,7 +1338,6 @@ namespace Gloomdelve.EditorTools
             var ptrImg = UIBuilder.Img(t, "Pointer", ArtGenerator.S("UI/menu_pointer"), Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(42, 33));
             var ptr = menu.gameObject.AddComponent<MenuPointer>();
             ptr.pointer = ptrImg.rectTransform; ptr.scope = main.transform;
-            var serif = menu.gameObject.AddComponent<SerifFont>();
             menu.mainPanel = main;
 
             menu.keysPanel = UIBuilder.KeysPanel(t);
@@ -1383,7 +1372,7 @@ namespace Gloomdelve.EditorTools
                 UIBuilder.Label(bp.transform, "Hint", "Pick a boss and fight it straight away.\nDying starts the fight again. Your best time against each boss is kept.", 22, new Color(1f, 1f, 1f, 0.75f),
                     TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -112), new Vector2(760, 64));
                 menu.bossButtons = new Button[bossStages.Count];
-                menu.bossBest = new Text[bossStages.Count];
+                menu.bossBest = new TMPro.TMP_Text[bossStages.Count];
                 menu.bossNames = bossKeys.ToArray();
                 for (int i = 0; i < bossStages.Count; i++)
                 {
@@ -1402,18 +1391,52 @@ namespace Gloomdelve.EditorTools
             UIBuilder.Label(rec.transform, "RunsHead", "RUNS", 24, new Color(1f, 0.84f, 0.38f), TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(-270, -146), new Vector2(520, 34), true, FontStyle.Bold);
             UIBuilder.Label(rec.transform, "BossHead", "CHALLENGE  -  best time against each boss", 24, new Color(1f, 0.84f, 0.38f), TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(290, -146), new Vector2(520, 34), true, FontStyle.Bold);
             menu.bossRecordsText = UIBuilder.Label(rec.transform, "Bosses", "", 28, Color.white, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(290, -196), new Vector2(520, 460));
-            menu.bossRecordsText.lineSpacing = 1.35f;
-            menu.recordsText.lineSpacing = 1.2f;
+            menu.bossRecordsText.lineSpacing = 35f;
+            menu.recordsText.lineSpacing = 20f;
             menu.recordsBack = UIBuilder.Button(rec.transform, "Back", "BACK", new Vector2(0.5f, 0f), new Vector2(0, 50), new Vector2(320, 70));   // records cannot be reset from the game
             menu.recordsPanel = rec.gameObject;
             menu.versionText = UIBuilder.Label(t, "Version", "", 22, new Color(1, 1, 1, 0.5f), TextAnchor.LowerLeft, new Vector2(0f, 0f), new Vector2(20, 16), new Vector2(900, 40), false);
             UIBuilder.Label(t, "Hint", "[move] navigate   ·   [confirm] select   ·   [jump] jump   ·   [whip] blade   ·   [use] use gear   ·   hold [gear] gear wheel   ·   [enter] enter", 22,
                 new Color(1, 1, 1, 0.55f), TextAnchor.LowerRight, new Vector2(1f, 0f), new Vector2(-20, 16), new Vector2(1300, 40), false);
 
-            serifTexts.AddRange(UIBuilder.styledTexts);
-            serif.texts = serifTexts.ToArray();
+            // Loading screen (menu -> game): its own canvas above everything, kept across scene changes.
+            {
+                var lc = UIBuilder.Canvas("LoadingCanvas", 100);
+                var ls = lc.gameObject.AddComponent<LoadingScreen>();
+                var cover = UIBuilder.Node(lc.transform, "Cover");
+                UIBuilder.Stretch(UIBuilder.Rect(cover));
+                ls.cover = cover;
+                ls.group = cover.AddComponent<CanvasGroup>();
+                var mid = new Vector2(0.5f, 0.5f);
+                var back = UIBuilder.Img(cover.transform, "Back", null, new Color(0.035f, 0.045f, 0.11f, 1f), mid, Vector2.zero, Vector2.zero);
+                UIBuilder.Stretch(back.rectTransform);
+                back.raycastTarget = true;
+                var lsnow = UIBuilder.Node(cover.transform, "Snow");
+                UIBuilder.Stretch(UIBuilder.Rect(lsnow));
+                var lsn = lsnow.AddComponent<MenuSnow>();
+                lsn.farFlakes = 70; lsn.nearFlakes = 24;
+                var lt = UIBuilder.Label(cover.transform, "Title", "<size=92>B</size>RINDLEMOOR", 66, Color.white, TextAnchor.MiddleCenter, mid, new Vector2(0, 150), new Vector2(1400, 120));
+                lt.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
+                string lspaced = string.Join(" ", GameConst.PartName.ToUpperInvariant().Replace(" ", "  ").ToCharArray());
+                UIBuilder.Label(cover.transform, "Part", lspaced, 24, new Color(0.96f, 0.9f, 0.74f), TextAnchor.MiddleCenter, mid, new Vector2(0, 62), new Vector2(1200, 40));
+                ls.tip = UIBuilder.Label(cover.transform, "Tip", "", 30, new Color(0.84f, 0.88f, 0.98f, 0.95f), TextAnchor.MiddleCenter, mid, new Vector2(0, -70), new Vector2(1300, 110), true, FontStyle.Italic);
+                var track = UIBuilder.Img(cover.transform, "Track", ArtGenerator.S("Center/pixel"), new Color(1f, 0.84f, 0.38f, 0.22f), mid, new Vector2(0, -190), new Vector2(600, 4));
+                var lfill = UIBuilder.Img(track.transform, "Fill", ArtGenerator.S("Center/pixel"), new Color(1f, 0.84f, 0.38f, 1f), new Vector2(0f, 0.5f), Vector2.zero, new Vector2(0, 4));
+                ls.fill = lfill.rectTransform; ls.fillWidth = 600f;
+                ls.loadingText = UIBuilder.Label(cover.transform, "Loading", "Loading...", 24, new Color(1f, 1f, 1f, 0.7f), TextAnchor.MiddleLeft, mid, new Vector2(0, -232), new Vector2(120, 36));
+                ls.tips = new[]
+                {
+                    "Bombs open walls. They open you just as easily.",
+                    "A rope reaches where a jump cannot.",
+                    "Hold [gear] to choose what you carry in your hand.",
+                    "Shopkeepers remember a thief for the rest of the run.",
+                    "Stay too long in one level and something comes looking for you.",
+                    "Every boss gives itself away just before it strikes.",
+                    "Boots, coats and charms from the shops make a hard place easier - none of them is needed.",
+                    "Hanging from a ledge is a good place to think.",
+                };
+            }
             UIBuilder.menuStyle = false;
-            UIBuilder.styledTexts.Clear();
             EditorSceneManager.SaveScene(scene, G + "Scenes/MainMenu.unity");
         }
 
@@ -1537,6 +1560,8 @@ namespace Gloomdelve.EditorTools
 
             // UI
             var gold = new Color(1f, 0.84f, 0.38f);
+            // the in-game UI wears the title-screen look: quiet panels, strip buttons, serif texts
+            UIBuilder.menuStyle = true;
             var canvas = UIBuilder.Canvas("GameCanvas", 10);
             var t = canvas.transform;
             var hudGo = UIBuilder.Node(t, "HUD");
@@ -1546,7 +1571,7 @@ namespace Gloomdelve.EditorTools
             UIBuilder.Stretch(vig.rectTransform);
             hud.damageVignette = vig;
             var bar = UIBuilder.Panel(hudGo.transform, "TopLeft", new Vector2(0f, 1f), new Vector2(16, -16), new Vector2(490, 84));
-            Text Stat(string name, string icon, float x, out Image img)
+            TMPro.TMP_Text Stat(string name, string icon, float x, out Image img)
             {
                 img = UIBuilder.Img(bar.transform, name + "Icon", ArtGenerator.S(icon), Color.white, new Vector2(0f, 0.5f), new Vector2(x, 0), new Vector2(48, 48));
                 img.rectTransform.pivot = new Vector2(0f, 0.5f);
@@ -1568,7 +1593,7 @@ namespace Gloomdelve.EditorTools
             // button that uses it underneath. Its name pops up over the player when it is switched.
             var gearBox = UIBuilder.Node(hudGo.transform, "Gear");
             UIBuilder.Place(UIBuilder.Rect(gearBox), new Vector2(0f, 1f), new Vector2(24, -110), new Vector2(104, 172));
-            var gframe = UIBuilder.Img(gearBox.transform, "IconFrame", UIBuilder.slotSprite, new Color(1f, 0.8f, 0.35f), new Vector2(0.5f, 1f), new Vector2(0, -34), new Vector2(104, 104), true);
+            var gframe = UIBuilder.Img(gearBox.transform, "IconFrame", UIBuilder.Slot, new Color(1f, 0.8f, 0.35f), new Vector2(0.5f, 1f), new Vector2(0, -34), new Vector2(104, 104), true);
             hud.equipIcon = UIBuilder.Img(gframe.transform, "Icon", ArtGenerator.S("UI/icon_bomb"), Color.white, new Vector2(0.5f, 0.5f), new Vector2(0, 4), new Vector2(76, 76));
             hud.equipName = null;
             hud.equipAmmo = UIBuilder.Label(gframe.transform, "Ammo", "4", 30, Color.white, TextAnchor.LowerRight, new Vector2(1f, 0f), new Vector2(-12, 8), new Vector2(90, 36), true, FontStyle.Bold);
@@ -1599,12 +1624,13 @@ namespace Gloomdelve.EditorTools
             hud.stageText = UIBuilder.Label(tr.transform, "Stage", "1-1", 28, gold, TextAnchor.MiddleRight, new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
             UIBuilder.Place(hud.stageText.rectTransform, new Vector2(1f, 1f), new Vector2(-28, -38), new Vector2(404, 36), rowPivot);
             // a long area name shrinks to stay on its one line inside the frame instead of wrapping over the clock
-            hud.stageText.resizeTextForBestFit = true; hud.stageText.resizeTextMinSize = 14; hud.stageText.resizeTextMaxSize = 28;
-            hud.stageText.verticalOverflow = VerticalWrapMode.Truncate;
+            hud.stageText.enableAutoSizing = true; hud.stageText.fontSizeMin = 14; hud.stageText.fontSizeMax = 28;
+            hud.stageText.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
             var clock = UIBuilder.Img(tr.transform, "Clock", ArtGenerator.S("UI/icon_clock"), Color.white, new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
             UIBuilder.Place(clock.rectTransform, new Vector2(1f, 1f), new Vector2(-178, -80), new Vector2(34, 34), rowPivot);
             hud.timeText = UIBuilder.Label(tr.transform, "Time", "00:00.0", 36, Color.white, TextAnchor.MiddleRight, new Vector2(1f, 1f), Vector2.zero, Vector2.zero, true, FontStyle.Bold);
             UIBuilder.Place(hud.timeText.rectTransform, new Vector2(1f, 1f), new Vector2(-28, -80), new Vector2(140, 44), rowPivot);
+            hud.corners = new[] { bar.gameObject, gearBox, tr.gameObject };
             hud.totalTimeText = UIBuilder.Label(tr.transform, "Total", "", 20, new Color(1, 1, 1, 0.7f), TextAnchor.MiddleRight, new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
             UIBuilder.Place(hud.totalTimeText.rectTransform, new Vector2(1f, 1f), new Vector2(-28, -116), new Vector2(404, 26), rowPivot);
 
@@ -1629,7 +1655,6 @@ namespace Gloomdelve.EditorTools
             hud.wpArrowPivot = (RectTransform)piv.transform;
             hud.wpChevron = UIBuilder.Img(piv.transform, "Chevron", ArtGenerator.S("UI/wp_chevron"), Color.white, c0, new Vector2(54, 0), new Vector2(28, 28));
             hud.compassText = UIBuilder.Label(mk.transform, "Dist", "", 22, Color.white, TextAnchor.MiddleCenter, c0, new Vector2(0, -68), new Vector2(160, 28), true, FontStyle.Bold);
-            hud.compassText.GetComponent<Outline>().effectColor = new Color(0f, 0f, 0f, 0.6f);
             hud.compassRoot = comp;
 
             var prompt = UIBuilder.Panel(hudGo.transform, "Prompt", new Vector2(0.5f, 0f), new Vector2(0, 40), new Vector2(1500, 80));
@@ -1648,7 +1673,7 @@ namespace Gloomdelve.EditorTools
             hud.introGroup = intro.AddComponent<CanvasGroup>();
             hud.introGroup.alpha = 0f; hud.introGroup.blocksRaycasts = false; hud.introGroup.interactable = false;
             hud.introName = UIBuilder.Label(intro.transform, "Name", "", 88, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -10), new Vector2(1600, 110), true, FontStyle.Bold);
-            hud.introName.GetComponent<Outline>().effectDistance = new Vector2(4f, -4f);
+            hud.introName.fontSharedMaterial = UIBuilder.matTitle;
             var rule = UIBuilder.Img(intro.transform, "Rule", ArtGenerator.S("Center/pixel"), new Color(1f, 0.84f, 0.38f, 0.9f), new Vector2(0.5f, 1f), new Vector2(0, -138), new Vector2(560, 4), false);
             rule.rectTransform.pivot = new Vector2(0.5f, 0.5f);
             hud.introRule = rule.rectTransform;
@@ -1681,7 +1706,7 @@ namespace Gloomdelve.EditorTools
             var row = UIBuilder.Node(wroot.transform, "Row");
             UIBuilder.Place(UIBuilder.Rect(row), new Vector2(0.5f, 0.5f), new Vector2(0, 70), new Vector2(900, 130));
             wheel.row = (RectTransform)row.transform;
-            var slot = UIBuilder.Img(row.transform, "SlotTemplate", UIBuilder.slotSprite, Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(112, 112), true);
+            var slot = UIBuilder.Img(row.transform, "SlotTemplate", UIBuilder.Slot, Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(112, 112), true);
             UIBuilder.Img(slot.transform, "Icon", ArtGenerator.S("UI/icon_bomb"), Color.white, new Vector2(0.5f, 0.5f), new Vector2(0, 4), new Vector2(80, 80));
             UIBuilder.Label(slot.transform, "Ammo", "4", 28, Color.white, TextAnchor.LowerRight, new Vector2(1f, 0f), new Vector2(-12, 8), new Vector2(90, 34), true, FontStyle.Bold);
             wheel.slotTemplate = slot.gameObject;
@@ -1708,7 +1733,7 @@ namespace Gloomdelve.EditorTools
             var igrid = UIBuilder.Node(ipanel.transform, "Grid");
             UIBuilder.Place(UIBuilder.Rect(igrid), new Vector2(0.5f, 1f), new Vector2(0, -190), new Vector2(900, 10), new Vector2(0.5f, 0.5f));
             inv.grid = (RectTransform)igrid.transform;
-            var cell = UIBuilder.Img(igrid.transform, "CellTemplate", UIBuilder.slotSprite, Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(116, 116), true);
+            var cell = UIBuilder.Img(igrid.transform, "CellTemplate", UIBuilder.Slot, Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(116, 116), true);
             UIBuilder.Img(cell.transform, "Icon", ArtGenerator.S("Sprites/Items/springboots"), Color.white, new Vector2(0.5f, 0.5f), new Vector2(0, 4), new Vector2(84, 84));
             UIBuilder.Label(cell.transform, "Slot", "FEET", 18, new Color(1f, 1f, 1f, 0.7f), TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0, -26), new Vector2(150, 24), false);
             var wornMark = UIBuilder.Img(cell.transform, "Worn", UIBuilder.buttonSprite, new Color(1f, 0.82f, 0.3f), new Vector2(1f, 1f), new Vector2(-8, -8), new Vector2(22, 22), true);
@@ -1764,16 +1789,18 @@ namespace Gloomdelve.EditorTools
             // then (bottom up) the buttons, the seed, lifetime records and any "new best" news.
             var rp = UIBuilder.Panel(rroot.transform, "Panel", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1060, 800));
             var top = new Vector2(0.5f, 1f); var bottom = new Vector2(0.5f, 0f);
-            rs.title = UIBuilder.Label(rp.transform, "Title", "YOU DIED", 84, Color.red, TextAnchor.MiddleCenter, top, new Vector2(0, -52), new Vector2(1000, 100), true, FontStyle.Bold);
+            rs.title = UIBuilder.Label(rp.transform, "Headline", "YOU DIED", 84, Color.red, TextAnchor.MiddleCenter, top, new Vector2(0, -52), new Vector2(1000, 100), true, FontStyle.Bold);
+            // a long headline ("TUTORIAL COMPLETE") shrinks to stay on its one line instead of wrapping over the text below
+            rs.title.enableAutoSizing = true; rs.title.fontSizeMax = rs.title.fontSize; rs.title.fontSizeMin = 40; rs.title.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
             rs.cause = UIBuilder.Label(rp.transform, "Cause", "", 30, new Color(1f, 1f, 1f, 0.9f), TextAnchor.MiddleCenter, top, new Vector2(0, -158), new Vector2(960, 40));
             rs.reached = UIBuilder.Label(rp.transform, "Reached", "", 26, gold, TextAnchor.MiddleCenter, top, new Vector2(0, -204), new Vector2(960, 34), true, FontStyle.Bold);
             UIBuilder.Img(rp.transform, "Rule", ArtGenerator.S("Center/pixel"), new Color(1f, 0.84f, 0.38f, 0.45f), top, new Vector2(0, -256), new Vector2(820, 3));
             var statsGo = UIBuilder.Node(rp.transform, "Stats");
             UIBuilder.Place(UIBuilder.Rect(statsGo), top, new Vector2(0, -282), new Vector2(960, 150));
             rs.statsRoot = statsGo;
-            Text Tile(string label, float x, Color valueColor, string icon)
+            TMPro.TMP_Text Tile(string label, float x, Color valueColor, string icon)
             {
-                var tile = UIBuilder.Img(statsGo.transform, label, UIBuilder.slotSprite, new Color(0.62f, 0.5f, 0.3f), new Vector2(0.5f, 1f), new Vector2(x, 0), new Vector2(222, 150), true);
+                var tile = UIBuilder.Img(statsGo.transform, label, UIBuilder.Slot, new Color(0.62f, 0.5f, 0.3f), new Vector2(0.5f, 1f), new Vector2(x, 0), new Vector2(222, 150), true);
                 float lx = 0f;
                 if (icon != null)
                 {
@@ -1796,6 +1823,7 @@ namespace Gloomdelve.EditorTools
             rs.menuButton = UIBuilder.Button(rp.transform, "Menu", "MAIN MENU", bottom, new Vector2(340, 60), new Vector2(320, 76));
             dir.results = rs;
 
+            UIBuilder.menuStyle = false;
             EditorSceneManager.SaveScene(scene, G + "Scenes/Game.unity");
         }
 

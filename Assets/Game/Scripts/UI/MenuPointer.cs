@@ -23,7 +23,7 @@ namespace Gloomdelve
             bool show = sel != null && scope != null && sel.activeInHierarchy && sel.transform.IsChildOf(scope);
             if (pointer.gameObject.activeSelf != show) pointer.gameObject.SetActive(show);
             if (!show) return;
-            var text = sel.GetComponentInChildren<Text>();
+            var text = sel.GetComponentInChildren<TMPro.TMP_Text>();
             float half = text != null ? text.preferredWidth * 0.5f : 80f;
             float bob = Mathf.Sin(Time.unscaledTime * 6f) * 4f;
             var centre = ((RectTransform)sel.transform).rect.center;       // the entry's own middle, wherever its pivot is

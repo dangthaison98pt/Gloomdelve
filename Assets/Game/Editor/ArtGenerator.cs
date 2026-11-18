@@ -2920,6 +2920,21 @@ namespace Gloomdelve.EditorTools
                     }
                 Save(p, "UI/row_soft", PCenter, new Vector4(5, 5, 5, 5));
             }
+            {
+                // an item slot in the same look: dark sheet, a thin line that takes the Image's colour
+                // (white = chosen, gold = worn / in use, grey = the rest)
+                const int S = 16;
+                var p = new Px(S, S);
+                for (int y = 0; y < S; y++)
+                    for (int x = 0; x < S; x++)
+                    {
+                        bool corner = (x == 0 || x == S - 1) && (y == 0 || y == S - 1);
+                        if (corner) continue;
+                        bool edge = x == 0 || y == 0 || x == S - 1 || y == S - 1;
+                        p.Set(x, y, edge ? C(255, 255, 255, 255) : C(26, 30, 62, 215));
+                    }
+                Save(p, "UI/slot_soft", PCenter, new Vector4(5, 5, 5, 5));
+            }
         }
 
         /// <summary>The marker beside the menu entry in focus: a small gold arrowhead.</summary>

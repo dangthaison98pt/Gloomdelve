@@ -15,9 +15,9 @@ namespace Gloomdelve
     public class KeyBindPanel : MonoBehaviour
     {
         [Tooltip("One per KeyBindings.Slots entry, same order.")] public Button[] rows;
-        [Tooltip("The key shown on the right of each row.")] public Text[] keyTexts;
+        [Tooltip("The key shown on the right of each row.")] public TMPro.TMP_Text[] keyTexts;
         public Button resetButton, back;
-        public Text hint;
+        public TMPro.TMP_Text hint;
 
         public Action onBack;
 

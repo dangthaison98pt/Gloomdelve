@@ -16,9 +16,9 @@ namespace Gloomdelve
         public GameObject root;
         public RectTransform row;
         public GameObject slotTemplate;
-        public Text nameText;
-        [Tooltip("Optional: the old description block. Leave empty for the compact look.")] public Text descText;
-        public Text hintText;
+        public TMPro.TMP_Text nameText;
+        [Tooltip("Optional: the old description block. Leave empty for the compact look.")] public TMPro.TMP_Text descText;
+        public TMPro.TMP_Text hintText;
         [Tooltip("Small arrows shown either side of the chosen slot.")] public RectTransform arrowLeft, arrowRight;
         public PlayerInputReader input;
         public GameDirector director;
@@ -28,7 +28,7 @@ namespace Gloomdelve
         public float tapGrace = 0.4f;
         public float spacing = 132f;
 
-        class Slot { public RectTransform rt; public Image frame; public Image icon; public Text ammo; }
+        class Slot { public RectTransform rt; public Image frame; public Image icon; public TMPro.TMP_Text ammo; }
         readonly List<Slot> slots = new List<Slot>();
 
         bool open, holding, moved;
@@ -171,7 +171,7 @@ namespace Gloomdelve
                     rt = (RectTransform)go.transform,
                     frame = go.GetComponent<Image>(),
                     icon = go.transform.Find("Icon").GetComponent<Image>(),
-                    ammo = go.transform.Find("Ammo").GetComponent<Text>(),
+                    ammo = go.transform.Find("Ammo").GetComponent<TMPro.TMP_Text>(),
                 };
                 slots.Add(s);
             }

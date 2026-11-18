@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
@@ -8,20 +9,25 @@ namespace Gloomdelve.EditorTools
     /// <summary>Builds the uGUI hierarchies (HUD, pause, results, transition, main menu) inside scenes.</summary>
     public static class UIBuilder
     {
-        public static Font font;
+        /// <summary>The game's typeface and its three looks (see TmpFonts).</summary>
+        public static TMP_FontAsset font;
+        public static Material matPlain, matShadow, matTitle;
         public static Sprite panelSprite, buttonSprite, slotSprite;
         /// <summary>When set, every label can show button pictures for input tokens such as "[jump]" (GlyphText).</summary>
         public static InputGlyphSet glyphSet;
 
         /// <summary>
-        /// Title-screen look. While this is on (ProjectBuilder turns it on for the menu scene only) panels are the
-        /// quiet dark sheet instead of the gold frame, buttons are translucent strips, panel titles get the gold
-        /// gradient, and every text made is collected in 'styledTexts' so the scene can give them its serif face.
-        /// The in-game HUD and pause menu are built with it off and keep their look.
+        /// Title-screen look. While this is on (ProjectBuilder turns it on for the menu and for the in-game UI)
+        /// panels are the quiet dark sheet instead of the gold frame, buttons are translucent strips, panel titles
+        /// (labels named "Title") get the gold gradient, and every text made is collected in 'styledTexts' so the
+        /// scene can give them its serif face.
         /// </summary>
         public static bool menuStyle;
-        public static Sprite softPanelSprite, softRowSprite;
-        public static readonly System.Collections.Generic.List<Text> styledTexts = new System.Collections.Generic.List<Text>();
+        /// <summary>The gold of headings, top to bottom.</summary>
+        public static readonly Color GoldTop = new Color(1f, 0.95f, 0.72f), GoldBottom = new Color(0.86f, 0.5f, 0.2f);
+        public static Sprite softPanelSprite, softRowSprite, softSlotSprite;
+        /// <summary>The item-slot sprite of the look being built.</summary>
+        public static Sprite Slot => menuStyle && softSlotSprite != null ? softSlotSprite : slotSprite;
 
         static readonly Color Gold = new Color(1f, 0.84f, 0.38f);
         static readonly Color Dim = new Color(0f, 0f, 0f, 0.62f);
@@ -54,34 +60,55 @@ namespace Gloomdelve.EditorTools
             rt.offsetMin = new Vector2(margin, margin); rt.offsetMax = new Vector2(-margin, -margin);
         }
 
-        public static Text Label(Transform parent, string name, string text, int size, Color color, TextAnchor align,
+        /// <summary>Garamond is a small-bodied face: sizes are written as for an ordinary font and scaled up here.</summary>
+        public const float FontScale = 1.1f;
+
+        static TextAlignmentOptions Align(TextAnchor a)
+        {
+            switch (a)
+            {
+                case TextAnchor.UpperLeft: return TextAlignmentOptions.TopLeft;
+                case TextAnchor.UpperCenter: return TextAlignmentOptions.Top;
+                case TextAnchor.UpperRight: return TextAlignmentOptions.TopRight;
+                case TextAnchor.MiddleLeft: return TextAlignmentOptions.Left;
+                case TextAnchor.MiddleRight: return TextAlignmentOptions.Right;
+                case TextAnchor.LowerLeft: return TextAlignmentOptions.BottomLeft;
+                case TextAnchor.LowerCenter: return TextAlignmentOptions.Bottom;
+                case TextAnchor.LowerRight: return TextAlignmentOptions.BottomRight;
+                default: return TextAlignmentOptions.Center;
+            }
+        }
+
+        /// <summary>Gives a text the heading look: gold running to amber, with the heavier drop shadow.</summary>
+        public static void GoldGradient(TMP_Text t)
+        {
+            t.color = Color.white;
+            t.enableVertexGradient = true;
+            t.colorGradient = new VertexGradient(GoldTop, GoldTop, GoldBottom, GoldBottom);
+            t.fontSharedMaterial = matTitle;
+        }
+
+        /// <summary>
+        /// A TextMesh Pro label. 'shadow' gives it the soft dark halo that keeps it readable over the game;
+        /// a label named "Title" made while menuStyle is on becomes a gold heading.
+        /// </summary>
+        public static TextMeshProUGUI Label(Transform parent, string name, string text, int size, Color color, TextAnchor align,
             Vector2 anchor, Vector2 pos, Vector2 box, bool shadow = true, FontStyle style = FontStyle.Normal)
         {
             var go = Node(parent, name);
-            var t = go.AddComponent<Text>();
-            t.font = font; t.text = text; t.fontSize = size; t.color = color; t.alignment = align; t.fontStyle = style;
-            t.horizontalOverflow = HorizontalWrapMode.Wrap; t.verticalOverflow = VerticalWrapMode.Overflow;
+            var t = go.AddComponent<TextMeshProUGUI>();
+            t.font = font;
+            t.fontSharedMaterial = shadow ? matShadow : matPlain;
+            t.fontSize = Mathf.Round(size * FontScale); t.color = color; t.alignment = Align(align);
+            t.fontStyle = style == FontStyle.Bold ? FontStyles.Bold : style == FontStyle.Italic ? FontStyles.Italic
+                : style == FontStyle.BoldAndItalic ? (FontStyles.Bold | FontStyles.Italic) : FontStyles.Normal;
+            t.textWrappingMode = TextWrappingModes.Normal; t.overflowMode = TextOverflowModes.Overflow;
+            t.richText = true;
             t.raycastTarget = false;
+            t.text = text;
             Place(Rect(go), anchor, pos, box);
             if (glyphSet != null) go.AddComponent<GlyphText>().set = glyphSet;
-            if (menuStyle)
-            {
-                styledTexts.Add(t);
-                if (name == "Title")
-                {
-                    // a panel's title: the same gold gradient as the game's title, with a soft drop shadow
-                    go.AddComponent<VerticalGradient>();
-                    var sh = go.AddComponent<Shadow>();
-                    sh.effectColor = new Color(0.02f, 0.03f, 0.1f, 0.75f); sh.effectDistance = new Vector2(2f, -4f);
-                    return t;
-                }
-            }
-            if (shadow)
-            {
-                var o = go.AddComponent<Outline>();
-                o.effectColor = menuStyle ? new Color(0.03f, 0.04f, 0.12f, 0.85f) : new Color(0f, 0f, 0f, 0.85f);
-                o.effectDistance = new Vector2(2f, -2f);
-            }
+            if (menuStyle && name == "Title") GoldGradient(t);
             return t;
         }
 
@@ -111,7 +138,7 @@ namespace Gloomdelve.EditorTools
             return i;
         }
 
-        public static Button Button(Transform parent, string name, string label, Vector2 anchor, Vector2 pos, Vector2 size, out Text text)
+        public static Button Button(Transform parent, string name, string label, Vector2 anchor, Vector2 pos, Vector2 size, out TMP_Text text)
         {
             var go = Node(parent, name);
             var img = go.AddComponent<Image>();
@@ -145,15 +172,13 @@ namespace Gloomdelve.EditorTools
             => Button(parent, name, label, anchor, pos, size, out _);
 
         /// <summary>A menu entry that is just its words: no box. The words turn gold when it is in focus.</summary>
-        public static Button TextButton(Transform parent, string name, string label, Vector2 anchor, Vector2 pos, Vector2 size, int fontSize, out Text text)
+        public static Button TextButton(Transform parent, string name, string label, Vector2 anchor, Vector2 pos, Vector2 size, int fontSize, out TMP_Text text)
         {
             var go = Node(parent, name);
             var hit = go.AddComponent<Image>();         // invisible, only so the mouse can find the entry
             hit.color = new Color(0f, 0f, 0f, 0f);
             Place(Rect(go), anchor, pos, size);
             text = Label(go.transform, "Label", label, fontSize, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, size);
-            var o = text.GetComponent<Outline>();
-            if (o != null) { o.effectColor = new Color(0.03f, 0.04f, 0.12f, 0.9f); o.effectDistance = new Vector2(2f, -3f); }
             var b = go.AddComponent<Button>();
             b.targetGraphic = text;
             var cb = b.colors;
@@ -166,7 +191,7 @@ namespace Gloomdelve.EditorTools
             return b;
         }
 
-        public static Slider Slider(Transform parent, string name, string label, Vector2 pos, out Text valueText)
+        public static Slider Slider(Transform parent, string name, string label, Vector2 pos, out TMP_Text valueText)
         {
             var row = Node(parent, name);
             Place(Rect(row), new Vector2(0.5f, 1f), pos, new Vector2(620, 56));
@@ -199,23 +224,6 @@ namespace Gloomdelve.EditorTools
             t.targetGraphic = box; t.graphic = check; t.isOn = true;
             var cb = t.colors; cb.selectedColor = Gold; cb.highlightedColor = Gold; t.colors = cb;
             return t;
-        }
-
-        public static InputField Input(Transform parent, string name, string placeholder, Vector2 anchor, Vector2 pos, Vector2 size)
-        {
-            var go = Node(parent, name);
-            var img = go.AddComponent<Image>();
-            img.sprite = buttonSprite; img.type = Image.Type.Sliced; img.pixelsPerUnitMultiplier = 2.5f;
-            img.color = new Color(0.12f, 0.1f, 0.14f);
-            Place(Rect(go), anchor, pos, size);
-            var ph = Label(go.transform, "Placeholder", placeholder, 26, new Color(1f, 1f, 1f, 0.35f), TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, size - new Vector2(20, 0), false, FontStyle.Italic);
-            var tx = Label(go.transform, "Text", "", 28, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, size - new Vector2(20, 0), false);
-            tx.supportRichText = false;
-            var f = go.AddComponent<InputField>();
-            f.textComponent = tx; f.placeholder = ph; f.contentType = InputField.ContentType.IntegerNumber; f.characterLimit = 9;
-            f.targetGraphic = img;
-            var cb = f.colors; cb.selectedColor = new Color(0.5f, 0.4f, 0.25f); cb.highlightedColor = new Color(0.35f, 0.28f, 0.2f); f.colors = cb;
-            return f;
         }
 
         public static Canvas Canvas(string name, int order)
@@ -272,7 +280,7 @@ namespace Gloomdelve.EditorTools
             Label(head.transform, "Gamepad", "GAMEPAD", 18, dim, TextAnchor.MiddleCenter, new Vector2(1f, 0.5f), new Vector2(padX + 70f, 0), new Vector2(140, 30), false);
             var kp = p.gameObject.AddComponent<KeyBindPanel>();
             kp.rows = new Button[slots.Length];
-            kp.keyTexts = new Text[slots.Length];
+            kp.keyTexts = new TMP_Text[slots.Length];
             for (int i = 0; i < slots.Length; i++)
             {
                 var b = Button(p.transform, "Row_" + slots[i].id, "", new Vector2(0.5f, 1f), new Vector2(0, -top - i * step), new Vector2(700, rowH));

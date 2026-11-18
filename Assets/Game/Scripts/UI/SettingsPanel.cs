@@ -13,7 +13,7 @@ namespace Gloomdelve
         public Toggle shake;
         public Button back;
         [Tooltip("Opens the controls list, where keyboard keys can be changed.")] public Button keys;
-        public Text masterValue, musicValue, sfxValue;
+        public TMPro.TMP_Text masterValue, musicValue, sfxValue;
 
         public Action onBack;
         public Action onKeys;

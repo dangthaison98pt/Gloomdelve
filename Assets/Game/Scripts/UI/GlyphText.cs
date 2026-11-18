@@ -1,18 +1,20 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Gloomdelve
 {
     /// <summary>
-    /// Sits next to a UI Text and turns input tokens in it ("[jump]", "[use]", "[gear]"...) into buttons that
-    /// follow the device in use (keyboard or gamepad). Scripts just assign text.text with tokens.
-    /// How it works: each token is replaced by a run of non-breaking spaces as wide as its button, and the
+    /// Sits next to a TextMesh Pro text and turns input tokens in it ("[jump]", "[use]", "[gear]"...) into buttons
+    /// that follow the device in use (keyboard or gamepad). Scripts just assign text.text with tokens.
+    /// How it works: each token is replaced by one blank character made exactly as wide as its button, and the
     /// button (a blank shape with its label in the same font as the text) is placed over that gap, so wrapping
     /// and alignment keep working and the lettering is as sharp as the rest of the text.
     /// </summary>
-    [RequireComponent(typeof(Text))]
+    [RequireComponent(typeof(TMP_Text))]
     public class GlyphText : MonoBehaviour
     {
         public InputGlyphSet set;
@@ -21,19 +23,19 @@ namespace Gloomdelve
         [Tooltip("Always show the keyboard key, even while a gamepad is in use (the change-keys screen).")] public bool keyboardOnly;
         [Tooltip("Always show the gamepad button, even while the keyboard is in use (the gamepad column of that screen).")] public bool gamepadOnly;
 
-        struct Spot { public int index, count; public Sprite sprite; public string label; public Color ink; public float width; }
-        class Icon { public Image image; public Text label; }
+        struct Spot { public Sprite sprite; public string label; public Color ink; public float width, gap; }
+        class Icon { public Image image; public TMP_Text label; }
 
-        Text text;
+        TMP_Text text;
         string raw, shown;
         int device, keysVersion;
         Vector2 lastSize;
+        float lastFontSize;
         readonly List<Spot> spots = new List<Spot>();
         readonly List<Icon> icons = new List<Icon>();
-        static readonly TextGenerator gen = new TextGenerator();
-        const char Gap = ' ';
+        const char Mark = (char)0xA0;      // the blank that stands in for a button (texts never use it themselves)
 
-        void Awake() { text = GetComponent<Text>(); }
+        void Awake() { text = GetComponent<TMP_Text>(); }
 
         void LateUpdate()
         {
@@ -52,22 +54,26 @@ namespace Gloomdelve
             if (keysVersion != KeyBindings.Version) { keysVersion = KeyBindings.Version; dirty = true; }   // the player changed a key
             var size = text.rectTransform.rect.size;
             if (dirty) Rebuild();
-            else if (size != lastSize && spots.Count > 0) Place();
+            else if ((size != lastSize || !Mathf.Approximately(lastFontSize, text.fontSize)) && spots.Count > 0) Place();
             lastSize = size;
         }
 
-        float Height => text.fontSize * scale;
-        int LabelSize => Mathf.Max(8, Mathf.RoundToInt(Height * labelScale));
+        /// <summary>The size the buttons are measured in: the size written on the text (a text that shrinks to fit shrinks its buttons with it in Place).</summary>
+        float BaseSize => text.enableAutoSizing ? text.fontSizeMax : text.fontSize;
 
-        float Advance(string s, int size, FontStyle style)
+        /// <summary>Width of a button label set in bold at the given size.</summary>
+        float LabelWidth(string s, float size)
         {
+            if (string.IsNullOrEmpty(s) || text.font == null) return 0f;
             var f = text.font;
-            if (f == null || string.IsNullOrEmpty(s)) return 0f;
-            f.RequestCharactersInTexture(s, size, style);
-            float w = 0f;
+            float w = 0f, k = size / f.faceInfo.pointSize * f.faceInfo.scale;
             foreach (char ch in s)
-                w += f.GetCharacterInfo(ch, out var ci, size, style) ? ci.advance : size * 0.5f;
-            return w;
+            {
+                if (f.characterLookupTable.TryGetValue(ch, out var c) || (f.TryAddCharacters(ch.ToString()) && f.characterLookupTable.TryGetValue(ch, out c)))
+                    w += c.glyph.metrics.horizontalAdvance * k;
+                else w += size * 0.8f;          // a sign from the fallback font (arrows): about square
+            }
+            return w * 1.06f;                   // bold runs a little wider
         }
 
         void Rebuild()
@@ -79,10 +85,10 @@ namespace Gloomdelve
                 Place();
                 return;
             }
-            float gapW = Advance(Gap.ToString(), text.fontSize, text.fontStyle);
-            if (gapW <= 0f) gapW = text.fontSize * 0.28f;
-            float h = Height;
-            var sb = new StringBuilder(raw.Length + 16);
+            float fs = BaseSize;
+            float h = fs * scale;
+            float labelSize = Mathf.Max(8f, h * labelScale);
+            var sb = new StringBuilder(raw.Length + 32);
             for (int i = 0; i < raw.Length; i++)
             {
                 char ch = raw[i];
@@ -91,11 +97,12 @@ namespace Gloomdelve
                 if (end <= i + 1 || !set.Find(raw.Substring(i + 1, end - i - 1), device, out s, out label, out ink)) { sb.Append(ch); continue; }
                 // a 9-slice shape (key, pill) grows with its label; a fixed shape (round button) keeps its proportions
                 float w = s.border.sqrMagnitude > 0f
-                    ? Mathf.Max(h, Advance(label, LabelSize, FontStyle.Bold) + h * 0.62f)
+                    ? Mathf.Max(h, LabelWidth(label, labelSize) + h * 0.62f)
                     : h * s.rect.width / s.rect.height;
-                int n = Mathf.Max(1, Mathf.CeilToInt((w + text.fontSize * 0.1f) / gapW));
-                spots.Add(new Spot { index = sb.Length, count = n, sprite = s, label = label, ink = ink, width = w });
-                sb.Append(Gap, n);
+                float gap = w + fs * 0.12f;
+                spots.Add(new Spot { sprite = s, label = label, ink = ink, width = w, gap = gap });
+                // one blank, exactly as wide as the button (in em, so it follows the font size)
+                sb.Append("<mspace=").Append((gap / fs).ToString("0.###", CultureInfo.InvariantCulture)).Append("em>").Append(Mark).Append("</mspace>");
                 i = end;
             }
             shown = sb.ToString();
@@ -107,21 +114,21 @@ namespace Gloomdelve
         {
             for (int i = spots.Count; i < icons.Count; i++) icons[i].image.gameObject.SetActive(false);
             if (spots.Count == 0) return;
-            gen.Populate(shown, text.GetGenerationSettings(text.rectTransform.rect.size));
-            var chars = gen.characters;
-            float k = 1f / text.pixelsPerUnit;
-            float h = Height;
-            float refPpu = text.canvas != null ? text.canvas.referencePixelsPerUnit : 100f;
-            for (int i = 0; i < spots.Count; i++)
+            text.ForceMeshUpdate();
+            lastFontSize = text.fontSize;
+            var info = text.textInfo;
+            float k = text.fontSize / Mathf.Max(1f, BaseSize);      // < 1 when the text had to shrink to fit
+            float h = BaseSize * scale * k;
+            var canvas = text.canvas;
+            float refPpu = canvas != null ? canvas.referencePixelsPerUnit : 100f;
+            int n = 0;
+            for (int ci = 0; ci < info.characterCount && n < spots.Count; ci++)
             {
-                var sp = spots[i];
-                var icon = IconAt(i);
-                int last = sp.index + sp.count - 1;
-                if (last >= chars.Count) { icon.image.gameObject.SetActive(false); continue; }
-                var a = chars[sp.index];
-                var b = chars[last];
-                float x0 = a.cursorPos.x * k;
-                float x1 = Mathf.Approximately(a.cursorPos.y, b.cursorPos.y) ? (b.cursorPos.x + b.charWidth) * k : x0 + sp.width;
+                var c = info.characterInfo[ci];
+                if (c.character != Mark) continue;
+                var sp = spots[n];
+                var icon = IconAt(n);
+                n++;
                 icon.image.gameObject.SetActive(true);
                 icon.image.sprite = sp.sprite;
                 icon.image.color = new Color(1f, 1f, 1f, text.color.a);
@@ -130,14 +137,18 @@ namespace Gloomdelve
                 if (sliced)   // border drawn at about a third of the button height
                     icon.image.pixelsPerUnitMultiplier = Mathf.Max(0.01f, sp.sprite.border.x * refPpu / sp.sprite.pixelsPerUnit / (h * 0.34f));
                 var rt = icon.image.rectTransform;
-                rt.sizeDelta = new Vector2(sp.width, h);
-                rt.anchoredPosition = new Vector2((x0 + x1) * 0.5f, a.cursorPos.y * k - text.fontSize * 0.58f);
+                rt.sizeDelta = new Vector2(sp.width * k, h);
+                // xAdvance is where the next character starts: the button sits in the middle of the gap before it,
+                // centred on the height of the capitals
+                rt.anchoredPosition = new Vector2(c.xAdvance - sp.gap * k * 0.5f, c.baseLine + text.fontSize * 0.31f);
                 icon.label.font = text.font;
-                icon.label.fontSize = LabelSize;
+                icon.label.fontSharedMaterial = text.font.material;
+                icon.label.fontSize = Mathf.Max(8f, h * labelScale);
                 icon.label.text = sp.label;
                 icon.label.color = new Color(sp.ink.r, sp.ink.g, sp.ink.b, text.color.a);
                 icon.label.rectTransform.anchoredPosition = new Vector2(0f, sliced ? h * 0.05f : 0f);
             }
+            for (int i = n; i < spots.Count && i < icons.Count; i++) icons[i].image.gameObject.SetActive(false);
         }
 
         Icon IconAt(int i)
@@ -154,12 +165,12 @@ namespace Gloomdelve
 
                 var lgo = new GameObject("Label", typeof(RectTransform));
                 lgo.transform.SetParent(go.transform, false);
-                var lt = lgo.AddComponent<Text>();
+                var lt = lgo.AddComponent<TextMeshProUGUI>();
                 lt.raycastTarget = false;
-                lt.alignment = TextAnchor.MiddleCenter;
-                lt.fontStyle = FontStyle.Bold;
-                lt.horizontalOverflow = HorizontalWrapMode.Overflow;
-                lt.verticalOverflow = VerticalWrapMode.Overflow;
+                lt.alignment = TextAlignmentOptions.Center;
+                lt.fontStyle = FontStyles.Bold;
+                lt.textWrappingMode = TextWrappingModes.NoWrap;
+                lt.overflowMode = TextOverflowModes.Overflow;
                 var lrt = lt.rectTransform;
                 lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
                 lrt.offsetMin = lrt.offsetMax = Vector2.zero;
