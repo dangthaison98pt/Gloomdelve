@@ -12,9 +12,15 @@ namespace Gloomdelve
     public class VillageInterior : Entity, IInteractable
     {
         /// <summary>Room size in cells (floor space), and the frame the camera keeps to around it.</summary>
-        public const int RoomW = 14, RoomH = 6, FrameW = 34, FrameH = 17;
+        public const int RoomW = 14, RoomH = 13;        // two storeys of six cells with the floor between them
 
         [Tooltip("Rooms by building number.")] public Sprite[] rooms;
+        [Tooltip("The fire (a child object with its flames and light): put in the hearth of the rooms that have one.")] public Transform fire;
+
+        /// <summary>Where the fire burns in each room, in floor-space pixels of the picture (-1 = no fire): the forge's
+        /// furnace, the hearths of the hall and of the player's house. Same numbers as ArtGenerator.Village, Room.</summary>
+        static readonly int[] FireX = { 193, -1, -1, -1, -1, -1, 196, 198 };
+        static readonly int[] FireY = { 8, 0, 0, 0, 0, 0, 4, 4 };
 
         public int Index { get; private set; }
         bool cameraHere;
@@ -30,12 +36,21 @@ namespace Gloomdelve
         /// <summary>Left edge of the room's floor (the door is the second cell).</summary>
         float RoomLeft => Mathf.Floor(pos.x) - 1f;
         Rect RoomRect => new Rect(RoomLeft, pos.y, RoomW, RoomH);
-        Rect Frame => new Rect(RoomLeft + RoomW * 0.5f - FrameW * 0.5f, pos.y + RoomH * 0.5f - FrameH * 0.5f, FrameW, FrameH);
+        /// <summary>What the camera is kept to while the player is inside: the middle of the room. The room is smaller
+        /// than the view, so the camera stands still on it instead of sliding after the player.</summary>
+        Rect Frame => new Rect(RoomLeft + RoomW * 0.5f - 0.05f, pos.y + RoomH * 0.5f - 0.05f, 0.1f, 0.1f);
 
         public override void OnSpawn()
         {
             base.OnSpawn();
             if (sr != null && rooms != null && Index >= 0 && Index < rooms.Length && rooms[Index] != null) sr.sprite = rooms[Index];
+            if (fire != null)
+            {
+                bool lit = Index >= 0 && Index < FireX.Length && FireX[Index] >= 0;
+                fire.gameObject.SetActive(lit);
+                // floor-space pixel 24 is the middle of the door cell, where this entity stands
+                if (lit) fire.localPosition = new Vector3((FireX[Index] - 24f) / 16f, FireY[Index] / 16f, 0f);
+            }
             var cfg = World.config;
             if (cfg == null || cfg.prefabs == null) return;
             int cx = Mathf.FloorToInt(pos.x), cy = Mathf.RoundToInt(pos.y);
@@ -80,7 +95,7 @@ namespace Gloomdelve
         {
             cameraHere = true;
             var dir = GameDirector.Instance;
-            if (dir != null && dir.cameraFollow != null) dir.cameraFollow.SetBounds(Frame);
+            if (dir != null && dir.cameraFollow != null) dir.cameraFollow.SetBounds(Frame, 1.16f);       // a step back: the whole house in view, cellar boards to roof beams
             if (Ambience.Instance != null) Ambience.Instance.gameObject.SetActive(false);        // no snow indoors
         }
 

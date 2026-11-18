@@ -1344,8 +1344,19 @@ namespace Gloomdelve.EditorTools
                 Reg("interior", Make<VillageInterior>("VillageInterior", "Level", "door", new Vector2(1.2f, 1.7f), rooms[0], null, 2, (e, g, s) =>
                 {
                     e.flipWithFacing = false; e.rooms = rooms;
-                    s.transform.localPosition = new Vector3(5.5f, 3f, 0f);        // the picture is the whole room; the entity stands at its door
-                    Lamp(g, "RoomLight", new Vector2(5.5f, 3.4f), 11f, 0.55f, 0.06f);
+                    s.transform.localPosition = new Vector3(5.5f, 6.5f, 0f);      // the picture is the whole house, both storeys; the entity stands at its door
+                    Lamp(g, "RoomLight", new Vector2(5.5f, 3.2f), 10f, 0.5f, 0.06f);
+                    Lamp(g, "UpstairsLight", new Vector2(5.5f, 10f), 10f, 0.42f, 0.06f);
+                    // the fire: flames that move and a light that flickers (the room puts it in its hearth, or away)
+                    var fireGo = new GameObject("Fire");
+                    fireGo.transform.SetParent(g.transform, false);
+                    var fsr = fireGo.AddComponent<SpriteRenderer>();
+                    fsr.sprite = ArtGenerator.S("Sprites/Village/fire_0"); fsr.sharedMaterial = unlitMat; fsr.sortingOrder = 3;
+                    var flick = fireGo.AddComponent<SpriteFlicker>();
+                    flick.frames = ArtGenerator.Frames("Sprites/Village/fire", 4); flick.fps = 5f;
+                    var fl = Lamp(fireGo, "FireLight", new Vector2(0f, 0.6f), 6.5f, 0.9f, 0.22f); fl.pulse = true;       // a slow breathing glow, not a nervous flicker
+                    fl.color = new Color(1f, 0.62f, 0.3f);
+                    e.fire = fireGo.transform;
                 }));
             }
             Reg("sign", Make<Sign>("Sign", "Level", "sign", new Vector2(0.9f, 1f), ArtGenerator.S("Sprites/Props/sign"), null, 3, (e, g, s) => { e.flipWithFacing = false; }));

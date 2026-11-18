@@ -18,6 +18,7 @@ namespace Gloomdelve
         float trauma;
         float lookAheadX;
         bool hasBounds;
+        float baseSize;
 
         void Awake() { cam = GetComponent<Camera>(); }
 
@@ -27,13 +28,16 @@ namespace Gloomdelve
             bounds = levelBounds;
             hasBounds = true;
             cam.orthographicSize = orthoSize;
+            baseSize = orthoSize;
             current = p != null ? p.Center : levelBounds.center;
             Snap();
         }
 
         /// <summary>Keeps the camera to another part of the level from now on (a room of a house, the street) and jumps there.</summary>
-        public void SetBounds(Rect r)
+        /// <param name="zoomOut">1 = the usual view; above 1 shows more (a house seen whole, both storeys).</param>
+        public void SetBounds(Rect r, float zoomOut = 1f)
         {
+            if (baseSize > 0f) cam.orthographicSize = baseSize * Mathf.Max(0.5f, zoomOut);
             bounds = r;
             hasBounds = true;
             if (target != null) current = target.Center;

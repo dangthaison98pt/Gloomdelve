@@ -8,8 +8,8 @@ namespace Gloomdelve.EditorTools
     /// 4 Pip's Oddments, 5 lamp house, 6 village hall, 7 the player's house.
     ///  - Fronts ("Sprites/Village/front_N_0" dark, "_1" lit): 112 x 128 px, a tall town house seven tiles wide,
     ///    made to stand shoulder to shoulder with its neighbours. Door in the middle at street level.
-    ///  - Rooms ("Sprites/Village/room_N"): 544 x 272 px - the furnished room (16 x 8 tiles with its walls) in the
-    ///    middle of a dark surround as large as the camera's view, so nothing else shows while inside.
+    ///  - Rooms ("Sprites/Village/room_N"): 544 x 304 px - the inside of the house, two storeys joined by a ladder
+    ///    (16 x 15 tiles with its walls), in the middle of a dark surround as large as the camera's view.
     /// </summary>
     public static partial class ArtGenerator
     {
@@ -30,6 +30,7 @@ namespace Gloomdelve.EditorTools
                 Save(Room(k), d + "room_" + k, PCenter);
             }
             StreetArt(d);
+            for (int f = 0; f < 4; f++) Save(FlameFrame(f), d + "fire_" + f, new Vector2(0.5f, 0f));
             {
                 // the moon over Brindlemoor: a crescent, the rest of the disc only just showing, a thin halo round it
                 var p = new Px(48, 48);
@@ -426,7 +427,12 @@ namespace Gloomdelve.EditorTools
 
         // =============================================================================== rooms
 
-        const int RoomPxW = 544, RoomPxH = 272, RX = 144, RY = 72;      // RX,RY: bottom-left of the room's walls (256 x 128)
+        // Rooms: two storeys behind every front - the shop (or the living room) at street level, the keeper's own
+        // room upstairs, a ladder between them. 544 x 304 px: the house (16 x 15 tiles with its walls) in the middle
+        // of a dark surround. Floor space of each storey is 224 x 96 px; the upper floor is 112 px above the lower.
+        const int RoomPxW = 544, RoomPxH = 304, RX = 144, RY = 32, UpperY = 112;
+        /// <summary>Where the ladder stands, in floor-space pixels (the fourth cell).</summary>
+        const int LadderX = 48;
 
         static Px Room(int kind)
         {
@@ -434,129 +440,192 @@ namespace Gloomdelve.EditorTools
             p.Rect(0, 0, RoomPxW, RoomPxH, C(5, 5, 10));
             Color32[] papers = { C(92, 84, 88), C(150, 118, 84), C(206, 214, 196), C(86, 108, 148), C(170, 112, 104), C(84, 86, 116), C(150, 100, 76), C(140, 128, 108) };
             Color32 paper = papers[kind], paperD = Mul(paper, 0.78f), wood = C(120, 82, 52), woodD = C(84, 54, 34), woodL = C(160, 116, 74);
-            int ix = RX + 16, iy = RY + 16;                                   // bottom-left of the floor space (224 x 96)
-            // walls of the room
-            p.Rect(RX, RY, 256, 128, VBeam);
-            p.Rect(ix, iy, 224, 96, paper);
-            for (int x = 0; x < 224; x += 16) p.Rect(ix + x, iy + 30, 1, 66, paperD);                  // wall planks / paper seams
-            for (int x = 0; x < 224; x++) if ((x / 8) % 2 == 0) p.Set(ix + x, iy + 62, paperD);
-            p.Rect(ix, iy, 224, 28, Mul(wood, 0.9f)); p.Rect(ix, iy + 28, 224, 2, woodL);             // wainscot
-            for (int x = 0; x < 224; x += 12) p.Rect(ix + x, iy, 1, 28, woodD);
-            // ceiling beams and the floor (drawn over the tiles the room is built of)
-            p.Rect(RX, RY + 112, 256, 16, woodD); for (int x = 0; x < 256; x += 32) p.Rect(RX + x, RY + 106, 8, 6, woodD);
+            int ix = RX + 16, iy = RY + 16;                                   // bottom-left of the ground floor's floor space
+            int oy = 0;                                                       // 0 while drawing the ground floor, UpperY for upstairs
+
+            p.Rect(RX, RY, 256, 240, VBeam);
+            for (int storey = 0; storey < 2; storey++)
+            {
+                int by = iy + storey * UpperY;
+                Color32 pw = storey == 0 ? paper : Lerp(paper, C(120, 110, 100), 0.35f), pwD = Mul(pw, 0.78f);
+                p.Rect(ix, by, 224, 96, pw);
+                for (int x = 0; x < 224; x += 16) p.Rect(ix + x, by + 30, 1, 66, pwD);
+                for (int x = 0; x < 224; x++) if ((x / 8) % 2 == 0) p.Set(ix + x, by + 62, pwD);
+                p.Rect(ix, by, 224, 28, Mul(wood, 0.9f)); p.Rect(ix, by + 28, 224, 2, woodL);             // wainscot
+                for (int x = 0; x < 224; x += 12) p.Rect(ix + x, by, 1, 28, woodD);
+            }
+            // the roof beams, the floor between the storeys (with the hatch for the ladder), the ground floor's boards
+            p.Rect(RX, RY + 224, 256, 16, woodD); for (int x = 0; x < 256; x += 32) p.Rect(RX + x, RY + 218, 8, 6, woodD);
+            p.Rect(RX, iy + 96, 256, 16, wood); p.Rect(RX, iy + 111, 256, 1, woodL); p.Rect(RX, iy + 96, 256, 2, woodD);
+            for (int x = 0; x < 256; x += 24) p.Rect(RX + x, iy + 98, 1, 13, woodD);
+            for (int x = 0; x < 256; x += 32) p.Rect(RX + x, iy + 90, 6, 6, woodD);
+            p.Rect(ix + LadderX - 2, iy + 96, 20, 16, C(30, 22, 22));                                    // the hatch
             p.Rect(RX, RY, 256, 16, wood); p.Rect(RX, RY + 15, 256, 1, woodL); p.Rect(RX, RY, 256, 1, woodD);
             for (int x = 0; x < 256; x += 24) p.Rect(RX + x, RY, 1, 15, woodD);
-            p.Rect(RX, RY, 16, 128, woodD); p.Rect(RX + 240, RY, 16, 128, woodD); p.Rect(RX + 15, RY + 16, 1, 96, wood); p.Rect(RX + 240, RY + 16, 1, 96, wood);
+            p.Rect(RX, RY, 16, 240, woodD); p.Rect(RX + 240, RY, 16, 240, woodD); p.Rect(RX + 15, RY + 16, 1, 208, wood); p.Rect(RX + 240, RY + 16, 1, 208, wood);
 
-            // local helpers: coordinates are floor-space pixels (0..224 across, 0 = floor)
-            void R(int x, int y, int w, int h, Color32 c) => p.Rect(ix + x, iy + y, w, h, c);
+            // helpers: coordinates are floor-space pixels of the storey being drawn (0..224 across, 0 = that floor)
+            void R(int x, int y, int w, int h, Color32 c) => p.Rect(ix + x, iy + oy + y, w, h, c);
+            void Dot(int x, int y, Color32 c) => p.Set(ix + x, iy + oy + y, c);
             void Shelf(int x, int y, int w) { R(x, y, w, 2, woodD); R(x, y + 2, w, 1, woodL); R(x, y - 3, 2, 3, woodD); R(x + w - 2, y - 3, 2, 3, woodD); }
             void Bottles(int x, int y, int n, int seed)
             {
                 Color32[] cs = { C(214, 70, 80), C(90, 170, 110), C(90, 140, 210), C(236, 196, 90), C(170, 100, 190) };
                 for (int i = 0; i < n; i++) { int h = 5 + (i * 3 + seed) % 4; R(x + i * 6, y, 4, h, cs[(i + seed) % cs.Length]); R(x + i * 6 + 1, y + h, 2, 2, C(200, 220, 235)); R(x + i * 6, y + h - 1, 1, 1, C(255, 255, 255)); }
             }
-            void Crate(int x, int y, int s) { R(x, y, s, s, wood); R(x, y, s, 1, woodD); R(x, y + s - 1, s, 1, woodL); R(x, y, 1, s, woodD); R(x + s - 1, y, 1, s, woodD); for (int i = 2; i < s - 2; i++) { p.Set(ix + x + i, iy + y + i, woodD); p.Set(ix + x + s - 1 - i, iy + y + i, woodD); } }
+            void Crate(int x, int y, int s) { R(x, y, s, s, wood); R(x, y, s, 1, woodD); R(x, y + s - 1, s, 1, woodL); R(x, y, 1, s, woodD); R(x + s - 1, y, 1, s, woodD); for (int i = 2; i < s - 2; i++) { Dot(x + i, y + i, woodD); Dot(x + s - 1 - i, y + i, woodD); } }
             void Barrel(int x, int y) { R(x, y, 12, 16, C(134, 90, 54)); R(x + 1, y + 16, 10, 1, woodD); R(x, y + 3, 12, 2, C(90, 92, 104)); R(x, y + 11, 12, 2, C(90, 92, 104)); R(x, y, 1, 16, woodD); R(x + 11, y, 1, 16, woodD); }
-            void Lamp(int x, int y) { R(x, y + 7, 1, 96 - y - 7, VBeam); R(x - 3, y, 7, 7, VBeam); R(x - 2, y + 1, 5, 5, VGlow); R(x - 1, y + 2, 3, 3, VGlowL); for (int g = 1; g <= 3; g++) { p.Set(ix + x - 3 - g, iy + y + 3, Lerp(paper, VGlow, 0.5f - g * 0.12f)); p.Set(ix + x + 3 + g, iy + y + 3, Lerp(paper, VGlow, 0.5f - g * 0.12f)); } }
-            void NightWindow(int x, int y, int w, int h) { R(x - 2, y - 2, w + 4, h + 4, VBeam); R(x, y, w, h, C(30, 40, 84)); R(x + w / 2, y, 1, h, VBeam); R(x, y + h / 2, w, 1, VBeam); p.Set(ix + x + 3, iy + y + h - 4, VSnow); p.Set(ix + x + w - 4, iy + y + 3, VSnow); p.Set(ix + x + 6, iy + y + 5, VSnowD); R(x - 2, y - 2, w + 4, 1, VSnow); }
+            void Lamp(int x, int y) { R(x, y + 7, 1, 96 - y - 7, VBeam); R(x - 3, y, 7, 7, VBeam); R(x - 2, y + 1, 5, 5, VGlow); R(x - 1, y + 2, 3, 3, VGlowL); }
+            void NightWindow(int x, int y, int w, int h) { R(x - 2, y - 2, w + 4, h + 4, VBeam); R(x, y, w, h, C(30, 40, 84)); R(x + w / 2, y, 1, h, VBeam); R(x, y + h / 2, w, 1, VBeam); Dot(x + 3, y + h - 4, VSnow); Dot(x + w - 4, y + 3, VSnow); Dot(x + 6, y + 5, VSnowD); R(x - 2, y - 2, w + 4, 1, VSnow); }
             void Counter(int x, int w) { R(x, 0, w, 14, wood); R(x, 14, w, 2, woodL); R(x, 0, w, 1, woodD); for (int i = 6; i < w; i += 10) R(x + i, 2, 1, 11, woodD); }
+            // the hearth: stone, with logs in it - the flames are a moving picture laid over it in the game
             void Fireplace(int x)
             {
                 R(x, 0, 40, 44, VStone); R(x, 44, 40, 4, VStoneD); R(x - 2, 44, 44, 2, VStone);
                 for (int y = 6; y < 44; y += 8) R(x, y, 40, 1, VStoneD);
                 R(x + 8, 0, 24, 26, C(26, 20, 22));
-                R(x + 12, 0, 16, 4, woodD);
-                for (int i = 0; i < 5; i++) { int fh = 6 + (i * 5) % 9; R(x + 12 + i * 3, 4, 3, fh, i % 2 == 0 ? C(255, 150, 60) : C(255, 200, 90)); R(x + 13 + i * 3, 4, 1, fh - 3, C(255, 240, 180)); }
+                R(x + 11, 0, 18, 3, woodD); R(x + 13, 3, 14, 2, C(110, 60, 40)); R(x + 12, 1, 16, 1, C(190, 90, 50));
                 R(x + 10, 48, 20, 48, VStoneD); R(x + 10, 48, 2, 48, VStone);
             }
             void Table(int x, int w) { R(x, 12, w, 3, woodL); R(x, 11, w, 1, woodD); R(x + 2, 0, 3, 11, woodD); R(x + w - 5, 0, 3, 11, woodD); }
             void Rug(int x, int w, Color32 c) { R(x, 0, w, 2, c); for (int i = 2; i < w - 2; i += 4) R(x + i, 0, 2, 1, Mul(c, 1.3f)); R(x, 0, 1, 2, Mul(c, 0.7f)); R(x + w - 1, 0, 1, 2, Mul(c, 0.7f)); }
+            void Bed(int x, Color32 blanket)
+            {
+                R(x, 0, 4, 22, woodD); R(x + 4, 0, 54, 8, wood); R(x + 56, 0, 4, 14, woodD);
+                R(x + 4, 8, 52, 5, C(226, 226, 236)); R(x + 20, 8, 36, 7, blanket); R(x + 20, 14, 36, 1, Lerp(blanket, C(255, 255, 255), 0.25f)); R(x + 6, 11, 12, 5, C(248, 248, 252));
+                for (int bx = x + 24; bx < x + 54; bx += 8) R(bx, 9, 4, 4, Mul(blanket, 0.8f));
+            }
+            void Wardrobe(int x) { R(x, 0, 28, 54, woodD); R(x + 2, 2, 11, 48, wood); R(x + 15, 2, 11, 48, wood); R(x + 11, 24, 2, 4, C(214, 170, 80)); R(x + 15, 24, 2, 4, C(214, 170, 80)); R(x - 1, 54, 30, 2, woodL); }
+            void Chest(int x) { R(x, 0, 22, 12, wood); R(x, 12, 22, 4, woodL); R(x, 11, 22, 1, woodD); R(x + 9, 8, 4, 5, C(214, 170, 80)); R(x, 0, 1, 16, woodD); R(x + 21, 0, 1, 16, woodD); }
 
+            // ---------------------------------------------------------------- ground floor
+            oy = 0;
             // the door back to the street (second cell from the left)
             R(14, 0, 20, 34, VBeam); R(16, 0, 16, 31, C(98, 62, 40)); for (int x = 19; x < 32; x += 4) R(x, 0, 1, 31, C(72, 46, 30));
-            R(20, 18, 8, 8, VBeam); R(21, 19, 6, 6, C(30, 40, 84)); p.Set(ix + 29, iy + 14, C(236, 200, 110));
+            R(20, 18, 8, 8, VBeam); R(21, 19, 6, 6, C(30, 40, 84)); Dot(29, 14, C(236, 200, 110));
             Rug(12, 24, C(120, 60, 60));
 
             switch (kind)
             {
                 case 0:     // the forge: furnace, anvil, a rack of blades
                     R(168, 0, 50, 58, VStone); R(168, 58, 50, 4, VStoneD); for (int y = 8; y < 58; y += 9) R(168, y, 50, 1, VStoneD);
-                    R(178, 6, 30, 26, C(26, 20, 22)); R(182, 6, 22, 8, C(255, 130, 50)); R(186, 6, 14, 14, C(255, 190, 80)); R(190, 6, 6, 9, C(255, 244, 200));
+                    R(178, 6, 30, 26, C(26, 20, 22)); R(182, 6, 22, 4, C(190, 80, 40)); R(186, 6, 14, 2, C(240, 150, 70));          // a bed of coals; the fire burns over it
                     R(186, 62, 16, 34, VStoneD);
                     Counter(76, 92);
-                    R(46, 0, 14, 5, VStoneD); R(44, 5, 18, 4, C(70, 72, 84)); R(48, 9, 10, 3, C(70, 72, 84)); R(42, 12, 22, 4, C(96, 98, 112));       // anvil
-                    R(84, 52, 60, 2, woodD); for (int i = 0; i < 6; i++) { R(88 + i * 9, 54, 2, 20, C(190, 196, 210)); R(86 + i * 9, 54, 6, 2, C(120, 84, 52)); R(88 + i * 9, 50, 2, 4, C(90, 60, 40)); }
-                    R(150, 40, 10, 14, C(60, 62, 76)); R(152, 54, 6, 6, C(120, 84, 52));                                                              // tongs and hammer
-                    Barrel(150, 0); Lamp(70, 78);
+                    R(74, 52, 60, 2, woodD); for (int i = 0; i < 6; i++) { R(78 + i * 9, 54, 2, 20, C(190, 196, 210)); R(76 + i * 9, 54, 6, 2, C(120, 84, 52)); R(78 + i * 9, 50, 2, 4, C(90, 60, 40)); }
+                    R(142, 0, 14, 5, VStoneD); R(140, 5, 18, 4, C(70, 72, 84)); R(144, 9, 10, 3, C(70, 72, 84)); R(138, 12, 22, 4, C(96, 98, 112));       // anvil
+                    R(150, 40, 10, 14, C(60, 62, 76)); R(152, 54, 6, 6, C(120, 84, 52));
+                    Lamp(100, 80);
                     break;
-                case 1:     // the ropewalk: spools and coils everywhere, boots on a rack
+                case 1:     // the ropewalk: spools and coils everywhere
                     Shelf(80, 58, 70); for (int i = 0; i < 5; i++) { R(84 + i * 13, 61, 10, 12, C(206, 176, 112)); R(87 + i * 13, 64, 4, 6, C(150, 120, 70)); }
                     Shelf(160, 44, 50); for (int i = 0; i < 3; i++) { R(164 + i * 15, 47, 9, 8, C(110, 72, 44)); R(164 + i * 15, 47, 4, 3, C(84, 54, 34)); }
                     Counter(76, 92);
                     for (int i = 0; i < 3; i++) { R(180 + i * 12, 0, 10, 4 + i * 3, C(206, 176, 112)); R(183 + i * 12, 1, 4, 2, C(150, 120, 70)); }
-                    R(44, 0, 22, 30, woodD); R(46, 2, 18, 26, wood); for (int y = 6; y < 28; y += 7) R(46, y, 18, 1, C(206, 176, 112));      // a loom of cord
-                    for (int x = 60; x < 220; x += 3) p.Set(ix + x, iy + 92 - (int)(Mathf.Sin((x - 60) / 160f * Mathf.PI) * 9f), C(206, 176, 112));   // a rope slung under the ceiling
-                    Lamp(150, 80); NightWindow(48, 50, 16, 18);
+                    for (int x = 70; x < 220; x += 3) Dot(x, 92 - (int)(Mathf.Sin((x - 70) / 150f * Mathf.PI) * 9f), C(206, 176, 112));
+                    Lamp(150, 80);
                     break;
                 case 2:     // the apothecary: shelves of bottles, a cauldron, herbs drying
-                    Shelf(70, 72, 120); Bottles(74, 75, 19, 1);
-                    Shelf(70, 52, 120); Bottles(76, 55, 18, 3);
+                    Shelf(74, 72, 116); Bottles(78, 75, 18, 1);
+                    Shelf(74, 52, 116); Bottles(80, 55, 17, 3);
                     Counter(76, 92); Bottles(140, 16, 4, 2);
                     R(186, 4, 30, 18, C(40, 40, 50)); R(184, 20, 34, 3, C(60, 60, 72)); R(190, 22, 22, 2, C(120, 220, 140)); R(190, 0, 3, 4, C(40, 40, 50)); R(210, 0, 3, 4, C(40, 40, 50));
                     R(196, 26, 2, 3, C(160, 240, 170)); R(204, 29, 2, 3, C(160, 240, 170));
-                    for (int i = 0; i < 9; i++) { R(40 + i * 21, 84, 2, 12, C(90, 150, 80)); R(39 + i * 21, 80, 4, 5, i % 2 == 0 ? C(120, 170, 90) : C(190, 150, 200)); }
-                    Lamp(60, 76); NightWindow(44, 44, 14, 18);
+                    for (int i = 0; i < 7; i++) { R(76 + i * 21, 84, 2, 12, C(90, 150, 80)); R(75 + i * 21, 80, 4, 5, i % 2 == 0 ? C(120, 170, 90) : C(190, 150, 200)); }
+                    Lamp(200, 76);
                     break;
-                case 3:     // the map room: a great map on the wall, a desk, a globe, books
+                case 3:     // the map room: a great map on the wall, a desk with a globe
                     R(82, 44, 84, 46, woodD); R(84, 46, 80, 42, C(232, 220, 190));
                     for (int i = 0; i < 9; i++) R(90 + i * 8, 52 + (i * 7) % 20, 5 + i % 3, 3 + i % 2, C(150, 170, 120));
-                    for (int x = 86; x < 162; x += 4) p.Set(ix + x, iy + 60 + (int)(Mathf.Sin(x * 0.3f) * 6f), C(120, 96, 70));
+                    for (int x = 86; x < 162; x += 4) Dot(x, 60 + (int)(Mathf.Sin(x * 0.3f) * 6f), C(120, 96, 70));
                     R(150, 78, 3, 3, C(214, 70, 80)); R(100, 58, 3, 3, C(214, 70, 80));
                     Counter(76, 92);
                     Table(170, 46); R(176, 15, 16, 2, C(232, 220, 190)); R(198, 15, 2, 8, woodD); R(193, 23, 12, 12, C(80, 130, 180)); R(196, 26, 5, 4, C(120, 170, 110));
-                    R(40, 0, 26, 60, woodD); for (int y = 4; y < 58; y += 14) { R(42, y, 22, 11, C(40, 28, 24)); for (int i = 0; i < 6; i++) R(43 + i * 3 + i / 3, y, 3, 8 + (i * 5 + y) % 3, new[] { C(170, 60, 60), C(70, 110, 160), C(90, 140, 90), C(200, 170, 90) }[(i + y) % 4]); }
                     Lamp(190, 78);
                     break;
                 case 4:     // Pip's Oddments: crates, barrels, rugs and far too many lamps
-                    Crate(170, 0, 20); Crate(192, 0, 16); Crate(176, 20, 16); Barrel(210, 0); Barrel(42, 0); Crate(56, 0, 14);
+                    Crate(170, 0, 20); Crate(192, 0, 16); Crate(176, 20, 16); Barrel(210, 0);
                     Counter(76, 92); R(84, 16, 8, 6, C(214, 70, 80)); R(100, 16, 6, 9, C(90, 140, 210)); R(150, 16, 10, 5, C(236, 196, 90));
-                    R(84, 50, 26, 34, C(150, 70, 110)); for (int y = 54; y < 84; y += 6) R(86, y, 22, 2, C(236, 196, 90));                    // a rug on the wall
+                    R(84, 50, 26, 34, C(150, 70, 110)); for (int y = 54; y < 84; y += 6) R(86, y, 22, 2, C(236, 196, 90));
                     R(120, 46, 22, 38, C(70, 130, 140)); for (int y = 50; y < 84; y += 8) R(122, y, 18, 3, C(240, 232, 214));
                     Shelf(150, 60, 60); Bottles(154, 63, 4, 4); R(182, 63, 8, 8, C(200, 170, 90)); R(194, 63, 10, 5, C(170, 100, 190));
-                    Lamp(50, 80); Lamp(112, 86); Lamp(170, 82); Lamp(204, 78);
+                    Lamp(112, 86); Lamp(170, 82); Lamp(204, 78);
                     break;
-                case 5:     // the lamp house: lamps in rows, oil in barrels, the stair up to the big lamp
-                    for (int i = 0; i < 8; i++) Lamp(48 + i * 22, 74 + (i % 2) * 8);
+                case 5:     // the lamp house: lamps in rows, oil in barrels
+                    for (int i = 0; i < 7; i++) Lamp(74 + i * 22, 74 + (i % 2) * 8);
                     Shelf(80, 46, 80); for (int i = 0; i < 7; i++) { R(84 + i * 11, 49, 7, 9, VBeam); R(85 + i * 11, 50, 5, 6, i % 3 == 0 ? VGlassOffL : VGlowL); }
                     Counter(76, 92);
                     Barrel(176, 0); Barrel(190, 0); Barrel(183, 16); R(206, 0, 10, 14, C(214, 170, 80)); R(208, 14, 6, 3, C(150, 108, 44));
-                    for (int i = 0; i < 8; i++) R(40 + i * 3, i * 7, 16, 3, woodL);                                                            // steps going up
-                    R(38, 0, 3, 60, woodD);
                     break;
                 case 6:     // the village hall: the hearth, a long table, the banner of Brindlemoor
                     Fireplace(176);
-                    R(96, 40, 24, 50, C(150, 44, 50)); R(96, 88, 24, 2, VBeam); p.Set(ix + 96, iy + 40, paper); p.Set(ix + 119, iy + 40, paper);
+                    R(96, 40, 24, 50, C(150, 44, 50)); R(96, 88, 24, 2, VBeam);
                     R(102, 62, 12, 5, C(250, 200, 70)); R(102, 67, 2, 4, C(250, 200, 70)); R(107, 67, 2, 4, C(250, 200, 70)); R(112, 67, 2, 4, C(250, 200, 70));
-                    Table(60, 100); R(70, 15, 6, 5, C(214, 170, 80)); R(96, 15, 10, 3, C(232, 220, 190)); R(130, 15, 4, 8, C(190, 196, 210)); R(131, 23, 2, 3, VGlowL);
-                    foreach (int cx in new[] { 48, 164 }) { R(cx, 0, 2, 22, woodD); R(cx, 10, 10, 2, wood); R(cx + 8, 0, 2, 10, woodD); }          // chairs
-                    R(136, 60, 26, 2, woodD); R(140, 62, 3, 10, C(232, 220, 190)); R(154, 62, 3, 10, C(232, 220, 190)); R(146, 62, 5, 6, C(150, 110, 70));   // antlers on a board
-                    NightWindow(44, 48, 18, 22); Lamp(128, 84);
-                    Rug(60, 100, C(150, 44, 50));
+                    Table(72, 92); R(80, 15, 6, 5, C(214, 170, 80)); R(100, 15, 10, 3, C(232, 220, 190)); R(134, 15, 4, 8, C(190, 196, 210)); R(135, 23, 2, 3, VGlowL);
+                    R(164, 0, 2, 22, woodD); R(164, 10, 10, 2, wood); R(172, 0, 2, 10, woodD);
+                    R(136, 60, 26, 2, woodD); R(140, 62, 3, 10, C(232, 220, 190)); R(154, 62, 3, 10, C(232, 220, 190)); R(146, 62, 5, 6, C(150, 110, 70));
+                    Lamp(128, 84);
+                    Rug(72, 92, C(150, 44, 50));
                     break;
-                default:    // home: the bed, a fire, a table with supper, boots by the door
+                default:    // home, downstairs: the fire, a table laid for supper, an armchair, boots by the door
                     Fireplace(178);
-                    R(98, 0, 4, 22, woodD); R(102, 0, 54, 8, wood); R(154, 0, 4, 14, woodD);                                                   // the bed
-                    R(102, 8, 52, 5, C(226, 226, 236)); R(118, 8, 36, 7, C(176, 62, 64)); R(118, 14, 36, 1, C(214, 100, 100)); R(104, 11, 12, 5, C(248, 248, 252));
-                    for (int x = 122; x < 152; x += 8) R(x, 9, 4, 4, C(150, 46, 50));
-                    Table(44, 40); R(52, 15, 8, 3, C(232, 220, 190)); R(66, 15, 4, 6, C(150, 110, 70)); R(74, 15, 3, 7, VGlowL);
-                    NightWindow(110, 46, 22, 24);
-                    R(60, 52, 22, 26, woodD); R(62, 54, 18, 22, C(120, 150, 130)); R(66, 58, 10, 8, C(232, 220, 190));                         // a picture
-                    Shelf(150, 60, 24); R(153, 63, 5, 8, C(170, 60, 60)); R(160, 63, 4, 9, C(70, 110, 160)); R(166, 63, 5, 6, C(200, 170, 90));
-                    Rug(96, 70, C(84, 110, 150)); Lamp(90, 82);
-                    R(36, 0, 6, 7, C(96, 58, 32));                                                                                              // boots by the door
+                    Table(84, 44); R(92, 15, 8, 3, C(232, 220, 190)); R(106, 15, 4, 6, C(150, 110, 70)); R(114, 15, 3, 7, VGlowL);
+                    R(140, 0, 26, 12, C(96, 110, 150)); R(138, 0, 4, 24, C(70, 84, 120)); R(142, 12, 22, 4, C(120, 134, 176)); R(162, 0, 4, 16, C(70, 84, 120));       // an armchair by the fire
+                    R(100, 52, 22, 26, woodD); R(102, 54, 18, 22, C(120, 150, 130)); R(106, 58, 10, 8, C(232, 220, 190));
+                    Shelf(134, 60, 30); R(137, 63, 5, 8, C(170, 60, 60)); R(144, 63, 4, 9, C(70, 110, 160)); R(150, 63, 5, 6, C(200, 170, 90)); R(157, 63, 4, 7, C(90, 140, 90));
+                    Rug(84, 86, C(84, 110, 150)); Lamp(128, 82);
+                    R(36, 0, 6, 7, C(96, 58, 32));
                     break;
             }
+
+            // ---------------------------------------------------------------- upstairs: where the keeper lives
+            oy = UpperY;
+            switch (kind)
+            {
+                case 0: Bed(150, C(110, 110, 124)); Crate(90, 0, 18); Crate(110, 0, 14); Barrel(128, 0); NightWindow(100, 46, 18, 20); Shelf(160, 56, 44); R(164, 59, 3, 12, C(190, 196, 210)); R(172, 59, 3, 10, C(190, 196, 210)); R(182, 59, 8, 6, C(96, 98, 112)); Lamp(130, 82); break;
+                case 1: Bed(150, C(96, 140, 104)); R(86, 0, 22, 30, woodD); R(88, 2, 18, 26, wood); for (int y = 6; y < 28; y += 7) R(88, y, 18, 1, C(206, 176, 112)); NightWindow(118, 46, 18, 20); for (int i = 0; i < 3; i++) R(180 + i * 11, 56, 9, 9, C(206, 176, 112)); Shelf(176, 53, 40); Lamp(140, 82); break;
+                case 2: Bed(150, C(190, 70, 80)); R(84, 0, 26, 56, woodD); for (int y = 4; y < 54; y += 13) { R(86, y, 22, 10, C(40, 28, 24)); Bottles(87, y, 3, y); } NightWindow(120, 46, 18, 20); for (int i = 0; i < 5; i++) { R(150 + i * 14, 84, 2, 12, C(90, 150, 80)); R(149 + i * 14, 80, 4, 5, C(190, 150, 200)); } Lamp(134, 80); break;
+                case 3: Bed(84, C(84, 110, 170)); NightWindow(160, 40, 28, 30); R(196, 0, 3, 34, woodD); R(190, 0, 14, 2, woodD); for (int i = 0; i < 16; i++) Dot(197 - i, 34 + i / 2, C(214, 170, 80)); R(180, 40, 4, 4, C(214, 170, 80));       // a telescope at the big window
+                    Table(100, 44); R(104, 15, 30, 2, C(232, 220, 190)); Lamp(150, 82); break;
+                case 4: Bed(150, C(170, 100, 170)); Crate(84, 0, 20); Crate(106, 0, 16); Crate(90, 20, 16); Crate(124, 0, 14); NightWindow(128, 50, 16, 18); Lamp(110, 84); Lamp(190, 80); break;
+                case 5:     // the great lamp of the tower, behind its glass
+                    R(100, 0, 60, 6, VStoneD); R(108, 6, 44, 60, VBeam); R(112, 10, 36, 52, VGlow); R(120, 18, 20, 36, VGlowL); R(129, 6, 2, 60, VBeam); R(108, 34, 44, 2, VBeam);
+                    R(104, 66, 52, 4, VStoneD); Bed(164 - 4, C(96, 100, 150)); Barrel(84, 0); break;
+                case 6: Bed(150, C(150, 60, 64)); R(84, 0, 30, 60, woodD); for (int y = 4; y < 58; y += 14) { R(86, y, 26, 11, C(40, 28, 24)); for (int i = 0; i < 7; i++) R(87 + i * 3 + i / 3, y, 3, 8 + (i * 5 + y) % 3, new[] { C(170, 60, 60), C(70, 110, 160), C(90, 140, 90), C(200, 170, 90) }[(i + y) % 4]); }
+                    Table(118, 28); R(122, 15, 14, 2, C(232, 220, 190)); R(138, 15, 3, 7, VGlowL); NightWindow(124, 50, 16, 18); Rug(118, 90, C(150, 44, 50)); Lamp(170, 84); break;
+                default:    // home, upstairs: the bed the player wakes up in
+                    Bed(110, C(176, 62, 64)); Wardrobe(184); Chest(84);
+                    NightWindow(128, 46, 22, 24); Rug(104, 72, C(84, 110, 150)); Lamp(96, 82);
+                    R(176, 60, 5, 5, VBeam);
+                    break;
+            }
+
+            // ---------------------------------------------------------------- the ladder, from the ground floor up through the hatch
+            oy = 0;
+            R(LadderX, 0, 2, UpperY + 6, woodD); R(LadderX + 14, 0, 2, UpperY + 6, woodD);
+            R(LadderX + 1, 0, 1, UpperY + 6, woodL); R(LadderX + 15, 0, 1, UpperY + 6, woodL);
+            for (int y = 3; y < UpperY + 4; y += 5) { R(LadderX + 2, y, 12, 2, wood); R(LadderX + 2, y, 12, 1, woodD); }
+            return p;
+        }
+
+        /// <summary>Flames for a hearth or the forge: four pictures to play in a loop (unlit, so they shine).</summary>
+        static Px FlameFrame(int f)
+        {
+            var p = new Px(22, 22);
+            Color32 outer = C(232, 96, 40), mid = C(255, 164, 60), core = C(255, 232, 150), spark = C(255, 250, 220);
+            for (int x = 0; x < 22; x++)
+            {
+                float tongue = Mathf.Abs(Mathf.Sin(x * 0.55f + f * 1.7f)) * 0.55f + Mathf.Abs(Mathf.Sin(x * 1.3f - f * 2.3f)) * 0.3f;
+                float body = 1f - Mathf.Abs(x - 10.5f) / 11f;                  // tallest in the middle
+                int h = Mathf.Clamp(Mathf.RoundToInt((0.25f + tongue) * body * 22f), 0, 21);
+                for (int y = 0; y < h; y++)
+                {
+                    float t = y / (float)Mathf.Max(1, h);
+                    p.Set(x, y, t < 0.3f && body > 0.45f ? core : t < 0.62f ? mid : outer);
+                }
+                if (h > 6 && (x + f) % 5 == 0) p.Set(x, 1, spark);
+            }
+            p.Set(4 + (f * 5) % 14, 18 + f % 3, mid);                           // a spark flying up
             return p;
         }
     }
