@@ -76,10 +76,10 @@ namespace Gloomdelve
             for (int i = 0; i < d.spawns.Count; i++) if (d.spawns[i].id == "shopitem") idx.Add(i);
             if (idx.Count == 0 || cfg.shop == null) return;
             idx.Sort((a, b) => d.spawns[a].cell.x.CompareTo(d.spawns[b].cell.x));
-            var offers = new System.Collections.Generic.List<string> { "bombs", "ropes", "heart" };
+            var rng = new Rng(seed + 5);
+            var offers = new System.Collections.Generic.List<string> { "bombs", "ropes", cfg.shop.HealOffer(rng.Range(0, 100)) };
             var ups = new System.Collections.Generic.List<string>();
             foreach (var o in cfg.shop.offers) if (o.isUpgrade) ups.Add(o.id);
-            var rng = new Rng(seed + 5);
             while (offers.Count < idx.Count && ups.Count > 0)
             {
                 int k = rng.Range(0, ups.Count);

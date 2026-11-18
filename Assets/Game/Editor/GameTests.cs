@@ -503,13 +503,26 @@ namespace Gloomdelve.EditorTools
             }
             // shop effects
             {
-                var run = new RunState { bombs = 1, ropes = 1, health = 1 };
+                var run = new RunState { bombs = 1, ropes = 1, health = 1, maxHealth = 10 };
                 // (the two village-only wares are checked in the villagers scenario: they change health and the clock)
                 foreach (var o in cfg.shop.offers) if (o.id != "vigor" && o.id != "lampoil") ShopItem.Apply(run, o);
                 bool allOwned = cfg.shop.offers.Where(o => o.isUpgrade).All(o => run.HasUpgrade(o.id));
-                Check("shop effects apply", run.bombs == 4 && run.ropes == 4 && run.health == 2 && allOwned &&
+                Check("shop effects apply", run.bombs == 4 && run.ropes == 4 && run.health == 10 && allOwned &&
                       run.stats.jumpBonus > 0f && run.stats.whipDamageBonus > 0 && run.stats.whipRangeBonus > 0f && run.stats.blastRadiusBonus > 0f,
                       $"jump +{run.stats.jumpBonus} whip +{run.stats.whipDamageBonus}/+{run.stats.whipRangeBonus} blast +{run.stats.blastRadiusBonus}");
+                {
+                    // healing comes in three sizes: a sip, a flask, and the elixir that restores everything (never past the limit)
+                    var hurt = new RunState { health = 1, maxHealth = 10 };
+                    ShopItem.Apply(hurt, cfg.shop.Find("heart")); int a1 = hurt.health;
+                    ShopItem.Apply(hurt, cfg.shop.Find("heart3")); int a2 = hurt.health;
+                    ShopItem.Apply(hurt, cfg.shop.Find("heartfull")); int a3 = hurt.health;
+                    int pt = cfg.shop.Find("heart").price, pf = cfg.shop.Find("heart3").price, pe = cfg.shop.Find("heartfull").price;
+                    Check("healing: tonic +1, flask +3, elixir to full; a bigger bottle costs less per point", a1 == 2 && a2 == 5 && a3 == 10 && pt <= 200 && pf < pt * 3 && pe > pf,
+                          $"health 1 -> {a1} -> {a2} -> {a3}; prices {pt} / {pf} / {pe}");
+                    var seenHeal = new HashSet<string>();
+                    for (int r = 0; r < 100; r++) seenHeal.Add(cfg.shop.HealOffer(r));
+                    Check("healing: shelves carry all three sizes over time", seenHeal.Count == 3, string.Join(",", seenHeal));
+                }
                 var twice = new RunState();
                 var boots = cfg.shop.Find("springboots");
                 twice.AddUpgrade(boots); twice.AddUpgrade(boots);

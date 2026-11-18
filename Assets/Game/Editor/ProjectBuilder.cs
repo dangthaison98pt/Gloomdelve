@@ -476,7 +476,7 @@ namespace Gloomdelve.EditorTools
                 {
                     new ShopOffer { id = "bombs", displayName = "Bomb Bag", price = 350, resource = Res.Bombs, amount = 3, description = "+3 bombs" },
                     new ShopOffer { id = "ropes", displayName = "Rope Pile", price = 250, resource = Res.Ropes, amount = 3, description = "+3 ropes" },
-                    new ShopOffer { id = "heart", displayName = "Heart Tonic", price = 500, resource = Res.Health, amount = 1, description = "+1 health" },
+                    new ShopOffer { id = "heart", displayName = "Heart Tonic", price = 100, resource = Res.Health, amount = 1, description = "+1 health" },
                     new ShopOffer { id = "springboots", displayName = "Spring Boots", price = 900, isUpgrade = true, description = "jump about 40% higher" },
                     new ShopOffer { id = "ironwhip", displayName = "Tempered Blade", price = 750, isUpgrade = true, description = "blade deals 2 damage and reaches further" },
                     new ShopOffer { id = "compass", displayName = "Compass", price = 450, isUpgrade = true, description = "marks the exit on screen" },
@@ -500,6 +500,15 @@ namespace Gloomdelve.EditorTools
             // village-only wares: the Healer's draught and the Lamplighter's oil (never on the mountain shelves: not equipment)
             if (shop.Find("vigor") == null)
                 shop.offers.Add(new ShopOffer { id = "vigor", displayName = "Heart Draught", price = 400, resource = "vigor", amount = 1, description = "+1 heart until you sleep" });
+            // Healing: a sip is cheap, and there is more than one size of bottle. (The tonic used to cost 500 for a
+            // single point of health - a third of what a whole level pays.) A shelf carries one of the three.
+            { var tonic = shop.Find("heart"); if (tonic != null && (tonic.price == 500 || tonic.price == 150)) tonic.price = 100; }
+            { var flask = shop.Find("heart3"); if (flask != null && flask.price == 400) flask.price = 250; }
+            { var elixir = shop.Find("heartfull"); if (elixir != null && elixir.price == 800) elixir.price = 550; }
+            if (shop.Find("heart3") == null)
+                shop.offers.Add(new ShopOffer { id = "heart3", displayName = "Healing Flask", price = 250, resource = Res.Health, amount = 3, description = "+3 health" });
+            if (shop.Find("heartfull") == null)
+                shop.offers.Add(new ShopOffer { id = "heartfull", displayName = "Elixir of Dawn", price = 550, resource = Res.Health, amount = 99, description = "back to full health" });
             if (shop.Find("lampoil") == null)
                 shop.offers.Add(new ShopOffer { id = "lampoil", displayName = "Lamp Oil", price = 200, resource = "lampoil", amount = 120, description = "the Reaper comes 2 minutes later" });
             if (shop.Find("iceboots") == null)
@@ -528,7 +537,7 @@ namespace Gloomdelve.EditorTools
             var icons = new Dictionary<string, string>
             {
                 ["iceboots"] = "Sprites/Items/iceboots", ["warmcoat"] = "Sprites/Items/warmcoat", ["sporemask"] = "Sprites/Items/sporemask", ["heavyboots"] = "Sprites/Items/heavyboots", ["magnetcharm"] = "Sprites/Items/magnetcharm", ["lantern"] = "Sprites/Items/lantern",
-                ["bombs"] = "Sprites/Items/bombbag", ["ropes"] = "Sprites/Items/ropepile", ["heart"] = "Sprites/Items/heart",
+                ["bombs"] = "Sprites/Items/bombbag", ["ropes"] = "Sprites/Items/ropepile", ["heart"] = "Sprites/Items/heart", ["heart3"] = "Sprites/Items/healflask", ["heartfull"] = "Sprites/Items/elixir",
                 ["springboots"] = "Sprites/Items/springboots", ["ironwhip"] = "Sprites/Items/ironwhip", ["compass"] = "Sprites/Items/compass",
                 ["blastpowder"] = "Sprites/Items/blastpowder",
             };
@@ -1991,13 +2000,26 @@ namespace Gloomdelve.EditorTools
             var iroot = UIBuilder.Img(invGo.transform, "Root", null, new Color(0f, 0f, 0f, 0.55f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
             UIBuilder.Stretch(iroot.rectTransform);
             inv.root = iroot.gameObject;
-            var ipanel = UIBuilder.Panel(iroot.transform, "Panel", new Vector2(0.5f, 0.5f), new Vector2(0, 20), new Vector2(1040, 680));
-            UIBuilder.Label(ipanel.transform, "Title", "EQUIPMENT", 40, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -34), new Vector2(800, 50), true, FontStyle.Bold);
+            var ipanel = UIBuilder.Panel(iroot.transform, "Panel", new Vector2(0.5f, 0.5f), new Vector2(0, 0), new Vector2(1040, 830));
+            // the tabs across the top: what is worn, what is used, what is kept for good
+            string[] tabNames = { "WEAR", "ITEMS", "KEY ITEMS" };
+            inv.tabLabels = new TMPro.TMP_Text[3]; inv.tabFrames = new Image[3];
+            for (int i = 0; i < 3; i++)
+            {
+                var tf = UIBuilder.Img(ipanel.transform, "Tab" + i, UIBuilder.Slot, Color.white, new Vector2(0.5f, 1f), new Vector2((i - 1) * 270, -58), new Vector2(250, 56), true);
+                inv.tabFrames[i] = tf;
+                inv.tabLabels[i] = UIBuilder.Label(tf.transform, "Label", tabNames[i], 28, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(240, 44), true, FontStyle.Bold);
+            }
+            var islots = UIBuilder.Node(ipanel.transform, "Slots");
+            UIBuilder.Place(UIBuilder.Rect(islots), new Vector2(0.5f, 1f), new Vector2(0, -176), new Vector2(900, 10), new Vector2(0.5f, 0.5f));
+            inv.slotRow = (RectTransform)islots.transform;
+            inv.bagLabel = UIBuilder.Label(ipanel.transform, "BagLabel", "IN THE BAG", 20, new Color(1f, 1f, 1f, 0.5f), TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -286), new Vector2(600, 28), false);
+            inv.pouchIcon = ArtGenerator.S("UI/icon_ember");
             var igrid = UIBuilder.Node(ipanel.transform, "Grid");
-            UIBuilder.Place(UIBuilder.Rect(igrid), new Vector2(0.5f, 1f), new Vector2(0, -190), new Vector2(900, 10), new Vector2(0.5f, 0.5f));
+            UIBuilder.Place(UIBuilder.Rect(igrid), new Vector2(0.5f, 1f), new Vector2(0, -372), new Vector2(900, 10), new Vector2(0.5f, 0.5f));
             inv.grid = (RectTransform)igrid.transform;
-            var cell = UIBuilder.Img(igrid.transform, "CellTemplate", UIBuilder.Slot, Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(116, 116), true);
-            UIBuilder.Img(cell.transform, "Icon", ArtGenerator.S("Sprites/Items/springboots"), Color.white, new Vector2(0.5f, 0.5f), new Vector2(0, 4), new Vector2(84, 84));
+            var cell = UIBuilder.Img(igrid.transform, "CellTemplate", UIBuilder.Slot, Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(104, 104), true);
+            UIBuilder.Img(cell.transform, "Icon", ArtGenerator.S("Sprites/Items/springboots"), Color.white, new Vector2(0.5f, 0.5f), new Vector2(0, 2), new Vector2(76, 76));
             UIBuilder.Label(cell.transform, "Slot", "FEET", 18, new Color(1f, 1f, 1f, 0.7f), TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0, -26), new Vector2(150, 24), false);
             var wornMark = UIBuilder.Img(cell.transform, "Worn", UIBuilder.buttonSprite, new Color(1f, 0.82f, 0.3f), new Vector2(1f, 1f), new Vector2(-8, -8), new Vector2(22, 22), true);
             inv.cellTemplate = cell.gameObject;

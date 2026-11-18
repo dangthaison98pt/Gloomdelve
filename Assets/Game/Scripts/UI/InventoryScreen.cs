@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -5,34 +6,58 @@ using UnityEngine.UI;
 namespace Gloomdelve
 {
     /// <summary>
-    /// Equipment screen (Tab / Select): every wearable item the run owns. The game freezes while it is open;
-    /// move to choose, confirm to wear it or take it off. Each item belongs to a slot (feet, body, hand, charm)
-    /// and only what is worn has an effect, so two pairs of boots are a choice, not a stack.
-    /// Items come from shops (ShopConfig offers with a slot).
+    /// The bag (Tab / Select). The game freezes while it is open. Three tabs:
+    ///  - WEAR: the slots of the body across the top (feet, body, hand, two charms) showing what is worn in each,
+    ///    and under them everything wearable the run owns; confirm wears an item or takes it off. Only what is worn
+    ///    has an effect, so two pairs of boots are a choice, not a stack.
+    ///  - ITEMS: the things used with the "use" button (bombs, ropes, ...) and how many are left; confirm takes one
+    ///    in hand.
+    ///  - KEY ITEMS: the few things that are never lost (the elder's Ember Pouch).
+    /// Up from the first row reaches the tabs, left / right there changes tab. The bag's own button, Pause, or the
+    /// "back" button of a gamepad closes it.
     /// </summary>
     public class InventoryScreen : MonoBehaviour
     {
         public GameObject root;
         public RectTransform grid;
+        [Tooltip("Where the slots of the body are laid out (WEAR tab).")] public RectTransform slotRow;
         public GameObject cellTemplate;
         public TMPro.TMP_Text nameText;
         public TMPro.TMP_Text descText;
         public TMPro.TMP_Text hintText;
         public TMPro.TMP_Text emptyText;
+        [Tooltip("The small heading over the bag on the WEAR tab.")] public TMPro.TMP_Text bagLabel;
+        [Tooltip("The three tab headings, in order: wear, items, key items.")] public TMPro.TMP_Text[] tabLabels;
+        public Image[] tabFrames;
+        [Tooltip("Picture of the Ember Pouch (KEY ITEMS tab).")] public Sprite pouchIcon;
         public PlayerInputReader input;
         public GameDirector director;
-        public int columns = 5;
-        public float spacing = 156f;
+        public int columns = 7;
+        public float spacing = 124f;
+        public float slotSpacing = 150f;
+        [Tooltip("Height of the grid's first row below the top of the panel: with the slots above it (WEAR), and without.")]
+        public float gridYWear = -372f, gridYPlain = -210f;
+
+        public const int TabWear = 0, TabItems = 1, TabKeys = 2;
+        /// <summary>The slots of the body, in the order they are shown; a charm fits twice.</summary>
+        public static readonly string[] BodySlots = { "feet", "body", "hand", "charm", "charm" };
 
         class Cell { public RectTransform rt; public Image frame; public Image icon; public TMPro.TMP_Text slot; public GameObject worn; }
-        readonly List<Cell> cells = new List<Cell>();
+        class Entry { public Sprite icon; public string under, name, desc, act; public bool marked; public Action run; public string slot; }
 
-        bool open;
+        readonly List<Cell> cells = new List<Cell>();
+        readonly List<Cell> slotCells = new List<Cell>();
+        readonly List<Entry> entries = new List<Entry>();
+
+        bool open, onTabs;
         float savedScale = 1f;
-        int sel, lastX, lastY;
+        int tab, sel, lastX, lastY;
 
         public bool IsOpen => open;
         public int Selected => sel;
+        public int Tab => tab;
+        public int EntryCount => entries.Count;
+        public bool OnTabs => onTabs;
 
         void Awake()
         {
@@ -59,10 +84,10 @@ namespace Gloomdelve
             open = true;
             savedScale = Time.timeScale > 0f ? Time.timeScale : 1f;
             Time.timeScale = 0f;
-            sel = Mathf.Clamp(sel, 0, Mathf.Max(0, run.upgrades.Count - 1));
             lastX = input != null ? input.MoveX : 0;
             lastY = input != null ? input.MoveY : 0;
             root.SetActive(true);
+            onTabs = false;
             Refresh();
             Sfx.PlayUI("menu_select");
         }
@@ -82,51 +107,179 @@ namespace Gloomdelve
             var run = RunSession.Current;
             if (run == null || input == null) { Close(); return; }
             int dx = input.MoveX, dy = input.MoveY;
-            if (dx != 0 && dx != lastX) Move(dx);
-            if (dy != 0 && dy != lastY) Move(-dy * columns);
+            if (dx != 0 && dx != lastX) { if (onTabs) SetTab(tab + dx); else Move(dx); }
+            if (dy != 0 && dy != lastY) MoveRow(-dy);
             lastX = dx; lastY = dy;
             if (input.ConfirmPressed) Toggle();
         }
 
+        /// <summary>Shows another tab (0 wear, 1 items, 2 key items).</summary>
+        public void SetTab(int t)
+        {
+            t = Mathf.Clamp(t, 0, 2);
+            if (t == tab) return;
+            tab = t;
+            sel = 0;
+            Refresh();
+            Sfx.PlayUI("menu_select", 0.7f);
+        }
+
+        /// <summary>Along the row (and on over its end into the next one).</summary>
         public void Move(int d)
         {
-            var run = RunSession.Current;
-            if (run == null) return;
             int t = sel + d;
-            if (t < 0 || t >= run.upgrades.Count) return;
+            if (onTabs || t < 0 || t >= entries.Count) return;
             sel = t;
             Refresh();
             Sfx.PlayUI("menu_select", 0.7f);
         }
 
-        /// <summary>Wear / take off the selected item.</summary>
+        /// <summary>One row down (+1) or up (-1); up from the first row reaches the tabs.</summary>
+        public void MoveRow(int d)
+        {
+            int cols = Mathf.Max(1, columns);
+            if (onTabs)
+            {
+                if (d > 0 && entries.Count > 0) { onTabs = false; Refresh(); Sfx.PlayUI("menu_select", 0.7f); }
+                return;
+            }
+            if (d < 0 && sel < cols) { onTabs = true; Refresh(); Sfx.PlayUI("menu_select", 0.7f); return; }
+            Move(d * cols);
+        }
+
+        /// <summary>Confirm on the chosen thing: wear / take off, or take the item in hand.</summary>
         public void Toggle()
         {
-            var run = RunSession.Current;
-            if (run == null || sel < 0 || sel >= run.upgrades.Count) return;
-            bool changed = run.ToggleWorn(run.upgrades[sel]);
-            Sfx.PlayUI(changed ? "pickup" : "error", 0.8f);
+            if (onTabs || sel < 0 || sel >= entries.Count) return;
+            var e = entries[sel];
+            if (e.run == null) return;
+            e.run();
             Refresh();
+        }
+
+        void BuildEntries(RunState run)
+        {
+            entries.Clear();
+            if (tab == TabWear)
+            {
+                foreach (var id in run.upgrades)
+                {
+                    var o = run.Owned(id);
+                    if (o == null) continue;
+                    bool w = run.IsWorn(id), fixedOn = string.IsNullOrEmpty(o.slot);
+                    string uid = id;
+                    entries.Add(new Entry
+                    {
+                        icon = o.icon, under = SlotLabel(o.slot), marked = w, slot = o.slot,
+                        name = o.displayName.ToUpperInvariant() + (w ? "   -   WORN" : "   -   in the bag"),
+                        desc = o.description,
+                        act = fixedOn ? null : (w ? "take off" : "wear"),
+                        run = fixedOn ? (Action)null : () => { Sfx.PlayUI(run.ToggleWorn(uid) ? "pickup" : "error", 0.8f); },
+                    });
+                }
+            }
+            else if (tab == TabItems)
+            {
+                for (int i = 0; i < run.gear.Count; i++)
+                {
+                    var def = director != null && director.config != null ? director.config.FindGear(run.gear[i]) : null;
+                    if (def == null) continue;
+                    int ammo = run.Ammo(def.id), idx = i;
+                    bool inHand = run.equipped == i;
+                    entries.Add(new Entry
+                    {
+                        icon = def.icon, under = ammo >= 0 ? "x" + ammo : "", marked = inHand,
+                        name = def.displayName.ToUpperInvariant() + (inHand ? "   -   IN HAND" : ""),
+                        desc = def.description,
+                        act = inHand ? null : "take in hand",
+                        run = inHand ? (Action)null : () => { run.SetEquipped(idx); Sfx.PlayUI("pickup", 0.8f); },
+                    });
+                }
+            }
+            else
+            {
+                if (Villagers.HasKey(Villagers.KeyPouch))
+                    entries.Add(new Entry
+                    {
+                        icon = pouchIcon, under = Villagers.Embers + " / " + Villagers.PouchCapacity, marked = false,
+                        name = "EMBER POUCH",
+                        desc = $"The Elder's gift. It holds {Villagers.Embers} of {Villagers.PouchCapacity} embers - what Brindlemoor trades in. It is never lost.",
+                    });
+            }
+        }
+
+        Cell NewCell(Transform parent)
+        {
+            var go = Instantiate(cellTemplate, parent);
+            go.SetActive(true);
+            return new Cell
+            {
+                rt = (RectTransform)go.transform,
+                frame = go.GetComponent<Image>(),
+                icon = go.transform.Find("Icon").GetComponent<Image>(),
+                slot = go.transform.Find("Slot").GetComponent<TMPro.TMP_Text>(),
+                worn = go.transform.Find("Worn").gameObject,
+            };
         }
 
         void Refresh()
         {
             var run = RunSession.Current;
             if (run == null) return;
-            int n = run.upgrades.Count;
-            while (cells.Count < n)
-            {
-                var go = Instantiate(cellTemplate, grid);
-                go.SetActive(true);
-                cells.Add(new Cell
+            BuildEntries(run);
+            int n = entries.Count;
+            sel = Mathf.Clamp(sel, 0, Mathf.Max(0, n - 1));
+            if (n == 0) onTabs = true;
+            var cur = !onTabs && n > 0 ? entries[sel] : null;
+
+            // the tabs
+            if (tabLabels != null)
+                for (int i = 0; i < tabLabels.Length; i++)
                 {
-                    rt = (RectTransform)go.transform,
-                    frame = go.GetComponent<Image>(),
-                    icon = go.transform.Find("Icon").GetComponent<Image>(),
-                    slot = go.transform.Find("Slot").GetComponent<TMPro.TMP_Text>(),
-                    worn = go.transform.Find("Worn").gameObject,
-                });
+                    bool on = i == tab;
+                    if (tabLabels[i] != null) tabLabels[i].color = on ? new Color(1f, 0.9f, 0.6f) : new Color(1f, 1f, 1f, 0.55f);
+                    if (tabFrames != null && i < tabFrames.Length && tabFrames[i] != null)
+                    {
+                        tabFrames[i].color = on ? (onTabs ? new Color(1f, 0.86f, 0.4f) : new Color(0.8f, 0.62f, 0.26f)) : new Color(0.45f, 0.42f, 0.5f, 0.55f);
+                        tabFrames[i].rectTransform.localScale = Vector3.one * (on && onTabs ? 1.08f : 1f);
+                    }
+                }
+
+            // the slots of the body (WEAR): what is worn in each, or nothing
+            bool wear = tab == TabWear;
+            if (slotRow != null)
+            {
+                slotRow.gameObject.SetActive(wear);
+                if (wear)
+                {
+                    while (slotCells.Count < BodySlots.Length) slotCells.Add(NewCell(slotRow));
+                    var used = new HashSet<string>();
+                    for (int i = 0; i < BodySlots.Length; i++)
+                    {
+                        var c = slotCells[i];
+                        ShopOffer inIt = null;
+                        foreach (var id in run.worn)
+                        {
+                            var o = run.Owned(id);
+                            if (o != null && o.slot == BodySlots[i] && used.Add(id)) { inIt = o; break; }
+                        }
+                        bool fits = cur != null && cur.slot == BodySlots[i];
+                        c.rt.anchoredPosition = new Vector2((i - (BodySlots.Length - 1) * 0.5f) * slotSpacing, 0f);
+                        c.frame.color = inIt != null ? (fits ? new Color(1f, 0.86f, 0.4f) : new Color(0.8f, 0.62f, 0.26f))
+                                                     : (fits ? new Color(0.8f, 0.78f, 0.9f) : new Color(0.45f, 0.42f, 0.5f, 0.7f));
+                        c.icon.sprite = inIt != null ? inIt.icon : null;
+                        c.icon.enabled = c.icon.sprite != null;
+                        c.icon.color = Color.white;
+                        c.slot.text = SlotLabel(BodySlots[i]);
+                        c.worn.SetActive(false);
+                    }
+                }
             }
+            if (bagLabel != null) bagLabel.gameObject.SetActive(wear && n > 0);
+            if (grid != null) grid.anchoredPosition = new Vector2(grid.anchoredPosition.x, wear ? gridYWear : gridYPlain);
+
+            // the things of this tab
+            while (cells.Count < n) cells.Add(NewCell(grid));
             int cols = Mathf.Max(1, columns);
             int rowLen = Mathf.Min(cols, Mathf.Max(1, n));
             for (int i = 0; i < cells.Count; i++)
@@ -134,34 +287,29 @@ namespace Gloomdelve
                 var c = cells[i];
                 c.rt.gameObject.SetActive(i < n);
                 if (i >= n) continue;
-                var o = run.Owned(run.upgrades[i]);
-                bool worn = run.IsWorn(run.upgrades[i]), on = i == sel;
-                c.rt.anchoredPosition = new Vector2((i % cols - (rowLen - 1) * 0.5f) * spacing, -(i / cols) * (spacing + 14f));
-                c.rt.localScale = Vector3.one * (on ? 1.15f : 1f);
-                c.frame.color = on ? (worn ? new Color(1f, 0.86f, 0.4f) : Color.white)
-                                   : (worn ? new Color(0.8f, 0.62f, 0.26f) : new Color(0.45f, 0.42f, 0.5f, 0.9f));
-                c.icon.sprite = o != null ? o.icon : null;
-                c.icon.enabled = c.icon.sprite != null;
-                c.icon.color = worn ? Color.white : new Color(1f, 1f, 1f, 0.55f);
-                c.slot.text = o != null ? SlotLabel(o.slot) : "";
-                c.worn.SetActive(worn);
+                var e = entries[i];
+                bool on = !onTabs && i == sel;
+                c.rt.anchoredPosition = new Vector2((i % cols - (rowLen - 1) * 0.5f) * spacing, -(i / cols) * (spacing + 22f));
+                c.rt.localScale = Vector3.one * (on ? 1.12f : 1f);
+                c.frame.color = on ? (e.marked ? new Color(1f, 0.86f, 0.4f) : Color.white)
+                                   : (e.marked ? new Color(0.8f, 0.62f, 0.26f) : new Color(0.45f, 0.42f, 0.5f, 0.9f));
+                c.icon.sprite = e.icon;
+                c.icon.enabled = e.icon != null;
+                c.icon.color = e.marked || tab != TabWear ? Color.white : new Color(1f, 1f, 1f, 0.55f);
+                c.slot.text = e.under ?? "";
+                c.worn.SetActive(e.marked);
             }
-            if (emptyText != null) emptyText.gameObject.SetActive(n == 0);
-            var cur = n > 0 ? run.Owned(run.upgrades[Mathf.Clamp(sel, 0, n - 1)]) : null;
-            if (cur != null)
+            if (emptyText != null)
             {
-                bool w = run.IsWorn(cur.id);
-                nameText.text = cur.displayName.ToUpperInvariant() + (w ? "   -   WORN" : "   -   in the bag");
-                descText.text = cur.description;
-                bool fixedOn = string.IsNullOrEmpty(cur.slot);
-                hintText.text = "[move]  choose          " + (fixedOn ? "" : "[jump]  " + (w ? "take off" : "wear") + "          ") + "[inventory]  close";
+                emptyText.gameObject.SetActive(n == 0);
+                emptyText.text = tab == TabWear ? "Nothing to wear yet. Shops sell boots, coats and charms."
+                               : tab == TabItems ? "Nothing to use."
+                               : "No key items yet.";
             }
-            else
-            {
-                nameText.text = "";
-                descText.text = "";
-                hintText.text = "[inventory]  close";
-            }
+            nameText.text = cur != null ? cur.name : "";
+            descText.text = cur != null ? cur.desc : "";
+            hintText.text = onTabs ? "[move]  change tab          [inventory]  close"
+                          : "[move]  choose          " + (cur != null && cur.act != null ? "[jump]  " + cur.act + "          " : "") + "[inventory]  close";
         }
     }
 }

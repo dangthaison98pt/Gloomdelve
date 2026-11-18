@@ -772,9 +772,37 @@ namespace Gloomdelve
                 ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "inventory.png"));
                 yield return new WaitForSecondsRealtime(0.3f);
                 int idx = run.upgrades.IndexOf("iceboots");
+                c.Expect(inv.Tab == InventoryScreen.TabWear && inv.EntryCount == run.upgrades.Count, $"the first tab lists what can be worn ({inv.EntryCount})");
                 inv.Move(idx - inv.Selected);
                 inv.Toggle();
                 c.Expect(run.IsWorn("iceboots"), "toggle on the screen wears the selected item");
+                yield return new WaitForSecondsRealtime(0.2f);
+                ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "inventory_worn.png"));
+                yield return new WaitForSecondsRealtime(0.2f);
+                // up from the first row reaches the tabs; the second tab is what is used, the third what is kept for good
+                inv.Move(-inv.Selected);
+                inv.MoveRow(-1);
+                c.Expect(inv.OnTabs, "up from the first row reaches the tabs");
+                inv.SetTab(InventoryScreen.TabItems);
+                c.Expect(inv.EntryCount == run.gear.Count && run.gear.Count >= 2, $"the items tab lists what is used ({inv.EntryCount} of {run.gear.Count})");
+                inv.MoveRow(1);
+                run.Equip(run.gear[0]);
+                inv.Move(1 - inv.Selected);
+                inv.Toggle();
+                c.Expect(!inv.OnTabs && run.EquippedId == run.gear[1], "confirm on an item takes it in hand (" + run.EquippedId + ")");
+                yield return new WaitForSecondsRealtime(0.2f);
+                ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "inventory_items.png"));
+                yield return new WaitForSecondsRealtime(0.2f);
+                var keptRescued = Villagers.testRescued; Villagers.testRescued = new HashSet<string>(); Villagers.ResetTestState();
+                Villagers.GiveKey(Villagers.KeyPouch);
+                inv.MoveRow(-1); inv.MoveRow(-1);
+                inv.SetTab(InventoryScreen.TabKeys);
+                c.Expect(inv.EntryCount == 1, $"the key items tab shows the Ember Pouch ({inv.EntryCount})");
+                inv.MoveRow(1);
+                yield return new WaitForSecondsRealtime(0.2f);
+                ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "inventory_keys.png"));
+                yield return new WaitForSecondsRealtime(0.2f);
+                Villagers.ResetTestState(); Villagers.testRescued = keptRescued;
                 inv.Close();
                 c.Expect(!inv.IsOpen && Mathf.Approximately(Time.timeScale, scale), "closed + resumed");
             }

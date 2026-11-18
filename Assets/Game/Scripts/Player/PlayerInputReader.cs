@@ -80,6 +80,8 @@ namespace Gloomdelve
         // KeyBindings.Busy: the change-keys screen is waiting for a key, so that key press must not pause or confirm anything
         public bool PausePressed => !KeyBindings.Busy && pause != null && pause.WasPressedThisFrame();
         /// <summary>Equipment screen button (Tab / Select). Works while the game is frozen.</summary>
+        /// <summary>The "back" button of a gamepad (the right-hand face button): leaves a screen such as the bag.</summary>
+        public bool BackPressed => !KeyBindings.Busy && UnityEngine.InputSystem.Gamepad.current != null && UnityEngine.InputSystem.Gamepad.current.buttonEast.wasPressedThisFrame;
         public bool InventoryPressed => !KeyBindings.Busy && inventory != null && inventory.WasPressedThisFrame();
         /// <summary>Jump or Interact pressed this frame (menu confirm), readable while frozen.</summary>
         public bool ConfirmPressed => !KeyBindings.Busy && ((jump != null && jump.WasPressedThisFrame()) || (interact != null && interact.WasPressedThisFrame()));

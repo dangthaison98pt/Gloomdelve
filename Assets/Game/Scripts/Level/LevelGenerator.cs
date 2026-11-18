@@ -876,7 +876,7 @@ namespace Gloomdelve
 
         static List<string> BuildShopOffers(GameConfig cfg, Rng rng, AreaConfig area)
         {
-            var list = new List<string> { "bombs", "ropes", "heart" };
+            var list = new List<string> { "bombs", "ropes", cfg.shop != null ? cfg.shop.HealOffer(rng.Range(0, 100)) : "heart" };
             var ups = new List<string>();
             if (cfg.shop != null) foreach (var o in cfg.shop.offers) if (o.isUpgrade) ups.Add(o.id);
             int want = 2;

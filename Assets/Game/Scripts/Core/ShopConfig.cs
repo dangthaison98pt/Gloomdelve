@@ -13,5 +13,15 @@ namespace Gloomdelve
         public int warningsBeforeAngry = 2;
 
         public ShopOffer Find(string id) => offers.Find(o => o.id == id);
+
+        /// <summary>
+        /// The healing a shelf carries, from a roll of 0-99: mostly the small tonic or the flask, now and then the
+        /// elixir that restores everything. (Whatever of the three this shop file does not have falls back to the tonic.)
+        /// </summary>
+        public string HealOffer(int roll)
+        {
+            string id = roll < 45 ? "heart" : roll < 85 ? "heart3" : "heartfull";
+            return Find(id) != null ? id : "heart";
+        }
     }
 }

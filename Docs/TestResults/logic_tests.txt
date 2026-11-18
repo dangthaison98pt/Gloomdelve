@@ -30,6 +30,8 @@ PASS  save slots: erasing empties a slot and leaves the others alone
 PASS  saved run: everything carried comes back (seed, level, health, gold, gear, upgrades and what is worn)  
 PASS  saved run: the level it was in is built again exactly as it was  
 PASS  shop effects apply  jump +0.17 whip +1/+0.45 blast +0.9
+PASS  healing: tonic +1, flask +3, elixir to full; a bigger bottle costs less per point  health 1 -> 2 -> 5 -> 10; prices 100 / 250 / 550
+PASS  healing: shelves carry all three sizes over time  heart,heart3,heartfull
 PASS  an upgrade applies its modifiers only once  
 PASS  custom resources are counted  
 PASS  every equipment asset has a behaviour  bomb,rope,glider,recall
@@ -42,4 +44,4 @@ PASS  forced template is placed in generated levels  6 rooms in 6 levels, 6 vali
 PASS  custom marker spawns its prefab  6 rocks in 6 forced rooms
 PASS  same seed -> identical level  
 
-43 passed, 0 failed
+45 passed, 0 failed

@@ -279,12 +279,12 @@ namespace Gloomdelve
         void Update()
         {
             if (linkPending && world.Frame > 0) { LevelFactory.LinkShops(world, Level); linkPending = false; }
-            // equipment screen: its own button opens it, the same button or Pause closes it
+            // the bag: its own button opens it; the same button, Pause, or a gamepad's back button closes it
             if (inventory != null && !Paused)
             {
                 if (inventory.IsOpen)
                 {
-                    if (Ended || input == null || input.InventoryPressed || input.PausePressed) inventory.Close();
+                    if (Ended || input == null || input.InventoryPressed || input.PausePressed || input.BackPressed) inventory.Close();
                     return;
                 }
                 if (!Ended && !AutoTest.Active && input != null && input.InventoryPressed && Player != null && !Player.IsDead &&

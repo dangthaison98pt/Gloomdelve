@@ -2049,6 +2049,20 @@ namespace Gloomdelve.EditorTools
             {
                 var p = ItemCanvas(); HeartShape(p, 2, 1, C(220, 40, 60), C(255, 150, 160), C(140, 20, 40)); p.Outline(ol); Save(p, d + "heart", PItem);
             }
+            foreach (var big in new[] { false, true })
+            {
+                // the healing flask (+3) and the elixir (everything): a stoppered bottle, red or gold, with a heart in it
+                var p = ItemCanvas();
+                Color32 glass = C(200, 225, 235), glassD = C(120, 150, 170), cork = C(150, 104, 62);
+                Color32 liq = big ? C(255, 200, 60) : C(220, 40, 60), liqL = big ? C(255, 240, 170) : C(255, 150, 160), liqD = big ? C(190, 130, 30) : C(140, 20, 40);
+                p.Rect(6, 12, 4, 2, cork); p.Rect(6, 10, 4, 2, glass); p.Rect(5, 10, 1, 1, glassD); p.Rect(10, 10, 1, 1, glassD);
+                p.Rect(4, 2, 8, 8, glass); p.Rect(3, 3, 10, 6, glass); p.Rect(3, 3, 1, 6, glassD); p.Rect(4, 2, 8, 1, glassD);
+                p.Rect(4, 3, 8, big ? 6 : 4, liq); p.Rect(4, 3, 8, 1, liqD); p.Rect(4, big ? 8 : 6, 8, 1, liqL);
+                p.Set(10, 8, C(255, 255, 255)); p.Set(10, 7, C(255, 255, 255));
+                if (big) { p.Set(13, 13, C(255, 255, 230)); p.Set(13, 14, liqL); p.Set(13, 12, liqL); p.Set(12, 13, liqL); p.Set(14, 13, liqL); }
+                p.Outline(ol);
+                Save(p, d + (big ? "elixir" : "healflask"), PItem);
+            }
             {
                 // heart vessel (max-health item): a golden heart with a red core and a glint
                 var p = ItemCanvas();

@@ -55,7 +55,7 @@ MonoBehaviour:
     description: +3 ropes
   - id: heart
     displayName: Heart Tonic
-    price: 500
+    price: 100
     resource: health
     amount: 1
     isUpgrade: 0
@@ -313,5 +313,45 @@ MonoBehaviour:
       shieldPierce: 0
     icon: {fileID: 21300000, guid: ad0e3be8950c79540b1308dbbb2486e7, type: 3}
     description: the Reaper comes 2 minutes later
+  - id: heart3
+    displayName: Healing Flask
+    price: 250
+    resource: health
+    amount: 3
+    isUpgrade: 0
+    slot: 
+    modifiers:
+      jumpBonus: 0
+      whipDamageBonus: 0
+      whipRangeBonus: 0
+      blastRadiusBonus: 0
+      iceGrip: 0
+      coldResist: 0
+      sporeResist: 0
+      lightBonus: 0
+      beltGrip: 0
+      shieldPierce: 0
+    icon: {fileID: 21300000, guid: 43264eb6072d88b4b8806e1d670c878b, type: 3}
+    description: +3 health
+  - id: heartfull
+    displayName: Elixir of Dawn
+    price: 550
+    resource: health
+    amount: 99
+    isUpgrade: 0
+    slot: 
+    modifiers:
+      jumpBonus: 0
+      whipDamageBonus: 0
+      whipRangeBonus: 0
+      blastRadiusBonus: 0
+      iceGrip: 0
+      coldResist: 0
+      sporeResist: 0
+      lightBonus: 0
+      beltGrip: 0
+      shieldPierce: 0
+    icon: {fileID: 21300000, guid: 282641eb9f93d6b46a91db7069a21564, type: 3}
+    description: back to full health
   shopkeeperHealth: 6
   warningsBeforeAngry: 2
