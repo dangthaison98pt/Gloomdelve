@@ -619,7 +619,11 @@ namespace Gloomdelve
             input?.ClearLatches();
         }
 
-        public void RestartRun(bool sameSeed)
+        /// <summary>
+        /// A new run. toVillage: wake in bed at home in Brindlemoor (the default); otherwise the run begins at once in
+        /// the first level, behind the loading screen - the "new run" of the screen shown after a death.
+        /// </summary>
+        public void RestartRun(bool sameSeed, bool toVillage = true)
         {
             var old = Run;
             Time.timeScale = 1f;
@@ -630,6 +634,13 @@ namespace Gloomdelve
                 return;
             }
             RunSession.NewRun(sameSeed && old != null ? old.seed : RunSession.RandomSeed(), false, config.player);
+            if (!toVillage && RunSession.Current.inVillage)
+            {
+                if (LoadingScreen.Busy) return;
+                RunSession.Current.inVillage = false;
+                LoadingScreen.Load(GameConst.SceneGame);
+                return;
+            }
             RunSession.Current.wakeInBed = true;        // the night is over: wake in bed
             SceneManager.LoadScene(GameConst.SceneGame);
         }

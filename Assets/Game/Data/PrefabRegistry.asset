@@ -178,6 +178,8 @@ MonoBehaviour:
     prefab: {fileID: 1337490128990730388, guid: b40aade2e2dde1f449d3567ee672b993, type: 3}
   - id: cratestack
     prefab: {fileID: 8472298207610921976, guid: 0af41a6d0e151484f9977fa9af844bfe, type: 3}
+  - id: curio
+    prefab: {fileID: 3648075486702423137, guid: 2f1469a50f66e50438f65d0f57a6be0e, type: 3}
   - id: pavement
     prefab: {fileID: 5763537643693690132, guid: d94c870365b41dc4f970706d499209dc, type: 3}
   - id: interior

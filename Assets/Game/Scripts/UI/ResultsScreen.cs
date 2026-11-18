@@ -43,7 +43,7 @@ namespace Gloomdelve
                 RunSession.NewRun(RunSession.RandomSeed(), false, GameDirector.Instance.config.player);
                 LoadingScreen.Load(GameConst.SceneGame);
             }
-            else GameDirector.Instance.RestartRun(false);
+            else GameDirector.Instance.RestartRun(false, false);
         }
 
         public void ShowRunEnd(RunState run, bool victory, string newsText, int stageReached)
@@ -68,10 +68,15 @@ namespace Gloomdelve
                 $"BEST     deepest {r.bestStageName}     gold ${r.bestGold}     fastest win {(r.fastestWin < 0 ? "--" : UIUtil.FormatTime(r.fastestWin))}\n" +
                 $"{r.runs} runs     {r.wins} wins     {r.deaths} deaths";
             news.text = newsText;
-            retrySeedButton.gameObject.SetActive(true);
-            SetX(newRunButton, -340f);
-            SetX(menuButton, 340f);
+            // two ways on from here: straight down into the mountain again, or home to Brindlemoor (to wake in bed,
+            // spend embers, look around). The middle button is gone, so the two sit side by side in the middle.
+            retrySeedButton.gameObject.SetActive(false);
+            SetX(newRunButton, -172f);
+            SetX(menuButton, 172f);
             if (newRunLabel) newRunLabel.text = "NEW RUN";
+            var homeLabel = menuButton != null ? menuButton.GetComponentInChildren<TMPro.TMP_Text>() : null;
+            if (homeLabel != null) homeLabel.text = "BACK TO VILLAGE";
+            UIUtil.Wire(menuButton, () => GameDirector.Instance.RestartRun(false, true));
             UIUtil.Select(newRunButton);
         }
 

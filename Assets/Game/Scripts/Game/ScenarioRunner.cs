@@ -572,6 +572,12 @@ namespace Gloomdelve
             c.dir.results.ShowRunEnd(c.run, false, "NEW BEST GOLD!", 1);
             yield return new WaitForSecondsRealtime(0.3f);
             c.Expect(c.dir.results.root.activeSelf, "results visible");
+            var rs = c.dir.results;
+            var back = rs.menuButton != null ? rs.menuButton.GetComponentInChildren<TMPro.TMP_Text>() : null;
+            c.Expect(!rs.retrySeedButton.gameObject.activeSelf && rs.newRunLabel.text == "NEW RUN" && back != null && back.text == "BACK TO VILLAGE",
+                "after a death there are two ways on: a new run, or back to the village");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "results_death.png"));
+            yield return c.Frames(3);
         }
 
         static IEnumerator WraithCase(Ctx c)
@@ -1285,6 +1291,7 @@ namespace Gloomdelve
             bool allFreed = true, prompts = true, gone = true;
             for (int i = 0; i < Villagers.All.Length; i++)
             {
+                if (RunSession.Current != null) RunSession.Current.villagerFreed = false;      // (a run frees one villager: each turn of this loop stands for a new run)
                 var cap = c.Spawn<Captive>("captive", 8, 1);
                 yield return c.Frames(3);
                 if (cap == null || cap.Dead || cap.Who == null) { allFreed = false; break; }
@@ -1390,6 +1397,12 @@ namespace Gloomdelve
                 Entity keeper = null;
                 foreach (var e in c.world.Entities) if (e is VillagerHome vh && !vh.Dead && vh.Who == Villagers.All[1]) keeper = vh;
                 c.Expect(keeper != null, "the keeper is inside, behind the counter");
+                // the room has things worth a closer look, and looking tells the player something
+                int curios = 0; Curio near = null;
+                foreach (var e in c.world.Entities) if (e is Curio cu && !cu.Dead) { curios++; if (near == null || Mathf.Abs(cu.pos.x - c.p.pos.x) < Mathf.Abs(near.pos.x - c.p.pos.x)) near = cu; }
+                c.Expect(curios >= 3, $"the room has things to look at ({curios})");
+                c.Expect(near != null && near.GetPrompt(c.p).Contains("look at") && !string.IsNullOrEmpty(near.text), "each offers a closer look and has something to say");
+                if (near != null) near.Interact(c.p);
                 yield return c.Frames(20);
                 ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "village_room.png"));
                 yield return c.Frames(3);

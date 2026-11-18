@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using static Gloomdelve.EditorTools.Px;
 
@@ -30,6 +31,13 @@ namespace Gloomdelve.EditorTools
                 Save(Room(k), d + "room_" + k, PCenter);
             }
             StreetArt(d);
+            {
+                // the glint that marks something worth a closer look
+                var p = new Px(7, 7);
+                Color32 g = C(255, 240, 190), gD = C(255, 210, 130, 170);
+                p.Rect(3, 0, 1, 7, gD); p.Rect(0, 3, 7, 1, gD); p.Rect(3, 2, 1, 3, g); p.Rect(2, 3, 3, 1, g);
+                Save(p, d + "glint", PCenter);
+            }
             for (int f = 0; f < 4; f++) Save(FlameFrame(f), d + "fire_" + f, new Vector2(0.5f, 0f));
             foreach (bool icon in new[] { false, true })
             {
@@ -467,7 +475,13 @@ namespace Gloomdelve.EditorTools
             var p = new Px(RoomPxW, RoomPxH);
             p.Rect(0, 0, RoomPxW, RoomPxH, C(5, 5, 10));
             Color32[] papers = { C(92, 84, 88), C(150, 118, 84), C(206, 214, 196), C(86, 108, 148), C(170, 112, 104), C(84, 86, 116), C(150, 100, 76), C(140, 128, 108) };
-            Color32 paper = papers[kind], paperD = Mul(paper, 0.78f), wood = C(120, 82, 52), woodD = C(84, 54, 34), woodL = C(160, 116, 74);
+            // The rooms belong to the same winter night as the street: muted walls, and all the colour comes from the
+            // lamps and the fire. Everything is painted in plain daylight colours first; the last step of this
+            // function lights it - warm where a lamp or the hearth reaches, blue and dim in the corners.
+            Color32 paper = Lerp(papers[kind], C(104, 86, 78), 0.42f), paperD = Mul(paper, 0.78f), wood = C(120, 82, 52), woodD = C(84, 54, 34), woodL = C(160, 116, 74);
+            Color32[] cloths = { C(96, 100, 120), C(84, 130, 104), C(176, 70, 78), C(214, 200, 160), C(150, 90, 150), C(210, 170, 80), C(150, 54, 58), C(96, 116, 160) };
+            Color32 cloth = cloths[kind];
+            var lights = new List<Vector4>();                   // x, y (picture pixels), reach, strength
             int ix = RX + 16, iy = RY + 16;                                   // bottom-left of the ground floor's floor space
             int oy = 0;                                                       // 0 while drawing the ground floor, UpperY for upstairs
 
@@ -503,8 +517,15 @@ namespace Gloomdelve.EditorTools
             }
             void Crate(int x, int y, int s) { R(x, y, s, s, wood); R(x, y, s, 1, woodD); R(x, y + s - 1, s, 1, woodL); R(x, y, 1, s, woodD); R(x + s - 1, y, 1, s, woodD); for (int i = 2; i < s - 2; i++) { Dot(x + i, y + i, woodD); Dot(x + s - 1 - i, y + i, woodD); } }
             void Barrel(int x, int y) { R(x, y, 12, 16, C(134, 90, 54)); R(x + 1, y + 16, 10, 1, woodD); R(x, y + 3, 12, 2, C(90, 92, 104)); R(x, y + 11, 12, 2, C(90, 92, 104)); R(x, y, 1, 16, woodD); R(x + 11, y, 1, 16, woodD); }
-            void Lamp(int x, int y) { R(x, y + 7, 1, 96 - y - 7, VBeam); R(x - 3, y, 7, 7, VBeam); R(x - 2, y + 1, 5, 5, VGlow); R(x - 1, y + 2, 3, 3, VGlowL); }
-            void NightWindow(int x, int y, int w, int h) { R(x - 2, y - 2, w + 4, h + 4, VBeam); R(x, y, w, h, C(30, 40, 84)); R(x + w / 2, y, 1, h, VBeam); R(x, y + h / 2, w, 1, VBeam); Dot(x + 3, y + h - 4, VSnow); Dot(x + w - 4, y + 3, VSnow); Dot(x + 6, y + 5, VSnowD); R(x - 2, y - 2, w + 4, 1, VSnow); }
+            void Lamp(int x, int y) { R(x, y + 7, 1, 96 - y - 7, VBeam); R(x - 3, y, 7, 7, VBeam); R(x - 2, y + 1, 5, 5, VGlow); R(x - 1, y + 2, 3, 3, VGlowL); lights.Add(new Vector4(ix + x, iy + oy + y + 3, 112f, 1f)); }
+            void NightWindow(int x, int y, int w, int h)
+            {
+                // curtains drawn back to either side, a rail above them
+                R(x - 8, y + h + 3, w + 16, 2, woodD);
+                for (int yy = -3; yy < h + 3; yy++) { int cw = 4 + (yy < 2 ? 1 : 0) + ((yy + 3) % 6 == 0 ? 1 : 0); R(x - 8, y + yy, cw, 1, yy % 3 == 0 ? Mul(cloth, 0.8f) : cloth); R(x + w + 8 - cw, y + yy, cw, 1, yy % 3 == 0 ? Mul(cloth, 0.8f) : cloth); }
+                Pane(x, y, w, h);
+            }
+            void Pane(int x, int y, int w, int h) { R(x - 2, y - 2, w + 4, h + 4, VBeam); R(x, y, w, h, C(30, 40, 84)); R(x + w / 2, y, 1, h, VBeam); R(x, y + h / 2, w, 1, VBeam); Dot(x + 3, y + h - 4, VSnow); Dot(x + w - 4, y + 3, VSnow); Dot(x + 6, y + 5, VSnowD); R(x - 2, y - 2, w + 4, 1, VSnow); }
             void Counter(int x, int w) { R(x, 0, w, 14, wood); R(x, 14, w, 2, woodL); R(x, 0, w, 1, woodD); for (int i = 6; i < w; i += 10) R(x + i, 2, 1, 11, woodD); }
             // the hearth: stone, with logs in it - the flames are a moving picture laid over it in the game
             void Fireplace(int x)
@@ -514,6 +535,8 @@ namespace Gloomdelve.EditorTools
                 R(x + 8, 0, 24, 26, C(26, 20, 22));
                 R(x + 11, 0, 18, 3, woodD); R(x + 13, 3, 14, 2, C(110, 60, 40)); R(x + 12, 1, 16, 1, C(190, 90, 50));
                 R(x + 10, 48, 20, 48, VStoneD); R(x + 10, 48, 2, 48, VStone);
+                R(x - 4, 0, 48, 2, C(60, 60, 70));                                           // hearthstone
+                lights.Add(new Vector4(ix + x + 20, iy + oy + 12, 150f, 1.15f));
             }
             void Table(int x, int w) { R(x, 12, w, 3, woodL); R(x, 11, w, 1, woodD); R(x + 2, 0, 3, 11, woodD); R(x + w - 5, 0, 3, 11, woodD); }
             void Rug(int x, int w, Color32 c) { R(x, 0, w, 2, c); for (int i = 2; i < w - 2; i += 4) R(x + i, 0, 2, 1, Mul(c, 1.3f)); R(x, 0, 1, 2, Mul(c, 0.7f)); R(x + w - 1, 0, 1, 2, Mul(c, 0.7f)); }
@@ -539,6 +562,7 @@ namespace Gloomdelve.EditorTools
                     R(168, 0, 50, 58, VStone); R(168, 58, 50, 4, VStoneD); for (int y = 8; y < 58; y += 9) R(168, y, 50, 1, VStoneD);
                     R(178, 6, 30, 26, C(26, 20, 22)); R(182, 6, 22, 4, C(190, 80, 40)); R(186, 6, 14, 2, C(240, 150, 70));          // a bed of coals; the fire burns over it
                     R(186, 62, 16, 34, VStoneD);
+                    lights.Add(new Vector4(ix + 193, iy + 16, 150f, 1.15f));
                     Counter(76, 92);
                     R(74, 52, 60, 2, woodD); for (int i = 0; i < 6; i++) { R(78 + i * 9, 54, 2, 20, C(190, 196, 210)); R(76 + i * 9, 54, 6, 2, C(120, 84, 52)); R(78 + i * 9, 50, 2, 4, C(90, 60, 40)); }
                     R(142, 0, 14, 5, VStoneD); R(140, 5, 18, 4, C(70, 72, 84)); R(144, 9, 10, 3, C(70, 72, 84)); R(138, 12, 22, 4, C(96, 98, 112));       // anvil
@@ -618,6 +642,7 @@ namespace Gloomdelve.EditorTools
                 case 4: Bed(150, C(170, 100, 170)); Crate(84, 0, 20); Crate(106, 0, 16); Crate(90, 20, 16); Crate(124, 0, 14); NightWindow(128, 50, 16, 18); Lamp(110, 84); Lamp(190, 80); break;
                 case 5:     // the great lamp of the tower, behind its glass
                     R(100, 0, 60, 6, VStoneD); R(108, 6, 44, 60, VBeam); R(112, 10, 36, 52, VGlow); R(120, 18, 20, 36, VGlowL); R(129, 6, 2, 60, VBeam); R(108, 34, 44, 2, VBeam);
+                    lights.Add(new Vector4(ix + 130, iy + oy + 36, 150f, 1.2f));
                     R(104, 66, 52, 4, VStoneD); Bed(164 - 4, C(96, 100, 150)); Barrel(84, 0); break;
                 case 6: Bed(150, C(150, 60, 64)); R(84, 0, 30, 60, woodD); for (int y = 4; y < 58; y += 14) { R(86, y, 26, 11, C(40, 28, 24)); for (int i = 0; i < 7; i++) R(87 + i * 3 + i / 3, y, 3, 8 + (i * 5 + y) % 3, new[] { C(170, 60, 60), C(70, 110, 160), C(90, 140, 90), C(200, 170, 90) }[(i + y) % 4]); }
                     Table(118, 28); R(122, 15, 14, 2, C(232, 220, 190)); R(138, 15, 3, 7, VGlowL); NightWindow(124, 50, 16, 18); Rug(118, 90, C(150, 44, 50)); Lamp(170, 84); break;
@@ -633,6 +658,38 @@ namespace Gloomdelve.EditorTools
             R(LadderX, 0, 2, UpperY + 6, woodD); R(LadderX + 14, 0, 2, UpperY + 6, woodD);
             R(LadderX + 1, 0, 1, UpperY + 6, woodL); R(LadderX + 15, 0, 1, UpperY + 6, woodL);
             for (int y = 3; y < UpperY + 4; y += 5) { R(LadderX + 2, y, 12, 2, wood); R(LadderX + 2, y, 12, 1, woodD); }
+
+            // ---------------------------------------------------------------- shadow and light
+            // soft shadow under the ceilings and along the walls, a little grain in every surface
+            for (int y = RY; y < RY + 240; y++)
+                for (int x = RX; x < RX + 256; x++)
+                {
+                    var c = p.Get(x, y);
+                    if (c.a == 0) continue;
+                    float k = 1f;
+                    if (((x * 7 + y * 13) ^ (x * y)) % 11 == 0) k *= 0.93f;
+                    int fromLeft = x - (RX + 16), fromRight = RX + 240 - x;
+                    if (fromLeft >= 0 && fromLeft < 10) k *= 0.8f + fromLeft * 0.02f;
+                    if (fromRight > 0 && fromRight <= 10) k *= 0.8f + (fromRight - 1) * 0.02f;
+                    foreach (int ceil in new[] { iy + 96, iy + 208 })
+                    {
+                        int below = ceil - y;
+                        if (below > 0 && below <= 8) k *= 0.78f + below * 0.0275f;
+                    }
+                    // the light of the lamps and the fire: warm where it reaches, cold blue dusk where it does not
+                    float lit = 0f;
+                    foreach (var l in lights)
+                    {
+                        float dx = x - l.x, dy = (y - l.y) * 1.15f;
+                        float f = Mathf.Clamp01(1f - Mathf.Sqrt(dx * dx + dy * dy) / l.z);
+                        lit = Mathf.Max(lit, f * f * (3f - 2f * f) * l.w);
+                    }
+                    lit = Mathf.Clamp01(0.32f + lit);
+                    float r = c.r * k, g = c.g * k, b = c.b * k;
+                    float dr = r * 0.34f, dg = g * 0.4f, db = b * 0.58f + 6f;                    // unlit: dim and blue
+                    float wr = r * 1.1f + 6f, wg = g * 1.0f + 2f, wb = b * 0.84f;                 // lit: warm
+                    p.Set(x, y, new Color32((byte)Mathf.Clamp(Mathf.Lerp(dr, wr, lit), 0, 255), (byte)Mathf.Clamp(Mathf.Lerp(dg, wg, lit), 0, 255), (byte)Mathf.Clamp(Mathf.Lerp(db, wb, lit), 0, 255), c.a));
+                }
             return p;
         }
 

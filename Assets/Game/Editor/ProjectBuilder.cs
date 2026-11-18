@@ -1419,6 +1419,12 @@ namespace Gloomdelve.EditorTools
                         e.flipWithFacing = false;
                         if (pid == "firtree") Lamp(g, "Candles", new Vector2(0f, 1.8f), 3.2f, 0.4f, 0.25f);
                     }));
+                Reg("curio", Make<Curio>("Curio", "Level", "something to look at", new Vector2(1.1f, 1.5f), ArtGenerator.S("Sprites/Village/glint"), null, 4, (e, g, s) =>
+                {
+                    e.flipWithFacing = false;
+                    s.sharedMaterial = unlitMat;
+                    s.transform.localPosition = new Vector3(0f, 1.75f, 0f);       // the glint floats just above head height
+                }));
                 Reg("pavement", Make<Prop>("Pavement", "Level", "street", new Vector2(1f, 0.2f), ArtGenerator.S("Sprites/Village/street_ground"), null, 2, (e, g, s) =>
                 {
                     e.flipWithFacing = false;
@@ -1428,6 +1434,7 @@ namespace Gloomdelve.EditorTools
                 {
                     e.flipWithFacing = false; e.rooms = rooms;
                     s.transform.localPosition = new Vector3(5.5f, 6.5f, 0f);      // the picture is the whole house, both storeys; the entity stands at its door
+                    s.sharedMaterial = unlitMat;                                  // its light and shadow are painted in (ArtGenerator.Village, Room): the lamps here light only who is in it
                     Lamp(g, "RoomLight", new Vector2(5.5f, 3.2f), 10f, 0.5f, 0.06f);
                     Lamp(g, "UpstairsLight", new Vector2(5.5f, 10f), 10f, 0.42f, 0.06f);
                     // the fire: flames that move and a light that flickers (the room puts it in its hearth, or away)

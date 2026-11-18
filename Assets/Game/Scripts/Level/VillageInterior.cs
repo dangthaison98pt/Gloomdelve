@@ -19,6 +19,74 @@ namespace Gloomdelve
 
         /// <summary>Where the fire burns in each room, in floor-space pixels of the picture (-1 = no fire): the forge's
         /// furnace, the hearths of the hall and of the player's house. Same numbers as ArtGenerator.Village, Room.</summary>
+        /// <summary>
+        /// Things worth a closer look, room by room: cell across (0-13, the door is 1), storey (0 = street level,
+        /// 1 = upstairs), what it is called, what the player notices. Each says something about who lives here - and,
+        /// read together, about this winter.
+        /// </summary>
+        static readonly (int cell, int storey, string label, string text)[][] Curios =
+        {
+            new[]   // the forge - Hilde
+            {
+                (12, 0, "the furnace", "The coals are banked the way Hilde always leaves them at dusk. They have not burned down at all."),
+                (4, 0, "the rack of blades", "Six blades, each stamped with the day it was finished. All six carry the same day."),
+                (10, 1, "her bed", "Under the pillow: a ring too small for Hilde's hand, and a letter that begins 'When the sun comes back...'"),
+                (6, 1, "the crates", "Horseshoes, hinges, nails - a whole season's orders, packed and labelled. Nobody has come to collect them."),
+            },
+            new[]   // the ropewalk - Tam
+            {
+                (11, 0, "the ledger", "Rope sold. The last entry: 'To the Elder, forty fathoms, for the mountain.' It is written on every line of the page."),
+                (6, 1, "the old loom", "A climbing harness hangs on it, cut through. Not frayed. Cut."),
+                (8, 1, "the window", "From here you can see the mountain path. Someone has scratched a tally into the sill: more marks than a winter has days."),
+                (11, 1, "his bed", "Two pillows. Only one of them has been slept on for a long time."),
+            },
+            new[]   // the apothecary - Maren
+            {
+                (12, 0, "the cauldron", "Maren's tonic simmers. The recipe pinned above it is in two hands: hers, and an older one that looks just like hers."),
+                (6, 1, "the cabinet", "Jars labelled by night, not by herb: 'the first night', 'the cold night', 'the night he did not come back'."),
+                (8, 1, "the window", "A candle stub on the sill, burned down to the same height as the stub beside it, and the one beside that."),
+                (11, 1, "her bed", "A man's coat is folded at the foot of the bed, brushed clean. It has not been worn this winter."),
+            },
+            new[]   // the map room - Oswin
+            {
+                (12, 0, "the globe", "A hole is burned clean through Oswin's globe, exactly where Brindlemoor should be."),
+                (7, 1, "the chart table", "A map of the caverns. Then another. Then another. No two agree, and all of them are in Oswin's hand."),
+                (11, 1, "the telescope", "It is fixed on the mountain's peak. Through it: a light, where no one lives."),
+                (5, 1, "his bed", "The blankets are drawn tight, unslept in. A note on them: 'If I am asleep I will not remember. Do not let me sleep.'"),
+            },
+            new[]   // Pip's Oddments
+            {
+                (11, 0, "the crates", "Things Pip swears he has never sold: three compasses, none of them pointing north. All of them point at the mountain."),
+                (5, 0, "the rug on the wall", "Woven into the border, very small: a village in the snow, and a sun that has been unpicked, thread by thread."),
+                (6, 1, "the crates upstairs", "A peddler's licence from a town called Harrowmere. You have never heard of it. Neither, it seems, has any map in Oswin's room."),
+                (11, 1, "his bed", "A packed bag, by the bed. It is always packed. Pip never leaves."),
+            },
+            new[]   // the lamp house - Bera
+            {
+                (12, 0, "the oil barrels", "Lamp oil, enough for one long night. The barrels are full. Bera says they are always full."),
+                (8, 1, "the great lamp", "Scratched into the brass, in Bera's hand: 'While this burns, it cannot see us.'"),
+                (5, 1, "the barrel", "A list is nailed to the lid: every lamp in Brindlemoor, each with a tick beside it. And a last line: 'the one on the mountain - not mine.'"),
+                (11, 1, "her bed", "Bera sleeps in her boots. There is soot on the blanket in the shape of a hand that is not hers."),
+            },
+            new[]   // the village hall - the Elder
+            {
+                (12, 0, "the hearth", "Carved above it: the names of everyone who went up the mountain for the Sunstone. Yours is among them. The cut is old and weathered."),
+                (9, 0, "the long table", "The Elder's cup is still warm. So is the one set across from it, though no one sits there."),
+                (6, 1, "the bookcase", "A book of village winters. Every page after tonight is blank. Every page before it reads the same."),
+                (8, 1, "the writing table", "A letter the Elder never sent: 'Forgive me. I did not know what the stone would ask of them.'"),
+                (11, 1, "his bed", "The Elder does not seem to use his bed. The pillow is dusty. The candle beside it is new."),
+            },
+            new[]   // home
+            {
+                (7, 0, "the painting", "Your mother, at this window. She is not looking at the painter. She is looking at the mountain."),
+                (12, 0, "the hearth", "Your boots by the fire, dry and warm. You do not remember taking them off."),
+                (9, 0, "the armchair", "Your father's chair. The lantern he carried up the mountain, the winter you were small, is the one in your hand."),
+                (5, 1, "the chest", "Your own handwriting, on a scrap at the bottom: 'The gate. Then down. Do not trust the first way down.' You do not remember writing it."),
+                (12, 1, "the wardrobe", "Coats for a winter that should have ended by now. One sleeve is singed, as if by something very bright."),
+                (8, 1, "your bed", "The blankets are thrown back the way you always leave them. Exactly the way. Every time."),
+            },
+        };
+
         static readonly int[] FireX = { 193, -1, -1, -1, -1, -1, 196, 198 };
         static readonly int[] FireY = { 8, 0, 0, 0, 0, 0, 4, 4 };
 
@@ -61,7 +129,15 @@ namespace Gloomdelve
                 var cell = new Vector2Int(cx + 5, cy);
                 if (prefab != null) World.Spawn(prefab, new Vector2(cell.x + 0.5f, cell.y), new SpawnPoint("villagerhome", cell, 0, Index));
             }
-            else if (Index == VillageBuilding.Hall)
+            // the things worth a closer look
+            var curio = cfg.prefabs.Get("curio");
+            if (curio != null && Index >= 0 && Index < Curios.Length)
+                foreach (var c in Curios[Index])
+                {
+                    var cell = new Vector2Int(cx - 1 + c.cell, cy + c.storey * 7);
+                    World.Spawn(curio, new Vector2(cell.x + 0.5f, cell.y), new SpawnPoint("curio", cell, 0, 0, c.label + "|" + c.text));
+                }
+            if (Index == VillageBuilding.Hall)
             {
                 var prefab = cfg.prefabs.Get("elder");
                 var cell = new Vector2Int(cx + 6, cy);
