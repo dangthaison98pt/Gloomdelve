@@ -168,7 +168,7 @@ namespace Gloomdelve
             if (GameDirector.Instance != null)
                 GameDirector.Instance.ShowMessage(last
                     ? "The shopkeeper glares at you: \"One more hit and you're dead meat!\""
-                    : "The shopkeeper warns you: \"Careful with that, explorer!\"");
+                    : "The shopkeeper warns you: \"Careful with that, Brann!\"");
         }
 
         static bool CausedByPlayer(in DamageInfo d) =>

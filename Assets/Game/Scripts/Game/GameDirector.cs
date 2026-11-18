@@ -354,7 +354,7 @@ namespace Gloomdelve
             collapsing = true;
             collapseTimer = 1.2f;
             if (exitDoor != null) exitDoor.SetLocked(false);
-            hud.ShowBanner("THE VAULT IS COLLAPSING!", "Carry the Heartstone back up to the Surface Gate!");
+            hud.ShowBanner("THE VAULT IS COLLAPSING!", "Carry the Sunstone back up to the Surface Gate!");
             Sfx.PlayUI("collapse");
             Fx.Shake(0.5f);
             if (AudioManager.Instance != null) AudioManager.Instance.SetMusicPitch(1.12f);
@@ -379,7 +379,7 @@ namespace Gloomdelve
                 StartCoroutine(EndPractice(2.2f));
                 return;
             }
-            hud.ShowBanner($"{b.displayName.ToUpperInvariant()} DEFEATED", final ? "The Heartstone is yours. Lift it and run!" : "The way on is open.", 4.5f);
+            hud.ShowBanner($"{b.displayName.ToUpperInvariant()} DEFEATED", final ? "The Sunstone is yours. Lift it and run!" : "The way on is open.", 4.5f);
             Sfx.PlayUI("victory");
             if (AudioManager.Instance != null) AudioManager.Instance.SetMusicPitch(1f);
         }
@@ -440,7 +440,7 @@ namespace Gloomdelve
             {
                 if (!(p.held is Treasure t && t.isHeartstone))
                 {
-                    hud.ShowMessage("The Surface Gate only opens for the Heartstone!");
+                    hud.ShowMessage("The Surface Gate only opens for the Sunstone!");
                     Sfx.Play("error", p.pos);
                     return;
                 }

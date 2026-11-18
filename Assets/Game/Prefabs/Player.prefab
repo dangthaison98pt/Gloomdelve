@@ -229,7 +229,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee3dfd0a467bb75498977efe9e152454, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.PlayerController
-  displayName: explorer
+  displayName: Brann
   size: {x: 0.6, y: 0.6}
   maxHealth: 1
   flipWithFacing: 1

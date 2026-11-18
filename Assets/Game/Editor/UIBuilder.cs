@@ -13,6 +13,16 @@ namespace Gloomdelve.EditorTools
         /// <summary>When set, every label can show button pictures for input tokens such as "[jump]" (GlyphText).</summary>
         public static InputGlyphSet glyphSet;
 
+        /// <summary>
+        /// Title-screen look. While this is on (ProjectBuilder turns it on for the menu scene only) panels are the
+        /// quiet dark sheet instead of the gold frame, buttons are translucent strips, panel titles get the gold
+        /// gradient, and every text made is collected in 'styledTexts' so the scene can give them its serif face.
+        /// The in-game HUD and pause menu are built with it off and keep their look.
+        /// </summary>
+        public static bool menuStyle;
+        public static Sprite softPanelSprite, softRowSprite;
+        public static readonly System.Collections.Generic.List<Text> styledTexts = new System.Collections.Generic.List<Text>();
+
         static readonly Color Gold = new Color(1f, 0.84f, 0.38f);
         static readonly Color Dim = new Color(0f, 0f, 0f, 0.62f);
 
@@ -54,10 +64,22 @@ namespace Gloomdelve.EditorTools
             t.raycastTarget = false;
             Place(Rect(go), anchor, pos, box);
             if (glyphSet != null) go.AddComponent<GlyphText>().set = glyphSet;
+            if (menuStyle)
+            {
+                styledTexts.Add(t);
+                if (name == "Title")
+                {
+                    // a panel's title: the same gold gradient as the game's title, with a soft drop shadow
+                    go.AddComponent<VerticalGradient>();
+                    var sh = go.AddComponent<Shadow>();
+                    sh.effectColor = new Color(0.02f, 0.03f, 0.1f, 0.75f); sh.effectDistance = new Vector2(2f, -4f);
+                    return t;
+                }
+            }
             if (shadow)
             {
                 var o = go.AddComponent<Outline>();
-                o.effectColor = new Color(0f, 0f, 0f, 0.85f);
+                o.effectColor = menuStyle ? new Color(0.03f, 0.04f, 0.12f, 0.85f) : new Color(0f, 0f, 0f, 0.85f);
                 o.effectDistance = new Vector2(2f, -2f);
             }
             return t;
@@ -74,7 +96,12 @@ namespace Gloomdelve.EditorTools
         }
 
         public static Image Panel(Transform parent, string name, Vector2 anchor, Vector2 pos, Vector2 size)
-            => Img(parent, name, panelSprite, Color.white, anchor, pos, size, true);
+        {
+            if (!menuStyle || softPanelSprite == null) return Img(parent, name, panelSprite, Color.white, anchor, pos, size, true);
+            var i = Img(parent, name, softPanelSprite, Color.white, anchor, pos, size, true);
+            i.pixelsPerUnitMultiplier = 2f;
+            return i;
+        }
 
         public static Image Dimmer(Transform parent, string name)
         {
@@ -97,6 +124,17 @@ namespace Gloomdelve.EditorTools
             cb.pressedColor = new Color(1f, 0.8f, 0.4f);
             cb.disabledColor = new Color(0.2f, 0.2f, 0.2f, 0.5f);
             cb.colorMultiplier = 1f; cb.fadeDuration = 0.06f;
+            if (menuStyle && softRowSprite != null)
+            {
+                // a translucent strip: barely there at rest, warm gold when it is in focus
+                img.sprite = softRowSprite; img.pixelsPerUnitMultiplier = 2f;
+                cb.normalColor = new Color(0.56f, 0.64f, 0.9f, 0.16f);
+                cb.highlightedColor = new Color(1f, 0.86f, 0.5f, 0.34f);
+                cb.selectedColor = new Color(1f, 0.82f, 0.4f, 0.52f);
+                cb.pressedColor = new Color(1f, 0.95f, 0.8f, 0.7f);
+                cb.disabledColor = new Color(0.4f, 0.4f, 0.5f, 0.1f);
+                cb.fadeDuration = 0.08f;
+            }
             b.colors = cb;
             Place(Rect(go), anchor, pos, size);
             text = Label(go.transform, "Label", label, 30, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, size);
@@ -105,6 +143,28 @@ namespace Gloomdelve.EditorTools
 
         public static Button Button(Transform parent, string name, string label, Vector2 anchor, Vector2 pos, Vector2 size)
             => Button(parent, name, label, anchor, pos, size, out _);
+
+        /// <summary>A menu entry that is just its words: no box. The words turn gold when it is in focus.</summary>
+        public static Button TextButton(Transform parent, string name, string label, Vector2 anchor, Vector2 pos, Vector2 size, int fontSize, out Text text)
+        {
+            var go = Node(parent, name);
+            var hit = go.AddComponent<Image>();         // invisible, only so the mouse can find the entry
+            hit.color = new Color(0f, 0f, 0f, 0f);
+            Place(Rect(go), anchor, pos, size);
+            text = Label(go.transform, "Label", label, fontSize, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, size);
+            var o = text.GetComponent<Outline>();
+            if (o != null) { o.effectColor = new Color(0.03f, 0.04f, 0.12f, 0.9f); o.effectDistance = new Vector2(2f, -3f); }
+            var b = go.AddComponent<Button>();
+            b.targetGraphic = text;
+            var cb = b.colors;
+            cb.normalColor = new Color(0.86f, 0.9f, 1f);
+            cb.highlightedColor = new Color(1f, 0.9f, 0.6f);
+            cb.selectedColor = new Color(1f, 0.84f, 0.4f);
+            cb.pressedColor = Color.white;
+            cb.colorMultiplier = 1f; cb.fadeDuration = 0.08f;
+            b.colors = cb;
+            return b;
+        }
 
         public static Slider Slider(Transform parent, string name, string label, Vector2 pos, out Text valueText)
         {

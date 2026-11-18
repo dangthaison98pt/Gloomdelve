@@ -52,7 +52,7 @@ namespace Gloomdelve
             shownAt = Time.unscaledTime;
             title.text = victory ? "VICTORY!" : "YOU DIED";
             title.color = victory ? new Color(1f, 0.85f, 0.3f) : new Color(1f, 0.35f, 0.35f);
-            cause.text = victory ? "You carried the Heartstone back to the surface." : run.deathCause;
+            cause.text = victory ? "You carried the Sunstone home. Brindlemoor is warm again." : run.deathCause;
             reached.text = victory ? "" : "REACHED  " + run.reachedStageName;
             body.text = "";
             statsRoot.SetActive(true);
@@ -144,7 +144,7 @@ namespace Gloomdelve
             reached.text = "";
             seedText.text = "";
             statsRoot.SetActive(false);
-            body.text = "You know the basics: run, jump, hang, climb, slash, throw, bomb and rope.\n\nFour areas, each with a boss, lie between you and the Heartstone.";
+            body.text = "You know the basics: run, jump, hang, climb, slash, throw, bomb and rope.\n\nFour areas, each with a boss, lie between you and the Sunstone.";
             records.text = "";
             news.text = $"Time {UIUtil.FormatTime(run.totalTime)}";
             retrySeedButton.gameObject.SetActive(false);

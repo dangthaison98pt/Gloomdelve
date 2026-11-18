@@ -1652,7 +1652,7 @@ namespace Gloomdelve
             hud.ShowAreaIntro("The Sunken Vault");
             yield return new WaitForSecondsRealtime(0.8f);
             c.Expect(hud.introGroup.alpha > 0.9f && hud.bannerGroup.alpha < 0.01f, "the title card shows on its own");
-            hud.ShowBanner("THE VAULT IS COLLAPSING!", "Carry the Heartstone back up to the Surface Gate!");
+            hud.ShowBanner("THE VAULT IS COLLAPSING!", "Carry the Sunstone back up to the Surface Gate!");
             yield return new WaitForSecondsRealtime(0.3f);
             c.Expect(hud.introGroup.alpha < 0.01f && hud.bannerGroup.alpha > 0.9f, $"the banner replaces the card (card {hud.introGroup.alpha:0.00}, banner {hud.bannerGroup.alpha:0.00})");
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "banner_over_card.png"));

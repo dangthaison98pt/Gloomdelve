@@ -1,5 +1,8 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+#if UNITY_STANDALONE_WIN && !UNITY_EDITOR
+using System.Runtime.InteropServices;
+#endif
 
 namespace Gloomdelve
 {
@@ -22,10 +25,29 @@ namespace Gloomdelve
             inst.name = "GameServices";
         }
 
+        // The window shows the full title "Brann: Gloomdelve". The product name itself stays "Gloomdelve": it names the
+        // save folder and the .exe, where a colon is not allowed, and changing it would orphan existing saves.
+#if UNITY_STANDALONE_WIN && !UNITY_EDITOR
+        [DllImport("user32.dll")] static extern System.IntPtr GetActiveWindow();
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern bool SetWindowText(System.IntPtr hWnd, string text);
+        static bool titled;
+        void ApplyWindowTitle()
+        {
+            if (titled) return;
+            var w = GetActiveWindow();
+            if (w == System.IntPtr.Zero) return;        // not in front yet: tried again shortly
+            titled = SetWindowText(w, GameConst.GameName);
+        }
+#else
+        void ApplyWindowTitle() { }
+#endif
+
         void Awake()
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
             Instance = this;
+            ApplyWindowTitle();
+            InvokeRepeating(nameof(ApplyWindowTitle), 0.5f, 1f);
             DontDestroyOnLoad(gameObject);
             Time.fixedDeltaTime = GameConst.Dt;
             Time.maximumDeltaTime = 0.1f;

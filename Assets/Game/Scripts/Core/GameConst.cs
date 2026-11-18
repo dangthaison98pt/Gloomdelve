@@ -5,7 +5,11 @@ namespace Gloomdelve
         /// <summary>Fixed simulation step. The motor, the level validator and the bot all use exactly this value.</summary>
         public const float Dt = 1f / 60f;
         public const int PPU = 16;
-        public const string GameName = "Gloomdelve";
+        /// <summary>The series is named after the hero's village; each game adds its own title after the colon.</summary>
+        public const string SeriesName = "Brindlemoor";
+        public const string PartName = "The Sunstone Hunt";
+        public const string GameName = SeriesName + ": " + PartName;
+        public const string HeroName = "Brann";
         public const string Version = "0.1.0";
         public const string SceneMenu = "MainMenu";
         public const string SceneGame = "Game";

@@ -146,6 +146,7 @@ namespace Gloomdelve.EditorTools
             FxArt();
             UiArt();
             FontArt();
+            AppIconArt();
             AssetDatabase.Refresh();
             AssetDatabase.StartAssetEditing();
             try { foreach (var p in written) AssetDatabase.ImportAsset(p, ImportAssetOptions.ForceUpdate); }
@@ -1961,10 +1962,10 @@ namespace Gloomdelve.EditorTools
                 p.Outline(C(80, 50, 10)); Save(p, d + "idol", PItem);
             }
             {
-                var p = ItemCanvas(); Color32 r = C(232, 50, 74), rl = C(255, 160, 180), rd = C(140, 20, 44);
+                var p = ItemCanvas(); Color32 r = C(255, 186, 56), rl = C(255, 246, 190), rd = C(212, 112, 28);       // the Sunstone: warm gold
                 p.Rect(7, 1, 2, 1, rd); p.Rect(6, 2, 4, 8, r); p.Rect(5, 4, 1, 4, rd); p.Rect(10, 4, 1, 4, rd); p.Rect(7, 10, 2, 1, r);
                 p.Set(7, 7, rl); p.Set(7, 8, rl); p.Set(8, 9, C(255, 255, 255)); p.Rect(8, 3, 1, 3, rd);
-                p.Outline(C(255, 120, 140, 160)); Save(p, d + "heartstone", PItem);
+                p.Outline(C(255, 226, 130, 170)); Save(p, d + "heartstone", PItem);
             }
             // upgrade icons
             {
@@ -2389,6 +2390,8 @@ namespace Gloomdelve.EditorTools
             }
             LogoArt();
             MenuArt();
+            MenuPointerArt();
+            SoftPanelArt();
             GlyphArt();
             {
                 var p = new Px(64, 64);
@@ -2494,6 +2497,65 @@ namespace Gloomdelve.EditorTools
         }
 
         /// <summary>Reads a sprite written earlier in this run back into a pixel buffer.</summary>
+        /// <summary>
+        /// The game's icon (window, taskbar, the .exe): the explorer on a mossy ledge in the mouth of a cave, lit
+        /// from behind by a warm glow, in the same gold frame as the UI panels. Drawn at 64x64 and saved four times
+        /// larger so it stays crisp. ProjectBuilder sets it as the player icon.
+        /// </summary>
+        static void AppIconArt()
+        {
+            const int S = 64;
+            var p = new Px(S, S);
+            // the dark of the cave
+            p.Fill(C(18, 13, 26));
+            // the glow behind the explorer: rings from deep red-brown to warm gold
+            Color32[] glow = { C(34, 22, 36), C(52, 30, 40), C(78, 44, 44), C(112, 64, 46), C(150, 92, 52), C(196, 132, 64), C(236, 178, 92) };
+            for (int i = 0; i < glow.Length; i++) p.Disc(32f, 31f, 27f - i * 3.4f, glow[i]);
+            // the cave mouth: dark rock closing in from the corners and the top
+            Color32 rock = C(40, 32, 52), rockD = C(26, 20, 36);
+            for (int x = 0; x < S; x++)
+            {
+                int h = (int)(10 + 6 * Mathf.Sin(x * 0.33f) + 16f * Mathf.Abs(x - 31.5f) / 32f * Mathf.Abs(x - 31.5f) / 32f * 2.2f);
+                p.Rect(x, S - h, 1, h, rock);
+                if (h > 3) p.Rect(x, S - h, 1, 2, rockD);
+            }
+            for (int y = 0; y < S; y++)
+            {
+                int w = (int)(4 + 3 * Mathf.Sin(y * 0.4f) + (y > 40 ? (y - 40) * 0.5f : 0f));
+                p.Rect(0, y, w, 1, rock); p.Rect(S - w, y, w, 1, rock);
+            }
+            // a stalactite or two
+            p.Line(20, 54, 20, 47, rockD); p.Line(21, 55, 21, 49, rock); p.Line(44, 53, 44, 45, rockD); p.Line(45, 54, 45, 48, rock);
+            // the ledge: earth with a mossy top
+            Color32 dirt = C(110, 74, 48), dirtD = C(78, 50, 34), moss = C(84, 150, 62), mossL = C(146, 200, 90);
+            p.Rect(0, 0, S, 13, dirt);
+            for (int x = 0; x < S; x += 5) p.Set(x + (x / 5) % 3, 4 + (x / 5) % 5, dirtD);
+            for (int x = 0; x < S; x += 7) p.Rect(x + 2, 8, 2, 1, dirtD);
+            p.Rect(0, 12, S, 3, moss); p.Rect(0, 14, S, 1, mossL);
+            for (int x = 1; x < S; x += 4) p.Set(x, 11 - (x / 4) % 2, moss);
+            // the explorer, twice the size of the sprite, standing on the ledge
+            var hero = Scale(LoadPx("Sprites/Player/idle_0"), 2);
+            int ox = (S - hero.w) / 2, oy = 13;
+            for (int y = 0; y < hero.h; y++)
+                for (int x = 0; x < hero.w; x++)
+                {
+                    var c = hero.Get(x, y);
+                    if (c.a > 0) p.Set(ox + x, oy + y, c);
+                }
+            // the gold frame of the UI
+            Color32 gold = C(214, 170, 86), goldL = C(255, 226, 140), goldD = C(120, 84, 40), edge = C(20, 14, 20);
+            p.Rect(0, 0, S, 1, edge); p.Rect(0, S - 1, S, 1, edge); p.Rect(0, 0, 1, S, edge); p.Rect(S - 1, 0, 1, S, edge);
+            p.Rect(1, 1, S - 2, 2, gold); p.Rect(1, S - 3, S - 2, 2, gold); p.Rect(1, 1, 2, S - 2, gold); p.Rect(S - 3, 1, 2, S - 2, gold);
+            p.Rect(1, S - 2, S - 2, 1, goldL); p.Rect(1, 1, 1, S - 2, goldL);
+            p.Rect(1, 1, S - 2, 1, goldD); p.Rect(S - 2, 1, 1, S - 2, goldD);
+            p.Rect(3, 3, S - 6, 1, edge); p.Rect(3, S - 4, S - 6, 1, edge); p.Rect(3, 3, 1, S - 6, edge); p.Rect(S - 4, 3, 1, S - 6, edge);
+            foreach (var (cx, cy) in new[] { (1, 1), (S - 5, 1), (1, S - 5), (S - 5, S - 5) })
+            {
+                p.Rect(cx, cy, 4, 4, goldL); p.Rect(cx + 1, cy + 1, 2, 2, gold);
+            }
+            Save(Scale(p, 4), "UI/app_icon", PCenter);
+        }
+
         static Px LoadPx(string rel)
         {
             var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
@@ -2514,12 +2576,16 @@ namespace Gloomdelve.EditorTools
             ['D'] = new[] { "######.", "##...##", "##...##", "##...##", "##...##", "##...##", "##...##", "##...##", "######." },
             ['E'] = new[] { "#######", "##.....", "##.....", "##.....", "#####..", "##.....", "##.....", "##.....", "#######" },
             ['V'] = new[] { "##...##", "##...##", "##...##", "##...##", "##...##", "##...##", ".##.##.", "..###..", "...#..." },
+            ['B'] = new[] { "######.", "##...##", "##...##", "##...##", "######.", "##...##", "##...##", "##...##", "######." },
+            ['R'] = new[] { "######.", "##...##", "##...##", "##...##", "######.", "##.##..", "##..##.", "##...##", "##...##" },
+            ['I'] = new[] { "#######", "..###..", "..###..", "..###..", "..###..", "..###..", "..###..", "..###..", "#######" },
+            ['N'] = new[] { "##...##", "###..##", "####.##", "##.####", "##..###", "##...##", "##...##", "##...##", "##...##" },
         };
 
         /// <summary>Title logo: chunky gold pixel letters with a dark outline and a drop shadow.</summary>
         static void LogoArt()
         {
-            const string word = "GLOOMDELVE";
+            const string word = "BRINDLEMOOR";        // the series: the name of the hero's village
             const int S = 2, OX = 3, OY = 6, LH = 9 * S;
             var p = new Px(word.Length * 16 + 6, LH + 9);
             Color32 hi = C(255, 250, 204), light = C(255, 224, 120), mid = C(250, 184, 62), dark = C(206, 128, 40);
@@ -2553,97 +2619,322 @@ namespace Gloomdelve.EditorTools
         }
 
         /// <summary>
-        /// Main menu picture (320 x 180): the explorer at a camp torch inside a cave mouth, looking out at the sunset
-        /// over the mountains. Characters are the game's own sprites, drawn at the same pixel size as the scenery.
+        /// Title screen picture. It is its own illustration, finer than the in-game art (480 x 270 against the
+        /// game's 16-pixel tiles): the menu does not have to look like a level.
         /// </summary>
+        /// <summary>Where the animated scarf goes on the title picture (picture pixels, y up), and its frames.</summary>
+        public static RectInt MenuScarfRect;
+        public const int ScarfFrames = 6, ScarfW = 18, ScarfH = 12;
+        public const int MenuArtW = 480, MenuArtH = 270;
+
         static void MenuArt()
         {
-            const int W = 320, H = 180, FLOOR = 38;
+            // Title picture (480 x 270, not the in-game art): a winter dusk over the valley of Brindlemoor. Far off,
+            // warm light spills out of a cave high on the great peak; the village lies dark and snowed in below it;
+            // on a ledge in the foreground the traveller stands with a lantern, about to set out.
+            const int W = 480, H = 270;
             var p = new Px(W, H);
+            void Blend(int x, int y, Color32 col, float a)
+            {
+                if (x < 0 || y < 0 || x >= W || y >= H || a <= 0f) return;
+                p.Set(x, y, Lerp(p.Get(x, y), col, Mathf.Clamp01(a)));
+            }
+            float Ridge(float x, float f1, float f2, int seed) =>
+                Mathf.Sin(x * f1 + seed) * 0.5f + Mathf.Sin(x * f2 + seed * 1.7f) * 0.3f + (N((int)(x / 3f), seed, 17) - 0.5f) * 0.25f;
 
-            // sky: banded sunset gradient, stars high up
-            float[] stops = { 30f, 66f, 100f, 138f, 180f };
-            Color32[] cols = { C(252, 176, 100), C(228, 114, 120), C(122, 72, 142), C(46, 40, 98), C(20, 18, 54) };
+            // ---- sky: cold gradient with soft dither, stars
+            float[] stops = { 70f, 120f, 170f, 220f, 270f };
+            Color32[] cols = { C(96, 112, 150), C(62, 74, 124), C(36, 44, 96), C(20, 24, 66), C(10, 12, 40) };
             for (int y = 0; y < H; y++)
                 for (int x = 0; x < W; x++)
                 {
-                    float yy = Mathf.Clamp(y + (N(x, y, 5) - 0.5f) * 4f, stops[0], stops[4] - 0.01f);
+                    float yy = Mathf.Clamp(y + (N(x, y, 5) - 0.5f) * 5f, stops[0], stops[4] - 0.01f);
                     int k = 0;
                     while (yy >= stops[k + 1]) k++;
                     Color32 col = Lerp(cols[k], cols[k + 1], (yy - stops[k]) / (stops[k + 1] - stops[k]));
-                    if (y > 112 && N(x, y, 11) > 0.9935f) col = C(255, 244, 222);
+                    if (y > 150 && N(x, y, 11) > 0.9955f) col = N(x, y, 3) > 0.5f ? C(255, 250, 236) : C(190, 204, 240);
                     p.Set(x, y, col);
                 }
-            // sun with a soft halo
-            const float SX = 212f, SY = 76f;
+            // a pale, heatless sun behind thin cloud
             for (int y = 0; y < H; y++)
                 for (int x = 0; x < W; x++)
                 {
-                    float dd = Mathf.Sqrt((x - SX) * (x - SX) + (y - SY) * (y - SY));
-                    if (dd < 13f) p.Set(x, y, C(255, 238, 180));
-                    else if (dd < 15f) p.Set(x, y, C(255, 210, 144));
-                    else if (dd < 36f) p.Set(x, y, Lerp(p.Get(x, y), C(255, 196, 128), (1f - dd / 36f) * 0.5f));
+                    float d = Mathf.Sqrt((x - 58f) * (x - 58f) + (y - 178f) * (y - 178f));
+                    if (d < 13f) p.Set(x, y, C(226, 232, 246));
+                    else if (d < 46f) Blend(x, y, C(170, 186, 226), (1f - (d - 13f) / 33f) * 0.42f);
                 }
-            // clouds
-            p.Ellipse(112, 120, 26, 3.5f, C(232, 140, 150)); p.Ellipse(124, 123, 15, 3f, C(250, 178, 164));
-            p.Ellipse(262, 134, 20, 3f, C(170, 100, 150)); p.Ellipse(252, 136, 11, 2.5f, C(206, 130, 160));
-            p.Ellipse(176, 150, 16, 2.5f, C(96, 64, 128));
-            // mountain ranges and a pine forest silhouette
+            // cloud banks: long flat blobs, lit along the top
+            for (int i = 0; i < 26; i++)
+            {
+                float cx = N(i, 1, 71) * W, cy = 150f + N(i, 2, 71) * 96f, rx = 30f + N(i, 3, 71) * 60f, ry = 4f + N(i, 4, 71) * 7f;
+                for (int y = (int)(cy - ry); y <= cy + ry; y++)
+                    for (int x = (int)(cx - rx); x <= cx + rx; x++)
+                    {
+                        float u = (x - cx) / rx, v = (y - cy) / ry;
+                        float e = u * u + v * v + (N(x / 3, y / 2, 23) - 0.5f) * 0.5f;
+                        if (e < 1f) Blend(x, y, v > 0.2f ? C(120, 134, 180) : C(52, 60, 108), 0.34f * (1f - e));
+                    }
+            }
+
+            // ---- the far range, and the great peak with the lit cave
+            const float PX = 352f;                      // the peak's x
+            int[] far = new int[W];
             for (int x = 0; x < W; x++)
             {
-                int h1 = (int)(68 + 11 * Mathf.Sin(x * 0.045f) + 6 * Mathf.Sin(x * 0.11f + 1f));
-                int h2 = (int)(54 + 8 * Mathf.Sin(x * 0.07f + 2f) + 4 * Mathf.Sin(x * 0.19f));
-                int h3 = 43 + 4 - Mathf.Abs(x % 9 - 4) + (int)(2 * Mathf.Sin(x * 0.3f));
-                for (int y = FLOOR - 2; y <= h1; y++) p.Set(x, y, y >= h1 - 1 ? C(176, 120, 150) : C(112, 74, 128));
-                for (int y = FLOOR - 2; y <= h2; y++) p.Set(x, y, y == h2 ? C(96, 64, 112) : C(66, 46, 90));
-                for (int y = FLOOR - 2; y <= h3; y++) p.Set(x, y, C(30, 24, 46));
+                float peak = Mathf.Max(0f, 1f - Mathf.Abs(x - PX) / 118f);
+                far[x] = (int)(118f + (Mathf.Sin(x * 0.021f + 3f) * 0.5f + Mathf.Sin(x * 0.057f + 5.1f) * 0.3f + Mathf.Sin(x * 0.13f + 1.3f) * 0.12f) * 16f
+                               + peak * peak * 104f + Mathf.Max(0f, 1f - Mathf.Abs(x - 120f) / 90f) * 26f);
             }
-
-            // the cave around the opening: how deep a pixel sits inside the rock (<= 0: open air)
-            (int cx, int len, int hw)[] stal = { (96, 44, 7), (128, 40, 6), (158, 52, 9), (204, 36, 6), (238, 58, 10), (270, 42, 7) };
-            float Rock(int x, int y)
-            {
-                float n = TileNoise(x / 14f, y / 14f, 64, 5) * 0.6f + TileNoise(x / 5f, y / 5f, 64, 9) * 0.4f;
-                float dx = (x - 166) / 128f, dy = (y - 100) / 68f;
-                float dpt = Mathf.Sqrt(dx * dx + dy * dy) + (n - 0.5f) * 0.28f - 1f;
-                foreach (var s in stal)
+            for (int x = 0; x < W; x++)
+                for (int y = 60; y <= far[x]; y++)
                 {
-                    float k = 1f - Mathf.Abs(x - s.cx) / (float)s.hw;
-                    if (k > 0f && y > H - s.len * k) dpt = Mathf.Max(dpt, 0.04f + (y - (H - s.len * k)) / 90f);
-                }
-                if (y < FLOOR) dpt = Mathf.Max(dpt, 0.04f + (FLOOR - 1 - y) / 40f);
-                return dpt;
-            }
-            const float TX = 84f, TY = FLOOR + 7f;   // camp torch
-            for (int y = 0; y < H; y++)
-                for (int x = 0; x < W; x++)
-                {
-                    float dpt = Rock(x, y);
-                    if (dpt <= 0f) continue;
-                    Color32 col = Lerp(C(78, 56, 68), C(16, 12, 20), Mathf.Clamp01(dpt * 2.6f));
-                    bool rim = Rock(x, y + 1) <= 0f || Rock(x + 1, y) <= 0f || Rock(x - 1, y) <= 0f || Rock(x, y - 1) <= 0f;
-                    if (rim) col = y < FLOOR ? C(156, 116, 94) : C(138, 94, 88);          // edge lit by the sunset
-                    else if (N(x / 2, y / 2, 21) > 0.84f) col = Mul(col, 1.2f);
-                    else if (N(x / 3, y / 2, 22) < 0.12f) col = Mul(col, 0.78f);
-                    float td = Mathf.Sqrt((x - TX) * (x - TX) + (y - TY) * (y - TY));
-                    if (td < 46f) { float f = 1f - td / 46f; col = Lerp(col, C(255, 170, 90), f * f * 0.6f); }
+                    int depth = far[x] - y;
+                    // slopes that rise toward the right face the pale sun on the left: lit; the others lie in shade
+                    float slope = far[Mathf.Clamp(x + 7, 0, W - 1)] - far[Mathf.Clamp(x - 7, 0, W - 1)];
+                    float light = Mathf.Clamp01(0.5f + slope / 18f);
+                    Color32 rock = Lerp(C(34, 40, 80), C(60, 70, 116), light);
+                    // snow: caps the tops, deeper on the lit side; its lower edge is ragged, not striped
+                    float snowLine = Mathf.Lerp(10f, 30f, light) + Mathf.Sin(x * 0.31f + depth * 0.2f) * 3f + (N(x / 2, y / 2, 31) - 0.5f) * 5f;
+                    Color32 col = depth < snowLine ? Lerp(C(112, 128, 178), C(204, 216, 240), light) : rock;
+                    // haze: the range fades into the valley air toward its foot
+                    col = Lerp(col, C(46, 56, 104), Mathf.Clamp01(depth / 150f) * 0.75f);
                     p.Set(x, y, col);
                 }
-            // pebbles on the ledge
-            for (int x = 8; x < W - 8; x += 7)
-                if (N(x, 3, 31) > 0.55f && Rock(x, FLOOR) <= 0f) { p.Set(x, FLOOR, C(120, 90, 80)); p.Set(x + 1, FLOOR, C(84, 62, 62)); }
-            // camp torch stuck in the ground
-            p.Rect(84, FLOOR, 1, 6, C(116, 78, 42)); p.Set(84, FLOOR + 5, C(70, 44, 24));
-            p.Set(83, FLOOR + 6, C(255, 140, 40)); p.Set(84, FLOOR + 6, C(255, 200, 80)); p.Set(85, FLOOR + 6, C(255, 140, 40));
-            p.Set(84, FLOOR + 7, C(255, 236, 160)); p.Set(83, FLOOR + 7, C(255, 170, 60)); p.Set(84, FLOOR + 8, C(255, 190, 80));
+            // the cave: a mouth of warm light high on the peak, its glow on the snow around it and in the air above
+            const int CX = 350, CY = 176;
+            for (int y = CY - 76; y <= CY + 76; y++)       // the whole circle of the glow, so it has no cut edge
+                for (int x = CX - 70; x <= CX + 70; x++)
+                {
+                    float d = Mathf.Sqrt((x - CX) * (x - CX) + (y - CY) * (y - CY) * 0.8f);
+                    if (d < 62f) Blend(x, y, C(255, 196, 96), (1f - d / 62f) * (1f - d / 62f) * 0.62f);
+                }
+            for (int i = 0; i < 9; i++)             // rays fanning up out of the mouth
+            {
+                float a = Mathf.PI * (0.18f + i * 0.08f);
+                for (float r = 10f; r < 78f; r += 0.5f)
+                    Blend(CX + (int)(Mathf.Cos(a) * r), CY + 4 + (int)(Mathf.Sin(a) * r), C(255, 224, 150), 0.16f * (1f - r / 78f));
+            }
+            p.Ellipse(CX, CY, 9f, 6.5f, C(255, 214, 120)); p.Ellipse(CX, CY - 1f, 6.5f, 4.2f, C(255, 244, 196));
+            p.Rect(CX - 9, CY - 8, 19, 3, C(44, 36, 60)); p.Line(CX - 10, CY - 6, CX - 7, CY + 2, C(44, 36, 60)); p.Line(CX + 10, CY - 6, CX + 7, CY + 2, C(44, 36, 60));
 
-            // the cast, at scenery pixel size
-            p.Blit(LoadPx("Sprites/Player/idle_0"), 62, FLOOR - 1);
-            var snake = LoadPx("Sprites/Enemies/snake_0"); snake.FlipX(); p.Blit(snake, 246, FLOOR - 1);
-            p.Blit(LoadPx("Sprites/Enemies/bat_0"), 236, 104);
-            var bat2 = LoadPx("Sprites/Enemies/bat_1"); p.Blit(bat2, 268, 118);
-            p.Blit(LoadPx("Sprites/Items/idol"), 284, FLOOR - 1);
+            // ---- nearer hills with pines, falling to the valley
+            int[] mid = new int[W];
+            for (int x = 0; x < W; x++) mid[x] = (int)(92f + Ridge(x, 0.03f, 0.09f, 9) * 14f + Mathf.Max(0f, 1f - Mathf.Abs(x - 450f) / 80f) * 30f);
+            for (int x = 0; x < W; x++)
+                for (int y = 40; y <= mid[x]; y++)
+                {
+                    int depth = mid[x] - y;
+                    Color32 col = depth < 4 + (int)(N(x, 5, 41) * 4) ? C(150, 168, 214) : Lerp(C(30, 38, 78), C(22, 28, 60), Mathf.Clamp01(depth / 50f));
+                    p.Set(x, y, col);
+                }
+            for (int i = 0; i < 46; i++)
+            {
+                int x = (int)(N(i, 7, 53) * W);
+                if (x > 290 && x < 410) continue;       // the village stands in the gap
+                int by = mid[Mathf.Clamp(x, 0, W - 1)] - 2, h = 9 + (int)(N(i, 8, 53) * 9);
+                for (int y = 0; y < h; y++)
+                {
+                    int hw = Mathf.Max(0, (h - y) * 4 / h - (y % 3 == 0 ? 0 : 1));
+                    p.Rect(x - hw, by + y, hw * 2 + 1, 1, y % 3 == 2 ? C(160, 176, 216) : C(16, 24, 46));
+                }
+            }
+
+            // ---- the valley floor: snowfields in bands, a frozen stream
+            for (int y = 0; y < 78; y++)
+                for (int x = 0; x < W; x++)
+                {
+                    if (y > mid[x] - 12 + (int)(Mathf.Sin(x * 0.05f) * 4f) - 20) continue;
+                    float t = y / 78f;
+                    Color32 col = Lerp(C(64, 78, 132), C(132, 150, 204), t);
+                    float band = Mathf.Sin(x * 0.035f + y * 0.21f + Mathf.Sin(y * 0.3f) * 1.2f);
+                    if (band > 0.72f) col = Lerp(col, C(190, 204, 238), 0.5f);
+                    else if (band < -0.8f) col = Lerp(col, C(40, 52, 100), 0.4f);
+                    if (N(x, y, 61) > 0.997f) col = C(226, 234, 250);        // a rare glint, not a field of dots
+                    p.Set(x, y, col);
+                }
+            for (int x = 150; x < W; x++)           // the stream, catching the cave light
+            {
+                int sy = 30 + (int)(Mathf.Sin(x * 0.03f) * 9f + Mathf.Sin(x * 0.11f) * 2f);
+                for (int dy = 0; dy < 3; dy++) Blend(x, sy + dy, x > 300 ? C(255, 206, 130) : C(170, 196, 240), 0.5f);
+            }
+
+            // ---- Brindlemoor: a handful of snowed-in houses, a few windows still lit.
+            // They stand on a broad rise of snow at the foot of the peak, so every house has ground under it.
+            float Rise(int x) => 52f + 22f * Mathf.Max(0f, Mathf.Cos((x - 350f) / 78f * Mathf.PI * 0.5f)) + Mathf.Sin(x * 0.19f) * 1.2f;
+            for (int x = 268; x < 432; x++)
+            {
+                int top = (int)Rise(x);
+                for (int y = 24; y <= top; y++)
+                {
+                    int depth = top - y;
+                    // lit from the cave above on the right, in shade toward the left foot
+                    float side = Mathf.Clamp01((x - 268f) / 164f);
+                    Color32 col = Lerp(Lerp(C(84, 100, 158), C(126, 142, 196), side), C(150, 166, 214), Mathf.Clamp01(1f - depth / 26f) * 0.6f);
+                    if (depth < 2) col = C(214, 224, 244);                                     // the crest
+                    else if (Mathf.Sin(x * 0.11f + y * 0.37f) > 0.86f) col = Lerp(col, C(196, 208, 238), 0.45f);   // drifts
+                    // fade the foot of the rise into the snowfield so it has no hard lower edge
+                    // ...and its two ends melt into the valley the same way (no seam where the rise begins)
+                    float melt = Mathf.Clamp01((y - 24) / 10f) * Mathf.Clamp01((x - 268) / 22f) * Mathf.Clamp01((432 - x) / 22f);
+                    if (depth < 2 && melt > 0.5f) melt = 1f;
+                    p.Set(x, y, Lerp(p.Get(x, y), col, melt));
+                }
+            }
+            void House(int x, int y, int w, int h, bool lit)
+            {
+                // the ground it stands on: a shadow thrown to the left, snow banked against the wall
+                for (int i = 0; i < w + 5; i++) Blend(x - 5 + i, y - 1, C(40, 48, 96), 0.55f);
+                for (int i = 0; i < 4; i++) Blend(x - 4 + i, y, C(40, 48, 96), 0.4f);
+                p.Rect(x, y, w, h, C(40, 36, 58)); p.Rect(x, y, 1, h, C(28, 24, 44));
+                p.Rect(x - 1, y - 1, w + 3, 1, C(206, 218, 242)); p.Set(x + w, y, C(206, 218, 242)); p.Set(x + w + 1, y - 1, C(206, 218, 242));
+                for (int i = 0; i <= w / 2 + 1; i++) p.Rect(x - 1 + i, y + h + i, w + 2 - i * 2, 1, i == 0 ? C(32, 28, 50) : C(214, 224, 244));    // roof under snow
+                p.Rect(x + w - 3, y + h + 1, 2, 4, C(40, 36, 58));                                                                               // chimney
+                if (lit)
+                {
+                    p.Rect(x + 2, y + 2, 2, 2, C(255, 206, 116));
+                    if (w > 8) p.Rect(x + w - 5, y + 2, 2, 2, C(255, 190, 96));
+                    for (int gy = -3; gy <= 5; gy++) for (int gx = -3; gx <= w + 2; gx++) Blend(x + gx, y + gy, C(255, 196, 110), 0.1f);
+                    for (int s = 0; s < 14; s++) Blend(x + w - 2 + (int)(Mathf.Sin(s * 0.5f) * 2f) + s / 3, y + h + 5 + s, C(170, 180, 214), 0.35f * (1f - s / 14f));
+                }
+            }
+            // back row first (higher on the rise), then the bell tower, then the front row over them
+            House(318, 60, 9, 6, false); House(336, 63, 11, 6, true); House(362, 62, 9, 5, false); House(380, 58, 10, 6, true);
+            p.Rect(351, 64, 3, 13, C(34, 30, 52)); p.Rect(350, 77, 5, 2, C(214, 224, 244)); p.Set(352, 73, C(255, 206, 116));     // the little bell tower
+            for (int i = 0; i < 7; i++) Blend(346 + i, 63, C(40, 48, 96), 0.5f);
+            House(300, 46, 11, 6, true); House(326, 44, 9, 6, false); House(344, 48, 12, 7, true); House(370, 45, 10, 6, false);
+            House(392, 47, 9, 5, true);
+
+            // ---- foreground: the ledge on the left, dark rock under snow
+            int[] ledge = new int[W];
+            for (int x = 0; x < W; x++)
+                ledge[x] = x < 176 ? (int)(100f - x * 0.04f + Ridge(x, 0.05f, 0.17f, 21) * 5f - Mathf.Max(0f, x - 140f) * 1.9f) : -1;
+            for (int x = 0; x < 176; x++)
+                for (int y = 0; y <= ledge[x]; y++)
+                {
+                    int depth = ledge[x] - y;
+                    Color32 col = depth < 4 ? C(208, 220, 244) : depth < 6 ? C(126, 144, 196)
+                        : Lerp(C(34, 30, 54), C(16, 14, 30), Mathf.Clamp01(depth / 70f));
+                    if (depth >= 6 && (N(x / 4, y / 3, 83) > 0.78f)) col = Lerp(col, C(54, 50, 84), 0.6f);
+                    p.Set(x, y, col);
+                }
+            // the right-hand corner: a dark spur and a leaning pine, framing the picture
+            for (int x = 400; x < W; x++)
+            {
+                int top = (int)(54f + (x - 400) * 0.75f + Ridge(x, 0.07f, 0.2f, 33) * 5f);
+                for (int y = 0; y <= top; y++)
+                {
+                    int depth = top - y;
+                    p.Set(x, y, depth < 3 ? C(196, 208, 238) : Lerp(C(30, 26, 50), C(14, 12, 28), Mathf.Clamp01(depth / 60f)));
+                }
+            }
+            for (int y = 0; y < 86; y++)
+            {
+                int tx = 452 + y / 9, hw = Mathf.Max(0, (86 - y) / 6 - (y % 7 < 3 ? 2 : 0));
+                p.Rect(tx - hw, 96 + y, hw * 2 + 1, 1, y % 7 == 3 ? C(170, 186, 226) : C(12, 18, 34));
+            }
+            p.Rect(455, 60, 4, 40, C(20, 16, 28));
+
+            // ---- the traveller on the ledge, seen from behind, lantern in hand (drawn for this picture, 2x the sprite's scale)
+            {
+                int fx = 96, fy = ledge[96] + 1;
+                Color32 cloak = C(40, 96, 110), cloakD = C(24, 62, 78), cloakL = C(70, 140, 150), hat = C(126, 84, 46), hatD = C(84, 54, 30), scarf = C(214, 62, 56), scarfD = C(150, 36, 40), boot = C(52, 36, 30), skin = C(232, 190, 150);
+                // lantern glow first, on the snow and the air around
+                for (int y = -18; y <= 22; y++)
+                    for (int x = -26; x <= 26; x++)
+                    {
+                        float d = Mathf.Sqrt(x * x + y * y);
+                        if (d < 26f) Blend(fx + 12 + x, fy + 8 + y, C(255, 200, 110), (1f - d / 26f) * 0.5f);
+                    }
+                p.Rect(fx - 4, fy, 4, 5, boot); p.Rect(fx + 2, fy, 4, 5, boot);
+                for (int y = 5; y < 26; y++)             // the cloak: wide at the hem, narrow at the shoulders
+                {
+                    int hw = 8 - (y - 5) * 4 / 21;
+                    p.Rect(fx - hw, fy + y, hw * 2 + 1, 1, cloak);
+                    p.Set(fx - hw, fy + y, cloakD); p.Set(fx + hw, fy + y, cloakL);
+                }
+                p.Line(fx - 2, fy + 6, fx - 1, fy + 22, cloakD); p.Line(fx + 3, fy + 6, fx + 2, fy + 20, cloakD);
+                p.Rect(fx - 3, fy + 26, 7, 5, skin); p.Rect(fx - 3, fy + 26, 7, 2, hatD);                         // neck and the back of the head
+                p.Rect(fx - 8, fy + 30, 17, 2, hat); p.Rect(fx - 4, fy + 32, 9, 4, hat); p.Rect(fx - 4, fy + 32, 9, 1, hatD); p.Rect(fx - 8, fy + 30, 17, 1, hatD);
+                p.Rect(fx - 4, fy + 24, 9, 3, scarf);                                                              // scarf round the neck
+                // Its loose ends are not painted here: they blow in the wind as an animation laid over the picture
+                // (the frames below, shown by MenuSpriteAnim). The region they cover, in picture pixels:
+                MenuScarfRect = new RectInt(fx - 5 - ScarfW, fy + 24 - ScarfH / 2 + 1, ScarfW, ScarfH);
+                for (int f = 0; f < ScarfFrames; f++)
+                {
+                    var sp = new Px(ScarfW, ScarfH);
+                    float phase = f * Mathf.PI * 2f / ScarfFrames;
+                    for (int i = 0; i < 15; i++)
+                    {
+                        // a wave that runs out along the scarf and grows toward its free end; the end also lifts and dips
+                        float k = i / 14f;
+                        // (a long, soft wave: cloth, not a whip; three pixels thick at the neck, thinning to one at the tip)
+                        float wave = Mathf.Sin(i * 0.4f - phase) * (0.3f + 2.2f * k) + Mathf.Sin(phase) * 1.0f * k;
+                        int thick = i < 5 ? 3 : i < 11 ? 2 : 1;
+                        int y = ScarfH / 2 - 1 + Mathf.RoundToInt(wave);
+                        int x = ScarfW - 1 - i;
+                        sp.Rect(x, y, 1, thick, scarf);
+                        sp.Set(x, y, scarfD);                                                // shaded underside: it reads as a band
+                        if (i == 14) sp.Set(x - 0, y + (f % 2 == 0 ? 1 : -1), scarfD);      // the frayed tip flicks
+                    }
+                    Save(sp, $"UI/menu_scarf_{f}", PCenter);
+                }
+                p.Rect(fx + 8, fy + 14, 5, 2, cloakL);                                                             // the arm holding the lantern out
+                p.Rect(fx + 12, fy + 6, 1, 8, C(60, 50, 44));
+                p.Rect(fx + 10, fy + 2, 5, 5, C(255, 226, 140)); p.Rect(fx + 11, fy + 3, 3, 3, C(255, 250, 220)); p.Rect(fx + 10, fy + 7, 5, 1, C(90, 70, 40)); p.Rect(fx + 10, fy + 1, 5, 1, C(90, 70, 40));
+            }
+
+            // (no snow is painted in: it falls for real over the picture - MenuSnow)
             Save(p, "UI/menu_bg", PCenter);
+        }
+
+        /// <summary>
+        /// Title-screen panels: a dark, slightly see-through sheet with a thin gold line (no heavy frame), and the
+        /// strip used for its buttons and rows (white, tinted by the button's colours). Both are 9-sliced.
+        /// </summary>
+        static void SoftPanelArt()
+        {
+            {
+                const int S = 24;
+                var p = new Px(S, S);
+                Color32 fill = C(9, 11, 28, 240), line = C(214, 176, 96, 215), lineD = C(120, 92, 50, 190);
+                for (int y = 0; y < S; y++)
+                    for (int x = 0; x < S; x++)
+                    {
+                        bool corner = (x < 2 || x >= S - 2) && (y < 2 || y >= S - 2) && !((x == 1 || x == S - 2) && (y == 1 || y == S - 2));
+                        if (corner) continue;                                   // clipped corners
+                        bool edge = x == 1 || y == 1 || x == S - 2 || y == S - 2 || ((x == 2 || x == S - 3) && (y == 2 || y == S - 3));
+                        bool outer = x == 0 || y == 0 || x == S - 1 || y == S - 1;
+                        p.Set(x, y, outer ? C(4, 5, 14, 150) : edge ? (y <= 2 || x <= 2 ? line : lineD) : fill);
+                    }
+                Save(p, "UI/panel_soft", PCenter, new Vector4(8, 8, 8, 8));
+            }
+            {
+                const int S = 16;
+                var p = new Px(S, S);
+                for (int y = 0; y < S; y++)
+                    for (int x = 0; x < S; x++)
+                    {
+                        bool corner = (x == 0 || x == S - 1) && (y == 0 || y == S - 1);
+                        if (corner) continue;
+                        bool edge = x == 0 || y == 0 || x == S - 1 || y == S - 1;
+                        p.Set(x, y, edge ? C(255, 255, 255, 255) : C(255, 255, 255, 150));
+                    }
+                Save(p, "UI/row_soft", PCenter, new Vector4(5, 5, 5, 5));
+            }
+        }
+
+        /// <summary>The marker beside the menu entry in focus: a small gold arrowhead.</summary>
+        static void MenuPointerArt()
+        {
+            var p = new Px(14, 11);
+            Color32 g = C(255, 214, 110), gl = C(255, 246, 196), gd = C(196, 128, 40);
+            for (int y = 0; y < 11; y++)
+            {
+                int w = 12 - Mathf.Abs(y - 5) * 2;
+                if (w > 0) p.Rect(1, y, w, 1, y > 5 ? gl : y == 5 ? g : gd);
+            }
+            p.Rect(1, 4, 4, 3, g);
+            p.Outline(C(40, 24, 10));
+            Save(p, "UI/menu_pointer", PCenter);
         }
 
         static readonly Dictionary<char, string[]> Glyphs = new Dictionary<char, string[]>

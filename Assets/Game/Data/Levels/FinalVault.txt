@@ -1,7 +1,7 @@
 name: The Sunken Vault
 boss: warden
-sign1: THE SUNKEN VAULT.  Deep below the Warden guards the Heartstone.  Defeat it, then carry the stone back to this gate.
-sign2: The Heartstone!  [down] + [whip] lifts it.  Lifting it wakes the vault - climb the east ladder to the gate, fast!
+sign1: THE SUNKEN VAULT.  Deep below the Warden guards the Sunstone.  Defeat it, then carry the stone back to this gate.
+sign2: The Sunstone!  [down] + [whip] lifts it.  Lifting it wakes the vault - climb the east ladder to the gate, fast!
 ---
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBX

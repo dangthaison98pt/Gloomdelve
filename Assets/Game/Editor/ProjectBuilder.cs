@@ -37,6 +37,7 @@ namespace Gloomdelve.EditorTools
                 SetupURP();
                 EditorUtility.DisplayProgressBar("Gloomdelve", "Art", 0.15f);
                 ArtGenerator.GenerateAll();
+                ApplyAppIcon();
                 EditorUtility.DisplayProgressBar("Gloomdelve", "Audio", 0.35f);
                 AudioGenerator.GenerateAll();
                 EditorUtility.DisplayProgressBar("Gloomdelve", "Assets", 0.5f);
@@ -56,6 +57,8 @@ namespace Gloomdelve.EditorTools
                 UIBuilder.panelSprite = ArtGenerator.S("UI/panel");
                 UIBuilder.buttonSprite = ArtGenerator.S("UI/button");
                 UIBuilder.slotSprite = ArtGenerator.S("UI/slot");
+                UIBuilder.softPanelSprite = ArtGenerator.S("UI/panel_soft");
+                UIBuilder.softRowSprite = ArtGenerator.S("UI/row_soft");
                 // button pictures for the input tokens in UI texts ("[jump]", "[gear]"...)
                 var glyphs = LoadOrCreate<InputGlyphSet>(G + "Data/InputGlyphs.asset");
                 Sprite GS(string n) => ArtGenerator.S("UI/Glyphs/" + n);
@@ -130,10 +133,19 @@ namespace Gloomdelve.EditorTools
 
         // ------------------------------------------------------------------ settings
 
+        /// <summary>The icon of the window, the taskbar and the .exe (drawn by ArtGenerator.AppIconArt). Called once the art exists.</summary>
+        static void ApplyAppIcon()
+        {
+            var appIcon = AssetDatabase.LoadAssetAtPath<Texture2D>(G + "Art/UI/app_icon.png");
+            if (appIcon != null) PlayerSettings.SetIcons(NamedBuildTarget.Unknown, new[] { appIcon }, IconKind.Any);
+            else Debug.LogWarning("[Build] No app icon found (Assets/Game/Art/UI/app_icon.png).");
+        }
+
         static void SetupProjectSettings()
         {
             PlayerSettings.companyName = "Gloomdelve Team";
             PlayerSettings.productName = "Gloomdelve";
+
             PlayerSettings.defaultScreenWidth = 1280;
             PlayerSettings.defaultScreenHeight = 720;
             PlayerSettings.fullScreenMode = FullScreenMode.Windowed;
@@ -915,7 +927,7 @@ namespace Gloomdelve.EditorTools
             ["Arrow"] = (new Color(1f, 1f, 1f, 0.55f), false, true),
             ["Bomb"] = (new Color(1f, 0.6f, 0.4f, 0.65f), false, true),
             ["Idol"] = (new Color(1f, 0.85f, 0.3f, 0.7f), false, true),
-            ["Heartstone"] = (new Color(1f, 0.35f, 0.45f, 0.8f), false, true),
+            ["Heartstone"] = (new Color(1f, 0.82f, 0.35f, 0.85f), false, true),        // the Sunstone (the prefab keeps its old name)
             ["GoldNugget"] = (new Color(1f, 0.85f, 0.3f, 0.85f), true, false),
             ["GoldChunk"] = (new Color(1f, 0.85f, 0.3f, 0.9f), true, false),
             ["Gem"] = (new Color(0.4f, 1f, 0.6f, 0.9f), true, false),
@@ -932,7 +944,7 @@ namespace Gloomdelve.EditorTools
             ["FlameVent"] = (new Color(1f, 0.5f, 0.15f), 5.5f, 1.9f, 0.3f, false, false, new Vector2(0f, 1f)),
             ["Gem"] = (new Color(0.4f, 1f, 0.6f), 2.2f, 0.75f, 0.2f, true, true, new Vector2(0f, 0.2f)),
             ["Idol"] = (new Color(1f, 0.82f, 0.3f), 3.2f, 0.95f, 0.15f, true, true, new Vector2(0f, 0.35f)),
-            ["Heartstone"] = (new Color(1f, 0.35f, 0.5f), 4.8f, 1.4f, 0.25f, true, true, new Vector2(0f, 0.35f)),
+            ["Heartstone"] = (new Color(1f, 0.8f, 0.4f), 5.6f, 1.6f, 0.2f, true, true, new Vector2(0f, 0.35f)),
             ["Heart"] = (new Color(1f, 0.35f, 0.4f), 2f, 0.6f, 0.2f, true, true, new Vector2(0f, 0.2f)),
             ["EmberBat"] = (new Color(1f, 0.5f, 0.2f), 2.6f, 0.8f, 0.3f, false, true, new Vector2(0f, 0.3f)),
             ["Wraith"] = (new Color(1f, 0.25f, 0.2f), 5f, 1.2f, 0.2f, true, true, new Vector2(0f, 0.5f)),
@@ -992,7 +1004,7 @@ namespace Gloomdelve.EditorTools
                 var wsr = whip.AddComponent<SpriteRenderer>();
                 wsr.sharedMaterial = spriteMat; wsr.sortingOrder = 21; wsr.enabled = false;
                 var p = root.AddComponent<PlayerController>();
-                p.displayName = "explorer";
+                p.displayName = GameConst.HeroName;
                 p.cfg = cfg.player;
                 p.animIdle = anims["player_idle"]; p.animRun = anims["player_run"]; p.animJump = anims["player_jump"]; p.animFall = anims["player_fall"];
                 p.animCrouch = anims["player_crouch"]; p.animCrawl = anims["player_crawl"]; p.animClimb = anims["player_climb"]; p.animHang = anims["player_hang"];
@@ -1146,8 +1158,8 @@ namespace Gloomdelve.EditorTools
                 (e, g, s) => { e.animLit = anims["bomb_lit"]; e.bounce = 0.45f; e.damageSpeed = 8f; e.flipWithFacing = false; }));
             Reg("idol", Make<Treasure>("Idol", "Items", "golden idol", new Vector2(0.5f, 0.7f), ArtGenerator.S(I("idol")), null, 12,
                 (e, g, s) => { e.heavy = true; e.value = 1200; e.flipWithFacing = false; }));
-            Reg("heartstone", Make<Treasure>("Heartstone", "Items", "Heartstone", new Vector2(0.55f, 0.7f), ArtGenerator.S(I("heartstone")), null, 12,
-                (e, g, s) => { e.heavy = true; e.isHeartstone = true; e.glow = new Color(1f, 0.4f, 0.5f); e.flipWithFacing = false; }));
+            Reg("heartstone", Make<Treasure>("Heartstone", "Items", "Sunstone", new Vector2(0.55f, 0.7f), ArtGenerator.S(I("heartstone")), null, 12,
+                (e, g, s) => { e.heavy = true; e.isHeartstone = true; e.glow = new Color(1f, 0.82f, 0.4f); e.flipWithFacing = false; }));
 
             // pickups
             Reg("gold_small", Make<Pickup>("GoldNugget", "Items", "gold nugget", new Vector2(0.3f, 0.25f), ArtGenerator.S(I("gold_small")), null, 11, (e, g, s) => { e.value = 50; e.flipWithFacing = false; }));
@@ -1268,25 +1280,75 @@ namespace Gloomdelve.EditorTools
             var fit = art.gameObject.AddComponent<UnityEngine.UI.AspectRatioFitter>();
             fit.aspectMode = UnityEngine.UI.AspectRatioFitter.AspectMode.EnvelopeParent;
             fit.aspectRatio = 16f / 9f;
-            var vig = UIBuilder.Img(t, "Vignette", ArtGenerator.S("UI/vignette"), new Color(0f, 0f, 0f, 0.55f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+            // the traveller's scarf, blowing in the wind: a small animation laid exactly over its place in the picture
+            // (anchored by picture coordinates, so it stays put however the picture is scaled or cropped)
+            {
+                var r = ArtGenerator.MenuScarfRect;
+                var scarf = UIBuilder.Img(art.transform, "Scarf", ArtGenerator.S("UI/menu_scarf_0"), Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+                var srt = scarf.rectTransform;
+                srt.anchorMin = new Vector2(r.xMin / (float)ArtGenerator.MenuArtW, r.yMin / (float)ArtGenerator.MenuArtH);
+                srt.anchorMax = new Vector2(r.xMax / (float)ArtGenerator.MenuArtW, r.yMax / (float)ArtGenerator.MenuArtH);
+                srt.offsetMin = srt.offsetMax = Vector2.zero;
+                var sa = scarf.gameObject.AddComponent<MenuSpriteAnim>();
+                sa.frames = new Sprite[ArtGenerator.ScarfFrames];
+                for (int f = 0; f < sa.frames.Length; f++) sa.frames[f] = ArtGenerator.S("UI/menu_scarf_" + f);
+            }
+            // snow falling over the picture, behind everything else on the screen
+            var snow = UIBuilder.Node(t, "Snow");
+            UIBuilder.Stretch(UIBuilder.Rect(snow));
+            snow.AddComponent<MenuSnow>();
+            var vig = UIBuilder.Img(t, "Vignette", ArtGenerator.S("UI/vignette"), new Color(0f, 0f, 0f, 0.3f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
             UIBuilder.Stretch(vig.rectTransform);
 
-            UIBuilder.Img(t, "Title", ArtGenerator.S("UI/logo"), Color.white, new Vector2(0.5f, 1f), new Vector2(0, -70), new Vector2(1162, 189));
-            UIBuilder.Label(t, "Subtitle", "a cave-delving roguelike platformer", 34, new Color(0.95f, 0.88f, 0.78f), TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -268), new Vector2(1200, 50));
+            // The title, "Brindlemoor: The Sunstone Hunt", set in a serif face (SerifFont picks one from the system):
+            // the series name in tall gold capitals with a larger first letter, the name of this part spaced out
+            // under it, then one line of story.
+            var serifTexts = new List<Text>();
+            var title = UIBuilder.Label(t, "Title", "<size=178>B</size>RINDLEMOOR", 128, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -50), new Vector2(1700, 200));
+            title.horizontalOverflow = HorizontalWrapMode.Overflow;
+            var titleOutline = title.GetComponent<UnityEngine.UI.Outline>();
+            if (titleOutline != null) UnityEngine.Object.DestroyImmediate(titleOutline);
+            title.gameObject.AddComponent<VerticalGradient>();
+            var titleShadow = title.gameObject.AddComponent<UnityEngine.UI.Shadow>();
+            titleShadow.effectColor = new Color(0.02f, 0.03f, 0.1f, 0.75f); titleShadow.effectDistance = new Vector2(4f, -7f);
+            serifTexts.Add(title);
+            string spaced = string.Join(" ", GameConst.PartName.ToUpperInvariant().Replace(" ", "  ").ToCharArray());
+            var part = UIBuilder.Label(t, "Part", spaced, 40, new Color(0.96f, 0.9f, 0.74f), TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -236), new Vector2(1500, 56));
+            var partOutline = part.GetComponent<UnityEngine.UI.Outline>();
+            if (partOutline != null) { partOutline.effectColor = new Color(0.03f, 0.04f, 0.12f, 0.85f); partOutline.effectDistance = new Vector2(2f, -3f); }
+            serifTexts.Add(part);
+            var story = UIBuilder.Label(t, "Subtitle", "Winter will not leave Brindlemoor. Bring the Sunstone home.", 28, new Color(0.84f, 0.88f, 0.98f, 0.9f), TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -296), new Vector2(1400, 44), true, FontStyle.Italic);
+            serifTexts.Add(story);
 
             var menu = new GameObject("MainMenu").AddComponent<MainMenuController>();
             menu.config = cfg;
+            menu.titleObjects = new[] { title.gameObject, part.gameObject, story.gameObject };
+            // everything built from here on in this scene - the list, Settings, Controls, Challenge, Records - gets
+            // the title-screen look (quiet panels, strip buttons, serif texts). Switched off again before saving.
+            UIBuilder.styledTexts.Clear();
+            UIBuilder.menuStyle = true;
 
+            // the main list: plain words, a gold marker beside the one in focus
             var main = UIBuilder.Node(t, "MainPanel");
-            UIBuilder.Place(UIBuilder.Rect(main), new Vector2(0.5f, 0.5f), new Vector2(0, -110), new Vector2(520, 480));
+            UIBuilder.Place(UIBuilder.Rect(main), new Vector2(0.5f, 0.5f), new Vector2(0, -170), new Vector2(620, 420));
             var mt = main.transform;
-            Vector2 bs = new Vector2(460, 64);
-            menu.startButton = UIBuilder.Button(mt, "Start", "START RUN", new Vector2(0.5f, 1f), new Vector2(0, -36), bs);
-            menu.tutorialButton = UIBuilder.Button(mt, "Tutorial", "TUTORIAL", new Vector2(0.5f, 1f), new Vector2(0, -108), bs);
-            menu.bossButton = UIBuilder.Button(mt, "BossTest", "CHALLENGE", new Vector2(0.5f, 1f), new Vector2(0, -180), bs);
-            menu.settingsButton = UIBuilder.Button(mt, "Settings", "SETTINGS", new Vector2(0.5f, 1f), new Vector2(0, -252), bs);
-            menu.recordsButton = UIBuilder.Button(mt, "Records", "RECORDS", new Vector2(0.5f, 1f), new Vector2(0, -324), bs);
-            menu.quitButton = UIBuilder.Button(mt, "Quit", "QUIT", new Vector2(0.5f, 1f), new Vector2(0, -396), bs);
+            Vector2 bs = new Vector2(560, 60);
+            Button Entry(string name, string label, int row)
+            {
+                var b = UIBuilder.TextButton(mt, name, label, new Vector2(0.5f, 1f), new Vector2(0, -20 - row * 66), bs, 42, out var tx);
+                serifTexts.Add(tx);
+                return b;
+            }
+            menu.startButton = Entry("Start", "Start Run", 0);
+            menu.tutorialButton = Entry("Tutorial", "Tutorial", 1);
+            menu.bossButton = Entry("BossTest", "Challenge", 2);
+            menu.settingsButton = Entry("Settings", "Settings", 3);
+            menu.recordsButton = Entry("Records", "Records", 4);
+            menu.quitButton = Entry("Quit", "Quit", 5);
+            var ptrImg = UIBuilder.Img(t, "Pointer", ArtGenerator.S("UI/menu_pointer"), Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(42, 33));
+            var ptr = menu.gameObject.AddComponent<MenuPointer>();
+            ptr.pointer = ptrImg.rectTransform; ptr.scope = main.transform;
+            var serif = menu.gameObject.AddComponent<SerifFont>();
             menu.mainPanel = main;
 
             menu.keysPanel = UIBuilder.KeysPanel(t);
@@ -1348,6 +1410,10 @@ namespace Gloomdelve.EditorTools
             UIBuilder.Label(t, "Hint", "[move] navigate   ·   [confirm] select   ·   [jump] jump   ·   [whip] blade   ·   [use] use gear   ·   hold [gear] gear wheel   ·   [enter] enter", 22,
                 new Color(1, 1, 1, 0.55f), TextAnchor.LowerRight, new Vector2(1f, 0f), new Vector2(-20, 16), new Vector2(1300, 40), false);
 
+            serifTexts.AddRange(UIBuilder.styledTexts);
+            serif.texts = serifTexts.ToArray();
+            UIBuilder.menuStyle = false;
+            UIBuilder.styledTexts.Clear();
             EditorSceneManager.SaveScene(scene, G + "Scenes/MainMenu.unity");
         }
 

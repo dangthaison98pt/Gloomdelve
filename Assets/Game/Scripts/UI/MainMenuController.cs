@@ -16,6 +16,7 @@ namespace Gloomdelve
         [Tooltip("Settings > Keys: the controls list, where keyboard keys can be changed.")] public KeyBindPanel keysPanel;
         public Text recordsText;
         public Text versionText;
+        [Tooltip("The title, its subtitle and the story line: shown on the main list only, hidden behind a sub panel.")] public GameObject[] titleObjects;
         [Header("Boss test")]
         public Button bossButton, bossBack;
         public GameObject bossPanel;
@@ -76,7 +77,31 @@ namespace Gloomdelve
 
         System.Collections.IEnumerator ScenarioStart()
         {
+            // the snow over the title picture must be falling: where the flakes are now, and again a moment later
+            var snow = FindFirstObjectByType<MenuSnow>();
+            Vector2[] before = null;
+            if (snow != null) { yield return null; before = new Vector2[snow.Count]; for (int i = 0; i < before.Length; i++) before[i] = snow.PositionOf(i); }
             yield return new WaitForSecondsRealtime(0.8f);
+            if (snow != null)
+            {
+                int moved = 0, down = 0;
+                for (int i = 0; i < before.Length; i++)
+                {
+                    var now = snow.PositionOf(i);
+                    if ((now - before[i]).sqrMagnitude > 1f) moved++;
+                    if (now.y < before[i].y) down++;
+                }
+                System.IO.File.WriteAllText(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_snow.txt"), $"flakes={before.Length} moved={moved} movedDown={down}");
+            }
+            else System.IO.File.WriteAllText(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_snow.txt"), "no MenuSnow in the scene");
+            // the scarf animation must be running too: it goes through several frames in half a second
+            {
+                var scarf = FindFirstObjectByType<MenuSpriteAnim>();
+                var seen = new System.Collections.Generic.HashSet<int>();
+                for (float t0 = Time.unscaledTime; scarf != null && Time.unscaledTime - t0 < 0.6f;) { seen.Add(scarf.Frame); yield return null; }
+                System.IO.File.AppendAllText(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_snow.txt"),
+                    scarf != null ? $" | scarf frames={scarf.frames.Length} seenIn0.6s={seen.Count}" : " | no scarf animation in the scene");
+            }
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_main.png"));
             yield return new WaitForSecondsRealtime(0.3f);
             // a (virtual) gamepad button here must switch the menu hints to gamepad buttons
@@ -210,6 +235,12 @@ namespace Gloomdelve
             SceneManager.LoadScene(GameConst.SceneGame);
         }
 
+        void ShowTitle(bool on)
+        {
+            if (titleObjects == null) return;
+            foreach (var o in titleObjects) if (o != null) o.SetActive(on);
+        }
+
         void StartTutorial()
         {
             RunSession.NewRun(1, true, config.player);
@@ -219,6 +250,7 @@ namespace Gloomdelve
         void Open(GameObject panel, Selectable first)
         {
             mainPanel.SetActive(false);
+            ShowTitle(false);
             recordsPanel.SetActive(panel == recordsPanel);
             if (bossPanel != null) bossPanel.SetActive(panel == bossPanel);
             settingsPanel.gameObject.SetActive(panel == settingsPanel.gameObject);
@@ -229,6 +261,7 @@ namespace Gloomdelve
         void ShowMain()
         {
             mainPanel.SetActive(true);
+            ShowTitle(true);
             recordsPanel.SetActive(false);
             if (bossPanel != null) bossPanel.SetActive(false);
             settingsPanel.gameObject.SetActive(false);

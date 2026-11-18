@@ -138,7 +138,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da3f501af067c244695b6e350a9e8c7b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.Treasure
-  displayName: Heartstone
+  displayName: Sunstone
   size: {x: 0.55, y: 0.7}
   maxHealth: 1
   flipWithFacing: 0
@@ -154,7 +154,7 @@ MonoBehaviour:
   impactSfx: thud
   isHeartstone: 1
   value: 1200
-  glow: {r: 1, g: 0.4, b: 0.5, a: 1}
+  glow: {r: 1, g: 0.82, b: 0.4, a: 1}
 --- !u!114 &6304492421317134386
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -167,7 +167,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6aee3adc75991f5478f27fcedd8050fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.Highlight
-  glowColor: {r: 1, g: 0.35, b: 0.45, a: 0.8}
+  glowColor: {r: 1, g: 0.82, b: 0.35, a: 0.85}
   glowScale: 2.4
   bob: 0
   showHint: 1
@@ -186,10 +186,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8828b6c7ceef944cb677be5cb97a47b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.GlowLight
-  color: {r: 1, g: 0.35, b: 0.5, a: 1}
-  radius: 4.8
-  intensity: 1.4
-  flicker: 0.25
+  color: {r: 1, g: 0.8, b: 0.4, a: 1}
+  radius: 5.6
+  intensity: 1.6
+  flicker: 0.2
   pulse: 1
   offset: {x: 0, y: 0.35}
   startOn: 1

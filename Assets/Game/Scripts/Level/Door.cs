@@ -43,7 +43,7 @@ namespace Gloomdelve
         public string GetPrompt(PlayerController p)
         {
             if (!isExit) return null;
-            if (locked) return string.IsNullOrEmpty(lockedPrompt) ? "The gate is sealed. Bring the Heartstone here!" : lockedPrompt;
+            if (locked) return string.IsNullOrEmpty(lockedPrompt) ? "The gate is sealed. Bring the Sunstone here!" : lockedPrompt;
             return "[up] / [enter]  enter the exit";
         }
 
