@@ -226,6 +226,11 @@ namespace Gloomdelve
         {
             if (LoadingScreen.Busy) return;
             RunSession.NewRun(RunSession.RandomSeed(), false, config.player);
+            // the first level is built behind the loading screen
+            var run = RunSession.Current;
+            RunPlan.Ensure(run, config);
+            if (run.stageOrder != null && run.stageOrder.Length > 0)
+                LevelFactory.Pregenerate(config, config.stages[Mathf.Clamp(run.stageOrder[0], 0, config.stages.Length - 1)].Named(run.stageNames[0]), run.seed, 0);
             LoadingScreen.Load(GameConst.SceneGame);
         }
 

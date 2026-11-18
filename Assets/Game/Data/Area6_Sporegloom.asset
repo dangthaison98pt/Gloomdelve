@@ -17,8 +17,8 @@ MonoBehaviour:
   tiles: {fileID: 11400000, guid: eddd5899e4b73a7489596b7f126c4394, type: 2}
   musicId: area1
   cameraBackground: {r: 0.03, g: 0.025, b: 0.055, a: 1}
-  roomsX: 4
-  roomsY: 4
+  roomsX: 5
+  roomsY: 7
   outdoor: 0
   skyRows: 7
   treeChance: 0.25
@@ -26,6 +26,8 @@ MonoBehaviour:
   pathSide: 3
   pathDown: 1
   pathStartBottom: 0
+  pathAcross: 0
+  layoutVersion: 2
   groundGrip: 1
   groundEnemies:
   - id: puffshroom

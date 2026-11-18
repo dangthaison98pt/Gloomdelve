@@ -240,6 +240,9 @@ namespace Gloomdelve
             new Scenario { name = "bosses: the yeti king runs in and punches a frozen player, once per freeze", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => YetiPunchCase(c) },
 
+            new Scenario { name = "bosses: a summoned helper appears a few steps from the player, in whichever corner they stand", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => MinionSpotCase(c) },
+
             new Scenario { name = "all five bosses run their attack patterns", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => BossPatternsCase(c) },
 
@@ -1093,6 +1096,12 @@ namespace Gloomdelve
             c.Expect(c.dir.results.Showing, "then the result screen is shown");
             c.Expect(c.dir.results.cause.text.Contains("NO DAMAGE") || c.run.damageTaken > 0, "a win without losing health shows the no-damage badge");
             {
+                // a boss beaten in Challenge leaves nothing behind: no heart vessel, no gold
+                int loot = 0;
+                foreach (var e in c.world.Entities) if (!e.Dead && (e is Pickup || e is Treasure)) loot++;
+                c.Expect(loot == 0, $"the boss drops nothing in Challenge ({loot} things on the floor)");
+            }
+            {
                 // the record book (nothing is written by tests: save = false only compares)
                 var kept = SaveSystem.Records.bosses;
                 SaveSystem.Records.bosses = new List<BossRecord>();
@@ -1232,6 +1241,43 @@ namespace Gloomdelve
             c.Expect(!cut.Dead, "two strokes do not break it");
             cut.OnWhipped(c.p, 1, 1);
             c.Expect(cut.Dead, "the third does");
+        }
+
+        static IEnumerator MinionSpotCase(Ctx c)
+        {
+            c.p.godMode = true;
+            c.Bot(Seq((3000, F())));
+            var b = c.Spawn<YetiKing>("yetiking", 12, 1, 0, null, -1);
+            c.Expect(b != null, "yeti king spawned");
+            if (b == null) yield break;
+            bool allNear = true, bothSides = false; string where = "";
+            int left = 0, right = 0;
+            // the player stands in the left corner, then in the right one: the helper comes up close by either way
+            foreach (float px in new[] { 3.5f, c.world.Grid.Width - 3.5f })
+                for (int k = 0; k < 8; k++)
+                {
+                    c.Teleport(px, 1f);
+                    b.pos = new Vector2(12.5f, 1f); b.vel = Vector2.zero;
+                    yield return c.Frames(2);
+                    Penguin before = null;
+                    foreach (var e in c.world.Entities) if (e is Penguin q && !q.Dead) before = q;
+                    if (before != null) before.Despawn();
+                    yield return c.Frames(2);
+                    b.SummonNow(c.p);
+                    yield return c.Frames(2);
+                    Penguin pg = null;
+                    foreach (var e in c.world.Entities) if (e is Penguin q && !q.Dead) pg = q;
+                    if (pg == null) { allNear = false; where += " none@" + px; continue; }
+                    float d = Mathf.Abs(pg.pos.x - c.p.pos.x);
+                    if (d < 3f || d > 8.5f) { allNear = false; where += $" {d:0.0}"; }
+                    if (pg.pos.x < c.p.pos.x) left++; else right++;
+                    c.Expect(pg.summoned, "the helper is marked as summoned");
+                }
+            bothSides = left > 0 && right > 0;
+            c.Expect(allNear, "every helper comes up 4-7 cells from the player, in either corner of the arena" + where);
+            c.Expect(bothSides, $"helpers come from both sides over time (left {left}, right {right})");
+            ClearFight(c);
+            b.Despawn();
         }
 
         static IEnumerator YetiPunchCase(Ctx c)
@@ -2120,14 +2166,18 @@ namespace Gloomdelve
             var b = c.Spawn<Broodmother>("broodmother", 16, 1);
             c.Expect(b != null, "broodmother spawned");
             if (b == null) yield break;
-            bool ceiling = false, fell = false, stuck = false, web = false, eggs = false, hatched = false, shots = false, spatFromCeiling = false, shotElsewhere = false, lowered = false;
+            bool ceiling = false, fell = false, stuck = false, web = false, eggs = false, hatched = false, shots = false, spatFromCeiling = false, shotElsewhere = false, lowered = false, landingWaves = false;
             int shotCount = 0;
             float ceilX = 0f, dropX = 0f; int spiders0 = c.Count<Spider>();
             for (int i = 0; i < 3000 && !(ceiling && stuck && web && eggs && hatched && spatFromCeiling && lowered); i++)
             {
                 yield return new WaitForFixedUpdate();
                 if (b.OnCeiling && !b.Spitting) { ceiling = true; ceilX = b.pos.x; if (i % 20 == 0) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_broodmother_ceiling.png")); }
-                int nShots = c.Count<BossShot>();
+                // venom only: the shockwaves of her landing are shots too (their picture flips with the direction)
+                int nShots = 0, waves = 0, wavesL = 0, wavesR = 0;
+                foreach (var e in c.world.Entities)
+                    if (e is BossShot bs && !bs.Dead) { if (bs.flipByVelocity) { waves++; if (bs.vel.x < 0f) wavesL++; else wavesR++; } else nShots++; }
+                if (b.Stuck && wavesL > 0 && wavesR > 0) landingWaves = true;
                 if (nShots > shotCount) { if (b.Spitting) { spatFromCeiling = true; ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_broodmother_spit.png")); } else shotElsewhere = true; }
                 shotCount = nShots;
                 if (spatFromCeiling && !b.OnCeiling && b.grounded && !b.Stuck && !b.Attacking) lowered = true;
@@ -2141,6 +2191,7 @@ namespace Gloomdelve
             c.Expect(ceiling, "she climbs to the ceiling");
             c.Expect(fell && Mathf.Abs(dropX - c.p.pos.x) < 1.2f, $"and crawls along it until she is above the player before she lets go (her x {dropX:0.0}, player {c.p.pos.x:0.0})");
             c.Expect(fell && stuck, "she drops and lands stuck for a moment (the opening)");
+            c.Expect(landingWaves, "her landing sends a shockwave along the floor to each side");
             c.Expect(web, "she lays web on the floor");
             c.Expect(eggs, "she leaves egg sacs");
             c.Expect(hatched, "an egg sac left alone hatches a spiderling");

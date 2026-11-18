@@ -714,6 +714,29 @@ namespace Gloomdelve.EditorTools
             EditorUtility.SetDirty(vault);
 
             var cfg = LoadOrCreate<GameConfig>(G + "Data/GameConfig.asset");
+            // Level shapes (layout version 2): every level is about twice as long as the first 4x4 maps, and each
+            // area leads its own way - down, up, or across.
+            {
+                void Shape(string file, int rx, int ry, bool acrossMap, float up, float side, float down, bool fromBottom)
+                {
+                    var a = AssetDatabase.LoadAssetAtPath<AreaConfig>(G + "Data/" + file + ".asset");
+                    if (a == null || a.layoutVersion >= 2) return;
+                    a.roomsX = rx; a.roomsY = ry;
+                    a.pathAcross = acrossMap; a.pathUp = up; a.pathSide = side; a.pathDown = down; a.pathStartBottom = fromBottom;
+                    a.layoutVersion = 2;
+                    EditorUtility.SetDirty(a);
+                }
+                Shape("Area1_Mossroot", 5, 7, false, 0f, 3f, 1f, false);        // a descent
+                Shape("Area2_Emberdeep", 5, 7, false, 0f, 3f, 1f, false);       // a descent
+                Shape("Area3_Vault", 5, 7, false, 0f, 3f, 1f, false);
+                Shape("Area4_Sunfall", 5, 7, false, 2f, 3f, 0.3f, true);        // a climb
+                Shape("Area5_Frost", 10, 4, true, 0.7f, 3f, 0.9f, false);       // across: long icy runs
+                Shape("Area6_Sporegloom", 5, 7, false, 0f, 3f, 1f, false);      // a descent
+                Shape("Area7_Gearworks", 10, 4, true, 1f, 3f, 1f, false);       // across, changing floors often
+                // twice the level, twice the time before the Reaper comes
+                if (cfg.pressureSpawnTime <= 300f) { cfg.pressureWarnTime = 540f; cfg.pressureSpawnTime = 600f; EditorUtility.SetDirty(cfg); }
+            }
+
             // room-template symbols for the climbing traps
             void CustomMarker(string sym, string label, string spawn, float chance, MarkerPlacement place, TileType tile, Color col)
             {

@@ -17,15 +17,17 @@ MonoBehaviour:
   tiles: {fileID: 11400000, guid: dac3bdeaadfac5f42aea5520c93c1842, type: 2}
   musicId: area4
   cameraBackground: {r: 0.05, g: 0.08, b: 0.14, a: 1}
-  roomsX: 4
+  roomsX: 10
   roomsY: 4
   outdoor: 0
   skyRows: 7
   treeChance: 0.25
-  pathUp: 0
+  pathUp: 0.7
   pathSide: 3
-  pathDown: 1
+  pathDown: 0.9
   pathStartBottom: 0
+  pathAcross: 1
+  layoutVersion: 2
   groundGrip: 0.3
   groundEnemies:
   - id: penguin

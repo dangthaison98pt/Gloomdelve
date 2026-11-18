@@ -17,15 +17,17 @@ MonoBehaviour:
   tiles: {fileID: 11400000, guid: e3a3a998ed862aa439a9e756e9288616, type: 2}
   musicId: area2
   cameraBackground: {r: 0.07, g: 0.06, b: 0.055, a: 1}
-  roomsX: 4
+  roomsX: 10
   roomsY: 4
   outdoor: 0
   skyRows: 7
   treeChance: 0.25
-  pathUp: 0
+  pathUp: 1
   pathSide: 3
   pathDown: 1
   pathStartBottom: 0
+  pathAcross: 1
+  layoutVersion: 2
   groundGrip: 1
   groundEnemies:
   - id: sentry

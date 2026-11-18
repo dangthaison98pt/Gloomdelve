@@ -200,13 +200,15 @@ namespace Gloomdelve
             Sfx.Play("throw", pos);
         }
 
+        /// <summary>Calls a helper right now (tests).</summary>
+        public void SummonNow(PlayerController p) => Summon(p);
+
         void Summon(PlayerController p)
         {
-            var g = World.Grid;
-            // at the arena edge farthest from the player
-            int x = p.pos.x > g.Width * 0.5f ? 2 : g.Width - 3;
-            int y = Mathf.FloorToInt(pos.y);
-            if (!g.IsEmpty(x, y)) return;
+            // it bursts out of the snow a few steps from the player, usually behind them: no corner of the arena is safe
+            if (!MinionSpot(p, 4, 7, out var spot)) return;
+            int x = spot.x, y = spot.y;
+            Fx.Debris(new Vector2(x + 0.5f, y + 0.3f), new Color(0.9f, 0.95f, 1f), 10);
             var e = World.SpawnById(minionId, new Vector2(x + 0.5f, y));
             if (e != null) e.facing = p.pos.x > e.pos.x ? 1 : -1;
             if (e is Enemy en) en.summoned = true;

@@ -17,8 +17,8 @@ MonoBehaviour:
   tiles: {fileID: 11400000, guid: 9d29e1548aa774744973f97a029429cd, type: 2}
   musicId: area3
   cameraBackground: {r: 0.19, g: 0.27, b: 0.55, a: 1}
-  roomsX: 4
-  roomsY: 4
+  roomsX: 5
+  roomsY: 7
   outdoor: 1
   skyRows: 7
   treeChance: 0.3
@@ -26,6 +26,8 @@ MonoBehaviour:
   pathSide: 3
   pathDown: 0.3
   pathStartBottom: 1
+  pathAcross: 0
+  layoutVersion: 2
   groundGrip: 1
   groundEnemies:
   - id: snake

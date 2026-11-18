@@ -108,6 +108,9 @@ namespace Gloomdelve
                 grantedGear = true;
             }
             LevelFactory.SpawnAll(world, Level, config.prefabs);
+            // the level after this one is built in the background while this one is played
+            if (!ScenarioRunner.Active && !run.isTutorial && run.stageOrder != null && at + 1 < run.stageOrder.Length)
+                LevelFactory.Pregenerate(config, config.stages[Mathf.Clamp(run.stageOrder[at + 1], 0, config.stages.Length - 1)].Named(run.stageNames[at + 1]), run.seed, run.stageIndex + 1);
             int spawnCount = world.EntityCount;
             Player = world.Spawn(config.prefabs.player, new Vector2(Level.entrance.x + 0.5f, Level.entrance.y));
             world.Player = Player;

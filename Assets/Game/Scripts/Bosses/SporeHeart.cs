@@ -164,13 +164,12 @@ namespace Gloomdelve
             pending = Move.None;
         }
 
-        /// <summary>One of the lights in the room turns out to be alive: a lurecap appears among the plants, away from the player.</summary>
+        /// <summary>One of the lights in the room turns out to be alive: a lurecap appears among the plants, not far from the player.</summary>
         void Summon(PlayerController p)
         {
-            var g = World.Grid;
-            int y = Mathf.FloorToInt(floorY);
-            int x = p.pos.x > g.Width * 0.5f ? Random.Range(3, 8) : g.Width - 1 - Random.Range(3, 8);
-            if (!g.IsEmpty(x, y) || !g.IsSolid(x, y - 1)) return;
+            // it comes up among the plants a few steps from wherever the player is fighting, on either side
+            if (!MinionSpot(p, 4, 8, out var spot)) return;
+            int x = spot.x, y = spot.y;
             var e = World.SpawnById(minionId, new Vector2(x + 0.5f, y));
             if (e is Enemy en) en.summoned = true;
             Tell();

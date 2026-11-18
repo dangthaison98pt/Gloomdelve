@@ -24,7 +24,8 @@ namespace Gloomdelve
         public float crawlSpeed = 7.5f;
         [Tooltip("The longest she crawls along the ceiling after the player: she lets go sooner, as soon as she is above them.")] public float ceilingTime = 3f;
         [Tooltip("She stops this long before letting go: the last warning.")] public float aimTime = 0.4f;
-        public float dropSpeed = 21f;
+        public float dropSpeed = 30f;
+        [Tooltip("Speed of the two shockwaves that run along the floor from where she lands. Jump them.")] public float shockSpeed = 8.5f;
         [Tooltip("Stuck on the floor after a drop: the opening.")] public float stuckTime = 1.4f;
         [Header("Web")]
         public string webId = "webpatch";
@@ -194,6 +195,7 @@ namespace Gloomdelve
             state = State.Stuck; timer = stuckTime;
             Fx.Shake(0.5f);
             Fx.Dust(pos, 10);
+            Shockwave(shockSpeed, new Color(0.75f, 0.95f, 0.5f));      // the landing sends a wave along the floor to both sides
             Sfx.Play("thud", pos, 1f, 0.7f);
             Fx.Text(new Vector2(Center.x, pos.y + size.y + 0.5f), "STUCK", new Color(1f, 0.9f, 0.5f), stuckTime * 0.8f);
         }

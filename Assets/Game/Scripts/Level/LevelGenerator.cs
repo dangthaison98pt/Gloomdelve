@@ -17,7 +17,8 @@ namespace Gloomdelve
 
     /// <summary>
     /// Room-based generator: a solution path is walked through a grid of rooms (left/right/down, never backtracking;
-    /// areas with AreaConfig.pathUp > 0 may also climb, and can run bottom to top),
+    /// areas with AreaConfig.pathUp > 0 may also climb, and can run bottom to top; areas with AreaConfig.pathAcross
+    /// run from one side of the map to the other),
     /// each room gets a template matching its required openings, templates contain probabilistic tiles and marker
     /// slots (enemies, traps, treasure), then the result is proven traversable by LevelValidator. Seeded and deterministic.
     /// </summary>
@@ -38,19 +39,41 @@ namespace Gloomdelve
             LevelData last = null;
             var reasons = new List<string>();
             int max = Mathf.Max(1, req.config.maxGenerationAttempts);
-            for (int a = 0; a < max; a++)
+            LevelData Attempt(int a)
             {
                 var rng = new Rng(Rng.Hash(req.seed, a * 7919 + 1));
                 var d = Build(req, rng);
                 d.attempts = a + 1;
                 d.validation = LevelValidator.Validate(d, opts);
-                if (d.validation.ok)
+                return d;
+            }
+            // The first attempt usually passes and runs alone. When it does not, the following attempts are built
+            // and checked side by side on the other processor cores, and the earliest one that passes wins - the
+            // same level as trying them one after another, without waiting for each failure in turn.
+            int batch = Mathf.Clamp(System.Environment.ProcessorCount - 1, 1, 8);
+            for (int a0 = 0; a0 < max;)
+            {
+                int n = a0 == 0 ? 1 : Mathf.Min(batch, max - a0);
+                var res = new LevelData[n];
+                if (n == 1) res[0] = Attempt(a0);
+                else
                 {
-                    d.notes.AddRange(reasons);
-                    return d;
+                    int first = a0;
+                    try { System.Threading.Tasks.Parallel.For(0, n, i => res[i] = Attempt(first + i)); }
+                    catch (System.AggregateException e) { throw e.InnerException ?? e; }
                 }
-                reasons.Add($"attempt {a + 1}: {d.validation.reason}");
-                last = d;
+                for (int i = 0; i < n; i++)
+                {
+                    var d = res[i];
+                    if (d.validation.ok)
+                    {
+                        d.notes.AddRange(reasons);
+                        return d;
+                    }
+                    reasons.Add($"attempt {a0 + i + 1}: {d.validation.reason}");
+                    last = d;
+                }
+                a0 += n;
             }
             Debug.LogError($"[Gen] Seed {req.seed} '{req.name}': no valid layout after {max} attempts. Using last attempt.");
             last.notes.AddRange(reasons);
@@ -88,9 +111,54 @@ namespace Gloomdelve
             bool[,] onPath = null;
             // Climbing levels (AreaConfig.pathUp): rooms the path leaves through the top / enters from below.
             bool[,] climbOut = new bool[rx, ry], climbIn = new bool[rx, ry];
-            bool freeWalk = area.pathUp > 0f;
+            bool across = area.pathAcross;
+            bool freeWalk = area.pathUp > 0f && !across;
             int startRow = freeWalk && area.pathStartBottom ? ry - 1 : 0;
             int sx = 0, cx = 0, cy = 0;
+            // Sideways levels (AreaConfig.pathAcross): in at one side of the map, out at the other. Every step either
+            // heads for the far side or changes floor (a drop, or a ladder up); the path never turns back, so it
+            // cannot cross itself. The first and the last room are entered / left sideways.
+            for (int walk = 0; across && walk < 80; walk++)
+            {
+                types = new int[rx, ry];
+                onPath = new bool[rx, ry];
+                climbOut = new bool[rx, ry]; climbIn = new bool[rx, ry];
+                var openTop = new bool[rx, ry]; var openBottom = new bool[rx, ry];
+                int dir = rng.Chance(0.5f) ? 1 : -1;
+                int goalCol = dir > 0 ? rx - 1 : 0;
+                sx = dir > 0 ? 0 : rx - 1;
+                startRow = rng.Range(0, ry);
+                cx = sx; cy = startRow;
+                onPath[cx, cy] = true;
+                int len = 1, floors = 0;
+                bool lastSide = false, done = false, stuck = false;
+                for (int guard = 0; guard < 200 && !done && !stuck; guard++)
+                {
+                    if (cx == goalCol && lastSide) { done = true; break; }
+                    // two floor changes in a row are allowed, three are not: the level is about going sideways
+                    float wF = area.pathSide;
+                    float wD = len > 1 && floors < 2 && cx != goalCol && cy + 1 < ry && !onPath[cx, cy + 1] ? area.pathDown : 0f;
+                    float wU = len > 1 && floors < 2 && cx != goalCol && cy - 1 >= 0 && !onPath[cx, cy - 1] ? area.pathUp : 0f;
+                    float total = wF + wD + wU;
+                    if (total <= 0f) { stuck = true; break; }
+                    float roll = rng.Range(0f, total);
+                    if (roll < wF) { cx += dir; lastSide = true; floors = 0; }
+                    else if (roll < wF + wD) { openBottom[cx, cy] = true; cy++; openTop[cx, cy] = true; lastSide = false; floors++; }
+                    else { openTop[cx, cy] = true; climbOut[cx, cy] = true; cy--; openBottom[cx, cy] = true; climbIn[cx, cy] = true; lastSide = false; floors++; }
+                    onPath[cx, cy] = true;
+                    len++;
+                }
+                for (int y = 0; y < ry; y++)
+                    for (int x = 0; x < rx; x++)
+                        types[x, y] = !onPath[x, y] ? 0 : openTop[x, y] && openBottom[x, y] ? 4 : openBottom[x, y] ? 2 : openTop[x, y] ? 3 : 1;
+                if (!done) continue;
+                if (!needsGateRoom) break;
+                bool cand = false;
+                for (int y = 0; y < ry && !cand; y++)
+                    for (int x = 0; x < rx; x++)
+                        if (onPath[x, y] && types[x, y] == 1 && !(x == sx && y == startRow) && !(x == cx && y == cy)) { cand = true; break; }
+                if (cand) break;
+            }
             // Walk the solution path; areas with gear gates re-walk (same rng stream) until the path has at least
             // one plain left-right room (not start/exit) to turn into a gate.
             for (int walk = 0; freeWalk && walk < 80; walk++)
@@ -136,7 +204,7 @@ namespace Gloomdelve
                         if (onPath[x, y] && types[x, y] == 1 && !(x == sx && y == startRow) && !(x == cx && y == cy)) { cand = true; break; }
                 if (cand) break;
             }
-            for (int walk = 0; !freeWalk && walk < 30; walk++)
+            for (int walk = 0; !freeWalk && !across && walk < 30; walk++)
             {
                 types = new int[rx, ry];
                 onPath = new bool[rx, ry];

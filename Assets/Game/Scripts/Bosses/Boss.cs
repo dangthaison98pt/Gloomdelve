@@ -206,12 +206,15 @@ namespace Gloomdelve
             Fx.Shake(0.7f);
             Fx.Debris(at, bloodColor, 16);
             base.Die(d);
-            if (w != null && !string.IsNullOrEmpty(rewardId))
+            // Challenge (a boss fought from the menu) is about the time and the health lost: nothing drops there
+            var session = RunSession.Current;
+            bool drops = session == null || !session.bossPractice;
+            if (drops && w != null && !string.IsNullOrEmpty(rewardId))
             {
                 var r = w.SpawnById(rewardId, at);
                 if (r != null) r.vel = new Vector2(0f, 7f);
             }
-            if (w != null)
+            if (drops && w != null)
                 for (int i = 0; i < goldChunks; i++)
                 {
                     var g = w.SpawnById("gold_big", at);
@@ -223,6 +226,40 @@ namespace Gloomdelve
         protected PlayerController Target
         {
             get { var p = Player; return p != null && !p.IsDead ? p : null; }
+        }
+
+        /// <summary>
+        /// Where a summoned helper appears: on the floor a few steps from the player ('near'..'far' cells), on a
+        /// side picked at random - more often the side away from the boss, so the two close in from both sides.
+        /// Standing in one corner of the arena does not keep the helpers away. False when there is no free spot.
+        /// </summary>
+        protected bool MinionSpot(PlayerController p, int near, int far, out Vector2Int spot)
+        {
+            spot = default;
+            var g = World.Grid;
+            int px = Mathf.FloorToInt(p.pos.x), py = Mathf.FloorToInt(p.pos.y + 0.1f);
+            int away = p.pos.x >= pos.x ? 1 : -1;                       // the player's side that faces away from the boss
+            int firstSide = Random.value < 0.7f ? away : -away;
+            for (int pass = 0; pass < 2; pass++)
+            {
+                int side = pass == 0 ? firstSide : -firstSide;
+                int start = Random.Range(near, far + 1);
+                for (int k = 0; k <= far - near; k++)
+                {
+                    int dist = near + (start - near + k) % (far - near + 1);
+                    int x = px + side * dist;
+                    if (x < 2 || x > g.Width - 3) continue;
+                    if (Mathf.Abs(x + 0.5f - pos.x) < size.x * 0.5f + 1f) continue;     // not inside the boss
+                    // the floor at that column, looking a little above and below the player's own height
+                    for (int y = py + 2; y >= py - 4; y--)
+                    {
+                        if (y < 1 || !g.IsEmpty(x, y) || !g.IsEmpty(x, y + 1) || !g.IsSolid(x, y - 1)) continue;
+                        spot = new Vector2Int(x, y);
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         /// <summary>Number of living entities of a type (minions a boss has summoned).</summary>

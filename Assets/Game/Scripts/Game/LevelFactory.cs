@@ -7,11 +7,45 @@ namespace Gloomdelve
     {
         public static int LevelSeed(int runSeed, int stageIndex) => Rng.Hash(runSeed, stageIndex * 7919 + 13);
 
+        // A level being built ahead of time on another thread (see Pregenerate).
+        static System.Threading.Tasks.Task<LevelData> ahead;
+        static string aheadKey;
+
+        static string Key(StageDef stage, int runSeed, int stageIndex)
+            => runSeed + "/" + stageIndex + "/" + (stage.area != null ? stage.area.areaNumber : 0) + "/" + stage.levelNumber + "/" + stage.displayName;
+
+        /// <summary>
+        /// Starts building a procedural level on a background thread so it is ready when it is needed: the next
+        /// level while the current one is being played, the first level while the loading screen is up. Create()
+        /// picks the result up (and waits for it if it is not finished). The level is exactly the one Create()
+        /// would have built itself.
+        /// </summary>
+        public static void Pregenerate(GameConfig cfg, StageDef stage, int runSeed, int stageIndex)
+        {
+            if (cfg == null || stage == null || stage.kind != LevelKind.Area || stage.area == null || EditorPlaytest.Active) return;
+            string key = Key(stage, runSeed, stageIndex);
+            if (ahead != null && aheadKey == key) return;
+            var req = new GenRequest
+            {
+                seed = LevelSeed(runSeed, stageIndex), area = stage.area, levelNumber = stage.levelNumber, name = stage.displayName, config = cfg,
+                templates = RoomTemplates.Parse(cfg.roomTemplates.text)
+            };
+            aheadKey = key;
+            ahead = System.Threading.Tasks.Task.Run(() => LevelGenerator.Generate(req));
+        }
+
         public static LevelData Create(GameConfig cfg, StageDef stage, int runSeed, int stageIndex)
         {
             int seed = LevelSeed(runSeed, stageIndex);
             if (stage.kind == LevelKind.Area)
             {
+                if (ahead != null && aheadKey == Key(stage, runSeed, stageIndex) && !EditorPlaytest.Active)
+                {
+                    var t = ahead;
+                    ahead = null; aheadKey = null;
+                    try { return t.Result; }
+                    catch (System.Exception e) { Debug.LogWarning("[Gen] level built ahead failed, building it again: " + e.Message); }
+                }
                 var req = new GenRequest
                 {
                     seed = seed, area = stage.area, levelNumber = stage.levelNumber, name = stage.displayName, config = cfg,

@@ -28,6 +28,9 @@ namespace Gloomdelve
         [Tooltip("Relative weight of a step DOWN (only used when Path Up > 0).")] public float pathDown = 1f;
         [Tooltip("Enter in the bottom row and leave in the top row (a climb) instead of top to bottom. Only used when Path Up > 0.")]
         public bool pathStartBottom = false;
+        [Tooltip("The level runs sideways: enter at one side of the map and leave at the other. The path heads for the far side (weight Path Side) and now and then goes up or down a floor (Path Up / Path Down). Rooms X should be much larger than Rooms Y.")]
+        public bool pathAcross = false;
+        [HideInInspector] public int layoutVersion = 0;
 
         [Header("Footing")]
         [Tooltip("1 = normal ground. Lower = ice: the player slides when stopping and is slower to turn (0.25 = very slippery).")]

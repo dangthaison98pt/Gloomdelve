@@ -76,7 +76,8 @@ MonoBehaviour:
   crawlSpeed: 7.5
   ceilingTime: 3
   aimTime: 0.4
-  dropSpeed: 21
+  dropSpeed: 30
+  shockSpeed: 8.5
   stuckTime: 1.4
   webId: webpatch
   eggId: eggsac

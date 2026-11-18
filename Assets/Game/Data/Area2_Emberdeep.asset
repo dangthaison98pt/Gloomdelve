@@ -17,8 +17,8 @@ MonoBehaviour:
   tiles: {fileID: 11400000, guid: 44882c3378b67224da8ebebaa1505a90, type: 2}
   musicId: area2
   cameraBackground: {r: 0.08, g: 0.03, b: 0.035, a: 1}
-  roomsX: 4
-  roomsY: 4
+  roomsX: 5
+  roomsY: 7
   outdoor: 0
   skyRows: 7
   treeChance: 0.25
@@ -26,6 +26,8 @@ MonoBehaviour:
   pathSide: 3
   pathDown: 1
   pathStartBottom: 0
+  pathAcross: 0
+  layoutVersion: 2
   groundGrip: 1
   groundEnemies:
   - id: toad
