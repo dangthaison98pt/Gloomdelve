@@ -188,6 +188,26 @@ namespace Gloomdelve
             yield return new WaitForSecondsRealtime(0.3f);
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_settings.png"));
             Layout("settings");
+            {
+                // the mouse must reach every control of the settings screen: what lies under the pointer at the
+                // middle of each one has to be that control (sliders and tick boxes included)
+                var es = UnityEngine.EventSystems.EventSystem.current;
+                var controls = new Selectable[] { settingsPanel.master, settingsPanel.music, settingsPanel.sfx, settingsPanel.fullscreen, settingsPanel.shake, settingsPanel.keys, settingsPanel.back };
+                var corners = new Vector3[4];
+                var hits = new System.Collections.Generic.List<UnityEngine.EventSystems.RaycastResult>();
+                string missed = "";
+                foreach (var sel in controls)
+                {
+                    if (sel == null) continue;
+                    ((RectTransform)sel.transform).GetWorldCorners(corners);
+                    var ped = new UnityEngine.EventSystems.PointerEventData(es) { position = (corners[0] + corners[2]) * 0.5f };
+                    hits.Clear();
+                    es.RaycastAll(ped, hits);
+                    if (hits.Count == 0 || hits[0].gameObject.GetComponentInParent<Selectable>() != sel) missed += " " + sel.name;
+                }
+                layout.AppendLine("settings, mouse: " + (missed.Length == 0 ? "every control can be clicked" : "CANNOT CLICK:" + missed));
+                System.IO.File.WriteAllText(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_layout.txt"), layout.ToString());
+            }
             yield return new WaitForSecondsRealtime(0.3f);
             OpenKeys();
             yield return new WaitForSecondsRealtime(0.3f);

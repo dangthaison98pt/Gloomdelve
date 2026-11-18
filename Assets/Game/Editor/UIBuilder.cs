@@ -199,6 +199,11 @@ namespace Gloomdelve.EditorTools
             Label(row.transform, "Label", label, 28, Color.white, TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(0, 0), new Vector2(220, 50));
             var sgo = Node(row.transform, "Slider");
             Place(Rect(sgo), new Vector2(0f, 0.5f), new Vector2(230, 0), new Vector2(280, 30));
+            // The mouse: pictures made by Img do not catch the pointer, so the slider gets an unseen pad the size of
+            // its whole track (a little taller, easy to grab) - click anywhere on it or drag the handle.
+            var pad = Img(sgo.transform, "Hit", null, new Color(0f, 0f, 0f, 0f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+            Stretch(pad.rectTransform, -10);
+            pad.raycastTarget = true;
             var bg = Img(sgo.transform, "Background", buttonSprite, new Color(0.15f, 0.12f, 0.16f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero, true);
             Stretch(bg.rectTransform, 6);
             var fillArea = Node(sgo.transform, "Fill Area"); Stretch(Rect(fillArea), 6);
@@ -207,6 +212,7 @@ namespace Gloomdelve.EditorTools
             var handleArea = Node(sgo.transform, "Handle Area"); Stretch(Rect(handleArea), 10);
             var handle = Img(handleArea.transform, "Handle", buttonSprite, Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(22, 40), true);
             var s = sgo.AddComponent<UnityEngine.UI.Slider>();
+            handle.raycastTarget = true;
             s.fillRect = fill.rectTransform; s.handleRect = handle.rectTransform; s.targetGraphic = handle;
             s.minValue = 0; s.maxValue = 1; s.value = 0.8f;
             var cb = s.colors; cb.selectedColor = Gold; cb.highlightedColor = Gold; s.colors = cb;
@@ -218,7 +224,12 @@ namespace Gloomdelve.EditorTools
         {
             var row = Node(parent, name);
             Place(Rect(row), new Vector2(0.5f, 1f), pos, new Vector2(620, 56));
+            // the mouse: the whole row is the tick box - the square or its words
+            var pad = Img(row.transform, "Hit", null, new Color(0f, 0f, 0f, 0f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+            Stretch(pad.rectTransform);
+            pad.raycastTarget = true;
             var box = Img(row.transform, "Box", buttonSprite, new Color(0.15f, 0.12f, 0.16f), new Vector2(0f, 0.5f), new Vector2(0, 0), new Vector2(44, 44), true);
+            box.raycastTarget = true;
             var check = Img(box.transform, "Check", buttonSprite, new Color(0.9f, 0.68f, 0.28f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(26, 26), true);
             Label(row.transform, "Label", label, 28, Color.white, TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(64, 0), new Vector2(520, 50));
             var t = row.AddComponent<UnityEngine.UI.Toggle>();
