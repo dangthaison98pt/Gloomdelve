@@ -7,7 +7,7 @@ namespace Gloomdelve
     /// Its rule: nothing gets through the shield from the front. It walks at the player and jabs up close, and it
     /// turns slowly - so the fight is about getting behind it (the belts help or hinder), stomping it, or waiting
     /// for the moment after its presses, when it has run down and must wind its own key: then it is wide open.
-    /// A fixed round of moves, none shared with the other bosses:
+    /// Its moves come in random order (never the same twice running), none shared with the other bosses:
     ///  - Saws: it sends two loose saw blades rolling along the floor at the player (jump them; a belt under
     ///    them speeds them up or slows them down).
     ///  - Lever: every conveyor in the room runs the other way.
@@ -109,8 +109,8 @@ namespace Gloomdelve
                         anim?.Play(animWalk);
                         if (timer <= 0f && p != null && grounded && melee == MeleePhase.None)
                         {
-                            // the round: saws, lever, presses (then it must rewind)
-                            switch (step++ % 3)
+                            // its moves, in random order: saws, lever, presses (after which it must rewind)
+                            switch (NextMove(0, 1, 2))
                             {
                                 case 0: state = State.SawTell; timer = tellTime; Tell(); anim?.Play(animCharge); Sfx.Play("brute", pos, 1f, 1.3f); break;
                                 case 1: state = State.LeverTell; timer = tellTime; Tell(); Sfx.Play("warning", pos, 0.8f, 0.7f); break;

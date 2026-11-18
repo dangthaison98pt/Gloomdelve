@@ -73,8 +73,8 @@ MonoBehaviour:
   restTime: 1.5
   tellTime: 0.5
   climbSpeed: 11
-  crawlSpeed: 5.5
-  ceilingTime: 1.7
+  crawlSpeed: 7.5
+  ceilingTime: 3
   aimTime: 0.4
   dropSpeed: 21
   stuckTime: 1.4

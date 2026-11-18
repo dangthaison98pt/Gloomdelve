@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Gloomdelve
 {
     /// <summary>
-    /// Emberdeep boss: a huge mole brute. A fixed round: it charges the full width of the arena (jump it and let
+    /// Emberdeep boss: a huge mole brute. Its moves come in random order (never the same twice running): it charges the full width of the arena (jump it and let
     /// it hit the wall: it is dazed, hit it now, while rocks shake loose), it pounds the floor and fire comes up in
     /// two spots - under the player and one step on - which glow first and burn only briefly, it charges again,
     /// and it leaps at the player and slams the ground three times running: three shockwaves along the floor, one
@@ -107,8 +107,8 @@ namespace Gloomdelve
                     if (p != null && Mathf.Abs(p.pos.x - pos.x) > 0.5f) facing = p.pos.x > pos.x ? 1 : -1;
                     if (timer <= 0f && p != null && grounded)
                     {
-                        // the round: charge, stomp, charge, leap
-                        int k = step++ % 4;
+                        // its moves, in random order: charge (twice as often), stomp that brings fire up, leap and slam
+                        int k = NextMove(0, 1, 0, 2);
                         if (k == 1) { state = State.Stomp; timer = stompTell; Tell(); Sfx.Play("brute", pos, 1f, 0.5f); }
                         else { leapNext = k == 3; state = State.Windup; timer = leapNext ? windupTime * 0.8f : windupTime; if (leapNext) Tell(); Sfx.Play("brute", pos, 1f, 0.7f); }
                     }

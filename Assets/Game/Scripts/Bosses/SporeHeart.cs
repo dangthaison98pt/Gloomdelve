@@ -7,7 +7,7 @@ namespace Gloomdelve
     /// Sporegloom boss: the Rot Heart. A beating fungus heart hanging from the ceiling on a stalk - it never moves
     /// and cannot be stomped. It hangs too high for a jump: bounce on the bounce mushrooms under it (or jump off
     /// the side platforms) and slash it in the air, or throw things at it.
-    /// A fixed round of moves: a fan of spore darts aimed at the player (so bouncing on the mushrooms and
+    /// Its moves come in random order (never the same twice running): a fan of spore darts aimed at the player (so bouncing on the mushrooms and
     /// slashing is never safe for long: the darts knock a bouncing player out of the air), a tendril that lashes
     /// across the whole room low along the floor (jump it), a rain of spore clouds on the floor (dizzy, no
     /// damage), darts again, a tendril at head height (stay on the ground: it passes over a standing player and
@@ -91,8 +91,8 @@ namespace Gloomdelve
             timer -= dt;
             if (timer > 0f || p == null) return;
             timer = Mathf.Lerp(actionGapLow, actionGap, HealthFraction);
-            // the round: darts, low lash, rain, darts, high lash, a lurecap (or rain when the call is not ready)
-            switch (step++ % 6)
+            // its moves, in random order: darts (twice as often), low lash, rain, high lash, a lurecap (or rain when the call is not ready)
+            switch (NextMove(0, 1, 2, 0, 3, 4))
             {
                 case 0: case 3: Begin(Move.Darts); break;
                 case 1: Begin(Move.LashLow); break;

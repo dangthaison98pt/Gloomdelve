@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Gloomdelve
@@ -5,7 +6,8 @@ namespace Gloomdelve
     /// <summary>
     /// Base of every boss. A boss registers itself with the GameDirector (health bar, sealed exit), shrugs off
     /// knockback and stuns, takes at most maxHitDamage per hit (so one bomb never ends the fight) and tells the
-    /// director when it dies. Each boss only writes its own attack pattern in Tick.
+    /// director when it dies. Each boss only writes its own moves in Tick and asks NextMove() which one is next
+    /// (random, never the same twice running).
     /// To add one: subclass, make a prefab, register it, and name it in a boss arena file ("boss: id").
     /// </summary>
     public abstract class Boss : Enemy
@@ -38,6 +40,30 @@ namespace Gloomdelve
         float counterT;
         int counterAway = 1;
         bool counterPosed;
+
+        // ---- which move comes next: drawn at random, so a fight cannot be learned by counting
+        readonly List<int> moveBag = new List<int>();
+        int lastKind = -1;
+
+        /// <summary>
+        /// Picks the boss's next move at random. 'kinds' lists its moves, one entry each (a move that should come
+        /// up twice as often is listed twice, with the same number). Returns the index of the entry picked.
+        /// Every entry comes up once before any comes up again (a shuffled bag: no move is starved, none is
+        /// spammed), and the same kind of move is never used twice in a row.
+        /// </summary>
+        protected int NextMove(params int[] kinds)
+        {
+            if (moveBag.Count == 0) for (int i = 0; i < kinds.Length; i++) moveBag.Add(i);
+            var fresh = new List<int>();
+            foreach (int i in moveBag) if (kinds[i] != lastKind) fresh.Add(i);
+            if (fresh.Count == 0)
+                // only repeats of the last move are left in the bag: open the next bag on top of it
+                for (int i = 0; i < kinds.Length; i++) if (kinds[i] != lastKind) { moveBag.Add(i); fresh.Add(i); }
+            int pick = fresh.Count > 0 ? fresh[Random.Range(0, fresh.Count)] : moveBag[Random.Range(0, moveBag.Count)];
+            moveBag.Remove(pick);
+            lastKind = kinds[pick];
+            return pick;
+        }
 
         /// <summary>In the middle of its counter-attack animation.</summary>
         public bool Countering => counterT > 0f;

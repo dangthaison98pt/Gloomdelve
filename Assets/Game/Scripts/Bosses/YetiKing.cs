@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Gloomdelve
 {
     /// <summary>
-    /// Frostdeep boss: the yeti king. Six moves in a fixed round: fans of snowballs (no damage: they shove and freeze -
+    /// Frostdeep boss: the yeti king. Six moves in random order (never the same twice running): fans of snowballs (no damage: they shove and freeze -
     /// a fur coat stops the freeze), a belly slide across the whole arena (jump it: he is dazed when he hits the
     /// wall), a snow boulder rolled at the player that grows as it rolls and hurts more the bigger it gets (jump it
     /// early, or cut it down - three strokes or a bomb - once it is too tall), a penguin called in now and then, a leap at the player, and
@@ -144,8 +144,8 @@ namespace Gloomdelve
                 if (timer <= 0f && p != null)
                 {
                     timer = actionGap;
-                    // the round: snowballs, belly slide, snow boulder, penguin (or snowballs), leap, icicles
-                    int kind = step++ % 6;
+                    // his moves, in random order: snowballs, belly slide, snow boulder, penguin (or snowballs), leap, icicles
+                    int kind = NextMove(0, 1, 2, 3, 4, 5);
                     if (kind == 1) { slideTell = slideTellTime; Tell(); Sfx.Play("toad", pos, 1f, 0.5f); }
                     else if (kind == 2) { boulderT = boulderTell; Tell(); Sfx.Play("toad", pos, 1f, 0.7f); timer = actionGap * 1.3f; }
                     else if (kind == 5) { icicleTell = icicleTellTime; icicleX = Mathf.FloorToInt(p.pos.x); Tell(); Sfx.Play("brute", pos, 1f, 0.5f); }

@@ -58,9 +58,9 @@ namespace Gloomdelve
                         facing = to.x >= 0 ? 1 : -1;
                         if (timer <= 0f)
                         {
-                            // the round: fan, rain, lunge, blink, ring (a fan until it is enraged)
+                            // its moves, in random order: fan, rain, lunge, blink, ring (a fan until it is enraged)
                             float gap = attackGap * (Enraged ? 0.7f : 1f);
-                            switch (attacks++ % 5)
+                            switch (NextMove(0, 1, 2, 3, 4))
                             {
                                 case 1: Rain(p); timer = gap; break;
                                 case 2: state = State.Windup; timer = 0.55f; Tell(); Sfx.Play("wraith", pos, 0.6f, 1.4f); break;

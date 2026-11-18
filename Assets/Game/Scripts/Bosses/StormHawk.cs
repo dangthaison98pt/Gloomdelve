@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Gloomdelve
 {
     /// <summary>
-    /// Sunfall boss: a giant hawk circling overhead out of reach. Four moves in a fixed round: a dive (a miss
+    /// Sunfall boss: a giant hawk circling overhead out of reach. Four moves in random order (never the same twice running): a dive (a miss
     /// leaves it on the ground for a moment: strike then), a fan of feathers shot at the player, a string of
     /// dropped rocks (they can be thrown back), and a low sweep right across the arena at ground level: jump it.
     /// </summary>
@@ -86,8 +86,8 @@ namespace Gloomdelve
                     }
                     else if (timer <= 0f && p != null)
                     {
-                        // the round: dive, feathers, dive, rocks, sweep
-                        switch (step++ % 5)
+                        // its moves, in random order: dive (twice as often), feathers, rocks, sweep
+                        switch (NextMove(0, 1, 0, 2, 3))
                         {
                             case 1: fanTimer = featherTell; timer = hoverTime * 0.8f; Tell(); Sfx.Play("bat", pos, 1f, 0.7f); break;
                             case 3: rocksLeft = 3; rockTimer = 0.2f; timer = hoverTime; Sfx.Play("bat", pos, 1f, 0.5f); break;

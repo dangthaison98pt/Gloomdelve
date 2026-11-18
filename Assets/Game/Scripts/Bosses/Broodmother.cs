@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Gloomdelve
 {
     /// <summary>
-    /// Mossroot boss: a giant spider, and a fight about the ceiling. A fixed round of moves, none shared with the
+    /// Mossroot boss: a giant spider, and a fight about the ceiling. Her moves come in random order (never the same twice running), none shared with the
     /// other bosses:
     ///  - Drop: she runs up to the ceiling, crawls along it until she is above the player (grit trickles down
     ///    under her: watch it), stops for a blink and lets herself fall. Step aside: she lands stuck on her back
@@ -21,8 +21,8 @@ namespace Gloomdelve
         public float tellTime = 0.5f;
         [Header("Drop from the ceiling")]
         public float climbSpeed = 11f;
-        public float crawlSpeed = 5.5f;
-        [Tooltip("Seconds she crawls along the ceiling after the player.")] public float ceilingTime = 1.7f;
+        public float crawlSpeed = 7.5f;
+        [Tooltip("The longest she crawls along the ceiling after the player: she lets go sooner, as soon as she is above them.")] public float ceilingTime = 3f;
         [Tooltip("She stops this long before letting go: the last warning.")] public float aimTime = 0.4f;
         public float dropSpeed = 21f;
         [Tooltip("Stuck on the floor after a drop: the opening.")] public float stuckTime = 1.4f;
@@ -49,7 +49,7 @@ namespace Gloomdelve
         Move pending;
         float timer, dripT, spitT;
         int step, spitsLeft;
-        bool flipped, spitting;
+        bool flipped, spitting, aiming;
 
         /// <summary>Only the fall from the ceiling hurts.</summary>
         public override bool Attacking => state == State.Drop;
@@ -87,8 +87,8 @@ namespace Gloomdelve
                     if (p != null && Mathf.Abs(p.pos.x - pos.x) > 0.5f) facing = p.pos.x > pos.x ? 1 : -1;
                     if (timer <= 0f && p != null && grounded)
                     {
-                        // the round: drop, web, venom from the ceiling, drop, eggs
-                        int k = step++ % 5;
+                        // her moves, in random order: drop (twice as often), web, venom from the ceiling, eggs
+                        int k = NextMove(0, 1, 2, 0, 3);
                         pending = k == 1 ? Move.Web : k == 2 ? Move.Spit : k == 4 ? Move.Eggs : Move.Drop;
                         if (pending == Move.Eggs && CountAlive<Spider>() + CountAlive<EggSac>() >= maxBrood) pending = Move.Web;
                         state = State.Tell; timer = tellTime;
@@ -127,7 +127,7 @@ namespace Gloomdelve
                         state = State.Ceiling; vel = Vector2.zero;
                         anim?.Play(animIdle);              // upside down, legs on the rock
                         if (spitting) { spitsLeft = spits; spitT = spitInterval; timer = spits * spitInterval + 0.5f; }
-                        else timer = ceilingTime;
+                        else { timer = ceilingTime; aiming = false; }
                     }
                     break;
                 }
@@ -152,7 +152,9 @@ namespace Gloomdelve
                         break;
                     }
                     // crawls after the player, then holds still for the last moment before the fall
-                    float want = p != null && timer > aimTime ? Mathf.Clamp((p.pos.x - pos.x) * 4f, -crawlSpeed, crawlSpeed) : 0f;
+                    // (she crawls until she is right above them - or gives up after ceilingTime - and only then takes aim)
+                    if (!aiming && (timer <= 0f || p == null || Mathf.Abs(p.pos.x - pos.x) < 0.45f)) { aiming = true; timer = aimTime; }
+                    float want = !aiming && p != null ? Mathf.Clamp((p.pos.x - pos.x) * 4f, -crawlSpeed, crawlSpeed) : 0f;
                     vel = new Vector2(want, 0f);
                     var b = new Body { pos = pos, vel = vel, hw = size.x * 0.5f, h = size.y };
                     BodyPhysics.Move(World.Grid, ref b, dt, true);
@@ -160,7 +162,7 @@ namespace Gloomdelve
                     if (Mathf.Abs(want) > 0.3f) facing = want > 0 ? 1 : -1;
                     dripT -= dt;
                     if (dripT <= 0f) { dripT = 0.12f; Fx.Dust(new Vector2(pos.x, pos.y - 0.1f), 1); }      // grit falls where she is
-                    if (timer <= 0f) { state = State.Drop; vel = new Vector2(0f, -dropSpeed); anim?.Play(animFall); Sfx.Play("toad", pos, 1f, 0.45f); }
+                    if (aiming && timer <= 0f) { state = State.Drop; vel = new Vector2(0f, -dropSpeed); anim?.Play(animFall); Sfx.Play("toad", pos, 1f, 0.45f); }
                     break;
                 }
                 case State.Drop:

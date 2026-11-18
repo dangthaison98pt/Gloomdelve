@@ -1021,7 +1021,12 @@ namespace Gloomdelve
             var slash = new List<FrameInput>();
             for (int i = 0; i < 150; i++) slash.Add(F(atk: i % 6 == 0));
             c.Bot(slash);
-            for (int i = 0; i < 150 && b.health == hp0; i++) yield return new WaitForFixedUpdate();
+            for (int i = 0; i < 150 && b.health == hp0; i++)
+            {
+                // this checks the reach only: whatever the heart throws meanwhile is cleared away (its moves come in random order)
+                foreach (var e in c.world.Entities) if (!e.Dead && (e is BossShot || e is SporeCloud || e is Lurecap)) e.Despawn();
+                yield return new WaitForFixedUpdate();
+            }
             c.Expect(b.health < hp0, $"a slash at the top of a bounce hits it (health {hp0} -> {b.health})");
             c.p.godMode = true;
             c.Bot(Seq((2000, F())));
@@ -1066,7 +1071,7 @@ namespace Gloomdelve
                 {
                     yield return new WaitForFixedUpdate();
                     if (i % 4 == 0) yield return null;      // let LateUpdate pose the picture
-                    if (hawk.Swooping && hawk.vel.sqrMagnitude > 25f)
+                    if (hawk.Swooping && !hawk.Sweeping && hawk.vel.sqrMagnitude > 25f)       // a dive, not the low sweep (the moves come in random order)
                     {
                         yield return null;
                         dived = true; diveAngle = hawk.SpriteAngle;
@@ -1159,6 +1164,7 @@ namespace Gloomdelve
             c.Expect(b != null, "forge brute spawned");
             if (b == null) yield break;
             int maxFire = 0, burning = 0, maxWaves = 0; float longest = 0f, since = 0f; bool wallGone = false, passed = false;
+            var seenWaves = new HashSet<Entity>();
             for (int i = 0; i < 2400; i++)
             {
                 yield return new WaitForFixedUpdate();
@@ -1167,19 +1173,19 @@ namespace Gloomdelve
                 {
                     if (e.Dead) continue;
                     if (e is FirePatch f) { n++; if (f.Burning) lit++; }
-                    else if (e is BossShot && e.displayName == "shockwave" && e.vel.x < 0f) waves++;      // those running left, toward the player
+                    else if (e is BossShot && e.displayName == "shockwave" && e.vel.x < 0f) { waves++; seenWaves.Add(e); }      // those running left
                 }
-                maxWaves = Mathf.Max(maxWaves, waves);
+                maxWaves = Mathf.Max(maxWaves, seenWaves.Count);      // every wave sent that way so far (one slam sends three)
                 maxFire = Mathf.Max(maxFire, n);
                 if (lit > 0) { since += GameConst.Dt; longest = Mathf.Max(longest, since); } else since = 0f;
                 burning = Mathf.Max(burning, lit);
                 if (!c.world.Grid.IsSolid(12, 1) && !c.world.Grid.IsSolid(12, 2)) wallGone = true;
                 if (wallGone && b.pos.x < 11f) passed = true;
-                if (maxFire > 0 && wallGone && passed && maxWaves >= 3) break;
+                if (longest > 0.5f && lit == 0 && wallGone && passed && maxWaves >= 3) break;      // a fire has burned and gone out, and the rest was seen
             }
             c.Expect(maxFire >= 1 && maxFire <= 2, $"its stomp lights at most two spots at a time (most seen: {maxFire})");
             c.Expect(longest > 0.5f && longest < 1.6f, $"and they burn only briefly ({longest:0.0}s)");
-            c.Expect(maxWaves >= 3, $"its ground slam sends three shockwaves one after another (most on the floor at once, one way: {maxWaves})");
+            c.Expect(maxWaves >= 3, $"its ground slam sends three shockwaves one after another (sent one way in all: {maxWaves})");
             c.Expect(wallGone, "charging into the dirt wall, it tears through it");
             c.Expect(passed, $"and carries on past where the wall stood (x {b.pos.x:0.0})");
             b.Despawn();
@@ -1279,7 +1285,7 @@ namespace Gloomdelve
                 Vector2 p0 = b.pos;
                 int n0 = c.world.EntityCount;
                 bool acted = false, shots = false, rocks = false, balls = false, fire = false, boulder = false, wind = false, overheat = false;
-                for (int i = 0; i < 1800; i++)
+                for (int i = 0; i < 3000; i++)       // long enough for every move to come up, whatever the (random) order
                 {
                     yield return new WaitForFixedUpdate();
                     if ((b.pos - p0).sqrMagnitude > 0.5f || c.world.EntityCount > n0) acted = true;
@@ -2116,7 +2122,7 @@ namespace Gloomdelve
             if (b == null) yield break;
             bool ceiling = false, fell = false, stuck = false, web = false, eggs = false, hatched = false, shots = false, spatFromCeiling = false, shotElsewhere = false, lowered = false;
             int shotCount = 0;
-            float ceilX = 0f; int spiders0 = c.Count<Spider>();
+            float ceilX = 0f, dropX = 0f; int spiders0 = c.Count<Spider>();
             for (int i = 0; i < 3000 && !(ceiling && stuck && web && eggs && hatched && spatFromCeiling && lowered); i++)
             {
                 yield return new WaitForFixedUpdate();
@@ -2125,7 +2131,7 @@ namespace Gloomdelve
                 if (nShots > shotCount) { if (b.Spitting) { spatFromCeiling = true; ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_broodmother_spit.png")); } else shotElsewhere = true; }
                 shotCount = nShots;
                 if (spatFromCeiling && !b.OnCeiling && b.grounded && !b.Stuck && !b.Attacking) lowered = true;
-                if (b.Attacking) fell = true;
+                if (b.Attacking && !fell) { fell = true; dropX = ceilX; }       // where she was on the ceiling when she let go
                 if (b.Stuck) stuck = true;
                 if (c.Count<WebPatch>() > 0) web = true;
                 if (c.Count<EggSac>() > 0) eggs = true;
@@ -2133,7 +2139,7 @@ namespace Gloomdelve
                 if (c.Count<BossShot>() > 0) shots = true;
             }
             c.Expect(ceiling, "she climbs to the ceiling");
-            c.Expect(Mathf.Abs(ceilX - c.p.pos.x) < 1.2f, $"and crawls along it until she is above the player (her x {ceilX:0.0}, player {c.p.pos.x:0.0})");
+            c.Expect(fell && Mathf.Abs(dropX - c.p.pos.x) < 1.2f, $"and crawls along it until she is above the player before she lets go (her x {dropX:0.0}, player {c.p.pos.x:0.0})");
             c.Expect(fell && stuck, "she drops and lands stuck for a moment (the opening)");
             c.Expect(web, "she lays web on the floor");
             c.Expect(eggs, "she leaves egg sacs");
