@@ -123,15 +123,11 @@ namespace Gloomdelve
             if (changed) Announce();
         }
 
-        /// <summary>Quick tap: back to the previously equipped item, else the next one.</summary>
-        public void QuickSwap()
-        {
-            var run = RunSession.Current;
-            if (run == null || run.gear.Count <= 1) return;
-            int p = run.previousEquipped;
-            if (p >= 0 && p < run.gear.Count && p != run.equipped) { run.SetEquipped(p); Announce(); }
-            else Cycle(1);
-        }
+        /// <summary>
+        /// Quick tap: on to the next item, round and round through everything carried. (It used to flip back to the
+        /// item held before - with three items that left one of them out of reach of the tap for good.)
+        /// </summary>
+        public void QuickSwap() => Cycle(1);
 
         public void Cycle(int dir)
         {

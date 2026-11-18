@@ -9,7 +9,7 @@ namespace Gloomdelve
         public GameObject mainPanel;
         public SettingsPanel settingsPanel;
         [Tooltip("Settings > Keys: the controls list, where keyboard keys can be changed.")] public KeyBindPanel keysPanel;
-        public Button resumeButton, settingsButton, restartButton, retrySeedButton, menuButton, quitButton;
+        public Button resumeButton, settingsButton, menuButton;
         public TMPro.TMP_Text infoText;
 
         void Awake()
@@ -17,10 +17,7 @@ namespace Gloomdelve
             var d = GetComponentInParent<GameDirector>();
             UIUtil.Wire(resumeButton, () => GameDirector.Instance.SetPaused(false));
             UIUtil.Wire(settingsButton, () => { Open(settingsPanel.gameObject, settingsPanel.First); });
-            UIUtil.Wire(restartButton, () => GameDirector.Instance.RestartRun(false));
-            UIUtil.Wire(retrySeedButton, () => GameDirector.Instance.RestartRun(true));
             UIUtil.Wire(menuButton, () => GameDirector.Instance.QuitToMenu());
-            UIUtil.Wire(quitButton, GameDirector.QuitGame);
             settingsPanel.onBack = ShowMain;
             settingsPanel.onKeys = OpenKeys;
             if (keysPanel != null) keysPanel.onBack = () => Open(settingsPanel.gameObject, settingsPanel.keys != null ? settingsPanel.keys : settingsPanel.First);

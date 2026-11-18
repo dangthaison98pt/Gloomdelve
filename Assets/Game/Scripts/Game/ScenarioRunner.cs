@@ -167,7 +167,7 @@ namespace Gloomdelve
             new Scenario { name = "gear wheel freezes the game and equips the chosen gear", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => WheelCase(c) },
 
-            new Scenario { name = "gear swap with real R1 presses: one tap after the wheel swaps back", map = m => { Set(m, 3, 1, 'S'); },
+            new Scenario { name = "gear swap with real R1 presses: each tap goes on to the next item", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => WheelInputCase(c) },
 
             new Scenario { name = "use button uses only the equipped gear", map = m => { Set(m, 12, 1, 'S'); },
@@ -2507,8 +2507,10 @@ namespace Gloomdelve
             w.Confirm();
             c.Expect(!w.IsOpen && Mathf.Approximately(Time.timeScale, scale), "closed + resumed");
             c.Expect(c.run.EquippedId == "rope", "rope equipped (got " + c.run.EquippedId + ")");
-            w.QuickSwap();
-            c.Expect(c.run.EquippedId == "bomb", "quick tap swaps back to bombs");
+            // a quick tap goes on to the next item, and as many taps as there are items come back round to the start
+            var seenByTap = new HashSet<string>();
+            for (int i = 0; i < c.run.gear.Count; i++) { w.QuickSwap(); seenByTap.Add(c.run.EquippedId); }
+            c.Expect(seenByTap.Count == c.run.gear.Count && c.run.EquippedId == "rope", $"quick taps go round every item ({seenByTap.Count} of {c.run.gear.Count}) and back to the rope");
             yield return c.Frames(5);
         }
 
@@ -2546,22 +2548,24 @@ namespace Gloomdelve
             log.Append("wheel->" + c.run.EquippedId + " ");
             c.Expect(!w.IsOpen && c.run.EquippedId == "rope", "release equips rope (got " + c.run.EquippedId + ")");
 
-            // one quick tap right after: back to bomb (with 3 items, 'next' would have been glider)
+            // one quick tap right after: on to the item after the rope
+            string next1 = c.run.gear[(c.run.equipped + 1) % c.run.gear.Count];
             yield return Send(pad, r1, 0.09f);
             yield return Send(pad, none, 0.15f);
             log.Append("tap->" + c.run.EquippedId + " ");
-            c.Expect(c.run.EquippedId == "bomb", "ONE tap after the wheel returns to bomb (got " + c.run.EquippedId + ")");
+            c.Expect(c.run.EquippedId == next1 && next1 != "bomb", "ONE tap goes on to the next item, " + next1 + " (got " + c.run.EquippedId + ")");
 
-            // a slightly long tap (0.3 s: wheel pops open, nothing chosen) still swaps: back to rope
+            // a slightly long tap (0.3 s: wheel pops open, nothing chosen) still steps on
+            string next2 = c.run.gear[(c.run.equipped + 1) % c.run.gear.Count];
             yield return Send(pad, r1, 0.3f);
             yield return Send(pad, none, 0.15f);
             log.Append("longtap->" + c.run.EquippedId + " ");
-            c.Expect(!w.IsOpen && c.run.EquippedId == "rope", "0.3 s tap still swaps (got " + c.run.EquippedId + ")");
+            c.Expect(!w.IsOpen && c.run.EquippedId == next2, "0.3 s tap still steps on to " + next2 + " (got " + c.run.EquippedId + ")");
 
             // holding without choosing for a long time just closes and keeps the item
             yield return Send(pad, r1, 0.7f);
             yield return Send(pad, none, 0.15f);
-            c.Expect(!w.IsOpen && c.run.EquippedId == "rope", "long hold without choosing keeps rope (got " + c.run.EquippedId + ")");
+            c.Expect(!w.IsOpen && c.run.EquippedId == next2, "long hold without choosing keeps " + next2 + " (got " + c.run.EquippedId + ")");
             c.Expect(Mathf.Approximately(Time.timeScale, scale0), "game resumed at normal speed (" + Time.timeScale + ")");
             c.detail += log.ToString();
             InputSystem.RemoveDevice(pad);
