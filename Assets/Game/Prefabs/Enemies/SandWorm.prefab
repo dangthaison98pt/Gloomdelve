@@ -48,7 +48,7 @@ MonoBehaviour:
   displayName: sand worm
   size: {x: 0.6, y: 1.4}
   maxHealth: 2
-  flipWithFacing: 0
+  flipWithFacing: 1
   artFacesLeft: 0
   contactDamage: 1
   stompable: 1
@@ -58,11 +58,15 @@ MonoBehaviour:
   goldDrop: 100
   goldChance: 0.8
   heartDropChance: 0.05
-  wakeRange: 1.7
-  tellTime: 0.6
+  sightRange: 7
+  biteRange: 1.5
+  tellTime: 0.55
   strikeTime: 0.35
-  outTime: 1.3
-  restTime: 1.4
+  aimTime: 0.45
+  outTime: 0.9
+  restTime: 1.5
+  shotId: sandshot
+  shotSpeed: 7.5
   animMound: {fileID: 11400000, guid: f6e734e5e8d32e4409a5ea55a668ce93, type: 2}
   animOut: {fileID: 11400000, guid: a7044986069439b4db90b35ca8b53331, type: 2}
 --- !u!1 &8264386773701872307

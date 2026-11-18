@@ -778,6 +778,15 @@ namespace Gloomdelve.EditorTools
                 sand.ambientParticles = AmbientParticles.Dust; sand.ambientParticleCount = 26;
                 sand.backdropTint = new Color(0.5f, 0.4f, 0.28f);
             }
+            // (tuned in code, not in the inspector: these are set again on every build)
+            // As many creatures and traps as any other area: what makes the tombs press is what each creature does.
+            sand.groundEnemyChance = 0.45f; sand.ceilingEnemyChance = 0.4f; sand.extraEnemiesPerRoom = 0.25f;
+            sand.groundEnemies = new[] { new WeightedId("scarab", 2f), new WeightedId("mummy", 1.5f), new WeightedId("sandworm", 2f) };
+            sand.quicksandChance = 0.55f; sand.spearChance = 0.4f; sand.arrowTrapDensity = 0.018f; sand.spikeDensity = 0.02f;
+            // a softer, less yellow light on the stone
+            sand.ambientColor = new Color(1f, 0.94f, 0.84f); sand.ambientIntensity = 0.58f;
+            sand.torchColor = new Color(1f, 0.78f, 0.5f);
+            sand.backdropTint = new Color(0.46f, 0.4f, 0.32f);
             sand.tiles = ts["Sandsunk"];
             EditorUtility.SetDirty(sand);
 
@@ -1266,8 +1275,10 @@ namespace Gloomdelve.EditorTools
                 (e, go, sr) => { e.goldDrop = 50; e.goldChance = 0.35f; e.heartDropChance = 0.02f; e.animWalk = anims["scarab_walk"]; e.bloodColor = new Color(0.3f, 0.7f, 0.75f); }));
             Reg("mummy", Make<Mummy>("Mummy", "Enemies", "mummy", new Vector2(0.65f, 1.15f), ArtGenerator.S("Sprites/Enemies/mummy_0"), anims["mummy_walk"], 14,
                 (e, go, sr) => { e.maxHealth = 3; e.goldDrop = 100; e.animWalk = anims["mummy_walk"]; e.animGrab = anims["mummy_grab"]; e.bloodColor = new Color(0.85f, 0.8f, 0.65f); }));
+            Reg("mummywrap", Make<MummyWrap>("MummyWrap", "Enemies", "wrapping", new Vector2(0.7f, 0.3f), ArtGenerator.S("Sprites/Enemies/mummywrap"), null, 32,
+                (e, go, sr) => { e.flipWithFacing = false; }));
             Reg("sandworm", Make<SandWorm>("SandWorm", "Enemies", "sand worm", new Vector2(0.6f, 1.4f), ArtGenerator.S("Sprites/Enemies/sandworm_0"), anims["sandworm_mound"], 14,
-                (e, go, sr) => { e.maxHealth = 2; e.goldDrop = 100; e.flipWithFacing = false; e.animMound = anims["sandworm_mound"]; e.animOut = anims["sandworm_out"]; e.bloodColor = new Color(0.8f, 0.5f, 0.3f); }));
+                (e, go, sr) => { e.maxHealth = 2; e.goldDrop = 100; e.animMound = anims["sandworm_mound"]; e.animOut = anims["sandworm_out"]; e.bloodColor = new Color(0.8f, 0.5f, 0.3f); }));
             Reg("sandshot", Make<BossShot>("SandShot", "Enemies", "sand", new Vector2(0.35f, 0.35f), ArtGenerator.S("Sprites/Bosses/sandshot"), null, 32,
                 (e, go, sr) => { e.flipWithFacing = false; e.burstColor = new Color(0.95f, 0.8f, 0.5f); }));
             Reg("dunequeen", Make<DuneQueen>("DuneQueen", "Enemies", "Dune Queen", new Vector2(1.8f, 2.6f), ArtGenerator.S("Sprites/Bosses/dunequeen_0"), anims["dunequeen_idle"], 15,

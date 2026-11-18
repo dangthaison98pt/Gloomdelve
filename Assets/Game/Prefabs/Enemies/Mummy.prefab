@@ -173,5 +173,12 @@ MonoBehaviour:
   grabLunge: 4.5
   grabRecover: 1.2
   stealGold: 150
+  castMin: 1.8
+  castMax: 6
+  castTell: 0.55
+  castSpeed: 13
+  castCooldown: 3.2
+  wrapId: mummywrap
+  broodOnDeath: 2
   animWalk: {fileID: 11400000, guid: 406338bba85f24e42ad00fb7e47a5dcf, type: 2}
   animGrab: {fileID: 11400000, guid: 438f2e8184358fe4691e4d390a15b08f, type: 2}

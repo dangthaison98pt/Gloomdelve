@@ -103,6 +103,17 @@ namespace Gloomdelve.EditorTools
                 Save(p, $"Sprites/Enemies/mummy_{f}", new Vector2(0.5f, 1f / 22f));
             }
 
+            // the length of wrapping a mummy casts: a strip of linen, its end frayed
+            {
+                var p = new Px(14, 5);
+                Color32 wrap = C(222, 212, 180), wrapD = C(160, 148, 118), wrapL = C(246, 240, 220);
+                p.Rect(0, 1, 12, 3, wrap); p.Rect(0, 1, 12, 1, wrapD); p.Rect(2, 3, 8, 1, wrapL);
+                for (int x = 2; x < 12; x += 3) p.Set(x, 2, wrapD);
+                p.Set(12, 3, wrap); p.Set(13, 2, wrap); p.Set(12, 1, wrapD);
+                p.Outline(ol);
+                Save(p, "Sprites/Enemies/mummywrap", PCenter);
+            }
+
             // sand worm: 0 the mound (all that shows while it waits), 1 / 2 out of the ground, swaying
             for (int f = 0; f < 3; f++)
             {

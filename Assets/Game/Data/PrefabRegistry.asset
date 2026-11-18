@@ -46,6 +46,8 @@ MonoBehaviour:
     prefab: {fileID: 4418907110908702722, guid: ee13b68685652b64ab66cf8ca39fc552, type: 3}
   - id: mummy
     prefab: {fileID: 2613543098966764052, guid: 756381027f52c9e458e951e6df105fe7, type: 3}
+  - id: mummywrap
+    prefab: {fileID: 3387989276838164119, guid: 9350215dd37d23e45a737587b07761eb, type: 3}
   - id: sandworm
     prefab: {fileID: 3762326688372893184, guid: 84a4804efc2b1dd459fdaeb9b1f608f5, type: 3}
   - id: sandshot

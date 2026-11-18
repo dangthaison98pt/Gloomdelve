@@ -167,6 +167,7 @@ namespace Gloomdelve.EditorTools
             public Color32 spike, spikeD, spikeL, spikeTip;
             public int style;   // 0 moss/grass, 1 ember crust, 2 vault bricks
             public bool vine;   // ladders drawn as vines (outdoor)
+            public bool ashlar; // walls of big dressed blocks with sand drifted on top instead of small bricks (the tombs)
         }
 
         static readonly Pal Moss = new Pal
@@ -249,16 +250,16 @@ namespace Gloomdelve.EditorTools
             style = 2
         };
 
-        // Sandsunk Tombs: pale sandstone blocks under drifted sand, dark basalt, bronze spikes.
+        // Sandsunk Tombs: long courses of pale, smooth sandstone under drifted sand; dark basalt; bronze spikes.
         static readonly Pal Sand = new Pal
         {
-            b = C(196, 158, 100), d = C(156, 120, 72), l = C(230, 198, 138), deep = C(98, 72, 44),
-            top = C(236, 206, 140), topL = C(254, 236, 184), topD = C(184, 150, 92),
-            rock = C(92, 74, 66), rockD = C(62, 48, 44), rockL = C(132, 110, 98), rockDeep = C(34, 26, 24),
-            bg = C(52, 40, 30), bgD = C(38, 29, 22), bgL = C(70, 55, 40),
+            b = C(188, 164, 124), d = C(160, 136, 100), l = C(212, 192, 154), deep = C(104, 84, 62),
+            top = C(232, 208, 150), topL = C(250, 234, 190), topD = C(190, 162, 112),
+            rock = C(92, 78, 72), rockD = C(62, 52, 48), rockL = C(132, 114, 104), rockDeep = C(34, 28, 26),
+            bg = C(58, 48, 40), bgD = C(46, 38, 32), bgL = C(74, 62, 50),
             wood = C(150, 112, 70), woodD = C(98, 70, 42), woodL = C(200, 160, 104),
             spike = C(202, 150, 84), spikeD = C(130, 88, 46), spikeL = C(246, 214, 150), spikeTip = C(255, 244, 200),
-            style = 2
+            style = 2, ashlar = true
         };
 
         static void AllTiles()
@@ -358,7 +359,7 @@ namespace Gloomdelve.EditorTools
             string dir = "Tiles/" + name + "/";
             for (int v = 0; v < 2; v++)
                 for (int m = 0; m < 16; m++)
-                    Save(p.style == 2 ? Brick(m, v, p, seed) : Earth(m, v, p, seed), $"{dir}dirt_{m:00}_{v}", PCenter);
+                    Save(p.ashlar ? Ashlar(m, v, p, seed) : p.style == 2 ? Brick(m, v, p, seed) : Earth(m, v, p, seed), $"{dir}dirt_{m:00}_{v}", PCenter);
             for (int m = 0; m < 16; m++) Save(Bedrock(m, p, seed), $"{dir}bedrock_{m:00}", PCenter);
             for (int m = 0; m < 16; m++) Save(Brick(m, 0, p, seed + 5), $"{dir}brick_{m:00}", PCenter);
             for (int v = 0; v < 4; v++) Save(Background(v, p, seed), $"{dir}bg_{v}", PCenter);
@@ -463,6 +464,42 @@ namespace Gloomdelve.EditorTools
             return px;
         }
 
+        /// <summary>
+        /// A tomb wall: smooth sandstone laid in two long courses to a tile. The stone is almost plain - a little
+        /// grain, nothing busy - and the joints are a shade darker, not black: the upright joints fall at different
+        /// places in the two courses and in the two variants, so the wall reads as long stones in running bond,
+        /// never as a grid. Loose sand lies deep on every top face.
+        /// </summary>
+        static Px Ashlar(int mask, int v, Pal p, int seed)
+        {
+            var px = new Px(16, 16);
+            Color32 joint = Lerp(p.d, p.deep, 0.45f), worn = Lerp(p.b, p.l, 0.55f);
+            int upA = v == 0 ? 5 : 11, upB = v == 0 ? 13 : 2;            // where the upright joint falls: upper course, lower course
+            for (int y = 0; y < 16; y++)
+                for (int x = 0; x < 16; x++)
+                {
+                    bool upper = y >= 8;
+                    Color32 col = p.b;
+                    float n = N(x / 2, y / 2, seed + v * 31);
+                    if (n < 0.07f) col = p.d; else if (n > 0.95f) col = worn;        // sparse grain
+                    if (y == 0 || y == 8) col = joint;                                 // the bed under each course
+                    else if (x == (upper ? upA : upB)) col = joint;                    // one upright joint in each
+                    else if (y == 7 || y == 15) col = worn;                            // the worn upper edge of the stone
+                    px.Set(x, y, col);
+                }
+            Edges(px, mask, p, p.deep);
+            if ((mask & 1) != 0)
+                for (int x = 0; x < 16; x++)
+                {
+                    if (px.Get(x, 15).a == 0) continue;
+                    // the drift lies three to five rows deep, and a few grains trickle down the face
+                    int depth = 3 + (N(x / 3, 0, seed + v * 5 + 11) > 0.5f ? 1 : 0) + (N(x / 4, 1, seed + 3) > 0.75f ? 1 : 0);
+                    for (int d = 0; d < depth; d++) px.Set(x, 15 - d, d == 0 ? p.topL : d >= depth - 1 ? p.topD : p.top);
+                    if (N(x, 2, seed + v + 23) > 0.9f) px.Set(x, 15 - depth - 1, p.topD);
+                }
+            return px;
+        }
+
         static Px Bedrock(int mask, Pal p, int seed)
         {
             var px = new Px(16, 16);
@@ -497,6 +534,16 @@ namespace Gloomdelve.EditorTools
                     if (n2 > 0.975f) col = p.bgL; else if (n2 < 0.02f) col = Mul(p.bgD, 0.85f);
                     px.Set(x, y, col);
                 }
+            if (p.ashlar)
+            {
+                // the back wall: the same long courses, in shadow and barely drawn; now and then a single carved sign
+                Color32 j = Mul(p.bgD, 0.9f), g = Lerp(p.bg, p.bgL, 0.6f);
+                for (int x = 0; x < 16; x++) { px.Set(x, 0, j); px.Set(x, 8, j); }
+                for (int y = 1; y < 8; y++) px.Set(v % 2 == 0 ? 3 : 12, y, j);
+                for (int y = 9; y < 16; y++) px.Set(v % 2 == 0 ? 10 : 6, y, j);
+                if (v == 3) { px.Line(5, 12, 9, 12, g); px.Set(4, 11, g); px.Set(10, 11, g); px.Line(5, 10, 9, 10, g); px.Set(7, 11, g); }   // an eye
+                return px;
+            }
             if (p.style == 2)
             {
                 for (int x = 0; x < 16; x++) { px.Set(x, 0, p.bgD); px.Set(x, 8, p.bgD); }

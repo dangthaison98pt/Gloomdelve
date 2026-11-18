@@ -310,7 +310,7 @@ namespace Gloomdelve
             new Scenario { name = "sandsunk: quicksand slows and swallows unless hopped out of or crossed in sand striders; a spear plate strikes on its beat", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => SandTrapCase(c) },
 
-            new Scenario { name = "sandsunk: scarabs hatch in a pack, a mummy takes gold and gives it back when destroyed, a sand worm waits under the floor", map = m => { Set(m, 3, 1, 'S'); },
+            new Scenario { name = "sandsunk: scarabs pounce as a pack, a mummy casts its wrapping and takes gold, a sand worm comes up to spit", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => SandEnemyCase(c) },
 
             new Scenario { name = "bosses: the dune queen floods her floor with quicksand, dives and breaches where the player stands, breaks the slab above her, spits and calls scarabs",
@@ -2458,90 +2458,143 @@ namespace Gloomdelve
 
         static IEnumerator SandEnemyCase(Ctx c)
         {
-            c.Bot(Seq((6000, F())));
+            c.Bot(Seq((9000, F())));
             var shop = c.dir.config.shop;
             c.p.godMode = true;
-            // scarabs: one placed, a pack hatches
-            c.Spawn<Scarab>("scarab", 16, 1);
+            // scarabs: one placed, a pack hatches; from a few steps away they pounce; a death sends the rest into a frenzy
+            c.Teleport(12.5f, 1f);
+            c.Spawn<Scarab>("scarab", 17, 1);
             yield return c.Frames(3);
             c.Expect(c.Count<Scarab>() == 3, $"where one scarab is placed a pack of three hatches ({c.Count<Scarab>()})");
-            yield return c.Frames(30);
-            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "sandsunk_scarabs.png"));
+            bool pounced = false;
+            for (int i = 0; i < 500 && !pounced; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (Mathf.Abs(c.p.pos.x - 12.5f) > 0.5f) c.Teleport(12.5f, 1f);
+                foreach (var e in c.world.Entities)
+                    if (e is Scarab s && !s.Dead && s.Pouncing && !s.grounded && s.Attacking) pounced = true;
+                if (pounced) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "sandsunk_scarabs.png"));
+            }
+            c.Expect(pounced, "a scarab crouches, then pounces through the air at the player");
+            Scarab first = null;
+            foreach (var e in c.world.Entities) if (e is Scarab s && !s.Dead && first == null) first = s;
+            if (first != null) first.TakeDamage(new DamageInfo(3, DamageType.Whip, c.p, Vector2.zero, "test"));
+            yield return c.Frames(2);
+            int frenzied = 0;
+            foreach (var e in c.world.Entities) if (e is Scarab s && !s.Dead && s.Frenzied) frenzied++;
+            c.Expect(c.Count<Scarab>() == 2 && frenzied == 2, $"one dies, and the rest of the pack goes into a frenzy ({frenzied} of {c.Count<Scarab>()})");
+            foreach (var e in c.world.Entities) if (!e.Dead && (e is Scarab || e is Pickup)) e.Despawn();
             yield return c.Frames(3);
-            foreach (var e in c.world.Entities) if (!e.Dead && e is Scarab) e.Despawn();
             c.p.godMode = false;
 
-            // the mummy: its grab takes gold, not health
+            // the mummy: from a few steps away it casts its wrapping and drags the player in; its grab takes gold, not health
+            c.run.maxHealth = 10; c.run.health = 10;
             c.run.gold = 400;
             int hp = c.run.health;
             c.Teleport(6.5f, 1f);
-            var mummy = c.Spawn<Mummy>("mummy", 9, 1, 0, null, -1);
+            var mummy = c.Spawn<Mummy>("mummy", 10, 1, 0, null, -1);
             c.Expect(mummy != null, "a mummy spawned");
             if (mummy == null) yield break;
             mummy.heartDropChance = 0f; mummy.goldChance = 0f;
-            for (int i = 0; i < 600 && c.run.gold == 400; i++)
+            bool caught = false; float pulledTo = 0f;
+            for (int i = 0; i < 700 && c.run.gold == 400; i++)
             {
                 yield return new WaitForFixedUpdate();
-                if (i % 30 == 0 && Mathf.Abs(c.p.pos.x - 6.5f) > 3f) c.Teleport(6.5f, 1f);
+                if (c.p.Slowed && mummy.Casts > 0 && !caught) { caught = true; }
+                if (caught && pulledTo == 0f && c.p.grounded) pulledTo = c.p.pos.x;
                 if (i == 40) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "sandsunk_mummy.png"));
             }
+            c.Expect(mummy.Casts >= 1 && caught, $"from a few steps away it casts its wrapping and catches the player ({mummy.Casts} casts)");
             c.Expect(c.run.gold == 400 - mummy.stealGold && c.run.health == hp && mummy.Stolen == mummy.stealGold,
-                $"a mummy's grab takes {mummy.stealGold} gold and no health (gold 400 -> {c.run.gold}, health {hp} -> {c.run.health}, it holds {mummy.Stolen})");
-            // destroyed, it gives the gold back
+                $"its grab takes {mummy.stealGold} gold and no health (gold 400 -> {c.run.gold}, health {hp} -> {c.run.health}, it holds {mummy.Stolen})");
+            // destroyed: the gold falls out, and so do the scarabs that nested in it
             c.p.godMode = true;
             int gold0 = c.Count<Pickup>();
             for (int i = 0; i < 20 && !mummy.Dead; i++) { mummy.TakeDamage(new DamageInfo(3, DamageType.Whip, c.p, Vector2.zero, "test")); yield return c.Frames(14); }
             yield return c.Frames(3);
             c.Expect(mummy.Dead && c.Count<Pickup>() - gold0 == mummy.stealGold / 30, $"destroyed, what it took falls out ({c.Count<Pickup>() - gold0} pieces)");
-            foreach (var e in c.world.Entities) if (!e.Dead && e is Pickup) e.Despawn();
+            c.Expect(c.Count<Scarab>() == mummy.broodOnDeath, $"and {mummy.broodOnDeath} scarabs come out of its wrappings ({c.Count<Scarab>()})");
+            foreach (var e in c.world.Entities) if (!e.Dead && (e is Pickup || e is Scarab || e is MummyWrap)) e.Despawn();
+            yield return c.Frames(3);
             c.p.godMode = false;
-            // penniless: now it draws blood
-            c.run.gold = 0; hp = c.run.health;
+            // the blade cuts the wrapping out of the air
+            var strip = c.world.SpawnById("mummywrap", new Vector2(12.5f, 1.5f)) as MummyWrap;
+            bool stripCut = false;
+            if (strip != null) { strip.OnWhipped(c.p, 1, 1); stripCut = strip.Dead; }      // (asked at once: a despawned thing is gone a step later)
+            yield return c.Frames(2);
+            c.Expect(stripCut, "the blade cuts a wrapping out of the air");
+            // penniless: now the grab draws blood
+            c.run.gold = 0; c.run.health = 10; hp = c.run.health;
             c.Teleport(6.5f, 1f);
-            var poor = c.Spawn<Mummy>("mummy", 9, 1, 0, null, -1);
-            for (int i = 0; i < 600 && c.run.health == hp; i++) { yield return new WaitForFixedUpdate(); if (i % 30 == 0 && Mathf.Abs(c.p.pos.x - 6.5f) > 3f) c.Teleport(6.5f, 1f); }
+            var poor = c.Spawn<Mummy>("mummy", 8, 1, 0, null, -1);
+            for (int i = 0; i < 700 && c.run.health == hp; i++) { yield return new WaitForFixedUpdate(); if (i % 30 == 0 && Mathf.Abs(c.p.pos.x - 6.5f) > 4f) c.Teleport(6.5f, 1f); }
             c.Expect(c.run.health == hp - 1, $"with no gold to take, its grab hurts instead (health {hp} -> {c.run.health})");
             if (poor != null) poor.Despawn();
+            foreach (var e in c.world.Entities) if (!e.Dead && e is MummyWrap) e.Despawn();
             // the warding scarab keeps its hands off
             c.run.AddUpgrade(shop.Find("wardscarab"));
-            c.run.gold = 400; hp = c.run.health;
+            c.run.gold = 400; c.run.health = 10; hp = c.run.health;
             yield return c.Frames(80);
             c.Teleport(6.5f, 1f);
-            var warded = c.Spawn<Mummy>("mummy", 9, 1, 0, null, -1);
-            for (int i = 0; i < 420; i++) { yield return new WaitForFixedUpdate(); if (i % 30 == 0 && Mathf.Abs(c.p.pos.x - 6.5f) > 3f) c.Teleport(6.5f, 1f); }
+            var warded = c.Spawn<Mummy>("mummy", 8, 1, 0, null, -1);
+            for (int i = 0; i < 480; i++) { yield return new WaitForFixedUpdate(); if (i % 30 == 0 && Mathf.Abs(c.p.pos.x - 6.5f) > 4f) c.Teleport(6.5f, 1f); }
             c.Expect(c.run.IsWorn("wardscarab") && c.run.gold == 400 && c.run.health == hp, $"with a warding scarab its grab takes nothing (gold {c.run.gold}, health {hp} -> {c.run.health})");
             if (warded != null) warded.Despawn();
+            foreach (var e in c.world.Entities) if (!e.Dead && e is MummyWrap) e.Despawn();
             c.run.RemoveUpgrade("wardscarab");
             c.run.gold = 0;
 
-            // the sand worm: under the floor nothing reaches it; it lunges when the player comes close, then it can be hit
+            // the sand worm: under the floor nothing reaches it; from a distance it comes up and spits, up close it lunges
             c.Teleport(5.5f, 1f);
-            var worm = c.Spawn<SandWorm>("sandworm", 15, 1);
+            var worm = c.Spawn<SandWorm>("sandworm", 20, 1);
             c.Expect(worm != null, "a sand worm spawned");
             if (worm == null) yield break;
-            yield return c.Frames(40);
+            yield return c.Frames(20);
             bool hitBuried = worm.TakeDamage(new DamageInfo(1, DamageType.Whip, c.p, Vector2.zero, "test"));
-            c.Expect(worm.Buried && !hitBuried && worm.ContactDamage == 0, "buried, it cannot be cut and its mound is harmless");
-            hp = c.run.health;
+            c.Expect(worm.Buried && !hitBuried && worm.ContactDamage == 0 && worm.Shots == 0, "far off it stays buried: it cannot be cut and its mound is harmless");
+            // within sight, a few steps away: it rises, aims and spits a clod at the player
+            c.run.health = 10; hp = c.run.health;
             c.Teleport(15.5f, 1f);
-            bool told = false, lunged = false;
-            for (int i = 0; i < 300 && c.run.health == hp; i++)
+            bool rose = false, aimed = false;
+            for (int i = 0; i < 400 && c.run.health == hp; i++)
             {
                 yield return new WaitForFixedUpdate();
-                if (worm.Buried && i > 5) told = true;
-                if (worm.Attacking) { lunged = true; if (i % 3 == 0) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "sandsunk_worm.png")); }
+                if (Mathf.Abs(c.p.pos.x - 15.5f) > 0.5f) c.Teleport(15.5f, 1f);
+                if (!worm.Buried) rose = true;
+                if (worm.Aiming) { aimed = true; if (i % 3 == 0) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "sandsunk_worm.png")); }
             }
-            c.Expect(told && lunged && c.run.health == hp - worm.contactDamage, $"standing over it: a warning, then its lunge bites for {worm.contactDamage} (health {hp} -> {c.run.health})");
+            c.Expect(rose && aimed && worm.Shots >= 1 && c.run.health == hp - 1, $"within sight it comes up, aims and spits: hit for 1 (shots {worm.Shots}, health {hp} -> {c.run.health})");
+            c.p.godMode = true;
+            int shotsBefore = worm.Shots;
+            for (int i = 0; i < 360; i++) { yield return new WaitForFixedUpdate(); if (Mathf.Abs(c.p.pos.x - 15.5f) > 0.5f) c.Teleport(15.5f, 1f); }
+            c.Expect(worm.Shots > shotsBefore, $"and it keeps at it while the player stays in reach ({shotsBefore} -> {worm.Shots} shots)");
+            foreach (var e in c.world.Entities) if (!e.Dead && e is BossShot) e.Despawn();
+            // right at its mound: the lunge
+            c.Teleport(5.5f, 4f);
+            for (int i = 0; i < 400 && !worm.Buried; i++) { yield return new WaitForFixedUpdate(); if (c.p.pos.x > 9f || c.p.pos.y < 0.5f) c.Teleport(5.5f, 1f); }
+            c.p.godMode = false;
+            c.run.health = 10; hp = c.run.health;
+            c.Teleport(20.5f, 1f);
+            bool lunged = false;
+            for (int i = 0; i < 500 && c.run.health == hp; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (Mathf.Abs(c.p.pos.x - 20.5f) > 0.5f) c.Teleport(20.5f, 1f);
+                if (worm.Attacking) lunged = true;
+            }
+            c.Expect(lunged && c.run.health == hp - worm.contactDamage, $"standing over it: its lunge bites for {worm.contactDamage} (health {hp} -> {c.run.health})");
             c.p.godMode = true;
             bool cut = false;
-            for (int i = 0; i < 400 && !cut; i++)
+            for (int i = 0; i < 500 && !cut; i++)
             {
                 yield return new WaitForFixedUpdate();
                 if (!worm.Buried && !worm.Attacking) cut = worm.TakeDamage(new DamageInfo(1, DamageType.Whip, c.p, Vector2.zero, "test"));
             }
             c.Expect(cut, "out of the ground it can be cut");
             if (!worm.Dead) worm.Despawn();
+            foreach (var e in c.world.Entities) if (!e.Dead && e is BossShot) e.Despawn();
             c.p.godMode = false;
+            c.run.health = 4;
             yield return c.Frames(5);
         }
 

@@ -60,13 +60,22 @@ MonoBehaviour:
   heartDropChance: 0.02
   speed: 2.2
   chaseSpeed: 4.4
-  sightRange: 5.5
+  sightRange: 6
   packSize: 3
   biteRange: 0.75
   biteWindup: 0.22
   biteTime: 0.14
   biteLunge: 6
   biteRecover: 0.7
+  pounceMin: 1.3
+  pounceMax: 3.6
+  pounceTell: 0.3
+  pounceSpeedX: 6.8
+  pounceSpeedY: 9.5
+  pounceCooldown: 1.8
+  frenzyTime: 4
+  frenzySpeed: 1.4
+  frenzyRange: 7
   animWalk: {fileID: 11400000, guid: 1fc78e77b2e2f1046a643cc6eb9119ee, type: 2}
 --- !u!1 &7920341847889075128
 GameObject:

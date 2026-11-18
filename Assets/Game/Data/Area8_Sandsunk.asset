@@ -37,7 +37,7 @@ MonoBehaviour:
   - id: mummy
     weight: 1.5
   - id: sandworm
-    weight: 1.5
+    weight: 2
   ceilingEnemies:
   - id: bat
     weight: 1
@@ -80,15 +80,15 @@ MonoBehaviour:
   requiredGear: 
   gatesByLevel: 000000000000000000000000
   grantGear: 
-  ambientColor: {r: 1, g: 0.9, b: 0.7, a: 1}
-  ambientIntensity: 0.56
+  ambientColor: {r: 1, g: 0.94, b: 0.84, a: 1}
+  ambientIntensity: 0.58
   playerLightIntensity: 0.85
   playerLightRadius: 7.5
-  torchColor: {r: 1, g: 0.72, b: 0.38, a: 1}
+  torchColor: {r: 1, g: 0.78, b: 0.5, a: 1}
   torchChance: 0.07
   ambientParticles: 1
   ambientParticleCount: 26
-  backdropTint: {r: 0.5, g: 0.4, b: 0.28, a: 1}
+  backdropTint: {r: 0.46, g: 0.4, b: 0.32, a: 1}
   shopChanceByLevel:
   - 1
   - 0.6
