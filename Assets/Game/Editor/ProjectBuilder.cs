@@ -1309,7 +1309,7 @@ namespace Gloomdelve.EditorTools
             Reg("gold_small", Make<Pickup>("GoldNugget", "Items", "gold nugget", new Vector2(0.3f, 0.25f), ArtGenerator.S(I("gold_small")), null, 11, (e, g, s) => { e.value = 10; e.flipWithFacing = false; }));
             Reg("gold_big", Make<Pickup>("GoldChunk", "Items", "gold chunk", new Vector2(0.5f, 0.35f), ArtGenerator.S(I("gold_big")), null, 11, (e, g, s) => { e.value = 30; e.flipWithFacing = false; }));
             Reg("gem", Make<Pickup>("Gem", "Items", "emerald", new Vector2(0.4f, 0.4f), ArtGenerator.S(I("gem")), null, 11, (e, g, s) => { e.value = 100; e.sfx = "gem"; e.textColor = new Color(0.5f, 1f, 0.7f); e.flipWithFacing = false; }));
-            Reg("ember", Make<Pickup>("Ember", "Items", "ember", new Vector2(0.4f, 0.45f), ArtGenerator.S("Sprites/Items/ember"), null, 11, (e, g, s) =>
+            Reg("ember", Make<Pickup>("Ember", "Items", "ember", new Vector2(0.4f, 0.4f), ArtGenerator.S("Sprites/Items/ember"), null, 11, (e, g, s) =>
             {
                 e.resource = "ember"; e.value = 1; e.sfx = "gem"; e.textColor = new Color(1f, 0.62f, 0.3f); e.flipWithFacing = false;
                 s.sharedMaterial = unlitMat;                                    // it burns: seen in the dark

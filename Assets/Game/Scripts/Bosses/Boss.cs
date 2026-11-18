@@ -5,8 +5,8 @@ namespace Gloomdelve
 {
     /// <summary>
     /// Base of every boss. A boss registers itself with the GameDirector (health bar, sealed exit), shrugs off
-    /// knockback and stuns, takes at most maxHitDamage per hit (so one bomb never ends the fight) and tells the
-    /// director when it dies. Each boss only writes its own moves in Tick and asks NextMove() which one is next
+    /// knockback and stuns, takes at most maxHitDamage per hit from the player's own blows, only half a point from
+    /// anything else - a bomb blast, a trap, spikes, a falling rock - and tells the director when it dies. Each boss only writes its own moves in Tick and asks NextMove() which one is next
     /// (random, never the same twice running).
     /// To add one: subclass, make a prefab, register it, and name it in a boss arena file ("boss: id").
     /// </summary>
@@ -14,7 +14,15 @@ namespace Gloomdelve
     {
         [Header("Boss")]
         [Tooltip("Largest damage a single hit can do.")] public int maxHitDamage = 3;
-        [Tooltip("Damage one bomb blast does to a boss, whatever its size (bombs are for terrain and crowds, not for melting bosses).")] public int blastDamage = 1;
+        [Tooltip("Seconds before the same kind of trap can hurt it again (a flame or a saw touches every step).")] public float trapGuardTime = 0.5f;
+        float halfBank, trapGuard;
+
+        /// <summary>A boss no trap can hurt at all (the Hollow Warden: it is not flesh). Bombs still count their half point.</summary>
+        protected virtual bool TrapProof => false;
+        /// <summary>The player's own blows: blade, stomp, something thrown. Everything else is a bomb or a trap.</summary>
+        static bool FromPlayer(DamageType t) => t == DamageType.Whip || t == DamageType.Stomp || t == DamageType.Thrown;
+        /// <summary>Half points of bomb and trap damage waiting to become a whole one (0 or 0.5).</summary>
+        public float HalfBank => halfBank;
         [Tooltip("Gold chunks dropped on death.")] public int goldChunks = 10;
         [Tooltip("Embers dropped on death (twice as many in the final level). Embers are the village's money: only bosses have them.")] public int emberDrop = 3;
         [Tooltip("Prefab id dropped on death along with the gold (the max-health item). Empty = nothing.")] public string rewardId = "heartvessel";
@@ -69,6 +77,17 @@ namespace Gloomdelve
         /// <summary>In the middle of its counter-attack animation.</summary>
         public bool Countering => counterT > 0f;
 
+        [Header("Tempo")]
+        [Tooltip("Every pause between two moves is multiplied by this (1 = the pauses as written in each boss). The openings a boss gives - stuck, dazed, grounded - and the warnings before a move are not touched: the fight gets denser, not less fair.")]
+        public float restScale = 0.7f;
+        [Tooltip("... and by this as well when the boss is nearly dead (sliding from 1 at full health): it presses harder as it weakens.")]
+        public float restScaleLow = 0.75f;
+
+        /// <summary>A pause between two moves, shortened by the tempo of the fight and by how hurt the boss is.</summary>
+        protected float Rest(float seconds) => seconds * restScale * Mathf.Lerp(restScaleLow, 1f, HealthFraction);
+        /// <summary>The same for a boss that already quickens with its own rule as it weakens (only the overall tempo applies).</summary>
+        protected float RestFlat(float seconds) => seconds * restScale;
+
         public float HealthFraction => maxHealth > 0 ? Mathf.Clamp01(health / (float)maxHealth) : 0f;
         public override bool IsHazard => true;
 
@@ -85,6 +104,7 @@ namespace Gloomdelve
             base.Tick(dt);
             stompGuard -= dt;
             counterT -= dt;
+            trapGuard -= dt;
         }
 
         /// <summary>
@@ -191,10 +211,32 @@ namespace Gloomdelve
             Sfx.Play("thud", pos);
         }
 
+        /// <summary>
+        /// The player's own blows count in full (up to maxHitDamage). A bomb blast or a trap - spikes, fire, a
+        /// crusher, a saw, a falling rock, an arrow - is worth half a point however hard it would hit the player:
+        /// two of them make one point of damage. (An ordinary enemy takes traps the way the player does; a boss
+        /// is not killed by the room it stands in.)
+        /// </summary>
         public override bool TakeDamage(in DamageInfo d)
         {
-            int amount = d.type == DamageType.Explosion ? Mathf.Min(d.amount, blastDamage) : Mathf.Min(d.amount, maxHitDamage);
-            return base.TakeDamage(new DamageInfo(amount, d.type, d.source, Vector2.zero, d.cause));
+            if (Dead) return false;
+            if (FromPlayer(d.type))
+                return base.TakeDamage(new DamageInfo(Mathf.Min(d.amount, maxHitDamage), d.type, d.source, Vector2.zero, d.cause));
+            if (d.type != DamageType.Explosion)
+            {
+                if (TrapProof || trapGuard > 0f) return false;
+                trapGuard = trapGuardTime;
+            }
+            halfBank += 0.5f;
+            if (halfBank < 1f)
+            {
+                // half a point: it is felt, but the bar does not move yet
+                Flash(0.1f);
+                Sfx.Play("hit", pos, 0.6f, 1.3f);
+                return true;
+            }
+            halfBank -= 1f;
+            return base.TakeDamage(new DamageInfo(1, d.type, d.source, Vector2.zero, d.cause));
         }
 
         protected override void OnHurt(in DamageInfo d) { }

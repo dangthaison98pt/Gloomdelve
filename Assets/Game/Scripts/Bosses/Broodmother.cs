@@ -111,7 +111,7 @@ namespace Gloomdelve
                         else
                         {
                             if (pending == Move.Web) LayWeb(p); else LayEggs(p);
-                            state = State.Ground; timer = restTime;
+                            state = State.Ground; timer = Rest(restTime);
                         }
                         pending = Move.None;
                     }
@@ -178,14 +178,14 @@ namespace Gloomdelve
                     // down on her thread, slowly: touching her now does nothing
                     vel = new Vector2(0f, -lowerSpeed);
                     var b = StepPhysics(dt, 0f, lowerSpeed);
-                    if (b.landed || grounded) { state = State.Ground; timer = restTime; anim?.Play(animIdle); Fx.Dust(pos, 4); }
+                    if (b.landed || grounded) { state = State.Ground; timer = Rest(restTime); anim?.Play(animIdle); Fx.Dust(pos, 4); }
                     break;
                 }
                 case State.Stuck:
                     vel.x = 0f;
                     anim?.Play(animIdle);
                     StepPhysics(dt, gravity);
-                    if (timer <= 0f) { state = State.Ground; timer = restTime * 0.5f; }
+                    if (timer <= 0f) { state = State.Ground; timer = Rest(restTime * 0.5f); }
                     break;
             }
         }

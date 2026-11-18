@@ -178,6 +178,8 @@ MonoBehaviour:
   counterTime: 0.5
   counterFxScale: 2.2
   counterFxOnBody: 1
+  restScale: 0.7
+  restScaleLow: 0.75
   actionGap: 1.5
   windupTime: 0.5
   ballGravity: 28

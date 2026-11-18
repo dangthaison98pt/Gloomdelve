@@ -72,6 +72,8 @@ MonoBehaviour:
   counterTime: 0.5
   counterFxScale: 1.4
   counterFxOnBody: 0
+  restScale: 0.7
+  restScaleLow: 0.75
   chargeSpeed: 12.5
   windupTime: 0.7
   dazeTime: 2.2
@@ -79,7 +81,7 @@ MonoBehaviour:
   rocksPerSlam: 3
   stompTell: 0.65
   fireId: firepatch
-  firePillars: 2
+  firePillars: 5
   pillarSpacing: 2.6
   pillarWarn: 0.8
   pillarBurnTime: 1.1
@@ -87,7 +89,8 @@ MonoBehaviour:
   leapSpeedX: 7
   shockSpeed: 8
   slamWaves: 3
-  slamInterval: 0.55
+  slamInterval: 0.3
+  hopScale: 0.72
   animWalk: {fileID: 11400000, guid: 07ce2c96aec16174cb6a6de5ec36ce08, type: 2}
   animCharge: {fileID: 11400000, guid: 4c4514ffe330acf4a83cc89238117092, type: 2}
   animDazed: {fileID: 11400000, guid: 1304c5501cbd09346a34d57cb27455ed, type: 2}

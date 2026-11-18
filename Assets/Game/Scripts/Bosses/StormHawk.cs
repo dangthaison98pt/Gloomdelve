@@ -49,7 +49,7 @@ namespace Gloomdelve
         public override void OnSpawn()
         {
             base.OnSpawn();
-            state = State.Hover; timer = hoverTime;
+            state = State.Hover; timer = Rest(hoverTime);
             anim?.Play(animFly);
         }
 
@@ -89,8 +89,8 @@ namespace Gloomdelve
                         // its moves, in random order: dive (twice as often), feathers, rocks, sweep
                         switch (NextMove(0, 1, 0, 2, 3))
                         {
-                            case 1: fanTimer = featherTell; timer = hoverTime * 0.8f; Tell(); Sfx.Play("bat", pos, 1f, 0.7f); break;
-                            case 3: rocksLeft = 3; rockTimer = 0.2f; timer = hoverTime; Sfx.Play("bat", pos, 1f, 0.5f); break;
+                            case 1: fanTimer = featherTell; timer = Rest(hoverTime * 0.8f); Tell(); Sfx.Play("bat", pos, 1f, 0.7f); break;
+                            case 3: rocksLeft = 3; rockTimer = 0.2f; timer = Rest(hoverTime); Sfx.Play("bat", pos, 1f, 0.5f); break;
                             case 4: sweepNext = true; state = State.Windup; timer = windupTime; Tell(); Sfx.Play("bat", pos, 1f, 0.35f); break;
                             default: state = State.Windup; timer = windupTime; Sfx.Play("bat", pos, 1f, 0.45f); break;
                         }
@@ -143,7 +143,7 @@ namespace Gloomdelve
                 case State.Climb:
                     anim?.Play(animFly);
                     vel = new Vector2(0f, climbSpeed);
-                    if (pos.y >= top - 0.3f) { state = State.Hover; timer = hoverTime; }
+                    if (pos.y >= top - 0.3f) { state = State.Hover; timer = Rest(hoverTime); }
                     break;
             }
             var b = new Body { pos = pos, vel = vel, hw = size.x * 0.5f, h = size.y };

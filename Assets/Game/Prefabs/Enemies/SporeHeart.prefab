@@ -73,6 +73,8 @@ MonoBehaviour:
   counterTime: 0.5
   counterFxScale: 1.4
   counterFxOnBody: 0
+  restScale: 0.7
+  restScaleLow: 0.75
   hangDepth: 2.6
   actionGap: 1.8
   actionGapLow: 1.15

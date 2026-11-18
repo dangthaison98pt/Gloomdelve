@@ -72,6 +72,8 @@ MonoBehaviour:
   counterTime: 0.5
   counterFxScale: 1.5
   counterFxOnBody: 0
+  restScale: 0.7
+  restScaleLow: 0.75
   hoverHeight: 6.5
   hoverSpeed: 5
   diveSpeed: 18.5

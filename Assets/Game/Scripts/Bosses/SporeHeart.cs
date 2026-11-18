@@ -90,7 +90,7 @@ namespace Gloomdelve
             }
             timer -= dt;
             if (timer > 0f || p == null) return;
-            timer = Mathf.Lerp(actionGapLow, actionGap, HealthFraction);
+            timer = RestFlat(Mathf.Lerp(actionGapLow, actionGap, HealthFraction));
             // its moves, in random order: darts (twice as often), low lash, rain, high lash, a lurecap (or rain when the call is not ready)
             switch (NextMove(0, 1, 2, 0, 3, 4))
             {

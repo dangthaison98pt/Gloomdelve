@@ -90,18 +90,18 @@ namespace Gloomdelve
                         p.TakeDamage(new DamageInfo(punchDamage, DamageType.Contact, this, new Vector2(facing * 9f, 6f), displayName + "'s fist"));
                         Fx.Shake(0.45f);
                         Sfx.Play("thud", pos, 1f, 0.8f);
-                        punchT = 0f; vel.x = 0f; timer = actionGap;
+                        punchT = 0f; vel.x = 0f; timer = Rest(actionGap);
                     }
                     else vel.x = WallAhead(facing) ? 0f : facing * punchSpeed;
                 }
-                if (punchT <= 0f) { vel.x = 0f; timer = Mathf.Max(timer, actionGap * 0.6f); }
+                if (punchT <= 0f) { vel.x = 0f; timer = Mathf.Max(timer, Rest(actionGap * 0.6f)); }
             }
             else if (sliding)
             {
                 vel.x = facing * slideSpeed;
                 slideT -= dt;
                 if (grounded && slideT % 0.1f < dt) Fx.Dust(pos, 1);
-                if (slideT <= 0f) { sliding = false; timer = actionGap; }
+                if (slideT <= 0f) { sliding = false; timer = Rest(actionGap); }
             }
             else if (slideTell > 0f)
             {
@@ -143,11 +143,11 @@ namespace Gloomdelve
                 timer -= dt;
                 if (timer <= 0f && p != null)
                 {
-                    timer = actionGap;
+                    timer = Rest(actionGap);
                     // his moves, in random order: snowballs, belly slide, snow boulder, penguin (or snowballs), leap, icicles
                     int kind = NextMove(0, 1, 2, 3, 4, 5);
                     if (kind == 1) { slideTell = slideTellTime; Tell(); Sfx.Play("toad", pos, 1f, 0.5f); }
-                    else if (kind == 2) { boulderT = boulderTell; Tell(); Sfx.Play("toad", pos, 1f, 0.7f); timer = actionGap * 1.3f; }
+                    else if (kind == 2) { boulderT = boulderTell; Tell(); Sfx.Play("toad", pos, 1f, 0.7f); timer = Rest(actionGap * 1.3f); }
                     else if (kind == 5) { icicleTell = icicleTellTime; icicleX = Mathf.FloorToInt(p.pos.x); Tell(); Sfx.Play("brute", pos, 1f, 0.5f); }
                     else if (kind == 3 && summonTimer <= 0f && CountAlive<Penguin>() < maxPenguins) { Summon(p); summonTimer = summonCooldown; }
                     else if (kind == 4)
@@ -165,7 +165,7 @@ namespace Gloomdelve
             {
                 sliding = false;
                 daze = slideDaze;
-                timer = actionGap * 0.5f;
+                timer = Rest(actionGap * 0.5f);
                 vel.x = -facing * 2f;
                 Fx.Shake(0.45f);
                 Fx.Debris(new Vector2(pos.x + facing * 0.8f, pos.y + 0.8f), new Color(0.85f, 0.95f, 1f), 10);

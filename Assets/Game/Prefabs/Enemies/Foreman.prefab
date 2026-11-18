@@ -72,6 +72,8 @@ MonoBehaviour:
   counterTime: 0.5
   counterFxScale: 1.6
   counterFxOnBody: 0
+  restScale: 0.7
+  restScaleLow: 0.75
   walkSpeed: 1.3
   turnDelay: 0.9
   actionGap: 2.4

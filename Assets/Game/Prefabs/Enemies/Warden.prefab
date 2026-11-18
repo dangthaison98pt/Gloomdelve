@@ -73,6 +73,8 @@ MonoBehaviour:
   counterTime: 0.5
   counterFxScale: 1.4
   counterFxOnBody: 0
+  restScale: 0.7
+  restScaleLow: 0.75
   driftSpeed: 1.6
   attackGap: 2.2
   shotSpeed: 6

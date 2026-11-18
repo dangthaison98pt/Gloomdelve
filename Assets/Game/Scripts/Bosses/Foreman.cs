@@ -126,7 +126,7 @@ namespace Gloomdelve
                     {
                         sawDir = p != null && p.pos.x < pos.x ? -1 : 1;
                         sawsLeft = saws; sawTimer = 0f;
-                        state = State.Walk; timer = actionGap;
+                        state = State.Walk; timer = Rest(actionGap);
                     }
                     break;
                 case State.LeverTell:
@@ -136,7 +136,7 @@ namespace Gloomdelve
                         if (ReverseBelts(World) > 0) Fx.Text(new Vector2(Center.x, pos.y + size.y + 0.9f), "REVERSE!", Steam, 1f);
                         Fx.Shake(0.3f);
                         Sfx.Play("crack", pos, 1f, 0.6f);
-                        state = State.Walk; timer = actionGap * 0.7f;
+                        state = State.Walk; timer = Rest(actionGap * 0.7f);
                     }
                     break;
                 case State.PressTell:
@@ -152,7 +152,7 @@ namespace Gloomdelve
                 case State.Rewind:
                     vel.x = 0f;
                     anim?.Play(animDazed);
-                    if (timer <= 0f) { state = State.Walk; timer = actionGap * 0.6f; }
+                    if (timer <= 0f) { state = State.Walk; timer = Rest(actionGap * 0.6f); }
                     break;
             }
             StepPhysics(dt, gravity);

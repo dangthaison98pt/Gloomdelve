@@ -72,6 +72,8 @@ MonoBehaviour:
   counterTime: 0.5
   counterFxScale: 1.2
   counterFxOnBody: 0
+  restScale: 0.7
+  restScaleLow: 0.75
   restTime: 1.5
   tellTime: 0.5
   climbSpeed: 11

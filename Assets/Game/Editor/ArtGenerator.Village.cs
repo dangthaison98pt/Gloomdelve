@@ -42,20 +42,22 @@ namespace Gloomdelve.EditorTools
             foreach (bool icon in new[] { false, true })
             {
                 // an ember of the Sunstone: a shard that still burns (the pickup, and its picture on the HUD)
-                int S = icon ? 16 : 12, o = icon ? 2 : 0;
+                // (the pickup is a small shard, 8 px, standing on the ground like a gem; the HUD picture is the big one)
+                int S = icon ? 16 : 8, o = icon ? 2 : 0;
                 var p = new Px(S, S);
                 Color32 hot = C(255, 244, 200), mid = C(255, 176, 70), rim = C(226, 96, 40), dark = C(120, 40, 30);
-                int[] half = { 1, 2, 3, 4, 4, 5, 5, 4, 3, 2, 2, 1 };
-                for (int y = 0; y < 12; y++)
+                int[] half = icon ? new[] { 1, 2, 3, 4, 4, 5, 5, 4, 3, 2, 2, 1 } : new[] { 1, 2, 3, 3, 3, 2, 2, 1 };
+                int mid0 = icon ? 6 : 4, lean = icon ? 7 : 5;
+                for (int y = 0; y < half.Length; y++)
                 {
-                    int h = half[y], cx = 6 + (y > 7 ? 1 : 0);
+                    int h = half[y], cx = mid0 + (y > lean ? 1 : 0);
                     p.Rect(o + cx - h, o + y, h * 2, 1, rim);
                     if (h > 1) p.Rect(o + cx - h + 1, o + y, h * 2 - 2, 1, mid);
-                    if (h > 3) p.Rect(o + cx - 1, o + y, 2, 1, hot);
+                    if (h > (icon ? 3 : 2)) p.Rect(o + cx - 1, o + y, 2, 1, hot);
                     p.Set(o + cx - h, o + y, dark);
                 }
-                p.Set(o + 6, o + 5, C(255, 255, 240));
-                Save(p, icon ? "UI/icon_ember" : "Sprites/Items/ember", PCenter);
+                if (icon) p.Set(o + 6, o + 5, C(255, 255, 240));
+                Save(p, icon ? "UI/icon_ember" : "Sprites/Items/ember", icon ? PCenter : new Vector2(0.5f, 0f));
             }
             {
                 // the Recall Charm: a small stone on a cord with a spiral cut into it that glows

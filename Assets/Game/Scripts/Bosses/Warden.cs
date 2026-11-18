@@ -12,6 +12,8 @@ namespace Gloomdelve
     {
         public float driftSpeed = 1.6f;
         public float attackGap = 2.2f;
+        /// <summary>It is not flesh: spikes, fire and falling rock pass through it.</summary>
+        protected override bool TrapProof => true;
         public float shotSpeed = 6f;
         public float dashSpeed = 10f;
         public string shotId = "gloomorb";
@@ -59,7 +61,7 @@ namespace Gloomdelve
                         if (timer <= 0f)
                         {
                             // its moves, in random order: fan, rain, lunge, blink, ring (a fan until it is enraged)
-                            float gap = attackGap * (Enraged ? 0.7f : 1f);
+                            float gap = RestFlat(attackGap) * (Enraged ? 0.7f : 1f);
                             switch (NextMove(0, 1, 2, 3, 4))
                             {
                                 case 1: Rain(p); timer = gap; break;
@@ -82,13 +84,13 @@ namespace Gloomdelve
                     break;
                 case State.Dash:
                     vel = dashDir * dashSpeed;
-                    if (timer <= 0f) { state = State.Drift; timer = attackGap * 0.6f; }
+                    if (timer <= 0f) { state = State.Drift; timer = RestFlat(attackGap) * 0.6f; }
                     break;
             }
             var b = new Body { pos = pos, vel = vel, hw = size.x * 0.5f, h = size.y };
             BodyPhysics.Move(World.Grid, ref b, dt, true);
             pos = b.pos; vel = b.vel;
-            if (state == State.Dash && (b.hitLeft || b.hitRight || b.hitCeiling || b.landed)) { state = State.Drift; timer = attackGap * 0.6f; Fx.Shake(0.3f); }
+            if (state == State.Dash && (b.hitLeft || b.hitRight || b.hitCeiling || b.landed)) { state = State.Drift; timer = RestFlat(attackGap) * 0.6f; Fx.Shake(0.3f); }
         }
 
         /// <summary>A row of orbs appears high above the player and falls: stand in a gap or step out from under it.</summary>

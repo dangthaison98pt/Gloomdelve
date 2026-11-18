@@ -5,9 +5,9 @@ namespace Gloomdelve
     /// <summary>
     /// Emberdeep boss: a huge mole brute. Its moves come in random order (never the same twice running): it charges the full width of the arena (jump it and let
     /// it hit the wall: it is dazed, hit it now, while rocks shake loose), it pounds the floor and fire comes up in
-    /// two spots - under the player and one step on - which glow first and burn only briefly, it charges again,
-    /// and it leaps at the player and slams the ground three times running: three shockwaves along the floor, one
-    /// after another, each to be jumped (the ground slam is his).
+    /// five spots - under the player and two to either side, with room to stand between them - which glow first
+    /// and burn only briefly, it charges again, and it leaps at the player three times running, each landing a
+    /// slam that sends a shockwave along the floor to be jumped (the ground slam is his).
     /// Nothing made of dirt stops its charge: trapped in a pit blasted into the floor, it tears through the
     /// earth in front of it. Only the bedrock walls of the arena daze it.
     /// </summary>
@@ -21,7 +21,7 @@ namespace Gloomdelve
         [Header("Stomp: fire comes up")]
         public float stompTell = 0.65f;
         public string fireId = "firepatch";
-        [Tooltip("How many spots catch fire (the first is under the player).")] public int firePillars = 2;
+        [Tooltip("How many spots catch fire: the first under the player, the rest in turn to either side of it.")] public int firePillars = 5;
         public float pillarSpacing = 2.6f;
         [Tooltip("Seconds a spot glows before it burns.")] public float pillarWarn = 0.8f;
         [Tooltip("Seconds it burns: short, the floor is never covered in fire.")] public float pillarBurnTime = 1.1f;
@@ -29,8 +29,9 @@ namespace Gloomdelve
         public float leapVelocity = 14f;
         public float leapSpeedX = 7f;
         public float shockSpeed = 8f;
-        [Tooltip("Shockwaves per slam: it lands, then stomps again and again. Each one has to be jumped.")] public int slamWaves = 3;
-        [Tooltip("Seconds between two of them.")] public float slamInterval = 0.55f;
+        [Tooltip("Slams in a row: it leaps, lands with a shockwave, and leaps again. Each wave has to be jumped.")] public int slamWaves = 3;
+        [Tooltip("Seconds it crouches on the ground between two leaps.")] public float slamInterval = 0.3f;
+        [Tooltip("The second and third leap are this much lower and shorter than the first.")] public float hopScale = 0.72f;
         public SpriteAnim animWalk;
         public SpriteAnim animCharge;
         public SpriteAnim animDazed;
@@ -123,6 +124,7 @@ namespace Gloomdelve
                         {
                             leapNext = false;
                             state = State.Leap;
+                            slamsLeft = Mathf.Max(1, slamWaves);
                             vel = new Vector2(Mathf.Clamp((p.pos.x - pos.x) * 1.2f, -leapSpeedX, leapSpeedX), leapVelocity);
                             grounded = false;
                         }
@@ -133,7 +135,7 @@ namespace Gloomdelve
                     anim?.Play(animCharge);
                     vel.x = facing * chargeSpeed;
                     if (timer % 0.1f < dt) Fx.Dust(pos, 1);
-                    if (timer <= 0f) { state = State.Idle; timer = idleTime; }
+                    if (timer <= 0f) { state = State.Idle; timer = Rest(idleTime); }
                     break;
                 case State.Stomp:
                     vel.x = 0f;
@@ -141,44 +143,51 @@ namespace Gloomdelve
                     if (timer % 0.1f < dt) Fx.Dust(pos, 2);
                     if (timer <= 0f)
                     {
-                        // fire comes up under the player and one step further on (away from the brute): a glow first
+                        // fire comes up under the player and, in turn, to either side of that spot (first on the side
+                        // away from the brute): a glow first, and room to stand between any two of them
                         Fx.Shake(0.5f);
                         Sfx.Play("thud", pos, 1f, 0.6f);
                         float px = p != null ? p.pos.x : pos.x;
                         int away = px >= pos.x ? 1 : -1;
-                        for (int i = 0; i < firePillars; i++) Flame(Mathf.Floor(px + away * i * pillarSpacing) + 0.5f);
-                        state = State.Idle; timer = idleTime;
+                        for (int i = 0; i < firePillars; i++)
+                        {
+                            int ring = (i + 1) / 2, side = i % 2 == 1 ? away : -away;
+                            Flame(Mathf.Floor(px + side * ring * pillarSpacing) + 0.5f);
+                        }
+                        state = State.Idle; timer = Rest(idleTime);
                     }
                     break;
                 case State.Leap:
                     anim?.Play(animCharge);
                     break;
                 case State.Slam:
-                    // where it landed it stomps again: one more shockwave each time
+                    // a short crouch where it landed, then it leaps again (lower than the first) at the player
                     vel.x = 0f;
                     anim?.Play(animCharge);
                     if (timer <= 0f)
                     {
-                        SlamWave();
-                        slamsLeft--;
-                        timer = slamInterval;
-                        if (slamsLeft <= 0) { state = State.Idle; timer = idleTime * 1.4f; }
+                        state = State.Leap;
+                        float tx = p != null ? p.pos.x - pos.x : 0f;
+                        vel = new Vector2(Mathf.Clamp(tx * 1.2f, -leapSpeedX * hopScale, leapSpeedX * hopScale), leapVelocity * hopScale);
+                        grounded = false;
+                        Fx.Dust(pos, 4);
                     }
                     break;
                 case State.Dazed:
                     if (grounded) vel.x = Mathf.MoveTowards(vel.x, 0f, 20f * dt);
                     anim?.Play(animDazed);
-                    if (timer <= 0f) { state = State.Idle; timer = idleTime; }
+                    if (timer <= 0f) { state = State.Idle; timer = Rest(idleTime); }
                     break;
             }
             var b = StepPhysics(dt, gravity);
             if (state == State.Leap && (b.landed || (grounded && vel.y <= 0f)))
             {
                 vel.x = 0f;
+                // every landing is a slam: one shockwave each, and up again until the slams are used up
                 SlamWave();
-                slamsLeft = slamWaves - 1;
+                slamsLeft--;
                 if (slamsLeft > 0) { state = State.Slam; timer = slamInterval; }
-                else { state = State.Idle; timer = idleTime * 1.4f; }
+                else { state = State.Idle; timer = Rest(idleTime * 1.4f); }
             }
             if ((b.hitLeft || b.hitRight) && state == State.Charge && TearThrough())
             {

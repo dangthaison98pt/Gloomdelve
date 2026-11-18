@@ -230,7 +230,7 @@ namespace Gloomdelve
             new Scenario { name = "run plan: each run draws 4 areas by its seed, starts in the first, ends with camp and vault", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => RunPlanCase(c) },
 
-            new Scenario { name = "bosses: the forge brute's fire is two short-lived spots, and its charge tears through dirt in its way",
+            new Scenario { name = "bosses: the forge brute's fire is five short-lived spots, each slam is a leap, and its charge tears through dirt in its way",
                 map = m => { Set(m, 3, 1, 'S'); Set(m, 12, 1, '#'); Set(m, 12, 2, '#'); Set(m, 12, 3, '#'); },
                 run = c => ForgeBruteCase(c) },
 
@@ -886,17 +886,47 @@ namespace Gloomdelve
             c.Expect(b != null && c.dir.Boss == b && c.dir.BossAlive, "the boss registered with the director");
             if (b == null) { c.p.godMode = false; yield break; }
             int h0 = b.health;
-            b.TakeDamage(new DamageInfo(99, DamageType.Crush, c.p, new Vector2(20f, 20f), "test"));
-            c.Expect(h0 - b.health == b.maxHitDamage && !b.Dead, $"a 99-damage hit only takes {b.maxHitDamage} (took {h0 - b.health})");
+            b.TakeDamage(new DamageInfo(99, DamageType.Whip, c.p, new Vector2(20f, 20f), "test"));
+            c.Expect(h0 - b.health == b.maxHitDamage && !b.Dead, $"a 99-damage blow of the player's only takes {b.maxHitDamage} (took {h0 - b.health})");
             yield return c.Frames(14);
+            // bombs and traps: half a point each, whatever they would do to the player
             int h1 = b.health;
             b.TakeDamage(new DamageInfo(3, DamageType.Explosion, c.p, new Vector2(20f, 20f), "test"));
-            c.Expect(h1 - b.health == 1 && b.blastDamage == 1, $"a bomb blast takes just 1 from a boss (took {h1 - b.health})");
+            int afterOne = h1 - b.health;
+            b.TakeDamage(new DamageInfo(3, DamageType.Explosion, c.p, new Vector2(20f, 20f), "test"));
+            c.Expect(afterOne == 0 && h1 - b.health == 1, $"a bomb blast takes half a point from a boss: one blast {afterOne}, two blasts {h1 - b.health}");
+            yield return c.Frames(40);
+            int h2 = b.health;
+            b.TakeDamage(new DamageInfo(99, DamageType.Spikes, null, Vector2.zero, "spikes"));
+            int trapOne = h2 - b.health;
+            b.TakeDamage(new DamageInfo(99, DamageType.Crush, null, Vector2.zero, "test"));
+            int trapSame = h2 - b.health;
+            yield return c.Frames(40);
+            b.TakeDamage(new DamageInfo(99, DamageType.Fire, null, Vector2.zero, "test"));
+            c.Expect(trapOne == 0 && trapSame == 0 && h2 - b.health == 1, $"a trap takes half a point too, and not twice in the same moment: {trapOne}, {trapSame}, then {h2 - b.health} after a second one");
+            {
+                // the Hollow Warden is not hurt by traps at all (a bomb still counts its half)
+                var ghost = c.Spawn<Warden>("warden", 22, 3);
+                yield return c.Frames(3);
+                if (ghost != null)
+                {
+                    int g0 = ghost.health;
+                    for (int i = 0; i < 4; i++) { ghost.TakeDamage(new DamageInfo(99, i % 2 == 0 ? DamageType.Spikes : DamageType.Fire, null, Vector2.zero, "test")); yield return c.Frames(40); }
+                    int byTraps = g0 - ghost.health;
+                    ghost.TakeDamage(new DamageInfo(3, DamageType.Explosion, c.p, Vector2.zero, "test"));
+                    ghost.TakeDamage(new DamageInfo(3, DamageType.Explosion, c.p, Vector2.zero, "test"));
+                    c.Expect(byTraps == 0 && g0 - ghost.health == 1, $"traps do nothing to the Warden ({byTraps}); two bombs take 1 ({g0 - ghost.health})");
+                    ghost.Despawn();
+                    foreach (var e in c.world.Entities) if (!e.Dead && e is BossShot) e.Despawn();
+                    c.dir.RegisterBoss(b);
+                }
+                c.Expect(ghost != null, "the warden spawned for the trap check");
+            }
             c.Expect(Mathf.Abs(b.HealthFraction - b.health / (float)b.maxHealth) < 0.001f && b.HealthFraction < 1f, "health fraction feeds the bar");
             for (int i = 0; i < 40 && !b.Dead; i++)
             {
-                b.TakeDamage(new DamageInfo(99, DamageType.Explosion, c.p, Vector2.zero, "test"));
-                yield return c.Frames(2);
+                b.TakeDamage(new DamageInfo(99, DamageType.Whip, c.p, Vector2.zero, "test"));
+                yield return c.Frames(14);
             }
             c.Expect(b.Dead && !c.dir.BossAlive, "the boss dies and the director knows");
             yield return c.Frames(10);
@@ -1130,7 +1160,7 @@ namespace Gloomdelve
             // a boss test that is won: the result screen comes up and stays
             c.run.bossPractice = true;
             var b = c.Spawn<Broodmother>("broodmother", 16, 1);
-            for (int i = 0; i < 40 && !b.Dead; i++) { b.TakeDamage(new DamageInfo(99, DamageType.Explosion, c.p, Vector2.zero, "test")); yield return c.Frames(2); }
+            for (int i = 0; i < 40 && !b.Dead; i++) { b.TakeDamage(new DamageInfo(99, DamageType.Whip, c.p, Vector2.zero, "test")); yield return c.Frames(14); }
             c.Expect(b.Dead && c.dir.PracticeEnding, "the boss falls and the boss test is over");
             c.Expect(!c.dir.results.Showing, "the result screen waits a moment so the fall can be seen");
             yield return new WaitForSecondsRealtime(2.8f);
@@ -1213,7 +1243,7 @@ namespace Gloomdelve
             var b = c.Spawn<ForgeBrute>("forgebrute", 19, 1, 0, null, -1);
             c.Expect(b != null, "forge brute spawned");
             if (b == null) yield break;
-            int maxFire = 0, burning = 0, maxWaves = 0; float longest = 0f, since = 0f; bool wallGone = false, passed = false;
+            int maxFire = 0, burning = 0, maxWaves = 0, hops = 0; float longest = 0f, since = 0f, lastVy = 0f; bool wallGone = false, passed = false;
             var seenWaves = new HashSet<Entity>();
             for (int i = 0; i < 2400; i++)
             {
@@ -1226,6 +1256,8 @@ namespace Gloomdelve
                     else if (e is BossShot && e.displayName == "shockwave" && e.vel.x < 0f) { waves++; seenWaves.Add(e); }      // those running left
                 }
                 maxWaves = Mathf.Max(maxWaves, seenWaves.Count);      // every wave sent that way so far (one slam sends three)
+                if (b.vel.y > 6f && lastVy <= 6f) hops++;             // it left the ground
+                lastVy = b.vel.y;
                 maxFire = Mathf.Max(maxFire, n);
                 if (lit > 0) { since += GameConst.Dt; longest = Mathf.Max(longest, since); } else since = 0f;
                 burning = Mathf.Max(burning, lit);
@@ -1233,7 +1265,8 @@ namespace Gloomdelve
                 if (wallGone && b.pos.x < 11f) passed = true;
                 if (longest > 0.5f && lit == 0 && wallGone && passed && maxWaves >= 3) break;      // a fire has burned and gone out, and the rest was seen
             }
-            c.Expect(maxFire >= 1 && maxFire <= 2, $"its stomp lights at most two spots at a time (most seen: {maxFire})");
+            c.Expect(maxFire >= 3 && maxFire <= 5, $"its stomp lights five spots at a time, fewer near a wall (most seen: {maxFire})");
+            c.Expect(hops >= maxWaves && hops >= 3, $"every slam is a leap of its own: {hops} leaps for {maxWaves} waves");
             c.Expect(longest > 0.5f && longest < 1.6f, $"and they burn only briefly ({longest:0.0}s)");
             c.Expect(maxWaves >= 3, $"its ground slam sends three shockwaves one after another (sent one way in all: {maxWaves})");
             c.Expect(wallGone, "charging into the dirt wall, it tears through it");
@@ -1370,6 +1403,20 @@ namespace Gloomdelve
             c.Expect(Villagers.SpendEmbers(2) && Villagers.Embers == 6 && !Villagers.SpendEmbers(99) && Villagers.Embers == 6, "embers can be spent, never more than there are");
             {
                 // an ember on the ground goes to the pouch, not to the run's gold
+                {
+                    // an ember lies on the ground like a gem does: not sunk into it, and no bigger
+                    c.Teleport(13.5f, 1f);
+                    var lying = c.Spawn<Pickup>("ember", 16, 1);
+                    var gemBy = c.Spawn<Pickup>("gem", 17, 1);
+                    yield return c.Frames(40);
+                    var eb = lying != null && lying.GetComponentInChildren<SpriteRenderer>() != null ? lying.GetComponentInChildren<SpriteRenderer>().bounds : new Bounds();
+                    var gb = gemBy != null && gemBy.GetComponentInChildren<SpriteRenderer>() != null ? gemBy.GetComponentInChildren<SpriteRenderer>().bounds : new Bounds();
+                    c.Expect(lying != null && eb.min.y > 0.95f && eb.size.y <= gb.size.y + 0.13f, $"an ember rests on the floor (bottom {eb.min.y:0.00}) and is about a gem's size ({eb.size.y:0.00} vs {gb.size.y:0.00})");
+                    ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "ember_ground.png"));
+                    yield return c.Frames(3);
+                    if (lying != null) lying.Despawn();
+                    if (gemBy != null) gemBy.Despawn();
+                }
                 int gold0 = run.gold;
                 c.Teleport(30.5f, 1f);
                 yield return c.Frames(4);
@@ -1725,8 +1772,8 @@ namespace Gloomdelve
             yield return c.Frames(2);
             for (int i = 0; i < 60 && !boss.Dead; i++)
             {
-                boss.TakeDamage(new DamageInfo(99, DamageType.Explosion, c.p, Vector2.zero, "test"));
-                yield return c.Frames(2);
+                boss.TakeDamage(new DamageInfo(99, DamageType.Whip, c.p, Vector2.zero, "test"));
+                yield return c.Frames(14);
             }
             yield return c.Frames(3);
             int vessels = 0, hearts = 0, gold = 0;
@@ -2492,7 +2539,7 @@ namespace Gloomdelve
             yield return c.Frames(2);
             c.Expect(countered && c.p.vel.y > 8f && belts[0].dir != dirNow, $"a third stomp in a row: thrown off by steam, belts flipped (vy {c.p.vel.y:0.0})");
             c.p.godMode = true;
-            for (int i = 0; i < 60 && !b.Dead; i++) { b.TakeDamage(new DamageInfo(3, DamageType.Explosion, c.p, Vector2.zero, "test")); yield return c.Frames(14); }
+            for (int i = 0; i < 60 && !b.Dead; i++) { b.TakeDamage(new DamageInfo(3, DamageType.Whip, c.p, Vector2.zero, "test")); yield return c.Frames(14); }
             c.Expect(b.Dead, "it can be killed");
             foreach (var e in belts) e.Despawn();
             foreach (var e in c.world.Entities) if (!e.Dead && (e is SawBlade || e is Press)) e.Despawn();
