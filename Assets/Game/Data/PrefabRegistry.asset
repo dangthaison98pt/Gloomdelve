@@ -36,6 +36,22 @@ MonoBehaviour:
     prefab: {fileID: 2113863251027895771, guid: 562f1e798aaa281479aa2992449f5d6f, type: 3}
   - id: icechunk
     prefab: {fileID: 4421726030908069735, guid: b2c8ae4991401ab4eaf60ad9a10291e7, type: 3}
+  - id: quicksand
+    prefab: {fileID: 3728869993759036327, guid: 92e2574ae9223cb4aa7f67c0a10de6c9, type: 3}
+  - id: sandpillar
+    prefab: {fileID: 4513807419957954880, guid: eac291f6b1ab0f7419cce364b762b797, type: 3}
+  - id: speartrap
+    prefab: {fileID: 2098142125501872132, guid: 02d257b010fabe84ab35fe059b99e807, type: 3}
+  - id: scarab
+    prefab: {fileID: 4418907110908702722, guid: ee13b68685652b64ab66cf8ca39fc552, type: 3}
+  - id: mummy
+    prefab: {fileID: 2613543098966764052, guid: 756381027f52c9e458e951e6df105fe7, type: 3}
+  - id: sandworm
+    prefab: {fileID: 3762326688372893184, guid: 84a4804efc2b1dd459fdaeb9b1f608f5, type: 3}
+  - id: sandshot
+    prefab: {fileID: 6747796813752781334, guid: c0581658683564d4ca1f4dfe5be08901, type: 3}
+  - id: dunequeen
+    prefab: {fileID: 7329484060761879554, guid: 535a871be7edbee40a0c43f2c71d6e1a, type: 3}
   - id: sentry
     prefab: {fileID: 2606299437329457560, guid: d6f69eef29e95ac4591ac516c9fc4f66, type: 3}
   - id: drone

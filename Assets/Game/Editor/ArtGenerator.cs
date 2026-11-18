@@ -249,8 +249,21 @@ namespace Gloomdelve.EditorTools
             style = 2
         };
 
+        // Sandsunk Tombs: pale sandstone blocks under drifted sand, dark basalt, bronze spikes.
+        static readonly Pal Sand = new Pal
+        {
+            b = C(196, 158, 100), d = C(156, 120, 72), l = C(230, 198, 138), deep = C(98, 72, 44),
+            top = C(236, 206, 140), topL = C(254, 236, 184), topD = C(184, 150, 92),
+            rock = C(92, 74, 66), rockD = C(62, 48, 44), rockL = C(132, 110, 98), rockDeep = C(34, 26, 24),
+            bg = C(52, 40, 30), bgD = C(38, 29, 22), bgL = C(70, 55, 40),
+            wood = C(150, 112, 70), woodD = C(98, 70, 42), woodL = C(200, 160, 104),
+            spike = C(202, 150, 84), spikeD = C(130, 88, 46), spikeL = C(246, 214, 150), spikeTip = C(255, 244, 200),
+            style = 2
+        };
+
         static void AllTiles()
         {
+            TileSetArt("Sandsunk", Sand, 113);
             TileSetArt("Gearworks", Gear, 97);
             TileSetArt("Sporegloom", Spore, 83);
             TileSetArt("Frost", Frost, 67);
@@ -1037,6 +1050,7 @@ namespace Gloomdelve.EditorTools
             FrostEnemyArt(pv18);
             SporeArt(pv18);
             GearworksArt(pv18);
+            SandsunkArt();
             BroodArt(pv18);
             TreeArt();
             // Spider

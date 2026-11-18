@@ -276,8 +276,29 @@ namespace Gloomdelve
 
         // ------------------------------------------------------------------ loop
 
+        // "-shotEvery N dir" on the command line: a picture of the game every N rendered frames, for looking at a real
+        // fight afterwards (with -bossTest). The game quits by itself after 'shotMax' pictures.
+        static int shotEvery = -1, shotCount;
+        static string shotDir;
+        const int shotMax = 110;
+
+        void DebugShots()
+        {
+            if (shotEvery < 0)
+            {
+                shotEvery = 0;
+                var args = System.Environment.GetCommandLineArgs();
+                for (int i = 0; i + 2 < args.Length; i++)
+                    if (args[i] == "-shotEvery" && int.TryParse(args[i + 1], out int n) && n > 0) { shotEvery = n; shotDir = args[i + 2]; }
+            }
+            if (shotEvery == 0 || Time.frameCount % shotEvery != 0) return;
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(shotDir, $"shot_{shotCount:000}.png"));
+            if (++shotCount > shotMax) QuitGame();
+        }
+
         void Update()
         {
+            DebugShots();
             if (linkPending && world.Frame > 0) { LevelFactory.LinkShops(world, Level); linkPending = false; }
             // the bag: its own button opens it; the same button, Pause, or a gamepad's back button closes it
             if (inventory != null && !Paused)

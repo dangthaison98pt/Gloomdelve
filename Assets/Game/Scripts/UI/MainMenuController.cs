@@ -341,7 +341,7 @@ namespace Gloomdelve
         {
             var rec = SaveSystem.BossRecordOf(boss);
             if (rec == null) return never;
-            return UIUtil.FormatTime(rec.bestTime) + (rec.noDamage ? "  [flawless]" : "");
+            return (rec.noDamage ? "[flawless]  " : "") + UIUtil.FormatTime(rec.bestTime);      // (the badge first: at the end of a right-aligned line it hung out past the row)
         }
 
         public void OpenBossList()

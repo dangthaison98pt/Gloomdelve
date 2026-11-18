@@ -838,6 +838,73 @@ namespace Gloomdelve
                     }
             }
 
+            // ---------------------------------------------------------------- 9f. Sandsunk Tombs: quicksand pools
+            // Like the belts: only in the middle of long plain floors, three plain cells free at both ends, so a
+            // pool never touches a pit, a ledge, a wall or spikes - there is always firm ground to jump from and to.
+            if (area.quicksandChance > 0f)
+            {
+                var used = new HashSet<Vector2Int>();
+                foreach (var sp in spawns) used.Add(sp.cell);
+                bool Plain(int x, int y)
+                {
+                    if (!g.IsEmpty(x, y) || !g.IsEmpty(x, y + 1) || !g.IsSolid(x, y - 1) || g.IsSpike(x - 1, y) || g.IsSpike(x + 1, y)) return false;
+                    if (Mathf.Abs(x - data.entrance.x) <= 2 && Mathf.Abs(y - data.entrance.y) <= 2) return false;
+                    if (Mathf.Abs(x - data.exit.x) <= 2 && Mathf.Abs(y - data.exit.y) <= 2) return false;
+                    return !InShop(x, y) && !used.Contains(new Vector2Int(x, y));
+                }
+                for (int y = 2; y < H - 2; y++)
+                    for (int x = 2; x < W - 2; x++)
+                    {
+                        if (!Plain(x, y)) continue;
+                        int end = x;
+                        while (end + 1 < W - 2 && Plain(end + 1, y)) end++;
+                        int len = end - x + 1;
+                        if (len >= 9 && rng.Chance(area.quicksandChance))
+                        {
+                            int pool = Mathf.Min(len - 6, rng.Range(3, 6));
+                            int start = x + 3 + rng.Range(0, len - 6 - pool + 1);
+                            for (int bx = start; bx < start + pool; bx++) spawns.Add(new SpawnPoint("quicksand", new Vector2Int(bx, y)));
+                        }
+                        x = end;
+                    }
+            }
+
+            // ---------------------------------------------------------------- 9g. Sandsunk Tombs: spear plates
+            // One or two plates side by side on plain floor with four cells of air above (room for a full jump) and
+            // two plain cells free at each end. Never in a pool of quicksand.
+            if (area.spearChance > 0f)
+            {
+                var busy = new HashSet<Vector2Int>();
+                foreach (var sp in spawns) busy.Add(sp.cell);
+                bool Clear(int x, int y)
+                {
+                    if (busy.Contains(new Vector2Int(x, y)) || !g.IsSolid(x, y - 1) || g.IsSpike(x - 1, y) || g.IsSpike(x + 1, y)) return false;
+                    for (int dy = 0; dy <= 3; dy++) if (!g.IsEmpty(x, y + dy)) return false;
+                    if (Mathf.Abs(x - data.entrance.x) <= 3 && Mathf.Abs(y - data.entrance.y) <= 2) return false;
+                    if (Mathf.Abs(x - data.exit.x) <= 3 && Mathf.Abs(y - data.exit.y) <= 2) return false;
+                    return !InShop(x, y);
+                }
+                for (int y = 2; y < H - 4; y++)
+                    for (int x = 2; x < W - 2; x++)
+                    {
+                        if (!Clear(x, y)) continue;
+                        int end = x;
+                        while (end + 1 < W - 2 && Clear(end + 1, y)) end++;
+                        int len = end - x + 1;
+                        if (len >= 6 && rng.Chance(area.spearChance))
+                        {
+                            int plates = Mathf.Min(len - 4, rng.Range(1, 3));
+                            int start = x + 2 + rng.Range(0, len - 4 - plates + 1);
+                            for (int bx = start; bx < start + plates; bx++)
+                            {
+                                spawns.Add(new SpawnPoint("speartrap", new Vector2Int(bx, y)));
+                                busy.Add(new Vector2Int(bx, y));
+                            }
+                        }
+                        x = end;
+                    }
+            }
+
             // ---------------------------------------------------------------- 10. safety + cleanup
             SafetyPass(data, cfg, area);
 

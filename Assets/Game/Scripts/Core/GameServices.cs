@@ -95,7 +95,7 @@ namespace Gloomdelve
                 {
                     testRun = 0;
                     foreach (var a in System.Environment.GetCommandLineArgs())
-                        if (a == "-scenarios" || a == "-autotest" || a == "-loadingShot") testRun = 1;
+                        if (a == "-scenarios" || a == "-autotest" || a == "-loadingShot" || a == "-shotEvery") testRun = 1;
                 }
                 return testRun == 1;
             }

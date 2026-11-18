@@ -346,6 +346,11 @@ namespace Gloomdelve.EditorTools
             Anim("sentry_walk", F(e + "sentry_0", e + "sentry_1"), 4f); Anim("sentry_jab", F(e + "sentry_2"), 1);
             Anim("drone_hover", F(e + "drone_0", e + "drone_1"), 14f); Anim("drone_aim", F(e + "drone_2", e + "drone_1"), 14f);
             Anim("beetle_walk", F(e + "beetle_0", e + "beetle_1"), 9f); Anim("beetle_primed", F(e + "beetle_2", e + "beetle_1"), 14f);
+            // Sandsunk Tombs
+            Anim("quicksand_flow", F("Sprites/Props/quicksand_0", "Sprites/Props/quicksand_1"), 1.6f);
+            Anim("scarab_walk", F(e + "scarab_0", e + "scarab_1"), 12f);
+            Anim("mummy_walk", F(e + "mummy_0", e + "mummy_1"), 3f); Anim("mummy_grab", F(e + "mummy_2"), 1);
+            Anim("sandworm_mound", F(e + "sandworm_0"), 1); Anim("sandworm_out", F(e + "sandworm_1", e + "sandworm_2"), 3f);
             // Sporegloom
             Anim("puffshroom_walk", F(e + "puffshroom_0", e + "puffshroom_1"), 4f); Anim("puffshroom_swell", F(e + "puffshroom_2"), 1); Anim("puffshroom_deflated", F(e + "puffshroom_3"), 1);
             Anim("moth_hang", F(e + "moth_2"), 1); Anim("moth_fly", F(e + "moth_0", e + "moth_1"), 14f);
@@ -359,6 +364,7 @@ namespace Gloomdelve.EditorTools
             Anim("stormhawk_fly", F(bo + "stormhawk_0", bo + "stormhawk_1"), 6f); Anim("stormhawk_dive", F(bo + "stormhawk_2"), 1);
             Anim("warden_float", F(bo + "warden_0", bo + "warden_1"), 3f);
             Anim("foreman_walk", F(bo + "foreman_0", bo + "foreman_1"), 3f); Anim("foreman_charge", F(bo + "foreman_2"), 1); Anim("foreman_dazed", F(bo + "foreman_1"), 1);
+            Anim("dunequeen_idle", F(bo + "dunequeen_0"), 1); Anim("dunequeen_rear", F(bo + "dunequeen_1"), 1); Anim("dunequeen_mound", F(bo + "dunequeen_2"), 1);
             Anim("sporeheart_beat", F(bo + "sporeheart_0", bo + "sporeheart_1"), 2.4f); Anim("sporeheart_swell", F(bo + "sporeheart_2"), 1);
             Anim("hawk_fly", F(e + "hawk_0", e + "hawk_1"), 7f);
             Anim("hawk_dive", F(e + "hawk_2"), 1);
@@ -392,7 +398,7 @@ namespace Gloomdelve.EditorTools
         {
             var result = new Dictionary<string, TileSet>();
             // "Village" is the Frost art used in the open: the snow of Brindlemoor under the night sky
-            foreach (var setName in new[] { "Mossroot", "Emberdeep", "Vault", "Sunfall", "Frost", "Sporegloom", "Gearworks", "Village" })
+            foreach (var setName in new[] { "Mossroot", "Emberdeep", "Vault", "Sunfall", "Frost", "Sporegloom", "Gearworks", "Sandsunk", "Village" })
             {
                 string area = setName == "Village" ? "Frost" : setName;
                 string d = "Tiles/" + area + "/";
@@ -529,6 +535,13 @@ namespace Gloomdelve.EditorTools
             if (shop.Find("lantern") == null)
                 shop.offers.Add(new ShopOffer { id = "lantern", displayName = "Lantern", price = 600, isUpgrade = true, slot = "charm",
                     description = "your light reaches much further in the dark", modifiers = new StatModifiers { lightBonus = 0.6f } });
+            // Sandsunk Tombs: the two things worth having there
+            if (shop.Find("sandstriders") == null)
+                shop.offers.Add(new ShopOffer { id = "sandstriders", displayName = "Sand Striders", price = 600, isUpgrade = true, slot = "feet",
+                    description = "wide woven soles: quicksand holds like stone", modifiers = new StatModifiers { sandGrip = 1f } });
+            if (shop.Find("wardscarab") == null)
+                shop.offers.Add(new ShopOffer { id = "wardscarab", displayName = "Warding Scarab", price = 550, isUpgrade = true, slot = "charm",
+                    description = "a mummy's grab cannot take your gold", modifiers = new StatModifiers { goldWard = 1f } });
             foreach (var o in shop.offers)
             {
                 if (!o.isUpgrade || !string.IsNullOrEmpty(o.slot)) continue;
@@ -541,6 +554,7 @@ namespace Gloomdelve.EditorTools
                 ["springboots"] = "Sprites/Items/springboots", ["ironwhip"] = "Sprites/Items/ironwhip", ["compass"] = "Sprites/Items/compass",
                 ["blastpowder"] = "Sprites/Items/blastpowder",
             };
+            icons["sandstriders"] = "Sprites/Items/sandstriders"; icons["wardscarab"] = "Sprites/Items/wardscarab";
             icons["vigor"] = "Sprites/NPC/ware_vigor"; icons["lampoil"] = "Sprites/NPC/ware_lampoil";
             foreach (var o in shop.offers) if (icons.TryGetValue(o.id, out var ic)) o.icon = ArtGenerator.S(ic);
             EditorUtility.SetDirty(shop);
@@ -734,6 +748,38 @@ namespace Gloomdelve.EditorTools
             if (gear.sawChance <= 0f) gear.sawChance = 0.45f;        // its own trap: saw blades on rails
             gear.tiles = ts["Gearworks"];
             EditorUtility.SetDirty(gear);
+
+            // Sandsunk Tombs: a buried tomb. Pools of quicksand in the long floors, spear plates, arrow traps in the
+            // walls; scarabs in packs, mummies that take gold instead of blood, worms waiting under the floor.
+            var sand = LoadOrCreate<AreaConfig>(G + "Data/Area8_Sandsunk.asset", out bool newSand);
+            if (newSand)
+            {
+                sand.displayName = "Sandsunk Tombs"; sand.areaNumber = 8; sand.musicId = "area3";
+                sand.cameraBackground = new Color(0.09f, 0.07f, 0.05f);
+                sand.groundEnemies = new[] { new WeightedId("scarab", 2f), new WeightedId("mummy", 1.5f), new WeightedId("sandworm", 1.5f) };
+                sand.ceilingEnemies = new[] { new WeightedId("bat", 1f) };
+                sand.items = new[] { new WeightedId("rock", 2f), new WeightedId("pot", 3f), new WeightedId("crate", 1f) };
+                sand.spikes = true; sand.arrowTraps = true; sand.stalactites = true; sand.crushers = false; sand.flameVents = false;
+                sand.spikeDensity = 0.02f; sand.arrowTrapDensity = 0.018f; sand.ceilingHazardChance = 0.3f;
+                sand.goldVeinChance = 0.019f; sand.gemVeinChance = 0.003f; sand.treasureChancePath = 0.35f; sand.treasureChanceSide = 0.7f;
+                sand.requiredGear = ""; sand.gatesByLevel = new[] { 0, 0, 0 };
+                sand.quicksandChance = 0.55f; sand.spearChance = 0.4f;
+                sand.shopFeatured = new[] { "sandstriders", "wardscarab" };
+                sand.shopChanceByLevel = new[] { 1f, 0.6f, 0.5f };
+                // a descent, like the other tombs and caverns (layout version 4)
+                sand.roomsX = 6; sand.roomsY = 9;
+                sand.pathAcross = false; sand.pathUp = 0f; sand.pathSide = 3f; sand.pathDown = 1f; sand.pathStartBottom = false;
+                sand.branchDensity = 0.24f; sand.layoutVersion = 4;
+            }
+            if (sand.ambientIntensity < 0f)
+            {
+                sand.ambientColor = new Color(1f, 0.9f, 0.7f); sand.ambientIntensity = 0.56f;
+                sand.torchColor = new Color(1f, 0.72f, 0.38f); sand.torchChance = 0.07f;
+                sand.ambientParticles = AmbientParticles.Dust; sand.ambientParticleCount = 26;
+                sand.backdropTint = new Color(0.5f, 0.4f, 0.28f);
+            }
+            sand.tiles = ts["Sandsunk"];
+            EditorUtility.SetDirty(sand);
 
             var vault = LoadOrCreate<AreaConfig>(G + "Data/Area3_Vault.asset", out bool newVault);
             if (newVault)
@@ -1023,6 +1069,21 @@ namespace Gloomdelve.EditorTools
                 list.InsertRange(at, add);
                 cfg.stages = list.ToArray();
             }
+            // Sandsunk Tombs joins the catalogue the same way: three levels and the Dune Queen's chamber.
+            if (!System.Array.Exists(cfg.stages, st => st.area == sand))
+            {
+                var list = new List<StageDef>(cfg.stages);
+                int at = list.FindIndex(st => st.kind == LevelKind.Rest || st.kind == LevelKind.Final);
+                if (at < 0) at = list.Count;
+                int blocks = 1; AreaConfig prevA = null;
+                foreach (var st in list) if ((st.kind == LevelKind.Area || st.kind == LevelKind.Boss) && st.area != prevA) { blocks++; prevA = st.area; }
+                var add = new List<StageDef>();
+                for (int lv = 1; lv <= 3; lv++) add.Add(new StageDef { displayName = $"{blocks}-{lv}", kind = LevelKind.Area, area = sand, levelNumber = lv });
+                add.Add(new StageDef { displayName = $"{blocks}-4", kind = LevelKind.Boss, area = sand, levelNumber = 4,
+                    handcrafted = AssetDatabase.LoadAssetAtPath<TextAsset>(G + "Data/Levels/Boss_Sandsunk.txt") });
+                list.InsertRange(at, add);
+                cfg.stages = list.ToArray();
+            }
             cfg.tutorial = new StageDef { displayName = "TUTORIAL", kind = LevelKind.Tutorial, area = moss, levelNumber = 1, handcrafted = tut };
             cfg.village = new StageDef { displayName = "BRINDLEMOOR", kind = LevelKind.Rest, area = villageArea, levelNumber = 1,
                 handcrafted = AssetDatabase.LoadAssetAtPath<TextAsset>(G + "Data/Levels/Village.txt") };
@@ -1189,6 +1250,28 @@ namespace Gloomdelve.EditorTools
                 (e, go, sr) => { e.flipWithFacing = false; }));
             Reg("icechunk", Make<IceChunk>("IceChunk", "Items", "ice chunk", new Vector2(0.45f, 0.4f), ArtGenerator.S(I("icechunk")), null, 12,
                 (e, g, s) => { e.flipWithFacing = false; e.impactSfx = "thud"; }));
+            // Sandsunk Tombs: quicksand, the spear plate, its creatures, the Dune Queen and her spit
+            Reg("quicksand", Make<Quicksand>("Quicksand", "Traps", "quicksand", new Vector2(1f, 0.3f), ArtGenerator.S("Sprites/Props/quicksand_0"), anims["quicksand_flow"], 3,
+                (e, go, sr) => { e.flipWithFacing = false; e.animFlow = anims["quicksand_flow"]; }));
+            Reg("sandpillar", Make<SandPillar>("SandPillar", "Traps", "stone slab", new Vector2(2f, 1f), ArtGenerator.S("Sprites/Props/sandpillar"), null, 5,
+                (e, go, sr) =>
+                {
+                    e.flipWithFacing = false;
+                    e.riseFrames = new Sprite[8];
+                    for (int n = 1; n <= 8; n++) e.riseFrames[n - 1] = ArtGenerator.S($"Sprites/Props/sandpillar_r{n}");
+                }));
+            Reg("speartrap", Make<SpearTrap>("SpearTrap", "Traps", "spear trap", new Vector2(0.8f, 1.15f), ArtGenerator.S("Sprites/Traps/spear_0"), null, 6,
+                (e, go, sr) => { e.flipWithFacing = false; e.frames = new[] { ArtGenerator.S("Sprites/Traps/spear_0"), ArtGenerator.S("Sprites/Traps/spear_1"), ArtGenerator.S("Sprites/Traps/spear_2") }; }));
+            Reg("scarab", Make<Scarab>("Scarab", "Enemies", "scarab", new Vector2(0.55f, 0.35f), ArtGenerator.S("Sprites/Enemies/scarab_0"), anims["scarab_walk"], 14,
+                (e, go, sr) => { e.goldDrop = 50; e.goldChance = 0.35f; e.heartDropChance = 0.02f; e.animWalk = anims["scarab_walk"]; e.bloodColor = new Color(0.3f, 0.7f, 0.75f); }));
+            Reg("mummy", Make<Mummy>("Mummy", "Enemies", "mummy", new Vector2(0.65f, 1.15f), ArtGenerator.S("Sprites/Enemies/mummy_0"), anims["mummy_walk"], 14,
+                (e, go, sr) => { e.maxHealth = 3; e.goldDrop = 100; e.animWalk = anims["mummy_walk"]; e.animGrab = anims["mummy_grab"]; e.bloodColor = new Color(0.85f, 0.8f, 0.65f); }));
+            Reg("sandworm", Make<SandWorm>("SandWorm", "Enemies", "sand worm", new Vector2(0.6f, 1.4f), ArtGenerator.S("Sprites/Enemies/sandworm_0"), anims["sandworm_mound"], 14,
+                (e, go, sr) => { e.maxHealth = 2; e.goldDrop = 100; e.flipWithFacing = false; e.animMound = anims["sandworm_mound"]; e.animOut = anims["sandworm_out"]; e.bloodColor = new Color(0.8f, 0.5f, 0.3f); }));
+            Reg("sandshot", Make<BossShot>("SandShot", "Enemies", "sand", new Vector2(0.35f, 0.35f), ArtGenerator.S("Sprites/Bosses/sandshot"), null, 32,
+                (e, go, sr) => { e.flipWithFacing = false; e.burstColor = new Color(0.95f, 0.8f, 0.5f); }));
+            Reg("dunequeen", Make<DuneQueen>("DuneQueen", "Enemies", "Dune Queen", new Vector2(1.8f, 2.6f), ArtGenerator.S("Sprites/Bosses/dunequeen_0"), anims["dunequeen_idle"], 15,
+                (e, go, sr) => { e.maxHealth = 16; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animIdle = anims["dunequeen_idle"]; e.animRear = anims["dunequeen_rear"]; e.animMound = anims["dunequeen_mound"]; e.animCounter = anims["dunequeen_rear"]; e.counterFx = anims["cfx_buck"]; e.counterMotion = Boss.CounterMotion.Buck; e.counterFxScale = 1.6f; e.bloodColor = new Color(0.85f, 0.6f, 0.35f); }));
             // Gearworks: its machines, their bolt, the conveyor belt
             Reg("sentry", Make<Sentry>("Sentry", "Enemies", "sentry", new Vector2(0.75f, 0.95f), ArtGenerator.S("Sprites/Enemies/sentry_0"), anims["sentry_walk"], 14,
                 (e, go, sr) => { e.maxHealth = 2; e.goldDrop = 100; e.animWalk = anims["sentry_walk"]; e.animJab = anims["sentry_jab"]; e.bloodColor = new Color(0.85f, 0.75f, 0.45f); }));
@@ -1613,21 +1696,53 @@ namespace Gloomdelve.EditorTools
                     if (prefab == null) continue;
                     bossStages.Add(si);
                     bossKeys.Add(prefab.displayName);
-                    bossNames.Add(prefab.displayName.ToUpperInvariant());       // just the name: areas come in a different order every run
+                    bossNames.Add(prefab.displayName);       // just the name, as it is written (areas come in a different order every run)
                 }
-                float rowStep = 72f;
-                var bp = UIBuilder.Panel(t, "BossPanel", new Vector2(0.5f, 0.5f), new Vector2(0, -40), new Vector2(820, 330 + bossStages.Count * rowStep));
+                // The list grows with every boss added, the panel does not: it shows six rows, and the rest is reached
+                // with the scrollbar, the mouse wheel, or simply by moving the selection down (ScrollToSelected).
+                const float rowStep = 72f;
+                int rowsShown = Mathf.Min(6, bossStages.Count);
+                float listHeight = rowsShown * rowStep;
+                var bp = UIBuilder.Panel(t, "BossPanel", new Vector2(0.5f, 0.5f), new Vector2(0, -40), new Vector2(820, 330 + listHeight));
                 UIBuilder.Label(bp.transform, "Title", "CHALLENGE", 46, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -36), new Vector2(700, 64));
                 UIBuilder.Label(bp.transform, "Hint", "Pick a boss and fight it straight away.\nDying starts the fight again. Your best time against each boss is kept.", 22, new Color(1f, 1f, 1f, 0.75f),
                     TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -112), new Vector2(760, 64));
+                // the window the rows are seen through
+                var view = UIBuilder.Img(bp.transform, "BossView", null, new Color(0f, 0f, 0f, 0f), new Vector2(0.5f, 1f), new Vector2(-8, -190), new Vector2(724, listHeight));       // (top anchor: the position is that of the top edge)
+                view.raycastTarget = true;                                   // so the wheel works between the rows too
+                view.gameObject.AddComponent<RectMask2D>();
+                var content = UIBuilder.Node(view.transform, "Content");
+                var crt = UIBuilder.Rect(content);
+                crt.anchorMin = new Vector2(0f, 1f); crt.anchorMax = new Vector2(1f, 1f); crt.pivot = new Vector2(0.5f, 1f);
+                crt.anchoredPosition = Vector2.zero; crt.sizeDelta = new Vector2(0f, bossStages.Count * rowStep);
+                var scroll = view.gameObject.AddComponent<ScrollRect>();
+                scroll.content = crt; scroll.viewport = view.rectTransform;
+                scroll.horizontal = false; scroll.vertical = true;
+                scroll.movementType = ScrollRect.MovementType.Clamped; scroll.scrollSensitivity = 36f; scroll.inertia = false;
+                view.gameObject.AddComponent<ScrollToSelected>();
+                if (bossStages.Count > rowsShown)
+                {
+                    var track = UIBuilder.Img(bp.transform, "BossScrollbar", null, new Color(1f, 1f, 1f, 0.1f), new Vector2(0.5f, 1f), new Vector2(374, -195), new Vector2(10, listHeight - 10));
+                    track.raycastTarget = true;
+                    var handle = UIBuilder.Img(track.transform, "Handle", null, new Color(1f, 0.84f, 0.38f, 0.85f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+                    handle.rectTransform.anchorMin = Vector2.zero; handle.rectTransform.anchorMax = Vector2.one;
+                    handle.rectTransform.offsetMin = Vector2.zero; handle.rectTransform.offsetMax = Vector2.zero;
+                    handle.raycastTarget = true;
+                    var bar = track.gameObject.AddComponent<Scrollbar>();
+                    bar.direction = Scrollbar.Direction.BottomToTop;
+                    bar.handleRect = handle.rectTransform; bar.targetGraphic = handle;
+                    var nav = bar.navigation; nav.mode = Navigation.Mode.None; bar.navigation = nav;      // the keys go from row to row, never onto the bar
+                    scroll.verticalScrollbar = bar;
+                    scroll.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
+                }
                 menu.bossButtons = new Button[bossStages.Count];
                 menu.bossBest = new TMPro.TMP_Text[bossStages.Count];
                 menu.bossNames = bossKeys.ToArray();
                 for (int i = 0; i < bossStages.Count; i++)
                 {
-                    menu.bossButtons[i] = UIBuilder.Button(bp.transform, "Boss_" + i, bossNames[i], new Vector2(0.5f, 1f), new Vector2(0, -196 - i * rowStep), new Vector2(700, 62));
+                    menu.bossButtons[i] = UIBuilder.Button(content.transform, "Boss_" + i, bossNames[i], new Vector2(0.5f, 1f), new Vector2(0, -5 - i * rowStep), new Vector2(700, 62));
                     // best time and the no-damage badge, at the right end of the button
-                    menu.bossBest[i] = UIBuilder.Label(menu.bossButtons[i].transform, "Best", "", 22, new Color(1f, 0.84f, 0.38f), TextAnchor.MiddleRight, new Vector2(1f, 0.5f), new Vector2(-18, 0), new Vector2(220, 50), false);
+                    menu.bossBest[i] = UIBuilder.Label(menu.bossButtons[i].transform, "Best", "", 22, new Color(1f, 0.84f, 0.38f), TextAnchor.MiddleRight, new Vector2(1f, 0.5f), new Vector2(-22, 0), new Vector2(240, 50), false);
                 }
                 menu.bossStages = bossStages.ToArray();
                 menu.bossBack = UIBuilder.Button(bp.transform, "Back", "BACK", new Vector2(0.5f, 0f), new Vector2(0, 36), new Vector2(320, 66));
@@ -2001,23 +2116,23 @@ namespace Gloomdelve.EditorTools
             var iroot = UIBuilder.Img(invGo.transform, "Root", null, new Color(0f, 0f, 0f, 0.55f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
             UIBuilder.Stretch(iroot.rectTransform);
             inv.root = iroot.gameObject;
-            var ipanel = UIBuilder.Panel(iroot.transform, "Panel", new Vector2(0.5f, 0.5f), new Vector2(0, 0), new Vector2(1040, 830));
+            var ipanel = UIBuilder.Panel(iroot.transform, "Panel", new Vector2(0.5f, 0.5f), new Vector2(0, 0), new Vector2(1040, 880));
             // the tabs across the top: what is worn, what is used, what is kept for good
             string[] tabNames = { "WEAR", "ITEMS", "KEY ITEMS" };
             inv.tabLabels = new TMPro.TMP_Text[3]; inv.tabFrames = new Image[3];
             for (int i = 0; i < 3; i++)
             {
-                var tf = UIBuilder.Img(ipanel.transform, "Tab" + i, UIBuilder.Slot, Color.white, new Vector2(0.5f, 1f), new Vector2((i - 1) * 270, -58), new Vector2(250, 56), true);
+                var tf = UIBuilder.Img(ipanel.transform, "Tab" + i, UIBuilder.Slot, Color.white, new Vector2(0.5f, 1f), new Vector2((i - 1) * 270, -48), new Vector2(250, 56), true);
                 inv.tabFrames[i] = tf;
                 inv.tabLabels[i] = UIBuilder.Label(tf.transform, "Label", tabNames[i], 28, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(240, 44), true, FontStyle.Bold);
             }
             var islots = UIBuilder.Node(ipanel.transform, "Slots");
-            UIBuilder.Place(UIBuilder.Rect(islots), new Vector2(0.5f, 1f), new Vector2(0, -176), new Vector2(900, 10), new Vector2(0.5f, 0.5f));
+            UIBuilder.Place(UIBuilder.Rect(islots), new Vector2(0.5f, 1f), new Vector2(0, -212), new Vector2(900, 10), new Vector2(0.5f, 0.5f));
             inv.slotRow = (RectTransform)islots.transform;
-            inv.bagLabel = UIBuilder.Label(ipanel.transform, "BagLabel", "IN THE BAG", 20, new Color(1f, 1f, 1f, 0.5f), TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -286), new Vector2(600, 28), false);
+            inv.bagLabel = UIBuilder.Label(ipanel.transform, "BagLabel", "IN THE BAG", 20, new Color(1f, 1f, 1f, 0.5f), TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -324), new Vector2(600, 28), false);
             inv.pouchIcon = ArtGenerator.S("UI/icon_ember");
             var igrid = UIBuilder.Node(ipanel.transform, "Grid");
-            UIBuilder.Place(UIBuilder.Rect(igrid), new Vector2(0.5f, 1f), new Vector2(0, -372), new Vector2(900, 10), new Vector2(0.5f, 0.5f));
+            UIBuilder.Place(UIBuilder.Rect(igrid), new Vector2(0.5f, 1f), new Vector2(0, -412), new Vector2(900, 10), new Vector2(0.5f, 0.5f));
             inv.grid = (RectTransform)igrid.transform;
             var cell = UIBuilder.Img(igrid.transform, "CellTemplate", UIBuilder.Slot, Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(104, 104), true);
             UIBuilder.Img(cell.transform, "Icon", ArtGenerator.S("Sprites/Items/springboots"), Color.white, new Vector2(0.5f, 0.5f), new Vector2(0, 2), new Vector2(76, 76));

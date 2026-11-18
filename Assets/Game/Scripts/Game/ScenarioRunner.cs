@@ -307,6 +307,16 @@ namespace Gloomdelve
             new Scenario { name = "gearworks: a drone warns, then fires a bolt; a scrap beetle eats a lit bomb and blows up", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => DroneBeetleCase(c) },
 
+            new Scenario { name = "sandsunk: quicksand slows and swallows unless hopped out of or crossed in sand striders; a spear plate strikes on its beat", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => SandTrapCase(c) },
+
+            new Scenario { name = "sandsunk: scarabs hatch in a pack, a mummy takes gold and gives it back when destroyed, a sand worm waits under the floor", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => SandEnemyCase(c) },
+
+            new Scenario { name = "bosses: the dune queen floods her floor with quicksand, dives and breaches where the player stands, breaks the slab above her, spits and calls scarabs",
+                map = m => { Set(m, 3, 1, 'S'); },
+                run = c => DuneQueenCase(c) },
+
             new Scenario { name = "gearworks: a saw blade runs along its rail and cuts the player and creatures; it can be jumped", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => SawCase(c) },
 
@@ -2373,6 +2383,297 @@ namespace Gloomdelve
             for (int i = 0; i < 200 && !blew; i++) { yield return new WaitForFixedUpdate(); if (bt.Dead) blew = true; else bx = bt.pos.x; }
             c.Expect(blew, "a moment later it blows up");
             c.Expect(bx < 11.5f, $"having run at the player first (x {bx:0.0})");
+        }
+
+        static IEnumerator SandTrapCase(Ctx c)
+        {
+            c.Bot(Seq((4000, F())));
+            var shop = c.dir.config.shop;
+            for (int x = 8; x <= 11; x++) c.Spawn<Quicksand>("quicksand", x, 1);
+            yield return c.Frames(3);
+            c.Expect(c.Count<Quicksand>() == 4, "a pool of quicksand lies in the floor");
+            // standing in it: slowed at once, pulled under after a while
+            int hp = c.run.health;
+            c.Teleport(9.5f, 1f);
+            bool slowed = false, swallowed = false; int took = 0;
+            for (int i = 0; i < 260 && !swallowed; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (c.p.Slowed) slowed = true;
+                if (c.run.health < hp) { swallowed = true; took = i; }
+                if (i == 60) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "sandsunk_quicksand.png"));
+            }
+            c.Expect(slowed, "walking in quicksand is slow");
+            c.Expect(swallowed && c.run.health == hp - 1 && took > 90, $"staying in it, the player is pulled under for 1 (health {hp} -> {c.run.health} after {took} steps)");
+            // sand striders: neither slowed nor swallowed
+            c.run.AddUpgrade(shop.Find("sandstriders"));
+            yield return c.Frames(60);
+            hp = c.run.health;
+            c.Teleport(9.5f, 1f);
+            bool slowedShod = false;
+            for (int i = 0; i < 220; i++) { yield return new WaitForFixedUpdate(); if (i > 30 && c.p.Slowed) slowedShod = true; }
+            c.Expect(c.run.IsWorn("sandstriders") && !slowedShod && c.run.health == hp, $"in sand striders the sand holds like stone (slowed {slowedShod}, health {hp} -> {c.run.health})");
+            c.run.RemoveUpgrade("sandstriders");
+            foreach (var e in c.world.Entities) if (!e.Dead && e is Quicksand) e.Despawn();
+
+            // the spear plate: harmless while down, 2 damage while the spears stand
+            c.Teleport(5.5f, 1f);
+            var plate = c.Spawn<SpearTrap>("speartrap", 14, 1);
+            c.Expect(plate != null, "a spear plate lies in the floor");
+            if (plate == null) yield break;
+            bool sawDown = false, sawWarn = false, sawUp = false;
+            for (int i = 0; i < 260; i++) { yield return new WaitForFixedUpdate(); if (plate.Phase == 0) sawDown = true; else if (plate.Phase == 1) sawWarn = true; else sawUp = true; }
+            c.Expect(sawDown && sawWarn && sawUp, "it rests, shows its tips, and thrusts - over and over");
+            for (int i = 0; i < 300 && plate.Phase != 0; i++) yield return new WaitForFixedUpdate();
+            hp = c.run.health;
+            c.Teleport(14.5f, 1f);
+            yield return c.Frames(20);
+            c.Expect(c.run.health == hp, "standing on it while the spears are down does nothing");
+            bool speared = false;
+            for (int i = 0; i < 300 && !speared; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (plate.Up && i % 4 == 0) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "sandsunk_spears.png"));
+                if (c.run.health < hp) speared = true;
+            }
+            c.Expect(speared && c.run.health == hp - 2, $"staying on it until they come up: speared for 2 (health {hp} -> {c.run.health})");
+            plate.Despawn();
+            yield return c.Frames(40);
+            {
+                // a bomb that lands on quicksand is swallowed: no blast
+                for (int x = 8; x <= 11; x++) c.Spawn<Quicksand>("quicksand", x, 1);
+                c.Teleport(4.5f, 1f);
+                yield return c.Frames(3);
+                int blasts = c.world.ExplosionsThisLevel;
+                var bomb = c.world.SpawnById("bomb", new Vector2(9.5f, 3f)) as Bomb;
+                c.Expect(bomb != null, "a bomb is dropped over the sand");
+                bool gone = false;
+                for (int i = 0; i < 200 && bomb != null && !gone; i++) { yield return new WaitForFixedUpdate(); if (bomb.Dead) gone = true; }
+                yield return c.Frames(200);
+                c.Expect(gone && c.world.ExplosionsThisLevel == blasts, $"quicksand swallows a bomb before it goes off (blasts {blasts} -> {c.world.ExplosionsThisLevel})");
+                foreach (var e in c.world.Entities) if (!e.Dead && e is Quicksand) e.Despawn();
+                yield return c.Frames(3);
+            }
+        }
+
+        static IEnumerator SandEnemyCase(Ctx c)
+        {
+            c.Bot(Seq((6000, F())));
+            var shop = c.dir.config.shop;
+            c.p.godMode = true;
+            // scarabs: one placed, a pack hatches
+            c.Spawn<Scarab>("scarab", 16, 1);
+            yield return c.Frames(3);
+            c.Expect(c.Count<Scarab>() == 3, $"where one scarab is placed a pack of three hatches ({c.Count<Scarab>()})");
+            yield return c.Frames(30);
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "sandsunk_scarabs.png"));
+            yield return c.Frames(3);
+            foreach (var e in c.world.Entities) if (!e.Dead && e is Scarab) e.Despawn();
+            c.p.godMode = false;
+
+            // the mummy: its grab takes gold, not health
+            c.run.gold = 400;
+            int hp = c.run.health;
+            c.Teleport(6.5f, 1f);
+            var mummy = c.Spawn<Mummy>("mummy", 9, 1, 0, null, -1);
+            c.Expect(mummy != null, "a mummy spawned");
+            if (mummy == null) yield break;
+            mummy.heartDropChance = 0f; mummy.goldChance = 0f;
+            for (int i = 0; i < 600 && c.run.gold == 400; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (i % 30 == 0 && Mathf.Abs(c.p.pos.x - 6.5f) > 3f) c.Teleport(6.5f, 1f);
+                if (i == 40) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "sandsunk_mummy.png"));
+            }
+            c.Expect(c.run.gold == 400 - mummy.stealGold && c.run.health == hp && mummy.Stolen == mummy.stealGold,
+                $"a mummy's grab takes {mummy.stealGold} gold and no health (gold 400 -> {c.run.gold}, health {hp} -> {c.run.health}, it holds {mummy.Stolen})");
+            // destroyed, it gives the gold back
+            c.p.godMode = true;
+            int gold0 = c.Count<Pickup>();
+            for (int i = 0; i < 20 && !mummy.Dead; i++) { mummy.TakeDamage(new DamageInfo(3, DamageType.Whip, c.p, Vector2.zero, "test")); yield return c.Frames(14); }
+            yield return c.Frames(3);
+            c.Expect(mummy.Dead && c.Count<Pickup>() - gold0 == mummy.stealGold / 30, $"destroyed, what it took falls out ({c.Count<Pickup>() - gold0} pieces)");
+            foreach (var e in c.world.Entities) if (!e.Dead && e is Pickup) e.Despawn();
+            c.p.godMode = false;
+            // penniless: now it draws blood
+            c.run.gold = 0; hp = c.run.health;
+            c.Teleport(6.5f, 1f);
+            var poor = c.Spawn<Mummy>("mummy", 9, 1, 0, null, -1);
+            for (int i = 0; i < 600 && c.run.health == hp; i++) { yield return new WaitForFixedUpdate(); if (i % 30 == 0 && Mathf.Abs(c.p.pos.x - 6.5f) > 3f) c.Teleport(6.5f, 1f); }
+            c.Expect(c.run.health == hp - 1, $"with no gold to take, its grab hurts instead (health {hp} -> {c.run.health})");
+            if (poor != null) poor.Despawn();
+            // the warding scarab keeps its hands off
+            c.run.AddUpgrade(shop.Find("wardscarab"));
+            c.run.gold = 400; hp = c.run.health;
+            yield return c.Frames(80);
+            c.Teleport(6.5f, 1f);
+            var warded = c.Spawn<Mummy>("mummy", 9, 1, 0, null, -1);
+            for (int i = 0; i < 420; i++) { yield return new WaitForFixedUpdate(); if (i % 30 == 0 && Mathf.Abs(c.p.pos.x - 6.5f) > 3f) c.Teleport(6.5f, 1f); }
+            c.Expect(c.run.IsWorn("wardscarab") && c.run.gold == 400 && c.run.health == hp, $"with a warding scarab its grab takes nothing (gold {c.run.gold}, health {hp} -> {c.run.health})");
+            if (warded != null) warded.Despawn();
+            c.run.RemoveUpgrade("wardscarab");
+            c.run.gold = 0;
+
+            // the sand worm: under the floor nothing reaches it; it lunges when the player comes close, then it can be hit
+            c.Teleport(5.5f, 1f);
+            var worm = c.Spawn<SandWorm>("sandworm", 15, 1);
+            c.Expect(worm != null, "a sand worm spawned");
+            if (worm == null) yield break;
+            yield return c.Frames(40);
+            bool hitBuried = worm.TakeDamage(new DamageInfo(1, DamageType.Whip, c.p, Vector2.zero, "test"));
+            c.Expect(worm.Buried && !hitBuried && worm.ContactDamage == 0, "buried, it cannot be cut and its mound is harmless");
+            hp = c.run.health;
+            c.Teleport(15.5f, 1f);
+            bool told = false, lunged = false;
+            for (int i = 0; i < 300 && c.run.health == hp; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (worm.Buried && i > 5) told = true;
+                if (worm.Attacking) { lunged = true; if (i % 3 == 0) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "sandsunk_worm.png")); }
+            }
+            c.Expect(told && lunged && c.run.health == hp - worm.contactDamage, $"standing over it: a warning, then its lunge bites for {worm.contactDamage} (health {hp} -> {c.run.health})");
+            c.p.godMode = true;
+            bool cut = false;
+            for (int i = 0; i < 400 && !cut; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (!worm.Buried && !worm.Attacking) cut = worm.TakeDamage(new DamageInfo(1, DamageType.Whip, c.p, Vector2.zero, "test"));
+            }
+            c.Expect(cut, "out of the ground it can be cut");
+            if (!worm.Dead) worm.Despawn();
+            c.p.godMode = false;
+            yield return c.Frames(5);
+        }
+
+        static IEnumerator DuneQueenCase(Ctx c)
+        {
+            c.p.godMode = true;
+            c.Bot(Seq((6000, F())));
+            {
+                // before she is there: a block comes up out of the sand and stays up by itself
+                var alone = c.Spawn<SandPillar>("sandpillar", 24, 1);
+                c.Teleport(6.5f, 1f);
+                for (int i = 0; i < 400 && alone != null && !alone.IsUp; i++) yield return new WaitForFixedUpdate();
+                yield return c.Frames(420);
+                c.Expect(alone != null && alone.IsUp, "a block comes up and, left alone, stays up");
+                // a wave along the sand breaks the first block it meets and ends there
+                var second = c.Spawn<SandPillar>("sandpillar", 27, 1);
+                for (int i = 0; i < 400 && second != null && !second.IsUp; i++) yield return new WaitForFixedUpdate();
+                var wave = c.world.SpawnById("shockwave", new Vector2(20.5f, 1.2f));
+                if (wave != null) wave.vel = new Vector2(8f, 0f);
+                yield return c.Frames(90);
+                c.Expect(alone != null && second != null && !alone.IsUp && second.IsUp && (wave == null || wave.Dead),
+                    $"a wave breaks one block and is spent: the first is {(alone != null && alone.IsUp ? "standing" : "broken")}, the one behind it {(second != null && second.IsUp ? "standing" : "broken")}");
+                if (second != null) second.Despawn();
+                if (alone != null) alone.Despawn();
+                yield return c.Frames(3);
+            }
+            c.Teleport(16.5f, 1f);
+            var b = c.Spawn<DuneQueen>("dunequeen", 22, 1);
+            c.Expect(b != null, "the dune queen spawned");
+            if (b == null) yield break;
+            yield return c.Frames(3);
+            {
+                // the whole floor of her chamber is quicksand
+                var sandAt = new HashSet<int>(); int floorCells = 0;
+                foreach (var e in c.world.Entities) if (e is Quicksand && !e.Dead) sandAt.Add(Mathf.FloorToInt(e.pos.x));
+                for (int x = 1; x < c.world.Grid.Width - 1; x++) if (c.world.Grid.IsEmpty(x, 1) && c.world.Grid.IsSolid(x, 0)) floorCells++;
+                c.Expect(floorCells > 10 && sandAt.Count == floorCells, $"when the fight begins the whole floor turns to quicksand ({sandAt.Count} of {floorCells} cells)");
+            }
+            bool hidden = false, hiddenSafe = true, breached = false, breachOnPlayer = false, spent = false, waves = false, spat = false;
+            int diving = 0; float diveTop = 99f;
+            for (int i = 0; i < 4000 && !(breached && spent && waves && spat); i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (b.Diving)
+                {
+                    diving++;
+                    diveTop = Mathf.Min(diveTop, b.pos.y + b.size.y);
+                    if (diving == 26) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_dunequeen_dive.png"));
+                }
+                if (b.Hidden)
+                {
+                    hidden = true;
+                    if (b.TakeDamage(new DamageInfo(1, DamageType.Whip, c.p, Vector2.zero, "test"))) hiddenSafe = false;
+                    if (i % 15 == 0) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_dunequeen_mound.png"));
+                }
+                if (b.Breaching)
+                {
+                    if (!breached) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_dunequeen_breach.png"));
+                    breached = true;
+                    if (Mathf.Abs(b.pos.x - c.p.pos.x) < 1.2f) breachOnPlayer = true;
+                }
+                if (b.Exposed) spent = true;
+                foreach (var e in c.world.Entities)
+                    if (e is BossShot bs && !bs.Dead) { if (bs.flipByVelocity) waves = true; else spat = true; }
+            }
+            c.Expect(hidden && hiddenSafe, "she dives under the sand, where nothing reaches her");
+            c.Expect(diving > 20 && diveTop < 1.6f, $"she sinks into the floor bodily over {diving} steps (her head ends up at height {diveTop:0.0}, the floor is at 1)");
+            c.Expect(breached && breachOnPlayer, "her mound runs to the player and she breaches there");
+            c.Expect(spent && waves, "then she lies spent, and her fall sends a wave along the sand");
+            c.Expect(spat, "she spits sand at the player");
+            // a block of stone: it comes up out of the sand, is solid, holds the player; her attacks break it, and it comes back
+            var slab = c.Spawn<SandPillar>("sandpillar", 9, 1);
+            c.Expect(slab != null, "a block waits under the sand");
+            if (slab != null)
+            {
+                // the player stands where it will come up: carried to the top, not shut inside the stone
+                c.Teleport(10f, 1f);
+                bool partly = false; int risingFor = 0;
+                for (int i = 0; i < 400 && !slab.IsUp; i++)
+                {
+                    yield return new WaitForFixedUpdate();
+                    if (Mathf.Abs(c.p.pos.x - 10f) > 0.7f) c.Teleport(10f, 1f);
+                    if (slab.Rising) risingFor++;
+                    if (risingFor == 26 && !partly) { partly = true; ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_dunequeen_block_rising.png")); }
+                }
+                yield return c.Frames(6);
+                c.Expect(slab.IsUp && c.world.Grid.IsSolid(9, 1) && c.world.Grid.IsSolid(10, 1), "it rises and is solid stone: nothing walks through it");
+                c.Expect(c.p.grounded && Mathf.Abs(c.p.pos.y - 2f) < 0.06f, $"whoever stood there is carried to its top (player at height {c.p.pos.y:0.00})");
+                ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_dunequeen_slab.png"));
+                // her breach breaks it (the player keeps to its place: on it while it stands, at its foot while it is down)
+                bool broken = false, back = false; int breaches = 0; bool wasBreaching = false;
+                int hpBefore = b.health, hpAfter = b.health, butts0 = b.Headbutts;
+                for (int i = 0; i < 6000 && !(broken && back); i++)
+                {
+                    yield return new WaitForFixedUpdate();
+                    // (once it is broken the player walks off, so that she follows and the place is free for it to come up again)
+                    // (while the block is down - a clod of spit may have broken it first - the player waits a few steps away,
+                    //  so that she does not keep coming up in its place and it can rise again)
+                    float stand = broken ? 20f : slab.IsUp ? 10f : 17f;
+                    if (Mathf.Abs(c.p.pos.x - stand) > 0.7f) c.Teleport(stand, !broken && slab.IsUp ? 2f : 1f);
+                    if (b.Breaching && !wasBreaching) breaches++;
+                    if (!broken && b.Headbutts > butts0) { broken = true; hpAfter = b.health; }
+                    wasBreaching = b.Breaching;
+                    if (broken && slab.IsUp) back = true;
+                }
+                c.Expect(broken, $"she comes up under it and breaks it ({breaches} breaches)");
+                c.Expect(broken && hpBefore - hpAfter == b.headbuttDamage && b.Headbutts > butts0, $"ramming the stone with her head costs her {b.headbuttDamage} (health {hpBefore} -> {hpAfter})");
+                c.Expect(back, "a broken block comes up again after a few seconds");
+                // a clod of her spit breaks it too
+                c.Teleport(16.5f, 1f);
+                for (int i = 0; i < 900 && !slab.IsUp; i++) yield return new WaitForFixedUpdate();
+                bool upBeforeShot = slab.IsUp;
+                var clod = c.world.SpawnById("sandshot", new Vector2(6.5f, 1.4f));
+                if (clod != null) clod.vel = new Vector2(7f, 0f);
+                bool brokenByShot = false;
+                for (int i = 0; i < 60 && !brokenByShot; i++) { yield return new WaitForFixedUpdate(); if (!slab.IsUp) brokenByShot = true; }
+                c.Expect(upBeforeShot && brokenByShot, "a clod of her spit that hits it breaks it");
+                slab.Despawn();
+            }
+            // her brood
+            foreach (var e in c.world.Entities) if (!e.Dead && e is Scarab) e.Despawn();
+            yield return c.Frames(2);
+            c.Teleport(16.5f, 1f);
+            yield return c.Frames(4);
+            b.BroodNow(c.p);
+            yield return c.Frames(3);
+            int brood = c.Count<Scarab>();
+            c.Expect(brood == b.minionsPerCall, $"her call shakes {b.minionsPerCall} scarabs out of the sand, each on its own ({brood})");
+            b.Despawn();
+            ClearFight(c);
+            foreach (var e in c.world.Entities) if (!e.Dead && (e is Scarab || e is Quicksand || e is SandPillar)) e.Despawn();
+            c.p.godMode = false;
         }
 
         static IEnumerator SawCase(Ctx c)

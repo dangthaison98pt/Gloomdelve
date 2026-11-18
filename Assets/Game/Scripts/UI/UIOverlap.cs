@@ -41,6 +41,18 @@ namespace Gloomdelve
                 if (!(hi.x - lo.x > 0.5f) || !(hi.y - lo.y > 0.5f)) continue;
                 Vector3 p0 = t.transform.TransformPoint(lo), p1 = t.transform.TransformPoint(hi);
                 var r = Rect.MinMaxRect(Mathf.Min(p0.x, p1.x), Mathf.Min(p0.y, p1.y), Mathf.Max(p0.x, p1.x), Mathf.Max(p0.y, p1.y));
+                // inside a scrolling list only what shows through its window counts: a row scrolled out of view is
+                // not drawn at all, one half in view is drawn only as far as the window's edge
+                var clip = t.GetComponentInParent<UnityEngine.UI.RectMask2D>();
+                if (clip != null)
+                {
+                    var corners = new Vector3[4];
+                    ((RectTransform)clip.transform).GetWorldCorners(corners);
+                    var win = Rect.MinMaxRect(corners[0].x, corners[0].y, corners[2].x, corners[2].y);
+                    float x0 = Mathf.Max(r.xMin, win.xMin), y0 = Mathf.Max(r.yMin, win.yMin), x1 = Mathf.Min(r.xMax, win.xMax), y1 = Mathf.Min(r.yMax, win.yMax);
+                    if (x1 - x0 < 1f || y1 - y0 < 1f) continue;
+                    r = Rect.MinMaxRect(x0, y0, x1, y1);
+                }
                 items.Add(new Item { text = t, rect = r, path = Path(t.transform) });
             }
             float k = Screen.height / 1080f;                 // tolerances are given in 1080p pixels

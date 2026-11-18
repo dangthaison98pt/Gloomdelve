@@ -74,6 +74,8 @@ MonoBehaviour:
   glowPlantChance: 0
   conveyorChance: 0.6
   sawChance: 0.45
+  quicksandChance: 0
+  spearChance: 0
   perLevelDensityBonus: 0.15
   requiredGear: 
   gatesByLevel: 000000000000000000000000

@@ -14,7 +14,8 @@ namespace Gloomdelve
     ///    in hand.
     ///  - KEY ITEMS: the few things that are never lost (the elder's Ember Pouch).
     /// Up from the first row reaches the tabs, left / right there changes tab. The bag's own button, Pause, or the
-    /// "back" button of a gamepad closes it.
+    /// "back" button of a gamepad closes it. The mouse works too: a click on a tab shows it, the pointer over a
+    /// thing chooses it, a click wears it / takes it in hand, and a click on a filled body slot takes that off.
     /// </summary>
     public class InventoryScreen : MonoBehaviour
     {
@@ -36,7 +37,7 @@ namespace Gloomdelve
         public float spacing = 124f;
         public float slotSpacing = 150f;
         [Tooltip("Height of the grid's first row below the top of the panel: with the slots above it (WEAR), and without.")]
-        public float gridYWear = -372f, gridYPlain = -210f;
+        public float gridYWear = -412f, gridYPlain = -236f;
 
         public const int TabWear = 0, TabItems = 1, TabKeys = 2;
         /// <summary>The slots of the body, in the order they are shown; a charm fits twice.</summary>
@@ -63,6 +64,38 @@ namespace Gloomdelve
         {
             if (root != null) root.SetActive(false);
             if (cellTemplate != null) cellTemplate.SetActive(false);
+            if (tabFrames != null)
+                for (int i = 0; i < tabFrames.Length; i++)
+                {
+                    if (tabFrames[i] == null) continue;
+                    int t = i;
+                    PointerRelay.On(tabFrames[i].gameObject, null, () => { if (!open) return; onTabs = true; if (tab == t) Refresh(); else SetTab(t); });
+                }
+        }
+
+        // what is worn in each body slot as shown (for a click on the slot)
+        readonly string[] slotIds = new string[BodySlots.Length];
+
+        void PointAt(int i)
+        {
+            if (!open || i < 0 || i >= entries.Count || (!onTabs && sel == i)) return;
+            onTabs = false; sel = i;
+            Refresh();
+        }
+
+        void ClickOn(int i)
+        {
+            if (!open || i < 0 || i >= entries.Count) return;
+            onTabs = false; sel = i;
+            if (entries[i].run != null) Toggle(); else Refresh();
+        }
+
+        void ClickSlot(int i)
+        {
+            var run = RunSession.Current;
+            if (!open || run == null || i < 0 || i >= slotIds.Length || string.IsNullOrEmpty(slotIds[i])) return;
+            Sfx.PlayUI(run.TakeOff(slotIds[i]) ? "pickup" : "error", 0.8f);
+            Refresh();
         }
 
         public static string SlotLabel(string slot)
@@ -208,10 +241,13 @@ namespace Gloomdelve
             }
         }
 
-        Cell NewCell(Transform parent)
+        Cell NewCell(Transform parent, bool bodySlot = false)
         {
             var go = Instantiate(cellTemplate, parent);
             go.SetActive(true);
+            int index = bodySlot ? slotCells.Count : cells.Count;
+            if (bodySlot) PointerRelay.On(go, null, () => ClickSlot(index));
+            else PointerRelay.On(go, () => PointAt(index), () => ClickOn(index));
             return new Cell
             {
                 rt = (RectTransform)go.transform,
@@ -252,7 +288,7 @@ namespace Gloomdelve
                 slotRow.gameObject.SetActive(wear);
                 if (wear)
                 {
-                    while (slotCells.Count < BodySlots.Length) slotCells.Add(NewCell(slotRow));
+                    while (slotCells.Count < BodySlots.Length) slotCells.Add(NewCell(slotRow, true));
                     var used = new HashSet<string>();
                     for (int i = 0; i < BodySlots.Length; i++)
                     {
@@ -263,6 +299,7 @@ namespace Gloomdelve
                             var o = run.Owned(id);
                             if (o != null && o.slot == BodySlots[i] && used.Add(id)) { inIt = o; break; }
                         }
+                        slotIds[i] = inIt != null ? inIt.id : null;
                         bool fits = cur != null && cur.slot == BodySlots[i];
                         c.rt.anchoredPosition = new Vector2((i - (BodySlots.Length - 1) * 0.5f) * slotSpacing, 0f);
                         c.frame.color = inIt != null ? (fits ? new Color(1f, 0.86f, 0.4f) : new Color(0.8f, 0.62f, 0.26f))

@@ -74,6 +74,8 @@ MonoBehaviour:
   glowPlantChance: 0
   conveyorChance: 0
   sawChance: 0
+  quicksandChance: 0
+  spearChance: 0
   perLevelDensityBonus: 0.15
   requiredGear: glider
   gatesByLevel: 010000000100000002000000
