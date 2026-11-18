@@ -73,12 +73,6 @@ namespace Gloomdelve
                 run.inVillage = false;
             }
             if (run.inVillage && (config.village == null || config.village.handcrafted == null || run.isTutorial || run.bossPractice)) run.inVillage = false;
-            // a run starts with nothing but the key items: the gold that was in the pouch (once, at its very start)
-            if (!run.perksApplied && !run.isTutorial && !run.bossPractice)
-            {
-                run.perksApplied = true;
-                Villagers.StartRun(run);
-            }
             // every run has its own plan: which areas, in which order (drawn by the seed)
             RunPlan.Ensure(run, config);
             int at = Mathf.Clamp(run.stageIndex, 0, run.stageOrder.Length - 1);
@@ -444,6 +438,13 @@ namespace Gloomdelve
         {
             if (Ended || p.IsDead) return;
             var run = Run;
+            if (run.inVillage && Villagers.Enabled && !Villagers.HasKey(Villagers.KeyPouch))
+            {
+                // the very first time: the elder has something for the player before they go
+                hud.ShowMessage("Elder Aldous wants a word before you go. He is in the Village Hall.");
+                Sfx.Play("error", p.pos);
+                return;
+            }
             if (run.inVillage)
             {
                 // out of the village gate: the night on the mountain begins (the first level was built meanwhile)

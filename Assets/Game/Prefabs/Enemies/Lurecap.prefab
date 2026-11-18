@@ -163,6 +163,7 @@ MonoBehaviour:
   knockbackScale: 1
   bloodColor: {r: 0.4, g: 1, b: 0.85, a: 1}
   goldDrop: 100
+  goldChance: 0.8
   heartDropChance: 0.05
   jumpX: 3.8
   jumpY: 10

@@ -745,25 +745,85 @@ namespace Gloomdelve.EditorTools
             EditorUtility.SetDirty(vault);
 
             var cfg = LoadOrCreate<GameConfig>(G + "Data/GameConfig.asset");
+            // The economy (version 2). Levels grew to twice the length and gained a mass of solid rock, and with them
+            // the gold: a level held several thousand in plain sight while a bomb bag costs 350. Now gold pieces are
+            // worth half (see the pickups), veins are rare - a seam in the rock is a find, not wallpaper - and less
+            // treasure lies about. Prices stay as they were. Aim: about 1000 gold in a level for someone who takes
+            // everything, so that a shop is a choice between two or three things.
+            if (cfg.economyVersion < 2)
+            {
+                foreach (var file in new[] { "Area1_Mossroot", "Area2_Emberdeep", "Area3_Vault", "Area4_Sunfall", "Area5_Frost", "Area6_Sporegloom", "Area7_Gearworks" })
+                {
+                    var a = AssetDatabase.LoadAssetAtPath<AreaConfig>(G + "Data/" + file + ".asset");
+                    if (a == null) continue;
+                    a.goldVeinChance *= 0.12f;
+                    a.gemVeinChance *= 0.1f;
+                    a.treasureChancePath *= 0.55f;
+                    a.treasureChanceSide *= 0.65f;
+                    EditorUtility.SetDirty(a);
+                }
+                cfg.heartstoneBonusGold = 2000;
+                cfg.economyVersion = 2;
+                EditorUtility.SetDirty(cfg);
+            }
+            if (cfg.economyVersion < 3)
+            {
+                // a second turn of the screw after measuring: 1800 a level was still too much
+                foreach (var file in new[] { "Area1_Mossroot", "Area2_Emberdeep", "Area3_Vault", "Area4_Sunfall", "Area5_Frost", "Area6_Sporegloom", "Area7_Gearworks" })
+                {
+                    var a = AssetDatabase.LoadAssetAtPath<AreaConfig>(G + "Data/" + file + ".asset");
+                    if (a == null) continue;
+                    a.goldVeinChance *= 0.55f;
+                    a.gemVeinChance *= 0.55f;
+                    a.treasureChancePath *= 0.7f;
+                    a.treasureChanceSide *= 0.7f;
+                    EditorUtility.SetDirty(a);
+                }
+                cfg.economyVersion = 3;
+                EditorUtility.SetDirty(cfg);
+            }
+            if (cfg.economyVersion < 4)
+            {
+                // Version 4: picking things up is the fun, so there is plenty to pick up again - it is each piece
+                // that is worth little (nugget 10, chunk 30, gem 100, idol 400). Treasure lies about as it used to,
+                // veins are a common sight (though not the wallpaper they had become), and most kills pay.
+                foreach (var file in new[] { "Area1_Mossroot", "Area2_Emberdeep", "Area3_Vault", "Area4_Sunfall", "Area5_Frost", "Area6_Sporegloom", "Area7_Gearworks" })
+                {
+                    var a = AssetDatabase.LoadAssetAtPath<AreaConfig>(G + "Data/" + file + ".asset");
+                    if (a == null) continue;
+                    bool rich = file == "Area2_Emberdeep" || file == "Area7_Gearworks";              // the mines and the works: more gold in the rock
+                    bool gems = file == "Area2_Emberdeep" || file == "Area5_Frost" || file == "Area6_Sporegloom";
+                    a.goldVeinChance = rich ? 0.019f : 0.015f;
+                    a.gemVeinChance = gems ? 0.003f : 0.002f;
+                    a.treasureChancePath = 0.35f;
+                    a.treasureChanceSide = 0.7f;
+                    EditorUtility.SetDirty(a);
+                }
+                cfg.economyVersion = 4;
+                EditorUtility.SetDirty(cfg);
+            }
+
             // Level shapes (layout version 2): every level is about twice as long as the first 4x4 maps, and each
             // area leads its own way - down, up, or across.
             {
                 void Shape(string file, int rx, int ry, bool acrossMap, float up, float side, float down, bool fromBottom)
                 {
                     var a = AssetDatabase.LoadAssetAtPath<AreaConfig>(G + "Data/" + file + ".asset");
-                    if (a == null || a.layoutVersion >= 2) return;
+                    if (a == null || a.layoutVersion >= 4) return;
                     a.roomsX = rx; a.roomsY = ry;
                     a.pathAcross = acrossMap; a.pathUp = up; a.pathSide = side; a.pathDown = down; a.pathStartBottom = fromBottom;
-                    a.layoutVersion = 2;
+                    a.branchDensity = 0.24f;        // (version 4: more branches, most of them false drops)
+                    a.layoutVersion = 4;
                     EditorUtility.SetDirty(a);
                 }
-                Shape("Area1_Mossroot", 5, 7, false, 0f, 3f, 1f, false);        // a descent
-                Shape("Area2_Emberdeep", 5, 7, false, 0f, 3f, 1f, false);       // a descent
-                Shape("Area3_Vault", 5, 7, false, 0f, 3f, 1f, false);
-                Shape("Area4_Sunfall", 5, 7, false, 2f, 3f, 0.3f, true);        // a climb
-                Shape("Area5_Frost", 10, 4, true, 0.7f, 3f, 0.9f, false);       // across: long icy runs
-                Shape("Area6_Sporegloom", 5, 7, false, 0f, 3f, 1f, false);      // a descent
-                Shape("Area7_Gearworks", 10, 4, true, 1f, 3f, 1f, false);       // across, changing floors often
+                // (version 3: larger grids of which only the path and its branches are rooms - the rest is rock)
+                Shape("Area1_Mossroot", 6, 9, false, 0f, 3f, 1f, false);        // a descent
+                Shape("Area2_Emberdeep", 6, 9, false, 0f, 3f, 1f, false);       // a descent
+                Shape("Area3_Vault", 6, 9, false, 0f, 3f, 1f, false);
+                Shape("Area4_Sunfall", 6, 8, false, 2f, 3f, 0.3f, true);        // a climb
+                Shape("Area5_Frost", 11, 5, true, 0.7f, 3f, 0.9f, false);       // across: long icy runs
+                Shape("Area6_Sporegloom", 6, 9, false, 0f, 3f, 1f, false);      // a descent
+                Shape("Area7_Gearworks", 11, 5, true, 1f, 3f, 1f, false);       // across, changing floors often
                 // twice the level, twice the time before the Reaper comes
                 if (cfg.pressureSpawnTime <= 300f) { cfg.pressureWarnTime = 540f; cfg.pressureSpawnTime = 600f; EditorUtility.SetDirty(cfg); }
             }
@@ -829,8 +889,24 @@ namespace Gloomdelve.EditorTools
             }
             gGlide.icon = ArtGenerator.S("Sprites/Player/glider");
             EditorUtility.SetDirty(gGlide);
+            // The Recall Charm: every explorer carries one from the start.
+            var gRecall = LoadOrCreate<EquipmentDef>(G + "Data/Gear_Recall.asset", out bool newRecall);
+            if (newRecall)
+            {
+                gRecall.id = "recall"; gRecall.displayName = "Recall Charm";
+                gRecall.description = InputTokens("Use: return to where this level began.  Never used up - it needs a few moments between uses.");
+                gRecall.terrainHint = "The way back out of a drop you cannot climb.";
+            }
+            gRecall.icon = ArtGenerator.S("UI/icon_recall");
+            EditorUtility.SetDirty(gRecall);
+            if (cfg.player != null && cfg.player.startingGear != null && System.Array.IndexOf(cfg.player.startingGear, "recall") < 0)
+            {
+                var sg = new List<string>(cfg.player.startingGear) { "recall" };
+                cfg.player.startingGear = sg.ToArray();
+                EditorUtility.SetDirty(cfg.player);
+            }
             // Built-in gear first; equipment a designer added to the list by hand is kept.
-            var gearList = new List<EquipmentDef> { gBomb, gRope, gGlide };
+            var gearList = new List<EquipmentDef> { gBomb, gRope, gGlide, gRecall };
             if (cfg.equipment != null) foreach (var extra in cfg.equipment) if (extra != null && !gearList.Contains(extra)) gearList.Add(extra);
             cfg.equipment = gearList.ToArray();
             cfg.roomTemplates = AssetDatabase.LoadAssetAtPath<TextAsset>(G + "Data/RoomTemplates.txt");
@@ -1216,14 +1292,21 @@ namespace Gloomdelve.EditorTools
             Reg("bomb", Make<Bomb>("Bomb", "Items", "bomb", new Vector2(0.45f, 0.45f), ArtGenerator.S(I("bomb_0")), anims["bomb_idle"], 12,
                 (e, g, s) => { e.animLit = anims["bomb_lit"]; e.bounce = 0.45f; e.damageSpeed = 8f; e.flipWithFacing = false; }));
             Reg("idol", Make<Treasure>("Idol", "Items", "golden idol", new Vector2(0.5f, 0.7f), ArtGenerator.S(I("idol")), null, 12,
-                (e, g, s) => { e.heavy = true; e.value = 1200; e.flipWithFacing = false; }));
+                (e, g, s) => { e.heavy = true; e.value = 400; e.flipWithFacing = false; }));
             Reg("heartstone", Make<Treasure>("Heartstone", "Items", "Sunstone", new Vector2(0.55f, 0.7f), ArtGenerator.S(I("heartstone")), null, 12,
                 (e, g, s) => { e.heavy = true; e.isHeartstone = true; e.glow = new Color(1f, 0.82f, 0.4f); e.flipWithFacing = false; }));
 
             // pickups
-            Reg("gold_small", Make<Pickup>("GoldNugget", "Items", "gold nugget", new Vector2(0.3f, 0.25f), ArtGenerator.S(I("gold_small")), null, 11, (e, g, s) => { e.value = 50; e.flipWithFacing = false; }));
-            Reg("gold_big", Make<Pickup>("GoldChunk", "Items", "gold chunk", new Vector2(0.5f, 0.35f), ArtGenerator.S(I("gold_big")), null, 11, (e, g, s) => { e.value = 150; e.flipWithFacing = false; }));
-            Reg("gem", Make<Pickup>("Gem", "Items", "emerald", new Vector2(0.4f, 0.4f), ArtGenerator.S(I("gem")), null, 11, (e, g, s) => { e.value = 300; e.sfx = "gem"; e.textColor = new Color(0.5f, 1f, 0.7f); e.flipWithFacing = false; }));
+            Reg("gold_small", Make<Pickup>("GoldNugget", "Items", "gold nugget", new Vector2(0.3f, 0.25f), ArtGenerator.S(I("gold_small")), null, 11, (e, g, s) => { e.value = 10; e.flipWithFacing = false; }));
+            Reg("gold_big", Make<Pickup>("GoldChunk", "Items", "gold chunk", new Vector2(0.5f, 0.35f), ArtGenerator.S(I("gold_big")), null, 11, (e, g, s) => { e.value = 30; e.flipWithFacing = false; }));
+            Reg("gem", Make<Pickup>("Gem", "Items", "emerald", new Vector2(0.4f, 0.4f), ArtGenerator.S(I("gem")), null, 11, (e, g, s) => { e.value = 100; e.sfx = "gem"; e.textColor = new Color(0.5f, 1f, 0.7f); e.flipWithFacing = false; }));
+            Reg("ember", Make<Pickup>("Ember", "Items", "ember", new Vector2(0.4f, 0.45f), ArtGenerator.S("Sprites/Items/ember"), null, 11, (e, g, s) =>
+            {
+                e.resource = "ember"; e.value = 1; e.sfx = "gem"; e.textColor = new Color(1f, 0.62f, 0.3f); e.flipWithFacing = false;
+                s.sharedMaterial = unlitMat;                                    // it burns: seen in the dark
+                var gl = g.AddComponent<GlowLight>();
+                gl.color = new Color(1f, 0.6f, 0.3f); gl.radius = 2.4f; gl.intensity = 0.7f; gl.flicker = 0.3f;
+            }));
             Reg("bombbag", Make<Pickup>("BombBag", "Items", "bomb bag", new Vector2(0.6f, 0.55f), ArtGenerator.S(I("bombbag")), null, 11, (e, g, s) => { e.resource = Res.Bombs; e.label = "BOMBS"; e.value = 3; e.sfx = "pickup"; e.textColor = Color.white; e.flipWithFacing = false; }));
             Reg("ropepile", Make<Pickup>("RopePile", "Items", "rope pile", new Vector2(0.6f, 0.45f), ArtGenerator.S(I("ropepile")), null, 11, (e, g, s) => { e.resource = Res.Ropes; e.label = "ROPES"; e.value = 3; e.sfx = "pickup"; e.textColor = Color.white; e.flipWithFacing = false; }));
             Reg("heart", Make<Pickup>("Heart", "Items", "heart", new Vector2(0.5f, 0.45f), ArtGenerator.S(I("heart")), null, 11,
@@ -1734,7 +1817,8 @@ namespace Gloomdelve.EditorTools
             hud.healthText = Stat("Health", "UI/icon_heart", 20, out hud.heartIcon);
             // health (current/limit) and gold only: bombs and ropes are counted on the gear slot below
             hud.healthText.rectTransform.sizeDelta = new Vector2(150, 60);
-            hud.goldText = Stat("Gold", "UI/icon_gold", 240, out _);
+            hud.goldText = Stat("Gold", "UI/icon_gold", 240, out hud.goldIcon);
+            hud.goldSprite = ArtGenerator.S("UI/icon_gold"); hud.emberSprite = ArtGenerator.S("UI/icon_ember");
             hud.goldText.color = gold;
             hud.goldText.rectTransform.sizeDelta = new Vector2(180, 60);
             hud.upgradesText = UIBuilder.Label(hudGo.transform, "Upgrades", "", 24, new Color(0.7f, 1f, 0.75f), TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(28, -108), new Vector2(900, 40));

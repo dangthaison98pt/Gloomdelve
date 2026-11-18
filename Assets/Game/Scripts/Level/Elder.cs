@@ -4,7 +4,7 @@ namespace Gloomdelve
 {
     /// <summary>
     /// The elder of Brindlemoor, outside the village hall. The first time the player talks to him he hands over the
-    /// Gold Pouch (a key item: see Villagers); after that he tells how many of the villagers are still lost.
+    /// Ember Pouch (a key item: see Villagers); after that he tells how many of the villagers are still lost.
     /// </summary>
     public class Elder : Entity, IInteractable
     {
@@ -29,10 +29,10 @@ namespace Gloomdelve
             Villagers.GiveKey(Villagers.KeyPouch);
             Sfx.PlayUI("buy");
             Fx.Sparks(Center, new Color(1f, 0.9f, 0.4f), 12, 4f);
-            Fx.Text(new Vector2(pos.x, pos.y + size.y + 0.4f), "GOLD POUCH", new Color(1f, 0.9f, 0.5f), 1.6f);
+            Fx.Text(new Vector2(pos.x, pos.y + size.y + 0.4f), "EMBER POUCH", new Color(1f, 0.7f, 0.4f), 1.6f);
             var dir = GameDirector.Instance;
             if (dir != null && dir.hud != null)
-                dir.hud.ShowBanner("Gold Pouch", $"Gold you carry in it is never lost (it holds ${Villagers.PouchCapacity}). Spend it here in the village.", 6f);
+                dir.hud.ShowBanner("Ember Pouch", $"The great beasts of the mountain carry embers. The pouch holds {Villagers.PouchCapacity}; they are what we trade in here.", 7f);
         }
 
         public override void OnExplosion(Vector2 center, float radius, Entity source, int generation, int damage) { }

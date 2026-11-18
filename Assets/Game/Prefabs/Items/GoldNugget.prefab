@@ -143,7 +143,7 @@ MonoBehaviour:
   flipWithFacing: 0
   artFacesLeft: 0
   resource: gold
-  value: 50
+  value: 10
   label: 
   sfx: coin
   textColor: {r: 1, g: 0.85, b: 0.3, a: 1}

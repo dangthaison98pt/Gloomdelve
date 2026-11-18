@@ -11,7 +11,8 @@ namespace Gloomdelve
         public float gravity = 40f;
         public float knockbackScale = 1f;
         public Color bloodColor = new Color(0.55f, 0.1f, 0.12f);
-        [Tooltip("Gold dropped on death (0 = none). Paid out as chunks (150) and nuggets (50).")] public int goldDrop = 50;
+        [Tooltip("Gold dropped on death (0 = none), counted in nuggets of 50 and chunks of 150 - each piece is worth what the gold pickups are worth.")] public int goldDrop = 50;
+        [Tooltip("How often a kill pays its gold at all. The rest of the time the creature simply had nothing on it.")] [Range(0, 1)] public float goldChance = 0.8f;
         [Tooltip("Chance to drop a heart on death instead of the gold.")] [Range(0, 1)] public float heartDropChance = 0.05f;
         /// <summary>Called in by a boss during its fight: killing it pays no gold and no heart (no farming the arena).</summary>
         [System.NonSerialized] public bool summoned;
@@ -123,6 +124,7 @@ namespace Gloomdelve
                 Despawn();
                 return;
             }
+            if (goldDrop <= 0 || Random.value > goldChance) { Despawn(); return; }
             int chunks = goldDrop / 150, nuggets = Mathf.CeilToInt((goldDrop - chunks * 150) / 50f), n = chunks + nuggets;
             for (int i = 0; i < n; i++)
             {

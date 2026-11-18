@@ -10,6 +10,8 @@ namespace Gloomdelve
         public TMPro.TMP_Text bombText;
         public TMPro.TMP_Text ropeText;
         public TMPro.TMP_Text goldText;
+        [Tooltip("The coin beside the gold count; in the village it becomes an ember and the count is the Ember Pouch.")] public Image goldIcon;
+        public Sprite goldSprite, emberSprite;
         public TMPro.TMP_Text stageText;
         public TMPro.TMP_Text timeText;
         public TMPro.TMP_Text totalTimeText;
@@ -140,7 +142,17 @@ namespace Gloomdelve
                 equipAmmo.color = ammo > 0 ? Color.white : new Color(1f, 0.4f, 0.4f);
             }
             shownGold = Mathf.MoveTowards(shownGold, run.gold, Mathf.Max(60f, Mathf.Abs(run.gold - shownGold) * 4f) * dt);
-            goldText.text = "$" + Mathf.RoundToInt(shownGold);
+            if (run.inVillage)
+            {
+                bool pouch = Villagers.HasKey(Villagers.KeyPouch);
+                goldText.text = pouch ? Villagers.Embers + " / " + Villagers.PouchCapacity : "-";
+                if (goldIcon != null && emberSprite != null) goldIcon.sprite = emberSprite;
+            }
+            else
+            {
+                goldText.text = "$" + Mathf.RoundToInt(shownGold);
+                if (goldIcon != null && goldSprite != null) goldIcon.sprite = goldSprite;
+            }
 
             if (dir.Stage != null)
                 stageText.text = run.bossPractice ? "CHALLENGE"           // one word: the area name next to it did not fit the frame

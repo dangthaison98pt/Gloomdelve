@@ -58,7 +58,11 @@ namespace Gloomdelve.EditorTools
             sb.AppendLine($"Gloomdelve seed sweep  {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
             sb.AppendLine($"seeds {firstSeed}..{firstSeed + seeds - 1}, stages per seed: {cfg.stages.Count(s => s.kind == LevelKind.Area)} procedural + final");
             sb.AppendLine();
-            int levels = 0, fails = 0, retries = 0, maxAttempts = 0, safetyIssues = 0, shops = 0, shopsExpected = 0, idols = 0, gated = 0, gates = 0, captives = 0;
+            int levels = 0, fails = 0, retries = 0, maxAttempts = 0, safetyIssues = 0, shops = 0, shopsExpected = 0, idols = 0, gated = 0, gates = 0, captives = 0, rooms = 0, cells = 0, dropsTrue = 0, dropsFalse = 0;
+            // gold a level holds (an estimate): lying about, carried by its enemies, in veins that touch open air, in veins buried in rock
+            double goldFloor = 0, goldEnemies = 0, goldVeinsOpen = 0, goldVeinsBuried = 0, goldIdols = 0;
+            double nugget = cfg.prefabs.Get("gold_small") is Pickup pn ? pn.value : 25, chunk = cfg.prefabs.Get("gold_big") is Pickup pc ? pc.value : 75,
+                   gemWorth = cfg.prefabs.Get("gem") is Pickup pg ? pg.value : 150;
             var gatesByGear = new Dictionary<string, int>();
             double ms = 0, maxMs = 0;
             var reasonCount = new Dictionary<string, int>();
@@ -92,6 +96,24 @@ namespace Gloomdelve.EditorTools
                     if (sc >= 1f) { shopsExpected++; if (!d.hasShop) sb.AppendLine($"NOTE seed {seed} {st.displayName}: guaranteed shop could not be placed"); }
                     if (d.hasIdol) idols++;
                     foreach (var sp in d.spawns) if (sp.id == "captive") { captives++; break; }
+                    if (d.roomSolid != null) foreach (bool solid in d.roomSolid) { cells++; if (!solid) rooms++; }
+                    dropsTrue += d.trueDrops; dropsFalse += d.falseDrops;
+                    foreach (var sp in d.spawns)
+                    {
+                        if (sp.id == "gold_small") goldFloor += nugget; else if (sp.id == "gold_big") goldFloor += chunk; else if (sp.id == "gem") goldFloor += gemWorth;
+                        else if (sp.id == "idol") goldIdols += cfg.prefabs.Get("idol") is Treasure idolT ? idolT.value : 0;
+                        else if (cfg.prefabs.Get(sp.id) is Enemy en && en.goldDrop > 0)
+                            goldEnemies += (en.goldDrop / 150 * chunk + Math.Ceiling((en.goldDrop % 150) / 50.0) * nugget) * en.goldChance * (1f - en.heartDropChance);
+                    }
+                    for (int ty = 1; ty < d.Height - 1; ty++)
+                        for (int tx = 1; tx < d.Width - 1; tx++)
+                        {
+                            var tt = d.grid.Get(tx, ty);
+                            if (tt != TileType.GoldVein && tt != TileType.GemVein) continue;
+                            double worth = tt == TileType.GemVein ? gemWorth : nugget * 1.5 + chunk / 3.0;        // a gold vein: 1-2 nuggets, a chunk one time in three
+                            bool open = d.grid.IsEmpty(tx + 1, ty) || d.grid.IsEmpty(tx - 1, ty) || d.grid.IsEmpty(tx, ty + 1) || d.grid.IsEmpty(tx, ty - 1);
+                            if (open) goldVeinsOpen += worth; else goldVeinsBuried += worth;
+                        }
                     if (!string.IsNullOrEmpty(st.area.requiredGear))
                     {
                         if (d.gateCount > 0) { gated++; gates += d.gateCount; gatesByGear[d.gateGear] = (gatesByGear.TryGetValue(d.gateGear, out int gg) ? gg : 0) + d.gateCount; }
@@ -122,6 +144,10 @@ namespace Gloomdelve.EditorTools
             sb.AppendLine($"Shops placed                : {shops} (levels with guaranteed shop: {shopsExpected})");
             sb.AppendLine($"Idol rooms                  : {idols}");
             sb.AppendLine($"Levels with a caged villager: {captives}");
+            sb.AppendLine($"Holes in the path's floors  : {dropsTrue / (float)Math.Max(1, levels):0.0} lead on per level, {dropsFalse / (float)Math.Max(1, levels):0.0} are dead ends");
+            double lv = Math.Max(1, levels);
+            sb.AppendLine($"Gold per level (estimate)   : {goldFloor / lv:0} lying about + {goldEnemies / lv:0} from enemies + {goldVeinsOpen / lv:0} in veins at the surface + {goldIdols / lv:0} idols = {(goldFloor + goldEnemies + goldVeinsOpen + goldIdols) / lv:0}   (and {goldVeinsBuried / lv:0} buried in rock, bombs only)");
+            sb.AppendLine($"Rooms in the grid           : {rooms} of {cells} cells ({100f * rooms / Math.Max(1, cells):0}% - the rest is solid rock)");
             sb.AppendLine($"Levels with mandatory gear  : {gated} / {levels}   gates total {gates}  ({string.Join(", ", gatesByGear.Select(k => k.Key + " " + k.Value))})");
             sb.AppendLine("  (each gated level: exit reachable WITH the gear, NOT reachable without it - checked by the validator)");
             sb.AppendLine($"Final level validator       : {(finalOk ? "OK" : "FAIL " + fd.validation?.reason)}; bot plan {(fplan != null ? fplan.Count + " frames" : "NONE " + fwhy)}");

@@ -132,6 +132,8 @@ MonoBehaviour:
     prefab: {fileID: 3283645544618794572, guid: 8d22bae0dca59a246b9a65c4b99ac1f0, type: 3}
   - id: gem
     prefab: {fileID: 7685839385956542465, guid: 77ef974fded7c694b874f7ba127d3d8f, type: 3}
+  - id: ember
+    prefab: {fileID: 1973770277062394115, guid: 266e71ac6e165b2498145a918abe1b4a, type: 3}
   - id: bombbag
     prefab: {fileID: 7834356725537803413, guid: 75ce697fa053d2e479829287c662ad32, type: 3}
   - id: ropepile

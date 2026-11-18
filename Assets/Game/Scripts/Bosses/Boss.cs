@@ -15,7 +15,8 @@ namespace Gloomdelve
         [Header("Boss")]
         [Tooltip("Largest damage a single hit can do.")] public int maxHitDamage = 3;
         [Tooltip("Damage one bomb blast does to a boss, whatever its size (bombs are for terrain and crowds, not for melting bosses).")] public int blastDamage = 1;
-        [Tooltip("Gold chunks dropped on death.")] public int goldChunks = 4;
+        [Tooltip("Gold chunks dropped on death.")] public int goldChunks = 10;
+        [Tooltip("Embers dropped on death (twice as many in the final level). Embers are the village's money: only bosses have them.")] public int emberDrop = 3;
         [Tooltip("Prefab id dropped on death along with the gold (the max-health item). Empty = nothing.")] public string rewardId = "heartvessel";
 
         [Tooltip("Projectile prefab used by the shots of this boss (venom, embers, feathers, orbs).")] public string bossShotId = "gloomorb";
@@ -220,6 +221,15 @@ namespace Gloomdelve
                     var g = w.SpawnById("gold_big", at);
                     if (g != null) g.vel = new Vector2((i - (goldChunks - 1) * 0.5f) * 2.2f, 6f + i % 2);
                 }
+            if (drops && w != null)
+            {
+                int embers = emberDrop * (dir != null && dir.Stage != null && dir.Stage.kind == LevelKind.Final ? 2 : 1);
+                for (int i = 0; i < embers; i++)
+                {
+                    var e = w.SpawnById("ember", at);
+                    if (e != null) e.vel = new Vector2((i - (embers - 1) * 0.5f) * 1.6f, 8f + i % 2);
+                }
+            }
             if (dir != null) dir.OnBossDefeated(this);
         }
 

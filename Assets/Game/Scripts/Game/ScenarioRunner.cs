@@ -240,6 +240,9 @@ namespace Gloomdelve
             new Scenario { name = "bosses: the yeti king runs in and punches a frozen player, once per freeze", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => YetiPunchCase(c) },
 
+            new Scenario { name = "recall charm: use it to return to where the level began; it needs a rest between uses", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => RecallCase(c) },
+
             new Scenario { name = "villagers: a caged villager is freed with Enter, goes home for good, and helps every later run", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => VillagerCase(c) },
 
@@ -588,7 +591,8 @@ namespace Gloomdelve
             c.Bot(Seq((3, F()), (1, F(down: true, atk: true)), (5, F()), (10, F(x: 1)), (20, F()), (1, F(act: true)), (10, F())));
             yield return c.Frames(55);
             c.Expect(c.dir.Ended, "level ended");
-            c.Expect(c.run.gold == gold0 + 1200, $"idol paid (gold {c.run.gold})");
+            int idolWorth = c.world.config.prefabs.Get("idol") is Treasure idolPrefab ? idolPrefab.value : -1;
+            c.Expect(idolWorth > 0 && c.run.gold == gold0 + idolWorth, $"idol paid what it is worth ({idolWorth}; gold {c.run.gold})");
         }
 
         static RopeProjectile FindRope(Ctx c)
@@ -1246,6 +1250,32 @@ namespace Gloomdelve
             c.Expect(cut.Dead, "the third does");
         }
 
+        static IEnumerator RecallCase(Ctx c)
+        {
+            c.Bot(Seq((6000, F())));
+            c.p.godMode = true;
+            var def = c.dir.config.FindGear("recall");
+            c.Expect(def != null && System.Array.IndexOf(c.dir.config.player.startingGear, "recall") >= 0, "the Recall Charm exists and every run starts with it");
+            var charm = GearRegistry.Get("recall") as RecallGear;
+            c.Expect(charm != null, "it has its behaviour registered");
+            if (charm == null) yield break;
+            charm.MakeReady();
+            var start = c.dir.Level.entrance;
+            c.Teleport(22.5f, 1f);
+            yield return c.Frames(6);
+            charm.Use(c.p, default);
+            yield return new WaitForSecondsRealtime(0.8f);
+            c.Expect(Mathf.Abs(c.p.pos.x - (start.x + 0.5f)) < 0.6f && Mathf.Abs(c.p.pos.y - start.y) < 1.2f,
+                $"using it far from the entrance puts the player back there (at {c.p.pos.x:0.0},{c.p.pos.y:0.0}, entrance {start.x},{start.y})");
+            c.Expect(charm.Wait > 0f, "then it needs a rest");
+            c.Teleport(22.5f, 1f);
+            yield return c.Frames(6);
+            charm.Use(c.p, default);
+            yield return new WaitForSecondsRealtime(0.8f);
+            c.Expect(Mathf.Abs(c.p.pos.x - 22.5f) < 1.5f, "used again too soon it does nothing");
+            charm.MakeReady();
+        }
+
         static IEnumerator VillagerCase(Ctx c)
         {
             c.Bot(Seq((6000, F())));
@@ -1288,22 +1318,33 @@ namespace Gloomdelve
                 c.Expect(ok && areas.Count == 3, $"the cage is in one level of area 2, 3 or 4 - never the first, never a boss room ({areas.Count} different areas over 300 runs)");
             }
 
-            // the elder's Gold Pouch: nothing is kept without it; with it, what fits in the pouch
+            // embers: the money of the village. Only with the elder's pouch, and only as many as it holds
             var run = c.run;
-            int goldBefore = run.gold;
-            run.gold = 900;
-            Villagers.BankGold(run);
-            c.Expect(Villagers.PouchGold == 0, "without the pouch no gold is kept");
+            c.Expect(Villagers.AddEmbers(2) == 0 && Villagers.Embers == 0, "without the elder's pouch an ember cannot be kept");
             var elder = c.Spawn<Elder>("elder", 26, 1);
             yield return c.Frames(3);
             c.Expect(elder != null && elder.GetPrompt(c.p) != null && elder.GetPrompt(c.p).Contains("talk"), "the elder has something to say");
             if (elder != null) elder.Interact(c.p);
-            c.Expect(Villagers.HasKey(Villagers.KeyPouch), "talking to the elder gives the Gold Pouch");
-            Villagers.BankGold(run);
-            c.Expect(Villagers.PouchGold == Villagers.PouchCapacity, $"the pouch keeps what it holds: {Villagers.PouchGold} of 900");
-            var next = new RunState { gold = 0 };
-            Villagers.StartRun(next);
-            c.Expect(next.gold == Villagers.PouchCapacity, "and the next run starts with that gold");
+            c.Expect(Villagers.HasKey(Villagers.KeyPouch), "talking to the elder gives the Ember Pouch");
+            c.Expect(Villagers.PouchCapacity == Villagers.PouchStartCapacity && Villagers.PouchStartCapacity == 5, "it holds 5 embers when he hands it over");
+            int went = Villagers.AddEmbers(8);
+            c.Expect(went == 5 && Villagers.Embers == 5, $"the pouch takes embers until it is full ({went} of 8 went in)");
+            Villagers.ExpandPouch(3);
+            went = Villagers.AddEmbers(8);
+            c.Expect(Villagers.PouchCapacity == 8 && went == 3 && Villagers.Embers == 8, "an errand for the elder makes it hold more");
+            c.Expect(Villagers.SpendEmbers(2) && Villagers.Embers == 6 && !Villagers.SpendEmbers(99) && Villagers.Embers == 6, "embers can be spent, never more than there are");
+            {
+                // an ember on the ground goes to the pouch, not to the run's gold
+                int gold0 = run.gold;
+                c.Teleport(30.5f, 1f);
+                yield return c.Frames(4);
+                var em = c.Spawn<Pickup>("ember", 30, 1);
+                yield return c.Frames(14);
+                if (em != null && !em.Dead) em.Collect(c.p);
+                yield return c.Frames(2);
+                // (a collected pickup is destroyed, so it cannot be asked anything any more: the pouch tells)
+                c.Expect(Villagers.Embers == 7 && run.gold == gold0, $"picking up an ember: pouch 6 -> {Villagers.Embers}, gold {gold0} -> {run.gold}");
+            }
 
             // the buildings: lit with their keeper outside and their wares set out; a ware costs gold and is paid from the pouch
             var home = c.Spawn<VillagerHome>("villagerhome", 12, 1, 2);
@@ -1315,11 +1356,11 @@ namespace Gloomdelve
             c.Expect(ware != null && ware.GetPrompt(c.p) != null && ware.GetPrompt(c.p).Contains("buy"), "a ware in the village is for sale, not free");
             if (ware != null)
             {
-                int hp = run.maxHealth;
-                run.gold = 450;
+                int hp = run.maxHealth, gold0 = run.gold, e0 = Villagers.Embers;
+                int price = Villagers.EmberPrice(c.dir.config.shop.Find("vigor"), Villagers.All[2]);
                 ware.Interact(c.p);
-                c.Expect(run.maxHealth == hp + 1 && run.gold == 50, $"buying the Heart Draught: +1 heart for this run, gold {run.gold}");
-                c.Expect(Villagers.PouchGold == 50, "what was spent is gone from the pouch as well");
+                c.Expect(run.maxHealth == hp + 1 && Villagers.Embers == e0 - price && run.gold == gold0,
+                    $"buying the Heart Draught: +1 heart for this run, {price} embers paid ({e0} -> {Villagers.Embers}), no gold");
                 run.maxHealth = hp; run.health = Mathf.Min(run.health, hp);
             }
             yield return c.Frames(10);
@@ -1366,7 +1407,6 @@ namespace Gloomdelve
             if (home != null) home.Despawn();
             if (darkHome != null) darkHome.Despawn();
             if (elder != null) elder.Despawn();
-            run.gold = goldBefore;
             Villagers.ResetTestState();
             Villagers.testRescued = null;
         }
@@ -1581,6 +1621,7 @@ namespace Gloomdelve
             yield return c.Frames(2);
             // control: the same creature met in a level still pays
             var wild = c.Spawn<Bat>("bat", 18, 4);
+            if (wild != null) wild.goldChance = 1f;         // (a kill does not always pay: here it must, to tell it from a minion)
             yield return c.Frames(2);
             int before = c.Count<Pickup>();
             if (wild != null) for (int i = 0; i < 10 && !wild.Dead; i++) wild.TakeDamage(new DamageInfo(99, DamageType.Whip, c.p, Vector2.zero, "test"));
@@ -2676,6 +2717,7 @@ namespace Gloomdelve
             // same height as the plain long-fall case, but a snake is standing where the player lands
             var snake = c.Spawn<Snake>("snake", 12, 1);
             snake.heartDropChance = 0f;
+            snake.goldChance = 1f;             // (a kill does not always pay: this one must, the test is about collecting it)
             snake.stunTimer = 99f;             // it stays put (a stunned snake does not walk) and is still stompable
             c.Bot(Seq((200, F())));
             yield return c.Frames(2);

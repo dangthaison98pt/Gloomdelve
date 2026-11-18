@@ -86,4 +86,50 @@ namespace Gloomdelve
 
         public override void ApplyToValidator(ref LevelValidator.Options o) => o.glide = true;
     }
+
+    /// <summary>
+    /// The Recall Charm, carried from the start of every run. Use: back to where this level began, through a
+    /// short fade. Levels branch, and some branches are drops with no way up again - the charm is the way out of a
+    /// wrong turn. Never used up, but it needs a few breaths between uses, and it will not carry the Sunstone or
+    /// anything else that takes two hands.
+    /// </summary>
+    public class RecallGear : GearBehaviour
+    {
+        public const float Cooldown = 8f;
+        float readyAt;
+
+        /// <summary>Seconds until it can be used again (0 = ready).</summary>
+        public float Wait => Mathf.Max(0f, readyAt - Time.time);
+        public void MakeReady() { readyAt = 0f; }
+
+        public override void Use(PlayerController p, FrameInput fi)
+        {
+            var dir = GameDirector.Instance;
+            var lvl = dir != null ? dir.Level : null;
+            if (lvl == null || ScreenFade.Busy) return;
+            if (p.held != null && p.held.heavy)
+            {
+                Sfx.Play("error", p.pos);
+                Fx.Text(p.Center + Vector2.up * 0.9f, "TOO HEAVY TO CARRY BACK", new Color(1f, 0.5f, 0.45f), 1.2f);
+                return;
+            }
+            if (Time.time < readyAt)
+            {
+                Sfx.Play("error", p.pos);
+                Fx.Text(p.Center + Vector2.up * 0.9f, $"NOT YET  ({Mathf.CeilToInt(readyAt - Time.time)})", new Color(0.6f, 0.9f, 1f), 0.9f);
+                return;
+            }
+            readyAt = Time.time + Cooldown;
+            var dest = new Vector2(lvl.entrance.x + 0.5f, lvl.entrance.y);
+            Sfx.PlayUI("pickup", 0.9f);
+            Fx.Sparks(p.Center, new Color(0.5f, 0.95f, 1f), 14, 5f);
+            ScreenFade.Through(() =>
+            {
+                if (p == null || p.IsDead) return;
+                VillageInterior.Place(p, dest);
+                if (dir.cameraFollow != null) dir.cameraFollow.SetBounds(new Rect(0, 0, lvl.Width, lvl.Height));
+                Fx.Sparks(dest + Vector2.up * 0.6f, new Color(0.5f, 0.95f, 1f), 14, 5f);
+            });
+        }
+    }
 }

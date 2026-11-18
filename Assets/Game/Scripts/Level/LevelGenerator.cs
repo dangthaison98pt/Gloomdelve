@@ -28,7 +28,7 @@ namespace Gloomdelve
     {
         const int RW = RoomTemplates.W, RH = RoomTemplates.H;
 
-        enum RoomKind { Path, Side, Start, Exit, Shop, Idol, Vault, Gate, Captive }
+        enum RoomKind { Path, Side, Start, Exit, Shop, Idol, Vault, Gate, Captive, Solid }
 
         struct Marker
         {
@@ -95,6 +95,7 @@ namespace Gloomdelve
                 case RoomKind.Idol: return f.HasTag("idol");
                 case RoomKind.Vault: return f.HasTag("vault");
                 case RoomKind.Captive: return f.HasTag("captive");
+                case RoomKind.Solid: return false;
                 case RoomKind.Gate: return f.HasTag("gate_" + gear) && f.types.Contains(type);
                 default: return !f.IsSpecial && f.types.Contains(type);
             }
@@ -216,7 +217,7 @@ namespace Gloomdelve
                 types[cx, cy] = 1; onPath[cx, cy] = true;
                 for (int guard = 0; guard < 500; guard++)
                 {
-                    int roll = rng.Range(1, 6);
+                    int roll = rng.Range(1, 8);
                     int move = roll <= 2 ? -1 : (roll <= 4 ? 1 : 0);
                     if (move != 0)
                     {
@@ -244,11 +245,102 @@ namespace Gloomdelve
             var startRoom = new Vector2Int(sx, startRow);
             var exitRoom = new Vector2Int(cx, cy);
 
+            // ---------------------------------------------------------------- 1b. the shape of the level
+            // Only the path and its branches are rooms; every other cell of the grid is solid rock. That is what
+            // keeps a level from being a box of corridors: it has an outline of its own, different every time.
+            //
+            // Most branches are DROPS: a hole in the floor of a path room that looks exactly like the hole the path
+            // itself goes down by, leading one to three rooms down a shaft that ends in rock. Rooms that lie side by
+            // side are walled off from each other unless the path or a branch really joins them ('joined'), so a
+            // wrong drop does not quietly lead back to the path below: it is a dead end, with whatever the branch
+            // holds, and the way out is the Recall Charm (or a rope, or a bomb through the wall).
+            // So "take the first hole down" no longer finds the exit: on every floor there are about as many false
+            // drops as true ones.
+            var isRoom = new bool[rx, ry];
+            for (int y = 0; y < ry; y++)
+                for (int x = 0; x < rx; x++) isRoom[x, y] = onPath[x, y];
+            var joined = new HashSet<int>();                 // y * 100 + x: the rooms (x,y) and (x+1,y) are open to each other
+            int trueDrops = 0, falseDrops = 0;
+            for (int y = 0; y < ry; y++)
+                for (int x = 0; x < rx; x++)
+                    if (onPath[x, y] && (types[x, y] == 2 || types[x, y] == 4) && !climbIn[x, y]) trueDrops++;
+            {
+                bool Free(int x, int y) => x >= 0 && x < rx && y >= 0 && y < ry && !isRoom[x, y];
+                void Join(int x0, int x1, int y) => joined.Add(y * 100 + Mathf.Min(x0, x1));
+                var from = new List<Vector2Int>();
+                int plain = 0;                                   // plain left-right path rooms: gear gates need some left over
+                for (int y = 0; y < ry; y++)
+                    for (int x = 0; x < rx; x++)
+                    {
+                        if (!onPath[x, y] || (x == startRoom.x && y == startRoom.y) || (x == exitRoom.x && y == exitRoom.y)) continue;
+                        from.Add(new Vector2Int(x, y));
+                        if (types[x, y] == 1 && !climbOut[x, y] && !climbIn[x, y]) plain++;
+                    }
+                int want = Mathf.Clamp(Mathf.RoundToInt(rx * ry * area.branchDensity), 0, 20);
+                int keepPlain = needsGateRoom ? 4 : 0;
+                for (int tries = 0, made = 0; tries < 600 && made < want && from.Count > 0; tries++)
+                {
+                    var c = from[rng.Range(0, from.Count)];
+                    Vector2Int n;
+                    if (rng.Chance(0.72f))
+                    {
+                        // a false drop: through the floor of a path room that has a solid floor so far
+                        int t0 = types[c.x, c.y];
+                        if ((t0 != 1 && t0 != 3) || climbOut[c.x, c.y] || climbIn[c.x, c.y] || !Free(c.x, c.y + 1)) continue;
+                        if (t0 == 1) { if (plain <= keepPlain) continue; plain--; }
+                        types[c.x, c.y] = t0 == 1 ? 2 : 4;
+                        falseDrops++;
+                        n = new Vector2Int(c.x, c.y + 1);
+                        types[n.x, n.y] = 3;
+                        isRoom[n.x, n.y] = true;
+                        // the shaft may go on down, and may end in a room to one side
+                        for (int depth = 1; depth < 3 && rng.Chance(0.55f) && Free(n.x, n.y + 1); depth++)
+                        {
+                            types[n.x, n.y] = 4;
+                            n = new Vector2Int(n.x, n.y + 1);
+                            types[n.x, n.y] = 3;
+                            isRoom[n.x, n.y] = true;
+                        }
+                        if (rng.Chance(0.5f))
+                        {
+                            int dir = rng.Chance(0.5f) ? 1 : -1;
+                            if (!Free(n.x + dir, n.y)) dir = -dir;
+                            if (Free(n.x + dir, n.y))
+                            {
+                                Join(n.x, n.x + dir, n.y);
+                                n = new Vector2Int(n.x + dir, n.y);
+                                types[n.x, n.y] = 0;
+                                isRoom[n.x, n.y] = true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // a side passage: one or two rooms off to one side
+                        int dir = rng.Chance(0.5f) ? 1 : -1;
+                        if (!Free(c.x + dir, c.y)) dir = -dir;
+                        if (!Free(c.x + dir, c.y)) continue;
+                        Join(c.x, c.x + dir, c.y);
+                        n = new Vector2Int(c.x + dir, c.y);
+                        types[n.x, n.y] = 0;
+                        isRoom[n.x, n.y] = true;
+                        if (rng.Chance(0.4f) && Free(n.x + dir, n.y))
+                        {
+                            Join(n.x, n.x + dir, n.y);
+                            n = new Vector2Int(n.x + dir, n.y);
+                            types[n.x, n.y] = 0;
+                            isRoom[n.x, n.y] = true;
+                        }
+                    }
+                    made++;
+                }
+            }
+
             // ---------------------------------------------------------------- 2. special rooms
             var kinds = new RoomKind[rx, ry];
             for (int y = 0; y < ry; y++)
                 for (int x = 0; x < rx; x++)
-                    kinds[x, y] = onPath[x, y] ? RoomKind.Path : RoomKind.Side;
+                    kinds[x, y] = onPath[x, y] ? RoomKind.Path : isRoom[x, y] ? RoomKind.Side : RoomKind.Solid;
             kinds[startRoom.x, startRoom.y] = RoomKind.Start;
             kinds[exitRoom.x, exitRoom.y] = RoomKind.Exit;
 
@@ -291,6 +383,7 @@ namespace Gloomdelve
                 {
                     var c = rng.Pick(cand);
                     kinds[c.room.x, c.room.y] = RoomKind.Shop;
+                    joined.Add(c.room.y * 100 + Mathf.Min(c.room.x, c.room.x + c.dir));       // the shop opens onto the path room beside it
                     mirror[c.room.x, c.room.y] = c.dir < 0;   // shop templates open to the right
                 }
             }
@@ -342,6 +435,7 @@ namespace Gloomdelve
                         case RoomKind.Idol: t = RoomTemplates.Pick(all, rng, tt => tt.HasTag("idol") && tt.ForArea(areaNo)); break;
                         case RoomKind.Vault: t = RoomTemplates.Pick(all, rng, tt => tt.HasTag("vault") && tt.ForArea(areaNo)); break;
                         case RoomKind.Captive: t = RoomTemplates.Pick(all, rng, tt => tt.HasTag("captive") && tt.ForArea(areaNo) && RowOk(tt)) ?? RoomTemplates.Pick(all, rng, tt => tt.HasTag("captive") && tt.ForArea(areaNo)); break;
+                        case RoomKind.Solid: t = RoomTemplates.Pick(all, rng, tt => tt.HasTag("solid")); break;
                         case RoomKind.Gate: t = RoomTemplates.Pick(all, rng, tt => tt.HasTag("gate_" + gear) && tt.types.Contains(type) && RowOk(tt)); break;
                     }
                     if (t == null)
@@ -367,7 +461,9 @@ namespace Gloomdelve
             var data = new LevelData
             {
                 name = req.name, kind = LevelKind.Area, seed = req.seed, grid = g, grip = area.groundGrip,
-                roomTypes = types, roomTemplates = new string[rx, ry]
+                roomTypes = types, roomTemplates = new string[rx, ry],
+                roomRects = new RectInt[rx, ry], roomSolid = new bool[rx, ry],
+                trueDrops = trueDrops, falseDrops = falseDrops
             };
             var roomRects = new Dictionary<Vector2Int, RectInt>();
             for (int ryi = 0; ryi < ry; ryi++)
@@ -378,6 +474,8 @@ namespace Gloomdelve
                     int ox = 1 + rxi * RW;
                     int oyTop = roomTop - ryi * RH;
                     roomRects[new Vector2Int(rxi, ryi)] = new RectInt(ox, oyTop - RH + 1, RW, RH);
+                    data.roomRects[rxi, ryi] = roomRects[new Vector2Int(rxi, ryi)];
+                    data.roomSolid[rxi, ryi] = kinds[rxi, ryi] == RoomKind.Solid;
                     if (t == req.forceTemplate) data.forcedRooms.Add(roomRects[new Vector2Int(rxi, ryi)]);
                     for (int r = 0; r < RH; r++)
                         for (int c = 0; c < RW; c++)
@@ -404,6 +502,26 @@ namespace Gloomdelve
                         }
                     if (kinds[rxi, ryi] == RoomKind.Shop) { data.shopRects.Add(roomRects[new Vector2Int(rxi, ryi)]); data.hasShop = true; }
                 }
+
+            // Walls between rooms that lie side by side without being joined (see 1b): two cells of earth from floor
+            // to ceiling. Earth, not bedrock - a bomb still gets through.
+            {
+                var walled = new HashSet<Vector2Int>();
+                for (int ryi = 0; ryi < ry; ryi++)
+                    for (int rxi = 0; rxi + 1 < rx; rxi++)
+                    {
+                        if (!isRoom[rxi, ryi] || !isRoom[rxi + 1, ryi]) continue;
+                        if ((onPath[rxi, ryi] && onPath[rxi + 1, ryi]) || joined.Contains(ryi * 100 + rxi)) continue;
+                        var left = roomRects[new Vector2Int(rxi, ryi)];
+                        for (int gy = left.yMin; gy < left.yMax; gy++)
+                            for (int gx = left.xMax - 1; gx <= left.xMax; gx++)
+                            {
+                                if (g.Get(gx, gy) != TileType.Bedrock) g.SetRaw(gx, gy, TileType.Dirt);
+                                walled.Add(new Vector2Int(gx, gy));
+                            }
+                    }
+                if (walled.Count > 0) markers.RemoveAll(m => walled.Contains(m.cell));
+            }
 
             // Outdoor: the side border above the terrain is removed (out of bounds still blocks), so no stone
             // pillars stick up into the sky at the map edges.

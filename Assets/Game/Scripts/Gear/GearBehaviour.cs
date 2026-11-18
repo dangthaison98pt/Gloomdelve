@@ -44,6 +44,7 @@ namespace Gloomdelve
             Register("bomb", new BombGear());
             Register("rope", new RopeGear());
             Register("glider", new GliderGear());
+            Register("recall", new RecallGear());
             // New gear: add a Register line here.
         }
 

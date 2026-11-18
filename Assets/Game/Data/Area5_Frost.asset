@@ -17,8 +17,8 @@ MonoBehaviour:
   tiles: {fileID: 11400000, guid: dac3bdeaadfac5f42aea5520c93c1842, type: 2}
   musicId: area4
   cameraBackground: {r: 0.05, g: 0.08, b: 0.14, a: 1}
-  roomsX: 10
-  roomsY: 4
+  roomsX: 11
+  roomsY: 5
   outdoor: 0
   skyRows: 7
   treeChance: 0.25
@@ -28,7 +28,8 @@ MonoBehaviour:
   pathStartBottom: 0
   pathAcross: 1
   skyTint: {r: 1, g: 1, b: 1, a: 1}
-  layoutVersion: 2
+  branchDensity: 0.24
+  layoutVersion: 4
   groundGrip: 0.3
   groundEnemies:
   - id: penguin
@@ -58,8 +59,8 @@ MonoBehaviour:
   itemChance: 0.5
   treasureChancePath: 0.35
   treasureChanceSide: 0.7
-  goldVeinChance: 0.035
-  gemVeinChance: 0.014
+  goldVeinChance: 0.015
+  gemVeinChance: 0.003
   idolRoomChance: 0.35
   vaultRoomChance: 0.3
   spikes: 1

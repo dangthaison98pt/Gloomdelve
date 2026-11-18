@@ -50,7 +50,7 @@ namespace Gloomdelve
                 var cell = new Vector2Int(cx + 2 + i, cy);
                 var item = World.Spawn(prefab, new Vector2(cell.x + 0.5f, cell.y), new SpawnPoint("shopitem", cell, 0, i, wares[i].id)) as ShopItem;
                 if (item == null) continue;
-                item.SetVillageWare(Mathf.Max(1, Mathf.RoundToInt(wares[i].price * who.priceFactor / 10f) * 10));
+                item.SetVillageWare(Villagers.EmberPrice(wares[i], who));
                 WareCount++;
             }
         }

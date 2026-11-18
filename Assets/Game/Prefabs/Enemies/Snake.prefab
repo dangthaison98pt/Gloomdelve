@@ -56,6 +56,7 @@ MonoBehaviour:
   knockbackScale: 1
   bloodColor: {r: 0.3, g: 0.6, b: 0.2, a: 1}
   goldDrop: 50
+  goldChance: 0.8
   heartDropChance: 0.05
   speed: 1.4
   biteRange: 1.15

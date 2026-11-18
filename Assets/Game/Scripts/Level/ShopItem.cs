@@ -20,7 +20,7 @@ namespace Gloomdelve
         bool Free => !villageWare && (keeper == null || keeper.Dead || keeper.angry);
         int Price => priceOverride > 0 ? priceOverride : offer.price;
 
-        /// <summary>A ware set out by a villager in Brindlemoor: never free, sold at this price, paid from the gold the player carries.</summary>
+        /// <summary>A ware set out by a villager in Brindlemoor: never free, and the price is in embers, not gold.</summary>
         public void SetVillageWare(int price)
         {
             villageWare = true;
@@ -98,6 +98,7 @@ namespace Gloomdelve
             if (priceTag == null || offer == null) return;
             shownFree = Free;
             if (Free) priceTag.Set("FREE", new Color(1f, 0.4f, 0.4f));
+            else if (villageWare) priceTag.Set(Price + " EMBER", new Color(1f, 0.6f, 0.3f));
             else priceTag.Set("$" + Price, new Color(1f, 0.85f, 0.35f));
         }
 
@@ -120,7 +121,7 @@ namespace Gloomdelve
         {
             if (offer == null) return null;
             string d = string.IsNullOrEmpty(offer.description) ? "" : "  -  " + offer.description;
-            return Free ? $"[enter] / [up]  take {offer.displayName} (free!){d}" : $"[enter] / [up]  buy {offer.displayName} for ${Price}{d}";
+            return Free ? $"[enter] / [up]  take {offer.displayName} (free!){d}" : (villageWare ? $"[enter] / [up]  buy {offer.displayName} for {Price} ember{(Price == 1 ? "" : "s")}{d}" : $"[enter] / [up]  buy {offer.displayName} for ${Price}{d}");
         }
 
         public void Interact(PlayerController p)
@@ -136,14 +137,25 @@ namespace Gloomdelve
             }
             if (!Free)
             {
-                if (run.gold < Price)
+                if (villageWare)
                 {
-                    Sfx.Play("error", pos);
-                    Fx.Text(Center + Vector2.up * 0.8f, "NOT ENOUGH GOLD", new Color(1f, 0.4f, 0.4f));
-                    return;
+                    if (!Villagers.SpendEmbers(Price))
+                    {
+                        Sfx.Play("error", pos);
+                        Fx.Text(Center + Vector2.up * 0.8f, "NOT ENOUGH EMBERS", new Color(1f, 0.4f, 0.4f));
+                        return;
+                    }
                 }
-                run.gold -= Price;
-                if (villageWare) Villagers.BankGold(run);       // spent gold is gone from the pouch too
+                else
+                {
+                    if (run.gold < Price)
+                    {
+                        Sfx.Play("error", pos);
+                        Fx.Text(Center + Vector2.up * 0.8f, "NOT ENOUGH GOLD", new Color(1f, 0.4f, 0.4f));
+                        return;
+                    }
+                    run.gold -= Price;
+                }
             }
             Apply(run, offer);
             run.purchases.Add(offer.id);

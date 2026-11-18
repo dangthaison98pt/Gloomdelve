@@ -20,6 +20,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 71cc6d1f52344b1478385f8e19f7a975, type: 2}
   - {fileID: 11400000, guid: b232816b939dde441a8e4f27e5bc425d, type: 2}
   - {fileID: 11400000, guid: e63b793cb7592764eb64be88c3c82ff3, type: 2}
+  - {fileID: 11400000, guid: 3508438c56f1d724ca74e67a4e536478, type: 2}
   stages:
   - displayName: 1-1
     kind: 0
@@ -231,4 +232,5 @@ MonoBehaviour:
   enemySafeRadius: 6
   cameraOrthoSize: 6.75
   collapseInterval: 0.9
-  heartstoneBonusGold: 5000
+  heartstoneBonusGold: 2000
+  economyVersion: 4

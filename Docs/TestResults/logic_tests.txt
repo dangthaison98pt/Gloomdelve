@@ -23,14 +23,14 @@ PASS  new run does not keep the previous run's state
 PASS  shop effects apply  jump +0.17 whip +1/+0.45 blast +0.9
 PASS  an upgrade applies its modifiers only once  
 PASS  custom resources are counted  
-PASS  every equipment asset has a behaviour  bomb,rope,glider
-PASS  room templates cover every room type (121 templates)  
+PASS  every equipment asset has a behaviour  bomb,rope,glider,recall
+PASS  room templates cover every room type (124 templates)  
 PASS  room template file survives parse -> save unchanged  
 PASS  room rule checks: shipped templates have no errors  0 errors, 18 warnings  
 PASS  room rule checks catch a drop room without a hole  
 PASS  room rule checks catch an unknown symbol  
-PASS  forced template is placed in generated levels  10 rooms in 6 levels, 6 valid
-PASS  custom marker spawns its prefab  10 rocks in 10 forced rooms
+PASS  forced template is placed in generated levels  6 rooms in 6 levels, 6 valid
+PASS  custom marker spawns its prefab  6 rocks in 6 forced rooms
 PASS  same seed -> identical level  
 
 34 passed, 0 failed

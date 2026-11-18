@@ -58,5 +58,6 @@ namespace Gloomdelve
         [Header("Final level")]
         public float collapseInterval = 0.9f;
         public int heartstoneBonusGold = 5000;
+        [HideInInspector] public int economyVersion = 0;
     }
 }

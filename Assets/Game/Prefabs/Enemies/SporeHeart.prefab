@@ -57,10 +57,12 @@ MonoBehaviour:
   knockbackScale: 1
   bloodColor: {r: 0.62, g: 1, b: 0.5, a: 1}
   goldDrop: 0
+  goldChance: 0.8
   heartDropChance: 0
   maxHitDamage: 3
   blastDamage: 1
-  goldChunks: 4
+  goldChunks: 10
+  emberDrop: 3
   rewardId: heartvessel
   bossShotId: gloomorb
   freeStomps: 2

@@ -139,7 +139,7 @@ namespace Gloomdelve
             {
                 int n = 1 + fxRandom.Next(2);
                 for (int i = 0; i < n; i++) SpawnLoot("gold_small", center);
-                if (fxRandom.Next(4) == 0) SpawnLoot("gold_big", center);
+                if (fxRandom.Next(3) == 0) SpawnLoot("gold_big", center);       // a vein is rare now: it pays a little better than a lone nugget
             }
             else if (t == TileType.GemVein) SpawnLoot("gem", center);
 

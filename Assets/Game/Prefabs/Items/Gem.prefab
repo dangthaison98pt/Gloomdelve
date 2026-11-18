@@ -144,7 +144,7 @@ MonoBehaviour:
   flipWithFacing: 0
   artFacesLeft: 0
   resource: gold
-  value: 300
+  value: 100
   label: 
   sfx: gem
   textColor: {r: 0.5, g: 1, b: 0.7, a: 1}

@@ -162,6 +162,7 @@ MonoBehaviour:
   knockbackScale: 1.6
   bloodColor: {r: 0.55, g: 0.1, b: 0.12, a: 1}
   goldDrop: 150
+  goldChance: 0.8
   heartDropChance: 0.05
   patrolSpeed: 1.2
   chargeSpeed: 7.5

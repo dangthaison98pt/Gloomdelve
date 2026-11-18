@@ -31,6 +31,34 @@ namespace Gloomdelve.EditorTools
             }
             StreetArt(d);
             for (int f = 0; f < 4; f++) Save(FlameFrame(f), d + "fire_" + f, new Vector2(0.5f, 0f));
+            foreach (bool icon in new[] { false, true })
+            {
+                // an ember of the Sunstone: a shard that still burns (the pickup, and its picture on the HUD)
+                int S = icon ? 16 : 12, o = icon ? 2 : 0;
+                var p = new Px(S, S);
+                Color32 hot = C(255, 244, 200), mid = C(255, 176, 70), rim = C(226, 96, 40), dark = C(120, 40, 30);
+                int[] half = { 1, 2, 3, 4, 4, 5, 5, 4, 3, 2, 2, 1 };
+                for (int y = 0; y < 12; y++)
+                {
+                    int h = half[y], cx = 6 + (y > 7 ? 1 : 0);
+                    p.Rect(o + cx - h, o + y, h * 2, 1, rim);
+                    if (h > 1) p.Rect(o + cx - h + 1, o + y, h * 2 - 2, 1, mid);
+                    if (h > 3) p.Rect(o + cx - 1, o + y, 2, 1, hot);
+                    p.Set(o + cx - h, o + y, dark);
+                }
+                p.Set(o + 6, o + 5, C(255, 255, 240));
+                Save(p, icon ? "UI/icon_ember" : "Sprites/Items/ember", PCenter);
+            }
+            {
+                // the Recall Charm: a small stone on a cord with a spiral cut into it that glows
+                var p = new Px(16, 16);
+                Color32 cord = C(150, 110, 70), st = C(110, 112, 128), stD = C(74, 76, 94), stL = C(150, 152, 170), rune = C(130, 240, 255), runeL = C(220, 252, 255);
+                p.Rect(4, 13, 8, 1, cord); p.Rect(3, 11, 1, 2, cord); p.Rect(12, 11, 1, 2, cord); p.Rect(7, 14, 2, 1, cord);
+                p.Rect(4, 1, 8, 10, st); p.Rect(3, 3, 10, 6, st); p.Rect(4, 1, 8, 1, stD); p.Rect(11, 3, 2, 6, stD); p.Rect(4, 9, 3, 1, stL); p.Rect(3, 5, 1, 3, stL);
+                p.Rect(5, 8, 6, 1, rune); p.Rect(5, 4, 1, 4, rune); p.Rect(5, 3, 5, 1, rune); p.Rect(10, 4, 1, 3, rune); p.Rect(7, 6, 3, 1, rune);
+                p.Set(7, 6, runeL); p.Set(5, 8, runeL);
+                Save(p, "UI/icon_recall", PCenter);
+            }
             {
                 // the moon over Brindlemoor: a crescent, the rest of the disc only just showing, a thin halo round it
                 var p = new Px(48, 48);

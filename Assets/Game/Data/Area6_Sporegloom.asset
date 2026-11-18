@@ -17,8 +17,8 @@ MonoBehaviour:
   tiles: {fileID: 11400000, guid: eddd5899e4b73a7489596b7f126c4394, type: 2}
   musicId: area1
   cameraBackground: {r: 0.03, g: 0.025, b: 0.055, a: 1}
-  roomsX: 5
-  roomsY: 7
+  roomsX: 6
+  roomsY: 9
   outdoor: 0
   skyRows: 7
   treeChance: 0.25
@@ -28,7 +28,8 @@ MonoBehaviour:
   pathStartBottom: 0
   pathAcross: 0
   skyTint: {r: 1, g: 1, b: 1, a: 1}
-  layoutVersion: 2
+  branchDensity: 0.24
+  layoutVersion: 4
   groundGrip: 1
   groundEnemies:
   - id: puffshroom
@@ -60,8 +61,8 @@ MonoBehaviour:
   itemChance: 0.5
   treasureChancePath: 0.35
   treasureChanceSide: 0.7
-  goldVeinChance: 0.035
-  gemVeinChance: 0.012
+  goldVeinChance: 0.015
+  gemVeinChance: 0.003
   idolRoomChance: 0.35
   vaultRoomChance: 0.3
   spikes: 1

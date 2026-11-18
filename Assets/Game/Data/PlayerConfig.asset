@@ -33,18 +33,22 @@ MonoBehaviour:
     ledgeGrabReach: 0.38
     pullUpTime: 0.22
     ladderJumpSideFactor: 0.6
+    glideFallSpeed: 1.9
+    glideAirAccel: 20
   startHealth: 10
   startBombs: 4
   startRopes: 4
   startGold: 0
+  startingGear:
+  - bomb
+  - rope
+  - recall
   whipDuration: 0.3
   whipCooldown: 0.1
   whipBackEnd: 0.08
   whipFrontEnd: 0.2
   whipFrontSize: {x: 1.25, y: 0.6}
   whipDamage: 1
-  ironWhipDamage: 2
-  ironWhipRangeBonus: 0.45
   throwVelocity: {x: 11, y: 4}
   throwUpVelocity: {x: 2, y: 14}
   bombThrowVelocity: {x: 9, y: 6.5}
@@ -53,14 +57,15 @@ MonoBehaviour:
   stompBounce: 9
   stompBounceHeld: 13.5
   invulnTime: 1.2
+  spikeDamage: 2
+  spikeBounce: 10
   hurtStunTime: 0.45
   hurtKnockback: {x: 5, y: 7}
   fallDamageHeight: 9
   fallDamage: 2
   fallStunTime: 1
-  springBootsJumpMult: 1.17
-  blastPowderRadiusBonus: 0.9
   ropeThrowHeight: 7
   ropeLength: 8
+  ropeLifetime: 20
   lookDelay: 0.45
   lookDistance: 4.5

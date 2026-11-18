@@ -32,7 +32,7 @@ namespace Gloomdelve
             get
             {
                 foreach (var t in tags)
-                    if (t == "start" || t == "exit" || t == "shop" || t == "idol" || t == "vault" || t == "captive" || t.StartsWith("gate_") || t.StartsWith("up_")) return true;
+                    if (t == "start" || t == "exit" || t == "shop" || t == "idol" || t == "vault" || t == "captive" || t == "solid" || t.StartsWith("gate_") || t.StartsWith("up_")) return true;
                 return false;
             }
         }

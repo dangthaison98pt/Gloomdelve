@@ -162,6 +162,7 @@ MonoBehaviour:
   knockbackScale: 1
   bloodColor: {r: 0.85, g: 0.9, b: 0.75, a: 1}
   goldDrop: 0
+  goldChance: 0.8
   heartDropChance: 0
   hatchTime: 4.5
   hatchId: spider

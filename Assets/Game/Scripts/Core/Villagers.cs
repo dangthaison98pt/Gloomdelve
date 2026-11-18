@@ -23,14 +23,38 @@ namespace Gloomdelve
     ///    third or fourth area. Freed villagers are home for good; each keeps their own kind of shop outside
     ///    their house in the village, where the player buys things for the coming run.
     ///  - Key items: the few things that are not lost when a run ends (kept in the save file). The first one is
-    ///    the Gold Pouch the village elder gives: gold carried in it (up to PouchCapacity) is still there the
-    ///    next time the player wakes up, to spend in the village.
-    /// Everything else - bombs, ropes, equipment, loose gold - is gone when a run ends.
+    ///    the Ember Pouch the village elder gives.
+    ///  - Two kinds of money. GOLD is found all over the mountain and spent in the shops up there; it is gone when
+    ///    the run ends. EMBERS drop only from bosses; they go straight into the pouch (as many as it holds: five at
+    ///    first, more as the elder's errands are done), are never lost, and are what the villagers take for their
+    ///    wares. So nothing can be earned for the village by walking into the first level and dying.
     /// </summary>
     public static class Villagers
     {
         public const string KeyPouch = "pouch";
-        public const int PouchCapacity = 500;
+        /// <summary>How many embers the pouch holds when the elder first hands it over. His errands make it larger (ExpandPouch).</summary>
+        public const int PouchStartCapacity = 5;
+
+        /// <summary>How many embers the pouch holds now.</summary>
+        public static int PouchCapacity
+        {
+            get
+            {
+                if (TestState) return testCapacity;
+                int c = Testing ? 0 : SaveSystem.Records.pouchCapacity;
+                return c > 0 ? c : PouchStartCapacity;
+            }
+        }
+
+        /// <summary>Makes the pouch hold more, for good (a reward for the elder's errands).</summary>
+        public static void ExpandPouch(int extra)
+        {
+            if (extra <= 0 || !HasKey(KeyPouch)) return;
+            if (TestState) { testCapacity += extra; return; }
+            if (Testing) return;
+            SaveSystem.Records.pouchCapacity = PouchCapacity + extra;
+            SaveSystem.SaveRecords();
+        }
 
         public static readonly VillagerDef[] All =
         {
@@ -59,7 +83,7 @@ namespace Gloomdelve
         /// <summary>Tests: when set, this is who has been rescued (the save file is left alone and nothing is written).</summary>
         public static HashSet<string> testRescued;
         static readonly HashSet<string> testKeys = new HashSet<string>();
-        static int testPouch;
+        static int testPouch, testCapacity = PouchStartCapacity;
 
         static bool Testing => ScenarioRunner.Active || AutoTest.Active;
         static bool TestState => testRescued != null;
@@ -67,7 +91,7 @@ namespace Gloomdelve
         /// <summary>The village and what is kept between runs belong to real runs only; automated runs keep the plain game.</summary>
         public static bool Enabled => !Testing || TestState;
 
-        public static void ResetTestState() { testKeys.Clear(); testPouch = 0; }
+        public static void ResetTestState() { testKeys.Clear(); testPouch = 0; testCapacity = PouchStartCapacity; }
 
         // ------------------------------------------------------------------ rescued villagers
 
@@ -138,33 +162,49 @@ namespace Gloomdelve
             SaveSystem.SaveRecords();
         }
 
-        /// <summary>Gold waiting in the pouch (0 without the pouch).</summary>
-        public static int PouchGold
+        /// <summary>Embers in the pouch (0 without the pouch).</summary>
+        public static int Embers
         {
             get
             {
                 if (!HasKey(KeyPouch)) return 0;
-                return TestState ? testPouch : SaveSystem.Records.pouchGold;
+                return Mathf.Clamp(TestState ? testPouch : (Testing ? 0 : SaveSystem.Records.embers), 0, PouchCapacity);
             }
         }
 
-        /// <summary>Puts the gold the run is carrying into the pouch, as much as it holds. Called when a run ends and
-        /// after every purchase in the village. Does nothing without the pouch.</summary>
-        public static void BankGold(RunState run)
+        /// <summary>Puts embers in the pouch and saves at once: they are the player's whatever happens next.
+        /// Returns how many went in (none without the pouch, and no more than it has room for).</summary>
+        public static int AddEmbers(int n)
         {
-            if (run == null || !Enabled || !HasKey(KeyPouch)) return;
-            int keep = Mathf.Clamp(run.gold, 0, PouchCapacity);
-            if (TestState) { testPouch = keep; return; }
-            if (SaveSystem.Records.pouchGold == keep) return;
-            SaveSystem.Records.pouchGold = keep;
+            if (n <= 0 || !Enabled || !HasKey(KeyPouch)) return 0;
+            int have = Embers, got = Mathf.Min(n, PouchCapacity - have);
+            if (got <= 0) return 0;
+            if (TestState) { testPouch = have + got; return got; }
+            SaveSystem.Records.embers = have + got;
             SaveSystem.SaveRecords();
+            return got;
         }
 
-        /// <summary>The start of a run: everything is as new, except the gold that was in the pouch.</summary>
-        public static void StartRun(RunState run)
+        /// <summary>Pays embers; false (and nothing taken) when there are not enough.</summary>
+        public static bool SpendEmbers(int n)
         {
-            if (run == null || !Enabled) return;
-            if (HasKey(KeyPouch)) run.gold = PouchGold;
+            if (n <= 0) return true;
+            int have = Embers;
+            if (!Enabled || have < n) return false;
+            if (TestState) { testPouch = have - n; return true; }
+            SaveSystem.Records.embers = have - n;
+            SaveSystem.SaveRecords();
+            return true;
+        }
+
+        /// <summary>What a villager asks for a ware, in embers: about one for every 250 gold it would cost on the
+        /// mountain, one less at the Peddler's (never under one).</summary>
+        public static int EmberPrice(ShopOffer o, VillagerDef v)
+        {
+            if (o == null) return 1;
+            int e = Mathf.RoundToInt(o.price / 250f);
+            if (v != null && v.priceFactor < 1f) e--;
+            return Mathf.Max(1, e);
         }
 
         /// <summary>The offers a villager has out today. "?" wares are pieces of equipment drawn by the run seed.</summary>

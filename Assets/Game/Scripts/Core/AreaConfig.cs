@@ -32,6 +32,8 @@ namespace Gloomdelve
         public bool pathAcross = false;
         [Tooltip("Outdoor areas: colour laid over the whole sky backdrop (white = the daytime sky as drawn; a dark blue makes it night).")]
         public Color skyTint = Color.white;
+        [Tooltip("Branches off the main path, as a share of all cells of the room grid (0.17 = about one branch per six cells). Cells that are neither path nor branch are solid rock, which is what gives a level its shape.")]
+        [Range(0, 0.4f)] public float branchDensity = 0.17f;
         [HideInInspector] public int layoutVersion = 0;
 
         [Header("Footing")]

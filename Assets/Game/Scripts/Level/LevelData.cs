@@ -35,6 +35,12 @@ namespace Gloomdelve
         public readonly List<string> signs = new List<string>();
         public int[,] roomTypes;                 // procedural levels only
         public string[,] roomTemplates;
+        /// <summary>Where each room of the grid lies in the level [column, row] (procedural levels only).</summary>
+        public RectInt[,] roomRects;
+        /// <summary>Cells of the grid that are solid rock, not rooms.</summary>
+        public bool[,] roomSolid;
+        /// <summary>Holes in the floor of path rooms: the ones the path really goes down by, and the ones that lead to a dead end.</summary>
+        public int trueDrops, falseDrops;
         public bool hasShop;
         public bool hasIdol;
 
