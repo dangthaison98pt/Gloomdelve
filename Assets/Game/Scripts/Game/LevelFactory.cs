@@ -28,7 +28,8 @@ namespace Gloomdelve
             var req = new GenRequest
             {
                 seed = LevelSeed(runSeed, stageIndex), area = stage.area, levelNumber = stage.levelNumber, name = stage.displayName, config = cfg,
-                templates = RoomTemplates.Parse(cfg.roomTemplates.text)
+                templates = RoomTemplates.Parse(cfg.roomTemplates.text),
+                captive = Villagers.CaptiveStage(runSeed) == stageIndex
             };
             aheadKey = key;
             ahead = System.Threading.Tasks.Task.Run(() => LevelGenerator.Generate(req));
@@ -49,7 +50,8 @@ namespace Gloomdelve
                 var req = new GenRequest
                 {
                     seed = seed, area = stage.area, levelNumber = stage.levelNumber, name = stage.displayName, config = cfg,
-                    templates = RoomTemplates.Parse(cfg.roomTemplates.text)
+                    templates = RoomTemplates.Parse(cfg.roomTemplates.text),
+                    captive = Villagers.CaptiveStage(runSeed) == stageIndex
                 };
                 if (EditorPlaytest.Active && !string.IsNullOrEmpty(EditorPlaytest.RoomName))
                     req.forceTemplate = req.templates.Find(t => t.name == EditorPlaytest.RoomName);
@@ -58,6 +60,7 @@ namespace Gloomdelve
             var d = HandcraftedLevel.Parse(stage.handcrafted.text, stage.displayName, stage.kind, seed, cfg.customMarkers);
             if (stage.kind == LevelKind.Final)
                 d.validation = LevelValidator.Validate(d, LevelValidator.DefaultOptions(cfg.player));
+            if (stage == cfg.village) return d;       // the village sets out its own wares (VillagerHome)
             if (stage.kind == LevelKind.Boss || stage.kind == LevelKind.Rest)
             {
                 if (stage.area != null) d.grip = stage.area.groundGrip;   // an ice boss is fought on ice

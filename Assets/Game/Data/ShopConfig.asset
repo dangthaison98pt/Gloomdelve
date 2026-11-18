@@ -273,5 +273,45 @@ MonoBehaviour:
       shieldPierce: 1
     icon: {fileID: 21300000, guid: b550b21fb08ea5244b4becf24b7dc124, type: 3}
     description: 'pulls shields aside: your blade cuts through a sentry''s guard'
+  - id: vigor
+    displayName: Heart Draught
+    price: 400
+    resource: vigor
+    amount: 1
+    isUpgrade: 0
+    slot: 
+    modifiers:
+      jumpBonus: 0
+      whipDamageBonus: 0
+      whipRangeBonus: 0
+      blastRadiusBonus: 0
+      iceGrip: 0
+      coldResist: 0
+      sporeResist: 0
+      lightBonus: 0
+      beltGrip: 0
+      shieldPierce: 0
+    icon: {fileID: 21300000, guid: 224db3d531f0f1349a712722ab21b76e, type: 3}
+    description: +1 heart until you sleep
+  - id: lampoil
+    displayName: Lamp Oil
+    price: 200
+    resource: lampoil
+    amount: 120
+    isUpgrade: 0
+    slot: 
+    modifiers:
+      jumpBonus: 0
+      whipDamageBonus: 0
+      whipRangeBonus: 0
+      blastRadiusBonus: 0
+      iceGrip: 0
+      coldResist: 0
+      sporeResist: 0
+      lightBonus: 0
+      beltGrip: 0
+      shieldPierce: 0
+    icon: {fileID: 21300000, guid: ad0e3be8950c79540b1308dbbb2486e7, type: 3}
+    description: the Reaper comes 2 minutes later
   shopkeeperHealth: 6
   warningsBeforeAngry: 2

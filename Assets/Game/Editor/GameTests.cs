@@ -58,7 +58,7 @@ namespace Gloomdelve.EditorTools
             sb.AppendLine($"Gloomdelve seed sweep  {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
             sb.AppendLine($"seeds {firstSeed}..{firstSeed + seeds - 1}, stages per seed: {cfg.stages.Count(s => s.kind == LevelKind.Area)} procedural + final");
             sb.AppendLine();
-            int levels = 0, fails = 0, retries = 0, maxAttempts = 0, safetyIssues = 0, shops = 0, shopsExpected = 0, idols = 0, gated = 0, gates = 0;
+            int levels = 0, fails = 0, retries = 0, maxAttempts = 0, safetyIssues = 0, shops = 0, shopsExpected = 0, idols = 0, gated = 0, gates = 0, captives = 0;
             var gatesByGear = new Dictionary<string, int>();
             double ms = 0, maxMs = 0;
             var reasonCount = new Dictionary<string, int>();
@@ -91,6 +91,7 @@ namespace Gloomdelve.EditorTools
                     float sc = st.area.shopChanceByLevel != null && st.levelNumber - 1 < st.area.shopChanceByLevel.Length ? st.area.shopChanceByLevel[st.levelNumber - 1] : 0f;
                     if (sc >= 1f) { shopsExpected++; if (!d.hasShop) sb.AppendLine($"NOTE seed {seed} {st.displayName}: guaranteed shop could not be placed"); }
                     if (d.hasIdol) idols++;
+                    foreach (var sp in d.spawns) if (sp.id == "captive") { captives++; break; }
                     if (!string.IsNullOrEmpty(st.area.requiredGear))
                     {
                         if (d.gateCount > 0) { gated++; gates += d.gateCount; gatesByGear[d.gateGear] = (gatesByGear.TryGetValue(d.gateGear, out int gg) ? gg : 0) + d.gateCount; }
@@ -120,6 +121,7 @@ namespace Gloomdelve.EditorTools
             sb.AppendLine($"Generation time             : avg {ms / Math.Max(1, levels):0.0} ms, max {maxMs:0} ms (incl. validation)");
             sb.AppendLine($"Shops placed                : {shops} (levels with guaranteed shop: {shopsExpected})");
             sb.AppendLine($"Idol rooms                  : {idols}");
+            sb.AppendLine($"Levels with a caged villager: {captives}");
             sb.AppendLine($"Levels with mandatory gear  : {gated} / {levels}   gates total {gates}  ({string.Join(", ", gatesByGear.Select(k => k.Key + " " + k.Value))})");
             sb.AppendLine("  (each gated level: exit reachable WITH the gear, NOT reachable without it - checked by the validator)");
             sb.AppendLine($"Final level validator       : {(finalOk ? "OK" : "FAIL " + fd.validation?.reason)}; bot plan {(fplan != null ? fplan.Count + " frames" : "NONE " + fwhy)}");
@@ -421,7 +423,8 @@ namespace Gloomdelve.EditorTools
             // shop effects
             {
                 var run = new RunState { bombs = 1, ropes = 1, health = 1 };
-                foreach (var o in cfg.shop.offers) ShopItem.Apply(run, o);
+                // (the two village-only wares are checked in the villagers scenario: they change health and the clock)
+                foreach (var o in cfg.shop.offers) if (o.id != "vigor" && o.id != "lampoil") ShopItem.Apply(run, o);
                 bool allOwned = cfg.shop.offers.Where(o => o.isUpgrade).All(o => run.HasUpgrade(o.id));
                 Check("shop effects apply", run.bombs == 4 && run.ropes == 4 && run.health == 2 && allOwned &&
                       run.stats.jumpBonus > 0f && run.stats.whipDamageBonus > 0 && run.stats.whipRangeBonus > 0f && run.stats.blastRadiusBonus > 0f,

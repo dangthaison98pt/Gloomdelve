@@ -1,0 +1,85 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fba76dd5935fa7a43abf3cc03dde5205, type: 3}
+  m_Name: Area0_Village
+  m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.AreaConfig
+  displayName: Brindlemoor
+  areaNumber: 0
+  tiles: {fileID: 11400000, guid: 883c0dd4f40988e40803c1082d0a5a6f, type: 2}
+  musicId: area4
+  cameraBackground: {r: 0.04, g: 0.05, b: 0.12, a: 1}
+  roomsX: 2
+  roomsY: 2
+  outdoor: 1
+  skyRows: 0
+  treeChance: 0
+  pathUp: 0
+  pathSide: 3
+  pathDown: 1
+  pathStartBottom: 0
+  pathAcross: 0
+  skyTint: {r: 0.3, g: 0.36, b: 0.62, a: 1}
+  layoutVersion: 2
+  groundGrip: 1
+  groundEnemies: []
+  ceilingEnemies: []
+  groundEnemyChance: 0.45
+  ceilingEnemyChance: 0.4
+  extraEnemiesPerRoom: 0.25
+  airEnemies: []
+  airEnemiesPerLevel: 0
+  sideRoomRiskMultiplier: 1.4
+  items:
+  - id: rock
+    weight: 2
+  - id: pot
+    weight: 3
+  - id: crate
+    weight: 1
+  itemChance: 0.5
+  treasureChancePath: 0.35
+  treasureChanceSide: 0.7
+  goldVeinChance: 0.035
+  gemVeinChance: 0.008
+  idolRoomChance: 0.35
+  vaultRoomChance: 0.3
+  spikes: 0
+  arrowTraps: 0
+  stalactites: 0
+  crushers: 0
+  flameVents: 0
+  spikeDensity: 0.04
+  arrowTrapDensity: 0.025
+  ceilingHazardChance: 0.6
+  markedTrapChance: 0.75
+  bounceCapChance: 0
+  glowPlantChance: 0
+  conveyorChance: 0
+  sawChance: 0
+  perLevelDensityBonus: 0.15
+  requiredGear: 
+  gatesByLevel: 010000000100000002000000
+  grantGear: 
+  ambientColor: {r: 0.62, g: 0.7, b: 1, a: 1}
+  ambientIntensity: 0.55
+  playerLightIntensity: 0.25
+  playerLightRadius: 7.5
+  torchColor: {r: 1, g: 0.72, b: 0.4, a: 1}
+  torchChance: 0
+  ambientParticles: 5
+  ambientParticleCount: 170
+  backdropTint: {r: 0.42, g: 0.36, b: 0.34, a: 1}
+  shopChanceByLevel:
+  - 0
+  - 1
+  - 0.4
+  shopFeatured: []

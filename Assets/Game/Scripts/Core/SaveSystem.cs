@@ -38,6 +38,11 @@ namespace Gloomdelve
         public int totalKills;
         [Tooltip("Challenge: best time against each boss, and whether it was ever beaten without losing health.")]
         public System.Collections.Generic.List<BossRecord> bosses = new System.Collections.Generic.List<BossRecord>();
+        [Tooltip("Villagers of Brindlemoor freed on the mountain (ids from Villagers.All). They stay freed.")]
+        public System.Collections.Generic.List<string> rescued = new System.Collections.Generic.List<string>();
+        [Tooltip("Key items: the few things that are not lost when a run ends (\"pouch\" = the elder's Gold Pouch).")]
+        public System.Collections.Generic.List<string> keyItems = new System.Collections.Generic.List<string>();
+        [Tooltip("Gold in the Gold Pouch, waiting for the next run.")] public int pouchGold;
     }
 
     /// <summary>Challenge record of one boss (by its display name).</summary>
@@ -110,6 +115,7 @@ namespace Gloomdelve
             if (stageReached > r.bestStage) { r.bestStage = stageReached; r.bestStageName = run.reachedStageName; news += "NEW DEEPEST!  "; }
             if (run.gold > r.bestGold) { r.bestGold = run.gold; news += "NEW BEST GOLD!"; }
             SaveRecords();
+            Villagers.BankGold(run);        // what fits in the Gold Pouch is kept; the rest is gone with the run
             return news.Trim();
         }
 

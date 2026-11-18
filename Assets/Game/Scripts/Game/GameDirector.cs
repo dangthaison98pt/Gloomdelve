@@ -70,11 +70,19 @@ namespace Gloomdelve
                 // a play-test or debug start names a stage of the catalogue: this run walks the whole catalogue in order
                 RunPlan.UseWholeCatalogue(run, config);
                 run.stageIndex = Mathf.Clamp(playtest ? EditorPlaytest.StageIndex : debugStartStage, 0, config.stages.Length - 1);
+                run.inVillage = false;
+            }
+            if (run.inVillage && (config.village == null || config.village.handcrafted == null || run.isTutorial || run.bossPractice)) run.inVillage = false;
+            // a run starts with nothing but the key items: the gold that was in the pouch (once, at its very start)
+            if (!run.perksApplied && !run.isTutorial && !run.bossPractice)
+            {
+                run.perksApplied = true;
+                Villagers.StartRun(run);
             }
             // every run has its own plan: which areas, in which order (drawn by the seed)
             RunPlan.Ensure(run, config);
             int at = Mathf.Clamp(run.stageIndex, 0, run.stageOrder.Length - 1);
-            Stage = run.isTutorial ? config.tutorial : config.stages[Mathf.Clamp(run.stageOrder[at], 0, config.stages.Length - 1)].Named(run.stageNames[at]);
+            Stage = run.inVillage ? config.village : run.isTutorial ? config.tutorial : config.stages[Mathf.Clamp(run.stageOrder[at], 0, config.stages.Length - 1)].Named(run.stageNames[at]);
             run.levelTime = 0f;
             run.goldAtLevelStart = run.gold;
             run.reachedStageName = Stage.displayName;
@@ -86,12 +94,13 @@ namespace Gloomdelve
                 Level = ScenarioRunner.BuildLevel();
                 Time.timeScale = 3f;
             }
-            else Level = LevelFactory.Create(config, Stage, run.seed, run.isTutorial ? 999 : run.stageIndex);
+            else Level = LevelFactory.Create(config, Stage, run.seed, run.inVillage ? 998 : run.isTutorial ? 999 : run.stageIndex);
             world.Setup(Level, Stage.area);
             if (sky != null)
             {
                 sky.gameObject.SetActive(Stage.area != null && Stage.area.outdoor);
                 sky.Setup(Level.Height);
+                sky.SetTint(Stage.area != null ? Stage.area.skyTint : Color.white);
             }
             if (caveBackdrop != null)
             {
@@ -109,8 +118,10 @@ namespace Gloomdelve
             }
             LevelFactory.SpawnAll(world, Level, config.prefabs);
             // the level after this one is built in the background while this one is played
-            if (!ScenarioRunner.Active && !run.isTutorial && run.stageOrder != null && at + 1 < run.stageOrder.Length)
-                LevelFactory.Pregenerate(config, config.stages[Mathf.Clamp(run.stageOrder[at + 1], 0, config.stages.Length - 1)].Named(run.stageNames[at + 1]), run.seed, run.stageIndex + 1);
+            // (in the village that is the first level of the run)
+            int aheadAt = run.inVillage ? at : at + 1;
+            if (!ScenarioRunner.Active && !run.isTutorial && run.stageOrder != null && aheadAt < run.stageOrder.Length)
+                LevelFactory.Pregenerate(config, config.stages[Mathf.Clamp(run.stageOrder[aheadAt], 0, config.stages.Length - 1)].Named(run.stageNames[aheadAt]), run.seed, run.inVillage ? run.stageIndex : run.stageIndex + 1);
             int spawnCount = world.EntityCount;
             Player = world.Spawn(config.prefabs.player, new Vector2(Level.entrance.x + 0.5f, Level.entrance.y));
             world.Player = Player;
@@ -127,7 +138,7 @@ namespace Gloomdelve
                 exitDoor.SetLocked(true);
             }
             linkPending = true;
-            nextWraith = config.pressureSpawnTime;
+            nextWraith = config.pressureSpawnTime + run.extraTime;
 
             if (AudioManager.Instance != null && Stage.area != null)
                 AudioManager.Instance.PlayMusic(Stage.kind == LevelKind.Final || Stage.kind == LevelKind.Boss ? "final" : Stage.area.musicId);
@@ -138,7 +149,8 @@ namespace Gloomdelve
             // of an area, the camp, the final vault. Later levels and boss arenas start without a card.
             bool newPlace = Stage.kind == LevelKind.Area ? Stage.levelNumber == 1 : Stage.kind != LevelKind.Boss;
             if (newPlace)
-                hud.ShowAreaIntro(Stage.kind == LevelKind.Area ? Stage.area.displayName : Stage.displayName);
+                if (run.inVillage) VillageBuilding.NewVisit();      // the village names itself when the player steps out of the house
+                else hud.ShowAreaIntro(Stage.kind == LevelKind.Area ? Stage.area.displayName : Stage.displayName);
             if (gateGear != null && !ScenarioRunner.Active && !AutoTest.Active) SupplyCache(gateGear, run);
             if (Level.grip < 1f && Stage.levelNumber == 1 && !grantedGear)
                 hud.ShowMessage("The ground is frozen: you slide before you stop. Slow down before a ledge - hold [walk] to walk.", 7f);
@@ -284,7 +296,7 @@ namespace Gloomdelve
             if (Paused || Ended) return;
             float dt = Time.deltaTime;
             var run = Run;
-            if (Player != null && !Player.IsDead)
+            if (Player != null && !Player.IsDead && !run.inVillage)       // the walk through the village is not on the clock
             {
                 run.levelTime += dt;
                 run.totalTime += dt;
@@ -299,7 +311,7 @@ namespace Gloomdelve
             var run = Run;
             if (!config.pressureEnabled || run.isTutorial || AutoTest.Active || Player == null || Player.IsDead) return;
             if (Stage.kind == LevelKind.Boss || Stage.kind == LevelKind.Rest) return;   // no clock in a boss fight or at the camp
-            if (!warned && run.levelTime >= config.pressureWarnTime)
+            if (!warned && run.levelTime >= config.pressureWarnTime + run.extraTime)
             {
                 warned = true;
                 hud.ShowBanner("You have lingered too long...", "Death is coming for you. Find the exit!");
@@ -432,6 +444,14 @@ namespace Gloomdelve
         {
             if (Ended || p.IsDead) return;
             var run = Run;
+            if (run.inVillage)
+            {
+                // out of the village gate: the night on the mountain begins (the first level was built meanwhile)
+                run.inVillage = false;
+                Time.timeScale = 1f;
+                SceneManager.LoadScene(GameConst.SceneGame);
+                return;
+            }
             if (run.bossPractice && !BossAlive) { ShowPracticeResult(); return; }      // boss test: nothing beyond the arena
             if (Stage.kind == LevelKind.Boss && door.locked)
             {

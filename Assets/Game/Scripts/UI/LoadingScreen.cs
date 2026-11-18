@@ -86,6 +86,14 @@ namespace Gloomdelve
                 yield return new WaitForSecondsRealtime(1.2f);
                 ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(shots, "loading_after.png"));
                 yield return new WaitForSecondsRealtime(0.4f);
+                // the run begins indoors: step out of the house for a picture of the street as well
+                var dir = GameDirector.Instance;
+                if (dir != null && dir.Player != null)
+                    foreach (var room in FindObjectsByType<VillageInterior>(FindObjectsSortMode.None))
+                        if (room.Index == VillageBuilding.HomeOfPlayer) { room.Interact(dir.Player); break; }
+                yield return new WaitForSecondsRealtime(1.0f);
+                ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(shots, "village_street.png"));
+                yield return new WaitForSecondsRealtime(0.4f);
                 Application.Quit();
             }
         }

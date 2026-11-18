@@ -15,7 +15,7 @@ namespace Gloomdelve
         public Sprite pixel;
         [Tooltip("Lit material: motes only show where there is light.")] public Material litMaterial;
         [Tooltip("Unlit material: embers / spirits glow in the dark.")] public Material glowMaterial;
-        public int poolSize = 80;
+        public int poolSize = 180;
 
         struct Mote { public Vector2 pos, vel; public float phase, size, alpha; }
         Mote[] motes;
@@ -24,6 +24,7 @@ namespace Gloomdelve
         int count;
         Color baseColor;
         Camera cam;
+        bool openSky;
 
         void Awake()
         {
@@ -49,7 +50,9 @@ namespace Gloomdelve
             kind = area != null ? area.ambientParticles : AmbientParticles.None;
             count = kind == AmbientParticles.None ? 0 : Mathf.Clamp(area.ambientParticleCount, 0, poolSize);
             cam = Camera.main;
-            bool glow = kind == AmbientParticles.Embers || kind == AmbientParticles.Spirits;
+            // snow under the open sky catches the light of the lamps and the moon: it shows everywhere, not only where a light falls
+            openSky = area != null && area.outdoor;
+            bool glow = kind == AmbientParticles.Embers || kind == AmbientParticles.Spirits || (kind == AmbientParticles.Snow && openSky);
             switch (kind)
             {
                 case AmbientParticles.Embers: baseColor = new Color(1f, 0.55f, 0.18f); break;
@@ -98,6 +101,14 @@ namespace Gloomdelve
                     m.vel = new Vector2(Random.Range(-0.5f, 0.1f), Random.Range(-1.5f, -0.6f));
                     m.alpha = Random.Range(0.5f, 0.95f);
                     m.size = Random.value < 0.3f ? 2f : 1f;
+                    if (openSky)
+                    {
+                        // a proper snowfall: flakes near and far, the big ones falling faster
+                        float r = Random.value;
+                        m.size = r < 0.12f ? 3f : r < 0.5f ? 2f : 1f;
+                        m.vel = new Vector2(Random.Range(-0.7f, -0.1f), -Random.Range(0.7f, 1.3f) * (0.7f + m.size * 0.3f));
+                        m.alpha = m.size >= 3f ? Random.Range(0.75f, 1f) : Random.Range(0.45f, 0.9f);
+                    }
                     break;
                 case AmbientParticles.Spirits:
                     m.pos = new Vector2(Random.Range(v.xMin, v.xMax), Random.Range(v.yMin, v.yMax));
@@ -122,7 +133,23 @@ namespace Gloomdelve
                 ref var m = ref motes[i];
                 float sway = Mathf.Sin(t * 0.9f + m.phase) * 0.25f;
                 m.pos += (m.vel + new Vector2(sway, 0f)) * dt;
-                if (!v.Contains(m.pos)) Respawn(i, kind == AmbientParticles.Dust || kind == AmbientParticles.Spirits);
+                if (!v.Contains(m.pos))
+                {
+                    if (kind == AmbientParticles.Snow || kind == AmbientParticles.Pollen)
+                    {
+                        // Falling and drifting motes wrap round the view: one that leaves at the bottom or a side
+                        // comes back in at the other, so the air is as full wherever the camera goes - walking
+                        // along never opens up an empty stretch that has to fill from the top.
+                        // (A jump of the camera further than one view is the one case that needs a fresh scatter.)
+                        if (Mathf.Abs(m.pos.x - v.center.x) > v.width * 1.5f || Mathf.Abs(m.pos.y - v.center.y) > v.height * 1.5f) Respawn(i, true);
+                        else
+                        {
+                            if (m.pos.x < v.xMin) m.pos.x += v.width; else if (m.pos.x > v.xMax) m.pos.x -= v.width;
+                            if (m.pos.y < v.yMin) m.pos.y += v.height; else if (m.pos.y > v.yMax) m.pos.y -= v.height;
+                        }
+                    }
+                    else Respawn(i, kind == AmbientParticles.Dust || kind == AmbientParticles.Spirits);
+                }
                 var r = renderers[i];
                 r.transform.position = m.pos;
                 r.transform.localScale = new Vector3(m.size, m.size, 1f);

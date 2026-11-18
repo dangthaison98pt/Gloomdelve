@@ -1226,3 +1226,34 @@ A...H....#
 ....H.....
 .E..H...T.
 ####H.####
+
+# ------------------------------------------------------------------ caged villagers (P = the cage; off the path, found by exploring)
+[cell_rubble] types=0 tags=captive weight=2
+##########
+#??####??#
+#........#
+#.XXXXXX.#
+..%....X..
+..%.P..X..
+.EXXXXXX.T
+##########
+
+[cell_shelf] types=0 tags=captive weight=2
+##########
+#...P....#
+#.#####..#
+#........#
+......==..
+..........
+.E..^^..T.
+##########
+
+[cell_pillars] types=0 tags=captive weight=2
+##########
+#B..vv..B#
+#........#
+#........#
+..#....#..
+..#....#..
+.E#..P.#E.
+##########

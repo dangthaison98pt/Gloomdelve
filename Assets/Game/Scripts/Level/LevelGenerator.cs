@@ -13,6 +13,8 @@ namespace Gloomdelve
         public List<RoomTemplate> templates;
         /// <summary>Testing: use this template in every room it fits (Room Template Editor). Null in the real game.</summary>
         public RoomTemplate forceTemplate;
+        /// <summary>This level hides the run's caged villager in one of its side rooms (see Villagers.CaptiveStage).</summary>
+        public bool captive;
     }
 
     /// <summary>
@@ -26,7 +28,7 @@ namespace Gloomdelve
     {
         const int RW = RoomTemplates.W, RH = RoomTemplates.H;
 
-        enum RoomKind { Path, Side, Start, Exit, Shop, Idol, Vault, Gate }
+        enum RoomKind { Path, Side, Start, Exit, Shop, Idol, Vault, Gate, Captive }
 
         struct Marker
         {
@@ -92,6 +94,7 @@ namespace Gloomdelve
                 case RoomKind.Shop: return f.HasTag("shop");
                 case RoomKind.Idol: return f.HasTag("idol");
                 case RoomKind.Vault: return f.HasTag("vault");
+                case RoomKind.Captive: return f.HasTag("captive");
                 case RoomKind.Gate: return f.HasTag("gate_" + gear) && f.types.Contains(type);
                 default: return !f.IsSpecial && f.types.Contains(type);
             }
@@ -295,6 +298,12 @@ namespace Gloomdelve
             for (int y = 0; y < ry; y++)
                 for (int x = 0; x < rx; x++)
                     if (kinds[x, y] == RoomKind.Side) sides.Add(new Vector2Int(x, y));
+            // the run's caged villager: in a side room, found only by those who leave the path (it gets first pick
+            // of the side rooms so the one level that should have it always does)
+            if (req.captive && sides.Count > 0)
+            {
+                var r = sides[rng.Range(0, sides.Count)]; sides.Remove(r); kinds[r.x, r.y] = RoomKind.Captive;
+            }
             if (sides.Count > 0 && rng.Chance(area.idolRoomChance))
             {
                 var r = sides[rng.Range(0, sides.Count)]; sides.Remove(r); kinds[r.x, r.y] = RoomKind.Idol;
@@ -303,6 +312,7 @@ namespace Gloomdelve
             {
                 var r = sides[rng.Range(0, sides.Count)]; sides.Remove(r); kinds[r.x, r.y] = RoomKind.Vault;
             }
+
 
             // ---------------------------------------------------------------- 3. templates
             var chosen = new RoomTemplate[rx, ry];
@@ -331,6 +341,7 @@ namespace Gloomdelve
                         case RoomKind.Shop: t = RoomTemplates.Pick(all, rng, tt => tt.HasTag("shop") && tt.ForArea(areaNo)); break;
                         case RoomKind.Idol: t = RoomTemplates.Pick(all, rng, tt => tt.HasTag("idol") && tt.ForArea(areaNo)); break;
                         case RoomKind.Vault: t = RoomTemplates.Pick(all, rng, tt => tt.HasTag("vault") && tt.ForArea(areaNo)); break;
+                        case RoomKind.Captive: t = RoomTemplates.Pick(all, rng, tt => tt.HasTag("captive") && tt.ForArea(areaNo) && RowOk(tt)) ?? RoomTemplates.Pick(all, rng, tt => tt.HasTag("captive") && tt.ForArea(areaNo)); break;
                         case RoomKind.Gate: t = RoomTemplates.Pick(all, rng, tt => tt.HasTag("gate_" + gear) && tt.types.Contains(type) && RowOk(tt)); break;
                     }
                     if (t == null)

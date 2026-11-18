@@ -391,10 +391,12 @@ namespace Gloomdelve.EditorTools
         static Dictionary<string, TileSet> CreateTileSets()
         {
             var result = new Dictionary<string, TileSet>();
-            foreach (var area in new[] { "Mossroot", "Emberdeep", "Vault", "Sunfall", "Frost", "Sporegloom", "Gearworks" })
+            // "Village" is the Frost art used in the open: the snow of Brindlemoor under the night sky
+            foreach (var setName in new[] { "Mossroot", "Emberdeep", "Vault", "Sunfall", "Frost", "Sporegloom", "Gearworks", "Village" })
             {
+                string area = setName == "Village" ? "Frost" : setName;
                 string d = "Tiles/" + area + "/";
-                var ts = LoadOrCreate<TileSet>($"{G}Data/TileSet_{area}.asset");
+                var ts = LoadOrCreate<TileSet>($"{G}Data/TileSet_{setName}.asset");
                 ts.dirt = new TileBase[32];
                 for (int v = 0; v < 2; v++) for (int m = 0; m < 16; m++) ts.dirt[m + 16 * v] = MakeTile(area, $"{d}dirt_{m:00}_{v}");
                 ts.bedrock = new TileBase[16];
@@ -418,9 +420,9 @@ namespace Gloomdelve.EditorTools
                 for (int i = 0; i < 4; i++) ts.decorFloor[i] = MakeTile(area, $"{d}decor_floor_{i}");
                 ts.decorCeiling = new TileBase[3];
                 for (int i = 0; i < 3; i++) ts.decorCeiling[i] = MakeTile(area, $"{d}decor_ceiling_{i}");
-                ts.outdoor = area == "Sunfall";
+                ts.outdoor = setName == "Sunfall" || setName == "Village";
                 EditorUtility.SetDirty(ts);
-                result[area] = ts;
+                result[setName] = ts;
             }
             return result;
         }
@@ -495,6 +497,11 @@ namespace Gloomdelve.EditorTools
                 }
             }
             // Wearable equipment: every upgrade has a slot, and the frozen caves get their own two pieces.
+            // village-only wares: the Healer's draught and the Lamplighter's oil (never on the mountain shelves: not equipment)
+            if (shop.Find("vigor") == null)
+                shop.offers.Add(new ShopOffer { id = "vigor", displayName = "Heart Draught", price = 400, resource = "vigor", amount = 1, description = "+1 heart until you sleep" });
+            if (shop.Find("lampoil") == null)
+                shop.offers.Add(new ShopOffer { id = "lampoil", displayName = "Lamp Oil", price = 200, resource = "lampoil", amount = 120, description = "the Reaper comes 2 minutes later" });
             if (shop.Find("iceboots") == null)
                 shop.offers.Add(new ShopOffer { id = "iceboots", displayName = "Ice Cleats", price = 600, isUpgrade = true, slot = "feet",
                     description = "spiked soles: no sliding on ice", modifiers = new StatModifiers { iceGrip = 1f } });
@@ -525,6 +532,7 @@ namespace Gloomdelve.EditorTools
                 ["springboots"] = "Sprites/Items/springboots", ["ironwhip"] = "Sprites/Items/ironwhip", ["compass"] = "Sprites/Items/compass",
                 ["blastpowder"] = "Sprites/Items/blastpowder",
             };
+            icons["vigor"] = "Sprites/NPC/ware_vigor"; icons["lampoil"] = "Sprites/NPC/ware_lampoil";
             foreach (var o in shop.offers) if (icons.TryGetValue(o.id, out var ic)) o.icon = ArtGenerator.S(ic);
             EditorUtility.SetDirty(shop);
 
@@ -636,6 +644,29 @@ namespace Gloomdelve.EditorTools
             frost.tiles = ts["Frost"];
             EditorUtility.SetDirty(frost);
 
+            // Brindlemoor itself: the village in the snow, at night. No enemies, no traps - the player walks through it
+            // before every run and meets the people they have brought home.
+            var villageArea = LoadOrCreate<AreaConfig>(G + "Data/Area0_Village.asset", out bool newVillage);
+            if (newVillage)
+            {
+                villageArea.displayName = "Brindlemoor"; villageArea.areaNumber = 0; villageArea.musicId = "area4";
+                villageArea.outdoor = true; villageArea.skyRows = 0; villageArea.treeChance = 0f;
+                villageArea.roomsX = 2; villageArea.roomsY = 2;
+                villageArea.cameraBackground = new Color(0.04f, 0.05f, 0.12f);
+                villageArea.groundEnemies = new WeightedId[0]; villageArea.ceilingEnemies = new WeightedId[0];
+                villageArea.spikes = false; villageArea.arrowTraps = false; villageArea.stalactites = false;
+                villageArea.ambientColor = new Color(0.62f, 0.7f, 1f); villageArea.ambientIntensity = 0.62f;
+                villageArea.playerLightIntensity = 0.7f; villageArea.torchChance = 0f;
+                villageArea.ambientParticles = AmbientParticles.Snow; villageArea.ambientParticleCount = 70;
+                villageArea.skyTint = new Color(0.3f, 0.36f, 0.62f);
+                villageArea.layoutVersion = 2;
+            }
+            // a quiet night: the lamps of the houses light the street, the player carries only a little light
+            villageArea.playerLightIntensity = 0.25f; villageArea.ambientIntensity = 0.55f;
+            villageArea.ambientParticles = AmbientParticles.Snow; villageArea.ambientParticleCount = 170;      // it is snowing in Brindlemoor
+            villageArea.tiles = ts["Village"];
+            EditorUtility.SetDirty(villageArea);
+
             // Sporegloom: a fungus forest in the dark. Almost no ambient light: the player's own light, the glowing
             // plants and the bounce mushrooms are all there is to see by. No arrow traps (unfair in the dark).
             var spore = LoadOrCreate<AreaConfig>(G + "Data/Area6_Sporegloom.asset", out bool newSpore);
@@ -743,6 +774,7 @@ namespace Gloomdelve.EditorTools
                 if (cfg.customMarkers.Exists(m => m.symbol == sym)) return;
                 cfg.customMarkers.Add(new MarkerDef { symbol = sym, label = label, spawnId = spawn, chance = chance, placement = place, tile = tile, color = col });
             }
+            CustomMarker("P", "Caged villager", "captive", 1f, MarkerPlacement.OnFloor, TileType.Empty, new Color(1f, 0.85f, 0.5f));
             CustomMarker("r", "Rock dropper", "rockdropper", 0.8f, MarkerPlacement.UnderCeiling, TileType.Empty, new Color(0.7f, 0.65f, 0.6f));
             CustomMarker("<", "Conveyor running left", "conveyor", 1f, MarkerPlacement.OnFloor, TileType.Empty, new Color(0.6f, 0.6f, 0.7f));
             CustomMarker(">", "Conveyor running right", "conveyor_r", 1f, MarkerPlacement.OnFloor, TileType.Empty, new Color(0.7f, 0.7f, 0.6f));
@@ -907,6 +939,8 @@ namespace Gloomdelve.EditorTools
                 cfg.stages = list.ToArray();
             }
             cfg.tutorial = new StageDef { displayName = "TUTORIAL", kind = LevelKind.Tutorial, area = moss, levelNumber = 1, handcrafted = tut };
+            cfg.village = new StageDef { displayName = "BRINDLEMOOR", kind = LevelKind.Rest, area = villageArea, levelNumber = 1,
+                handcrafted = AssetDatabase.LoadAssetAtPath<TextAsset>(G + "Data/Levels/Village.txt") };
             EditorUtility.SetDirty(cfg);
             AssetDatabase.SaveAssets();
             return cfg;
@@ -1234,6 +1268,86 @@ namespace Gloomdelve.EditorTools
                 (e, g, s) => { e.isExit = false; e.flipWithFacing = false; e.openSprite = ArtGenerator.S("Sprites/Props/door_entrance"); e.housingSprite = ArtGenerator.S("Sprites/Props/door_housing"); }));
             Reg("door_exit", Make<Door>("DoorExit", "Level", "exit", new Vector2(0.8f, 1.2f), ArtGenerator.S("Sprites/Props/door_exit"), null, 3,
                 (e, g, s) => { e.isExit = true; e.flipWithFacing = false; e.openSprite = ArtGenerator.S("Sprites/Props/door_exit"); e.lockedSprite = ArtGenerator.S("Sprites/Props/door_locked"); e.housingSprite = ArtGenerator.S("Sprites/Props/door_housing"); }));
+            {
+                // the people of Brindlemoor: caged on the mountain, at home in the village
+                var looks = new Sprite[Villagers.All.Length];
+                for (int i = 0; i < looks.Length; i++) looks[i] = ArtGenerator.S("Sprites/NPC/villager_" + i);
+                Reg("captive", Make<Captive>("Captive", "Level", "caged villager", new Vector2(1.1f, 1.3f), looks[0], null, 4, (e, g, s) =>
+                {
+                    e.flipWithFacing = false; e.looks = looks;
+                    var cg = new GameObject("Cage");
+                    cg.transform.SetParent(g.transform, false);
+                    var csr = cg.AddComponent<SpriteRenderer>();
+                    csr.sprite = ArtGenerator.S("Sprites/NPC/cage"); csr.sharedMaterial = spriteMat; csr.sortingOrder = 5;
+                    e.cage = csr;
+                }));
+                // the keeper inside their shop, and the elder inside the hall
+                Reg("villagerhome", Make<VillagerHome>("VillagerHome", "Level", "keeper", new Vector2(1f, 1.3f), looks[0], null, 3, (e, g, s) => { e.flipWithFacing = false; e.looks = looks; }));
+                Reg("elder", Make<Elder>("Elder", "Level", "elder", new Vector2(1f, 1.3f), ArtGenerator.S("Sprites/NPC/villager_6"), null, 3, (e, g, s) => { e.flipWithFacing = false; }));
+                // the street: every house front, with a lantern by the door and light spilling from the windows
+                var dark = new Sprite[8]; var lit = new Sprite[8]; var rooms = new Sprite[8];
+                for (int i = 0; i < 8; i++)
+                {
+                    dark[i] = ArtGenerator.S($"Sprites/Village/front_{i}_0"); lit[i] = ArtGenerator.S($"Sprites/Village/front_{i}_1");
+                    rooms[i] = ArtGenerator.S($"Sprites/Village/room_{i}");
+                }
+                GlowLight Lamp(GameObject parent, string name, Vector2 at, float radius, float intensity, float flicker)
+                {
+                    var go = new GameObject(name);
+                    go.transform.SetParent(parent.transform, false);
+                    go.transform.localPosition = at;
+                    var gl = go.AddComponent<GlowLight>();
+                    gl.color = new Color(1f, 0.78f, 0.45f); gl.radius = radius; gl.intensity = intensity; gl.flicker = flicker; gl.offset = Vector2.zero;
+                    return gl;
+                }
+                Reg("building", Make<VillageBuilding>("VillageBuilding", "Level", "house", new Vector2(1.2f, 1.7f), dark[0], null, 1, (e, g, s) =>
+                {
+                    e.flipWithFacing = false; e.darkFronts = dark; e.litFronts = lit;
+                    e.lights = new[]
+                    {
+                        Lamp(g, "Lantern", new Vector2(-0.85f, 1.9f), 3.4f, 0.5f, 0.2f),
+                        Lamp(g, "Windows", new Vector2(0f, 3.8f), 5.5f, 0.22f, 0.05f),
+                    };
+                    // smoke from the chimney while the fire is lit (the building puts it over its own chimney)
+                    var smokeGo = new GameObject("Smoke");
+                    smokeGo.transform.SetParent(g.transform, false);
+                    var smoke = smokeGo.AddComponent<ChimneySmoke>();
+                    smoke.frames = ArtGenerator.Frames("Center/smoke", 4);
+                    smoke.material = unlitMat;
+                    e.smoke = smoke;
+                }));
+                // lamp posts stand where two houses meet; a string of lights runs from each to the next
+                foreach (bool withString in new[] { true, false })
+                    Reg(withString ? "streetlamp" : "streetlamp_end", Make<Prop>(withString ? "StreetLamp" : "StreetLampEnd", "Level", "street lamp", new Vector2(0.4f, 1f), ArtGenerator.S("Sprites/Village/lamp_post"), null, 2, (e, g, s) =>
+                    {
+                        e.flipWithFacing = false;
+                        s.transform.localPosition = new Vector3(-0.5f, 0f, 0f);       // the post stands on the line between two cells
+                        Lamp(g, "Light", new Vector2(-0.5f, 4.2f), 3.8f, 0.42f, 0.12f);
+                        if (!withString) return;
+                        var wire = new GameObject("StringLights");
+                        wire.transform.SetParent(g.transform, false);
+                        wire.transform.localPosition = new Vector3(-0.5f, 4.55f, 0f);
+                        var wsr = wire.AddComponent<SpriteRenderer>();
+                        wsr.sprite = ArtGenerator.S("Sprites/Village/string_lights"); wsr.sharedMaterial = unlitMat; wsr.sortingOrder = 2;
+                    }));
+                foreach (var (pid, pname, sprite) in new[] { ("bench", "Bench", "bench"), ("firtree", "FirTree", "fir_tree"), ("snowman", "Snowman", "snowman"), ("woodpile", "WoodPile", "wood_pile"), ("cratestack", "CrateStack", "crates") })
+                    Reg(pid, Make<Prop>(pname, "Level", pid, new Vector2(1f, 1f), ArtGenerator.S("Sprites/Village/" + sprite), null, 2, (e, g, s) =>
+                    {
+                        e.flipWithFacing = false;
+                        if (pid == "firtree") Lamp(g, "Candles", new Vector2(0f, 1.8f), 3.2f, 0.4f, 0.25f);
+                    }));
+                Reg("pavement", Make<Prop>("Pavement", "Level", "street", new Vector2(1f, 0.2f), ArtGenerator.S("Sprites/Village/street_ground"), null, 2, (e, g, s) =>
+                {
+                    e.flipWithFacing = false;
+                    s.transform.localPosition = new Vector3(-1.5f, 0f, 0f);       // placed in the second cell of the street: the picture starts at the level's left edge
+                }));
+                Reg("interior", Make<VillageInterior>("VillageInterior", "Level", "door", new Vector2(1.2f, 1.7f), rooms[0], null, 2, (e, g, s) =>
+                {
+                    e.flipWithFacing = false; e.rooms = rooms;
+                    s.transform.localPosition = new Vector3(5.5f, 3f, 0f);        // the picture is the whole room; the entity stands at its door
+                    Lamp(g, "RoomLight", new Vector2(5.5f, 3.4f), 11f, 0.55f, 0.06f);
+                }));
+            }
             Reg("sign", Make<Sign>("Sign", "Level", "sign", new Vector2(0.9f, 1f), ArtGenerator.S("Sprites/Props/sign"), null, 3, (e, g, s) => { e.flipWithFacing = false; }));
             Reg("altar", Make<Prop>("Altar", "Level", "altar", new Vector2(1f, 0.4f), ArtGenerator.S("Sprites/Props/altar"), null, 4, (e, g, s) => { e.flipWithFacing = false; }));
             Reg("shopsign", Make<Prop>("ShopSign", "Level", "shop sign", new Vector2(1f, 1f), ArtGenerator.S("Sprites/Props/shopsign"), null, 3, (e, g, s) => { e.flipWithFacing = false; }));
@@ -1495,8 +1609,11 @@ namespace Gloomdelve.EditorTools
                 r.sprite = ArtGenerator.S(sprite); r.sharedMaterial = unlitMat; r.sortingOrder = order;
                 return r;
             }
-            sky.gradient = SkySr("Gradient", "Sky/gradient", -40);
+            sky.gradient = SkySr("Gradient", "Sky/gradient", -41);
             sky.sun = SkySr("Sun", "Sky/sun", -39);
+            sky.moonSprite = ArtGenerator.S("Sky/moon");
+            sky.stars = SkySr("Stars", "Sky/stars", -40);
+            sky.stars.gameObject.SetActive(false);
             sky.layers = new[] { SkySr("Range", "Sky/range", -38), SkySr("Mountains", "Sky/mountains", -37), SkySr("Hills", "Sky/hills", -35) };
             sky.parallax = new[] { 0.04f, 0.1f, 0.24f };
             sky.layerHeight = new[] { 0.8f, -0.6f, -3.0f };
@@ -1689,7 +1806,7 @@ namespace Gloomdelve.EditorTools
             UIBuilder.Place(UIBuilder.Rect(banner), new Vector2(0.5f, 1f), new Vector2(0, -230), new Vector2(1600, 160));
             hud.bannerGroup = banner.AddComponent<CanvasGroup>();
             hud.bannerTitle = UIBuilder.Label(banner.transform, "Title", "", 58, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -40), new Vector2(1600, 80), true, FontStyle.Bold);
-            hud.bannerSub = UIBuilder.Label(banner.transform, "Sub", "", 30, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -110), new Vector2(1600, 50));
+            hud.bannerSub = UIBuilder.Label(banner.transform, "Sub", "", 30, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -128), new Vector2(1600, 50));
 
             // area introduction card (start of every level)
             var intro = UIBuilder.Node(hudGo.transform, "AreaIntro");

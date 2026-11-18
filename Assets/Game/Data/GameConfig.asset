@@ -159,6 +159,12 @@ MonoBehaviour:
     area: {fileID: 11400000, guid: c834bbda6ecc2dc44aca7d00e47db205, type: 2}
     levelNumber: 1
     handcrafted: {fileID: 4900000, guid: 68feba275eecaf84ebb44580255893e3, type: 3}
+  village:
+    displayName: BRINDLEMOOR
+    kind: 4
+    area: {fileID: 11400000, guid: 228ba26a3ea83f44aa7e67f2e4f1a4a1, type: 2}
+    levelNumber: 1
+    handcrafted: {fileID: 4900000, guid: 3ea3b04924be9104087272fc3734a6ec, type: 3}
   roomTemplates: {fileID: 4900000, guid: 1eb98f7a3229e664393dc8ec1a1736b3, type: 3}
   customMarkers:
   - symbol: r
@@ -203,6 +209,13 @@ MonoBehaviour:
     placement: 1
     tile: 0
     color: {r: 0.7, g: 0.7, b: 0.6, a: 1}
+  - symbol: P
+    label: Caged villager
+    spawnId: captive
+    chance: 1
+    placement: 1
+    tile: 0
+    color: {r: 1, g: 0.85, b: 0.5, a: 1}
   pressureEnabled: 1
   pressureWarnTime: 540
   pressureSpawnTime: 600

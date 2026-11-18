@@ -1,0 +1,195 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace Gloomdelve
+{
+    /// <summary>One villager of Brindlemoor who is lost on the mountain until the player finds and frees them.</summary>
+    public class VillagerDef
+    {
+        public string id, name, role;
+        /// <summary>What their house in the village is (shown when they are freed).</summary>
+        public string place;
+        /// <summary>What they say from the cage, and at home in the village.</summary>
+        public string cagedLine, homeLine;
+        /// <summary>Shop offer ids on sale outside their house once they are home. "?" = a different piece of equipment every run.</summary>
+        public string[] wares;
+        /// <summary>Price of their wares compared with the shops on the mountain (1 = the same).</summary>
+        public float priceFactor = 1f;
+    }
+
+    /// <summary>
+    /// The people of Brindlemoor and what the player keeps between runs.
+    ///  - Lost villagers: one of them is caged somewhere off the main path in ONE level of a run, in the second,
+    ///    third or fourth area. Freed villagers are home for good; each keeps their own kind of shop outside
+    ///    their house in the village, where the player buys things for the coming run.
+    ///  - Key items: the few things that are not lost when a run ends (kept in the save file). The first one is
+    ///    the Gold Pouch the village elder gives: gold carried in it (up to PouchCapacity) is still there the
+    ///    next time the player wakes up, to spend in the village.
+    /// Everything else - bombs, ropes, equipment, loose gold - is gone when a run ends.
+    /// </summary>
+    public static class Villagers
+    {
+        public const string KeyPouch = "pouch";
+        public const int PouchCapacity = 500;
+
+        public static readonly VillagerDef[] All =
+        {
+            new VillagerDef { id = "smith", name = "Hilde", role = "the Smith", place = "The forge is lit again",
+                cagedLine = "Break this open and my forge is yours!", homeLine = "Steel and powder. Nothing leaves my forge dull.",
+                wares = new[] { "ironwhip", "blastpowder" } },
+            new VillagerDef { id = "roper", name = "Tam", role = "the Ropemaker", place = "The ropewalk is open again",
+                cagedLine = "I tied my own rope too short. Get me out!", homeLine = "Rope that holds, boots that spring. Climb well.",
+                wares = new[] { "ropes", "springboots" } },
+            new VillagerDef { id = "healer", name = "Maren", role = "the Healer", place = "The apothecary is open again",
+                cagedLine = "Careful - but please hurry.", homeLine = "One draught and your heart beats stronger till you sleep.",
+                wares = new[] { "vigor" } },
+            new VillagerDef { id = "mapper", name = "Oswin", role = "the Mapmaker", place = "The map room is open again",
+                cagedLine = "I drew the way in. I never drew the way out.", homeLine = "I know that mountain. Let my needle show you the way.",
+                wares = new[] { "compass" } },
+            new VillagerDef { id = "peddler", name = "Pip", role = "the Peddler", place = "The market stall is back",
+                cagedLine = "Everything I own for an open door!", homeLine = "Never the same twice, always a bargain!",
+                wares = new[] { "?", "?" }, priceFactor = 0.7f },
+            new VillagerDef { id = "lamplighter", name = "Bera", role = "the Lamplighter", place = "The lamp tower burns again",
+                cagedLine = "My lamp went out. Then it came for me.", homeLine = "Take oil. While your lamp burns, the dark is slow to find you.",
+                wares = new[] { "lampoil", "bombs" } },
+        };
+
+        // ------------------------------------------------------------------ tests keep their own state
+
+        /// <summary>Tests: when set, this is who has been rescued (the save file is left alone and nothing is written).</summary>
+        public static HashSet<string> testRescued;
+        static readonly HashSet<string> testKeys = new HashSet<string>();
+        static int testPouch;
+
+        static bool Testing => ScenarioRunner.Active || AutoTest.Active;
+        static bool TestState => testRescued != null;
+
+        /// <summary>The village and what is kept between runs belong to real runs only; automated runs keep the plain game.</summary>
+        public static bool Enabled => !Testing || TestState;
+
+        public static void ResetTestState() { testKeys.Clear(); testPouch = 0; }
+
+        // ------------------------------------------------------------------ rescued villagers
+
+        public static int IndexOf(string id)
+        {
+            for (int i = 0; i < All.Length; i++) if (All[i].id == id) return i;
+            return -1;
+        }
+
+        public static bool IsRescued(string id)
+        {
+            if (TestState) return testRescued.Contains(id);
+            if (Testing) return false;
+            var r = SaveSystem.Records.rescued;
+            return r != null && r.Contains(id);
+        }
+
+        /// <summary>Who is in the cage of this level: one of those still lost, picked by the level seed. Null when everyone is home.</summary>
+        public static VillagerDef NextCaptive(int seed)
+        {
+            var lost = new List<VillagerDef>();
+            foreach (var v in All) if (!IsRescued(v.id)) lost.Add(v);
+            if (lost.Count == 0) return null;
+            return lost[(int)((uint)Rng.Hash(seed, 4177) % (uint)lost.Count)];
+        }
+
+        /// <summary>Marks a villager as rescued and saves it at once: the rescue counts even if the run ends badly.</summary>
+        public static bool Rescue(string id)
+        {
+            if (IndexOf(id) < 0 || IsRescued(id)) return false;
+            if (TestState) { testRescued.Add(id); return true; }
+            if (Testing) return true;
+            if (SaveSystem.Records.rescued == null) SaveSystem.Records.rescued = new List<string>();
+            SaveSystem.Records.rescued.Add(id);
+            SaveSystem.SaveRecords();
+            return true;
+        }
+
+        /// <summary>
+        /// The one level of a run that hides a caged villager: a level of the second, third or fourth area (never
+        /// the first), picked by the run seed. The number is the position of the level in the run (each area is
+        /// three levels and a boss).
+        /// </summary>
+        public static int CaptiveStage(int runSeed)
+        {
+            int area = 1 + (int)((uint)Rng.Hash(runSeed, 9241) % 3u);
+            int level = (int)((uint)Rng.Hash(runSeed, 9257) % 3u);
+            return area * 4 + level;
+        }
+
+        // ------------------------------------------------------------------ key items and the gold pouch
+
+        public static bool HasKey(string key)
+        {
+            if (TestState) return testKeys.Contains(key);
+            if (Testing) return false;
+            var k = SaveSystem.Records.keyItems;
+            return k != null && k.Contains(key);
+        }
+
+        public static void GiveKey(string key)
+        {
+            if (HasKey(key)) return;
+            if (TestState) { testKeys.Add(key); return; }
+            if (Testing) return;
+            if (SaveSystem.Records.keyItems == null) SaveSystem.Records.keyItems = new List<string>();
+            SaveSystem.Records.keyItems.Add(key);
+            SaveSystem.SaveRecords();
+        }
+
+        /// <summary>Gold waiting in the pouch (0 without the pouch).</summary>
+        public static int PouchGold
+        {
+            get
+            {
+                if (!HasKey(KeyPouch)) return 0;
+                return TestState ? testPouch : SaveSystem.Records.pouchGold;
+            }
+        }
+
+        /// <summary>Puts the gold the run is carrying into the pouch, as much as it holds. Called when a run ends and
+        /// after every purchase in the village. Does nothing without the pouch.</summary>
+        public static void BankGold(RunState run)
+        {
+            if (run == null || !Enabled || !HasKey(KeyPouch)) return;
+            int keep = Mathf.Clamp(run.gold, 0, PouchCapacity);
+            if (TestState) { testPouch = keep; return; }
+            if (SaveSystem.Records.pouchGold == keep) return;
+            SaveSystem.Records.pouchGold = keep;
+            SaveSystem.SaveRecords();
+        }
+
+        /// <summary>The start of a run: everything is as new, except the gold that was in the pouch.</summary>
+        public static void StartRun(RunState run)
+        {
+            if (run == null || !Enabled) return;
+            if (HasKey(KeyPouch)) run.gold = PouchGold;
+        }
+
+        /// <summary>The offers a villager has out today. "?" wares are pieces of equipment drawn by the run seed.</summary>
+        public static List<ShopOffer> WaresOf(VillagerDef v, ShopConfig shop, int runSeed)
+        {
+            var list = new List<ShopOffer>();
+            if (v == null || shop == null || v.wares == null) return list;
+            var pool = new List<ShopOffer>();
+            foreach (var o in shop.offers) if (o.isUpgrade) pool.Add(o);
+            var rng = new Rng(Rng.Hash(runSeed, 7001 + IndexOf(v.id)));
+            foreach (var w in v.wares)
+            {
+                ShopOffer o = null;
+                if (w == "?")
+                {
+                    for (int tries = 0; tries < 20 && pool.Count > 0 && o == null; tries++)
+                    {
+                        var pick = pool[rng.Range(0, pool.Count)];
+                        if (!list.Contains(pick)) o = pick;
+                    }
+                }
+                else o = shop.Find(w);
+                if (o != null) list.Add(o);
+            }
+            return list;
+        }
+    }
+}

@@ -1,0 +1,326 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &999338286378727661
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8885462989326725799}
+  - component: {fileID: 609474607164215902}
+  m_Layer: 0
+  m_Name: Sprite
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8885462989326725799
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 999338286378727661}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 5983745044940009855}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!212 &609474607164215902
+SpriteRenderer:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 999338286378727661}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: da14ca7730f8b7e419ee60026776113d, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 0
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 1
+  m_MaskInteraction: 0
+  m_Sprite: {fileID: 21300000, guid: 47fbec098d21c7b468e99604c4426f4f, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_FlipX: 0
+  m_FlipY: 0
+  m_DrawMode: 0
+  m_Size: {x: 7, y: 8}
+  m_AdaptiveModeThreshold: 0.5
+  m_SpriteTileMode: 0
+  m_WasSpriteAssigned: 1
+  m_SpriteSortPoint: 0
+--- !u!1 &1468175926556113944
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6390670068500604923}
+  - component: {fileID: 8743335972925979248}
+  m_Layer: 0
+  m_Name: Lantern
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6390670068500604923
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1468175926556113944}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.85, y: 1.9, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 5983745044940009855}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8743335972925979248
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1468175926556113944}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d8828b6c7ceef944cb677be5cb97a47b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.GlowLight
+  color: {r: 1, g: 0.78, b: 0.45, a: 1}
+  radius: 3.4
+  intensity: 0.5
+  flicker: 0.2
+  pulse: 0
+  offset: {x: 0, y: 0}
+  startOn: 1
+--- !u!1 &1983965470301099616
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2478845946767567175}
+  - component: {fileID: 1522082754734572006}
+  m_Layer: 0
+  m_Name: Windows
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2478845946767567175
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1983965470301099616}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 3.8, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 5983745044940009855}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1522082754734572006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1983965470301099616}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d8828b6c7ceef944cb677be5cb97a47b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.GlowLight
+  color: {r: 1, g: 0.78, b: 0.45, a: 1}
+  radius: 5.5
+  intensity: 0.22
+  flicker: 0.05
+  pulse: 0
+  offset: {x: 0, y: 0}
+  startOn: 1
+--- !u!1 &4203911458257341770
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5983745044940009855}
+  - component: {fileID: 5091860692966890512}
+  m_Layer: 0
+  m_Name: VillageBuilding
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5983745044940009855
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4203911458257341770}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children:
+  - {fileID: 8885462989326725799}
+  - {fileID: 6390670068500604923}
+  - {fileID: 2478845946767567175}
+  - {fileID: 99431177068064277}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5091860692966890512
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4203911458257341770}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e5896e451e5d37409f466feb40df1e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.VillageBuilding
+  displayName: house
+  size: {x: 1.2, y: 1.7}
+  maxHealth: 1
+  flipWithFacing: 0
+  artFacesLeft: 0
+  darkFronts:
+  - {fileID: 21300000, guid: 47fbec098d21c7b468e99604c4426f4f, type: 3}
+  - {fileID: 21300000, guid: 336ebbf5542140c428576d54a7e35f39, type: 3}
+  - {fileID: 21300000, guid: b6affcdce9161e544b2bb32f77cc6983, type: 3}
+  - {fileID: 21300000, guid: 9750099898b6eee4195dfeec9ff436d1, type: 3}
+  - {fileID: 21300000, guid: 78cefb5461cc0314fb5f8ed55729f692, type: 3}
+  - {fileID: 21300000, guid: be910d169edfe59448c87f402d5cd530, type: 3}
+  - {fileID: 21300000, guid: 60e4455d4b05e6642a593d494be9a8d8, type: 3}
+  - {fileID: 21300000, guid: 2a9f3fc6a6011ac49893a9f54b6f4cda, type: 3}
+  litFronts:
+  - {fileID: 21300000, guid: 198a3a786d5807d41b6cea97f4e84f11, type: 3}
+  - {fileID: 21300000, guid: 1d3e3683a8a7330439c03ba572a7f365, type: 3}
+  - {fileID: 21300000, guid: 5561b071107cc33459996976078a9e4d, type: 3}
+  - {fileID: 21300000, guid: 76fd7a5f413f08a4596329bd0facf4d2, type: 3}
+  - {fileID: 21300000, guid: a21c6e3a8a182f449b9b71dd17b4e295, type: 3}
+  - {fileID: 21300000, guid: 128385816a6c70e43923395b32953cee, type: 3}
+  - {fileID: 21300000, guid: 677e02335bd4a4f48ac1f42a32575475, type: 3}
+  - {fileID: 21300000, guid: a5caec86aec4d7f43b8b318c32900eae, type: 3}
+  lights:
+  - {fileID: 8743335972925979248}
+  - {fileID: 1522082754734572006}
+  smoke: {fileID: 707056826672200065}
+--- !u!1 &7670456678804108316
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 99431177068064277}
+  - component: {fileID: 707056826672200065}
+  m_Layer: 0
+  m_Name: Smoke
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &99431177068064277
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7670456678804108316}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 5983745044940009855}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &707056826672200065
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7670456678804108316}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e22801dd61572b41a7bb6d1cc802912, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.ChimneySmoke
+  frames:
+  - {fileID: 21300000, guid: fd2dc3e9db6b6a840b219445c6e1cec1, type: 3}
+  - {fileID: 21300000, guid: 1a580921933f9dc438e7577e415034a3, type: 3}
+  - {fileID: 21300000, guid: 8e9dea3eb32c6144dba47cfed0d58d1c, type: 3}
+  - {fileID: 21300000, guid: 92464d8c28fc68d4ba26d91399cff62c, type: 3}
+  material: {fileID: 2100000, guid: 71f4b9bdde8354942977b450a30471f2, type: 2}
+  puffs: 7
+  life: 5
+  rise: 0.62
+  drift: -0.26
+  color: {r: 0.74, g: 0.78, b: 0.9, a: 0.6}
+  sortingOrder: 2

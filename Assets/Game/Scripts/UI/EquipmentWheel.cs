@@ -48,7 +48,7 @@ namespace Gloomdelve
         {
             var run = RunSession.Current;
             return run != null && director != null && !director.Ended && !director.Paused && director.Player != null &&
-                   !director.Player.IsDead && run.gear.Count > 0 && !AutoTest.Active &&
+                   !director.Player.IsDead && run.gear.Count > 0 && !AutoTest.Active && !run.inVillage &&
                    (director.inventory == null || !director.inventory.IsOpen);
         }
 

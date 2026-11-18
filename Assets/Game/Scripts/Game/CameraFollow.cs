@@ -31,6 +31,17 @@ namespace Gloomdelve
             Snap();
         }
 
+        /// <summary>Keeps the camera to another part of the level from now on (a room of a house, the street) and jumps there.</summary>
+        public void SetBounds(Rect r)
+        {
+            bounds = r;
+            hasBounds = true;
+            if (target != null) current = target.Center;
+            velocity = Vector2.zero;
+            lookAheadX = 0f;
+            Snap();
+        }
+
         public void AddShake(float amount) { trauma = Mathf.Clamp01(trauma + amount); }
 
         void Snap()

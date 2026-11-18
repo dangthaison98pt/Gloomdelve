@@ -181,6 +181,9 @@ namespace Gloomdelve
 
         void HandleActions(FrameInput fi)
         {
+            // at home in the village nobody draws a blade or lights a fuse
+            var session = RunSession.Current;
+            if (session != null && session.inVillage) return;
             if (fi.attackPressed)
             {
                 if (held != null)

@@ -154,6 +154,32 @@ MonoBehaviour:
     prefab: {fileID: 8571432961537751860, guid: a179777279b61af4ca1605f08dea4261, type: 3}
   - id: door_exit
     prefab: {fileID: 5693941329880597190, guid: 6c4518b838262ed40bd28e04f78ded74, type: 3}
+  - id: captive
+    prefab: {fileID: 4656649184836530832, guid: 4ad6844a1eb610740adf2ba364ef809a, type: 3}
+  - id: villagerhome
+    prefab: {fileID: 7173396336095795480, guid: 6d525f7d09c9d294e91b50a6f7292659, type: 3}
+  - id: elder
+    prefab: {fileID: 1698245938835841561, guid: 3c882343ca9668b46b321990329fc284, type: 3}
+  - id: building
+    prefab: {fileID: 5091860692966890512, guid: 9b4b5a264f3f60c46b1ff17255363631, type: 3}
+  - id: streetlamp
+    prefab: {fileID: 2702127672219675516, guid: 8f482942a3d57e14fa3411d687696d11, type: 3}
+  - id: streetlamp_end
+    prefab: {fileID: 9120423446822237639, guid: 3540b0067d84e39418294f55fc4cd81b, type: 3}
+  - id: bench
+    prefab: {fileID: 1799764445482509845, guid: e321ab1c5cbadd54fa0d82cbfce0103a, type: 3}
+  - id: firtree
+    prefab: {fileID: 7824476596506468029, guid: 1742bb8c7cb5d304383895fd0ac0bb7c, type: 3}
+  - id: snowman
+    prefab: {fileID: 6261632971169908229, guid: 11550ec2a178399458f9ff1c5fbad8e8, type: 3}
+  - id: woodpile
+    prefab: {fileID: 1337490128990730388, guid: b40aade2e2dde1f449d3567ee672b993, type: 3}
+  - id: cratestack
+    prefab: {fileID: 8472298207610921976, guid: 0af41a6d0e151484f9977fa9af844bfe, type: 3}
+  - id: pavement
+    prefab: {fileID: 5763537643693690132, guid: d94c870365b41dc4f970706d499209dc, type: 3}
+  - id: interior
+    prefab: {fileID: 8893414837933262956, guid: 1046d99fd4d6a0d438e62cf6cd935da5, type: 3}
   - id: sign
     prefab: {fileID: 8989074349318937008, guid: da0b8fcea1fc6a94b900538809a35c81, type: 3}
   - id: altar
@@ -162,3 +188,5 @@ MonoBehaviour:
     prefab: {fileID: 5755584402361523035, guid: ce755e956692d4c4ca0ab43a18267346, type: 3}
   - id: shopitem
     prefab: {fileID: 2780275439992920030, guid: d91446493146f784c8c41fa8f4cde44e, type: 3}
+  - id: herohome
+    prefab: {fileID: 8579967847157757216, guid: acfa12f4be6f66c4284cb1ac33b54f1e, type: 3}

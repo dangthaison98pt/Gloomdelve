@@ -158,9 +158,13 @@ namespace Gloomdelve
                 || (dir.gearWheel != null && dir.gearWheel.IsOpen)
                 || (dir.inventory != null && dir.inventory.IsOpen)
                 || (dir.transition != null && dir.transition.root != null && dir.transition.root.activeSelf);
+            // in the village only health and gold are shown: no gear to use there and no clock running
             if (corners != null)
-                foreach (var c in corners)
-                    if (c != null && c.activeSelf == results) c.SetActive(!results);
+                for (int ci = 0; ci < corners.Length; ci++)
+                {
+                    bool show = !results && !(run.inVillage && ci > 0);
+                    if (corners[ci] != null && corners[ci].activeSelf != show) corners[ci].SetActive(show);
+                }
 
             if (upgradesText != null) upgradesText.text = "";
             if (wornIcons != null)

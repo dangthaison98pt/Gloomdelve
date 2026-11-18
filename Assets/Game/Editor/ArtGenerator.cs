@@ -10,7 +10,7 @@ namespace Gloomdelve.EditorTools
     /// Generates every sprite of the game procedurally as PNG files (original art, no external assets).
     /// Artists can overwrite the PNGs in Assets/Game/Art; re-running the generator overwrites them again.
     /// </summary>
-    public static class ArtGenerator
+    public static partial class ArtGenerator
     {
         public const string Root = "Assets/Game/Art/";
         static readonly List<string> written = new List<string>();
@@ -141,6 +141,7 @@ namespace Gloomdelve.EditorTools
             EnemyArt();
             ItemArt();
             TrapAndPropArt();
+            VillagerArt();
             BossArt();
             CounterFxArt();
             FxArt();
@@ -2120,6 +2121,60 @@ namespace Gloomdelve.EditorTools
         }
 
         // ======================================================================================= TRAPS & PROPS
+
+        /// <summary>The people of Brindlemoor (one picture each, in the order of Villagers.All), the cage they are
+        /// found in, and a village house with dark and with lit windows.</summary>
+        static void VillagerArt()
+        {
+            const string d = "Sprites/NPC/";
+            Look Make(Color32 coat, Color32 hat, Color32 hair, Color32 scarf, bool bald, bool beard, bool apron) => new Look
+            {
+                skin = C(232, 176, 132), skinD = C(188, 128, 92), hair = hair,
+                hat = hat, hatD = Mul(hat, 0.6f), hatL = Lerp(hat, C(255, 255, 255), 0.25f),
+                jacket = coat, jacketD = Mul(coat, 0.65f), jacketL = Lerp(coat, C(255, 255, 255), 0.25f),
+                scarf = scarf, scarfD = Mul(scarf, 0.65f),
+                pants = C(70, 62, 78), pantsD = C(48, 42, 56), boot = C(80, 50, 30), bootD = C(52, 32, 20),
+                belt = C(50, 32, 20), buckle = C(210, 180, 100), eye = C(28, 20, 24), outline = C(22, 14, 20),
+                bald = bald, beard = beard, beardC = Mul(hair, 0.9f), apron = apron, apronC = C(126, 84, 52)
+            };
+            var looks = new[]
+            {
+                Make(C(120, 70, 60), C(90, 60, 40), C(200, 110, 50), C(60, 60, 70), true, true, true),          // Hilde the Smith
+                Make(C(96, 130, 80), C(150, 120, 70), C(110, 80, 50), C(200, 170, 90), false, false, false),    // Tam the Ropemaker
+                Make(C(220, 216, 204), C(180, 60, 70), C(70, 50, 44), C(180, 60, 70), false, false, true),      // Maren the Healer
+                Make(C(70, 90, 150), C(60, 70, 110), C(160, 160, 170), C(220, 200, 150), false, true, false),   // Oswin the Mapmaker
+                Make(C(170, 110, 160), C(210, 170, 60), C(60, 40, 30), C(90, 160, 150), false, false, false),   // Pip the Peddler
+                Make(C(60, 60, 76), C(40, 40, 54), C(210, 210, 215), C(240, 190, 80), false, false, false),     // Bera the Lamplighter
+                Make(C(140, 56, 60), C(90, 40, 44), C(235, 235, 240), C(230, 200, 110), true, true, false),      // Elder Aldous
+            };
+            for (int i = 0; i < looks.Length; i++)
+                Save(Humanoid(new Pose(), looks[i]), d + "villager_" + i, new Vector2(0.5f, 1f / 20f));
+
+            {
+                // the cage: iron bars with a rail top and bottom
+                var p = new Px(20, 24);
+                Color32 bar = C(150, 150, 165), barD = C(84, 84, 100), rail = C(110, 110, 126), railD = C(64, 64, 78);
+                for (int x = 1; x < 20; x += 4) { p.Rect(x, 2, 1, 20, bar); p.Rect(x + 1, 2, 1, 20, barD); }
+                p.Rect(0, 0, 20, 2, rail); p.Rect(0, 0, 20, 1, railD);
+                p.Rect(0, 22, 20, 2, rail); p.Rect(0, 22, 20, 1, railD);
+                Save(p, d + "cage", new Vector2(0.5f, 0f));
+            }
+            VillageArt();       // the street fronts and the rooms (ArtGenerator.Village.cs)
+            {
+                // village-only wares: the Healer's draught (a red flask) and the Lamplighter's oil (a brass can)
+                var p = new Px(16, 16);
+                Color32 glass = C(200, 220, 235), red = C(214, 60, 70), redL = C(250, 130, 130), cork = C(150, 110, 70), ol = C(22, 14, 20);
+                p.Rect(5, 2, 6, 8, ol); p.Rect(6, 3, 4, 6, red); p.Set(6, 7, redL); p.Set(6, 6, redL);
+                p.Rect(7, 10, 2, 3, ol); p.Rect(7, 10, 2, 2, glass); p.Rect(6, 13, 4, 2, cork);
+                Save(p, d + "ware_vigor", PCenter);
+                p = new Px(16, 16);
+                Color32 brass = C(214, 170, 80), brassD = C(150, 108, 44), flame = C(255, 220, 120);
+                p.Rect(4, 2, 8, 7, ol); p.Rect(5, 3, 6, 5, brass); p.Rect(5, 3, 6, 1, brassD); p.Rect(9, 4, 1, 3, brassD);
+                p.Rect(11, 6, 3, 1, brassD); p.Rect(13, 7, 1, 2, brassD);                    // spout
+                p.Rect(7, 9, 2, 2, brassD); p.Set(7, 12, flame); p.Set(8, 12, flame); p.Set(8, 13, C(255, 150, 60));
+                Save(p, d + "ware_lampoil", PCenter);
+            }
+        }
 
         static void TrapAndPropArt()
         {

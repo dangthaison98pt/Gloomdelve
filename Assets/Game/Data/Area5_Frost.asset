@@ -27,6 +27,7 @@ MonoBehaviour:
   pathDown: 0.9
   pathStartBottom: 0
   pathAcross: 1
+  skyTint: {r: 1, g: 1, b: 1, a: 1}
   layoutVersion: 2
   groundGrip: 0.3
   groundEnemies:

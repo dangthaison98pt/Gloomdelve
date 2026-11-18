@@ -41,6 +41,7 @@ namespace Gloomdelve
             var d = new LevelData { name = name, kind = kind, seed = seed, grid = g };
             var rng = new Rng(seed);
             bool hasEntrance = false, hasExit = false;
+            int houses = 0, rooms = 0;
 
             for (int ry = 0; ry < H; ry++)
             {
@@ -85,6 +86,22 @@ namespace Gloomdelve
                         case 'h': d.spawns.Add(new SpawnPoint("chest", cell)); break;
                         case 'K': d.spawns.Add(new SpawnPoint("shopkeeper", cell, -1)); break;
                         case 'M': d.spawns.Add(new SpawnPoint("shopitem", cell)); break;
+                        // Brindlemoor: the doors of the street (V = the villagers' houses in the order of Villagers.All,
+                        // W = the village hall, Q = the player's house) and the rooms behind them (I, in the order
+                        // forge, ropewalk, apothecary, map room, oddments, lamp house, hall, home: the door of each room)
+                        case 'V': d.spawns.Add(new SpawnPoint("building", cell, 0, houses++)); break;
+                        case 'W': d.spawns.Add(new SpawnPoint("building", cell, 0, 6)); break;
+                        case 'Q': d.spawns.Add(new SpawnPoint("building", cell, 0, 7)); break;
+                        case 'I': d.spawns.Add(new SpawnPoint("interior", cell, 0, rooms++)); break;
+                        // things that stand in the street
+                        case 'R': d.spawns.Add(new SpawnPoint("pavement", cell)); break;           // the paved street (put it in the second cell of the row)
+                        case 'L': d.spawns.Add(new SpawnPoint("streetlamp", cell)); break;         // lamp post, a string of lights running on to the next
+                        case 'J': d.spawns.Add(new SpawnPoint("streetlamp_end", cell)); break;     // the last post of the row
+                        case 'U': d.spawns.Add(new SpawnPoint("bench", cell)); break;
+                        case 'F': d.spawns.Add(new SpawnPoint("firtree", cell)); break;
+                        case 'N': d.spawns.Add(new SpawnPoint("snowman", cell)); break;
+                        case 'D': d.spawns.Add(new SpawnPoint("woodpile", cell)); break;
+                        case 'E': d.spawns.Add(new SpawnPoint("cratestack", cell)); break;
                         default:
                             if (ch >= '1' && ch <= '9')
                             {
@@ -117,8 +134,10 @@ namespace Gloomdelve
                     else if (t == TileType.VentBlock)
                         d.spawns.Add(new SpawnPoint("flamevent", new Vector2Int(x, y), 0, (x * 3 + y) % 7));
                 }
-            d.spawns.Insert(0, new SpawnPoint("door_entrance", d.entrance));
-            d.spawns.Insert(1, new SpawnPoint("door_exit", d.exit));
+            // "entrance: hidden" in the header: the player simply is there (waking up at home), no doorway is drawn
+            bool hiddenEntrance = header.TryGetValue("entrance", out var entranceMode) && entranceMode.Trim() == "hidden";
+            if (!hiddenEntrance) d.spawns.Insert(0, new SpawnPoint("door_entrance", d.entrance));
+            d.spawns.Insert(hiddenEntrance ? 0 : 1, new SpawnPoint("door_exit", d.exit));
             return d;
         }
     }

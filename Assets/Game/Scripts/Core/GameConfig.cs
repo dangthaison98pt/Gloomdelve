@@ -21,6 +21,7 @@ namespace Gloomdelve
         [Tooltip("Every run starts in the first area of the catalogue (the gentlest one); only the others are drawn at random.")]
         public bool firstAreaFixed = true;
         public StageDef tutorial;
+        [Tooltip("Brindlemoor: the village the player walks through before every run (hand-made level).")] public StageDef village;
         public TextAsset roomTemplates;
         [Tooltip("Extra room-template symbols: place any PrefabRegistry id in rooms without code (see Docs/EXTENDING.md).")]
         public List<MarkerDef> customMarkers = new List<MarkerDef>();

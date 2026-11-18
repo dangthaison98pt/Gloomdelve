@@ -18,6 +18,10 @@ namespace Gloomdelve
         /// <summary>Boss test from the main menu: the run is just one boss arena. Dying starts it again, winning goes
         /// back to the boss list, and nothing is written to the records.</summary>
         public bool bossPractice;
+        [Tooltip("The run has not left Brindlemoor yet: the player is walking through the village, before the first level.")]
+        public bool inVillage;
+        [Tooltip("The rescued villagers' gifts have been handed out for this run.")] public bool perksApplied;
+        [Tooltip("Extra seconds in every level before the Reaper comes (the Lamplighter's lamp oil).")] public float extraTime;
         /// <summary>Health lost in this run (shown on the boss test result).</summary>
         public int damageTaken;
 
@@ -208,6 +212,7 @@ namespace Gloomdelve
             if (cfg != null && cfg.startingGear != null) Current.gear.AddRange(cfg.startingGear);
             else { Current.gear.Add("bomb"); Current.gear.Add("rope"); }
             if (tutorial) { Current.bombs = 3; Current.ropes = 3; }
+            Current.inVillage = !tutorial && Villagers.Enabled;       // a real run starts in the village
             return Current;
         }
 

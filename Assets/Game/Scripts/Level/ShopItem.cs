@@ -15,7 +15,18 @@ namespace Gloomdelve
         bool shownFree, shelfChecked;
 
         public bool UpTriggers => true;
-        bool Free => keeper == null || keeper.Dead || keeper.angry;
+        bool villageWare;
+        int priceOverride;
+        bool Free => !villageWare && (keeper == null || keeper.Dead || keeper.angry);
+        int Price => priceOverride > 0 ? priceOverride : offer.price;
+
+        /// <summary>A ware set out by a villager in Brindlemoor: never free, sold at this price, paid from the gold the player carries.</summary>
+        public void SetVillageWare(int price)
+        {
+            villageWare = true;
+            priceOverride = price;
+            RefreshTag();
+        }
 
         public override void Configure(SpawnPoint sp)
         {
@@ -87,7 +98,7 @@ namespace Gloomdelve
             if (priceTag == null || offer == null) return;
             shownFree = Free;
             if (Free) priceTag.Set("FREE", new Color(1f, 0.4f, 0.4f));
-            else priceTag.Set("$" + offer.price, new Color(1f, 0.85f, 0.35f));
+            else priceTag.Set("$" + Price, new Color(1f, 0.85f, 0.35f));
         }
 
         public override void Tick(float dt)
@@ -109,7 +120,7 @@ namespace Gloomdelve
         {
             if (offer == null) return null;
             string d = string.IsNullOrEmpty(offer.description) ? "" : "  -  " + offer.description;
-            return Free ? $"[enter] / [up]  take {offer.displayName} (free!){d}" : $"[enter] / [up]  buy {offer.displayName} for ${offer.price}{d}";
+            return Free ? $"[enter] / [up]  take {offer.displayName} (free!){d}" : $"[enter] / [up]  buy {offer.displayName} for ${Price}{d}";
         }
 
         public void Interact(PlayerController p)
@@ -125,13 +136,14 @@ namespace Gloomdelve
             }
             if (!Free)
             {
-                if (run.gold < offer.price)
+                if (run.gold < Price)
                 {
                     Sfx.Play("error", pos);
                     Fx.Text(Center + Vector2.up * 0.8f, "NOT ENOUGH GOLD", new Color(1f, 0.4f, 0.4f));
                     return;
                 }
-                run.gold -= offer.price;
+                run.gold -= Price;
+                if (villageWare) Villagers.BankGold(run);       // spent gold is gone from the pouch too
             }
             Apply(run, offer);
             run.purchases.Add(offer.id);
@@ -148,6 +160,8 @@ namespace Gloomdelve
         /// <summary>Gives the offer to the run: its resource (if any) and, for upgrades, ownership + stat modifiers.</summary>
         public static void Apply(RunState run, ShopOffer o)
         {
+            if (o.id == "vigor") { run.maxHealth += o.amount; run.health += o.amount; return; }       // the Healer's draught
+            if (o.id == "lampoil") { run.extraTime += o.amount; return; }                              // the Lamplighter's oil: seconds
             if (!string.IsNullOrEmpty(o.resource)) run.AddResource(o.resource, o.amount);
             if (o.isUpgrade) run.AddUpgrade(o);
         }

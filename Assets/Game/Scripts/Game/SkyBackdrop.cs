@@ -19,6 +19,28 @@ namespace Gloomdelve
         public float cloudSpeed = 0.35f;
 
         float levelMidY;
+
+        [Tooltip("Night skies: the moon that takes the sun's place, and the stars (a picture that fills the view).")]
+        public Sprite moonSprite;
+        public SpriteRenderer stars;
+        Sprite sunSprite;
+
+        /// <summary>Lays a colour over the whole backdrop (white = as drawn). A dark colour makes it night: the sun
+        /// gives way to the moon and the stars come out.</summary>
+        public void SetTint(Color c)
+        {
+            bool night = c.r + c.g + c.b < 1.8f;
+            if (gradient != null) gradient.color = c;
+            if (sun != null)
+            {
+                if (sunSprite == null) sunSprite = sun.sprite;
+                sun.sprite = night && moonSprite != null ? moonSprite : sunSprite;
+                sun.color = night ? new Color(0.93f, 0.95f, 1f) : c;
+            }
+            if (stars != null) stars.gameObject.SetActive(night);
+            if (layers != null) foreach (var l in layers) if (l != null) l.color = c;
+            if (clouds != null) foreach (var l in clouds) if (l != null) l.color = c;
+        }
         float[] cloudX;
 
         public void Setup(float levelHeight) { levelMidY = levelHeight * 0.5f; }
@@ -44,6 +66,7 @@ namespace Gloomdelve
                 gradient.transform.localPosition = Vector3.zero;
             }
 
+            if (stars != null) stars.transform.localPosition = Vector3.zero;
             float dy = (cp.y - levelMidY) * 0.12f;
             if (sun != null) sun.transform.localPosition = new Vector3(w * sunViewPos.x, h * sunViewPos.y - dy * 0.3f, 0f);
             for (int i = 0; layers != null && i < layers.Length; i++)

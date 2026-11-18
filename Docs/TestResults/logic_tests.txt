@@ -24,7 +24,7 @@ PASS  shop effects apply  jump +0.17 whip +1/+0.45 blast +0.9
 PASS  an upgrade applies its modifiers only once  
 PASS  custom resources are counted  
 PASS  every equipment asset has a behaviour  bomb,rope,glider
-PASS  room templates cover every room type (118 templates)  
+PASS  room templates cover every room type (121 templates)  
 PASS  room template file survives parse -> save unchanged  
 PASS  room rule checks: shipped templates have no errors  0 errors, 18 warnings  
 PASS  room rule checks catch a drop room without a hole  

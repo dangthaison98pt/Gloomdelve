@@ -240,6 +240,9 @@ namespace Gloomdelve
             new Scenario { name = "bosses: the yeti king runs in and punches a frozen player, once per freeze", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => YetiPunchCase(c) },
 
+            new Scenario { name = "villagers: a caged villager is freed with Enter, goes home for good, and helps every later run", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => VillagerCase(c) },
+
             new Scenario { name = "bosses: a summoned helper appears a few steps from the player, in whichever corner they stand", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => MinionSpotCase(c) },
 
@@ -1241,6 +1244,131 @@ namespace Gloomdelve
             c.Expect(!cut.Dead, "two strokes do not break it");
             cut.OnWhipped(c.p, 1, 1);
             c.Expect(cut.Dead, "the third does");
+        }
+
+        static IEnumerator VillagerCase(Ctx c)
+        {
+            c.Bot(Seq((6000, F())));
+            Villagers.testRescued = new HashSet<string>();       // the test keeps its own state: the save file is not touched
+            Villagers.ResetTestState();
+            var seen = new HashSet<string>();
+            bool allFreed = true, prompts = true, gone = true;
+            for (int i = 0; i < Villagers.All.Length; i++)
+            {
+                var cap = c.Spawn<Captive>("captive", 8, 1);
+                yield return c.Frames(3);
+                if (cap == null || cap.Dead || cap.Who == null) { allFreed = false; break; }
+                seen.Add(cap.Who.id);
+                c.Teleport(8.5f, 1f);
+                yield return c.Frames(4);
+                string pr = cap.GetPrompt(c.p);
+                if (pr == null || !pr.Contains(cap.Who.name)) prompts = false;
+                if (i == 0) { yield return c.Frames(20); ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "villager_caged.png")); yield return c.Frames(3); }
+                cap.Interact(c.p);
+                if (!cap.Freed || !Villagers.IsRescued(cap.Who.id)) allFreed = false;
+                yield return c.Frames(130);
+                if (!cap.Dead) gone = false;
+            }
+            c.Expect(prompts, "standing at the cage shows who is in it");
+            c.Expect(allFreed && seen.Count == Villagers.All.Length, $"each cage holds someone who is still lost, until all {Villagers.All.Length} are home ({seen.Count} different)");
+            c.Expect(gone, "a freed villager leaves for the village");
+            var empty = c.Spawn<Captive>("captive", 8, 1);
+            yield return c.Frames(3);
+            c.Expect(empty == null || empty.Dead, "with everyone home there is no cage any more");
+
+            // one cage per run, never in the first area: the second, third or fourth (levels 4-6, 8-10, 12-14 of the run)
+            {
+                bool ok = true; var areas = new HashSet<int>();
+                for (int seed = 1; seed <= 300; seed++)
+                {
+                    int st = Villagers.CaptiveStage(seed);
+                    if (st < 4 || st > 14 || st % 4 == 3) ok = false;
+                    areas.Add(st / 4);
+                }
+                c.Expect(ok && areas.Count == 3, $"the cage is in one level of area 2, 3 or 4 - never the first, never a boss room ({areas.Count} different areas over 300 runs)");
+            }
+
+            // the elder's Gold Pouch: nothing is kept without it; with it, what fits in the pouch
+            var run = c.run;
+            int goldBefore = run.gold;
+            run.gold = 900;
+            Villagers.BankGold(run);
+            c.Expect(Villagers.PouchGold == 0, "without the pouch no gold is kept");
+            var elder = c.Spawn<Elder>("elder", 26, 1);
+            yield return c.Frames(3);
+            c.Expect(elder != null && elder.GetPrompt(c.p) != null && elder.GetPrompt(c.p).Contains("talk"), "the elder has something to say");
+            if (elder != null) elder.Interact(c.p);
+            c.Expect(Villagers.HasKey(Villagers.KeyPouch), "talking to the elder gives the Gold Pouch");
+            Villagers.BankGold(run);
+            c.Expect(Villagers.PouchGold == Villagers.PouchCapacity, $"the pouch keeps what it holds: {Villagers.PouchGold} of 900");
+            var next = new RunState { gold = 0 };
+            Villagers.StartRun(next);
+            c.Expect(next.gold == Villagers.PouchCapacity, "and the next run starts with that gold");
+
+            // the buildings: lit with their keeper outside and their wares set out; a ware costs gold and is paid from the pouch
+            var home = c.Spawn<VillagerHome>("villagerhome", 12, 1, 2);
+            yield return c.Frames(4);
+            c.Expect(home != null && home.Home && home.Who == Villagers.All[2] && home.WareCount == Villagers.All[2].wares.Length,
+                $"the Healer is home: her place is lit and her wares are out ({(home != null ? home.WareCount : -1)})");
+            ShopItem ware = null;
+            foreach (var e in c.world.Entities) if (e is ShopItem si && !si.Dead) ware = si;
+            c.Expect(ware != null && ware.GetPrompt(c.p) != null && ware.GetPrompt(c.p).Contains("buy"), "a ware in the village is for sale, not free");
+            if (ware != null)
+            {
+                int hp = run.maxHealth;
+                run.gold = 450;
+                ware.Interact(c.p);
+                c.Expect(run.maxHealth == hp + 1 && run.gold == 50, $"buying the Heart Draught: +1 heart for this run, gold {run.gold}");
+                c.Expect(Villagers.PouchGold == 50, "what was spent is gone from the pouch as well");
+                run.maxHealth = hp; run.health = Mathf.Min(run.health, hp);
+            }
+            yield return c.Frames(10);
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "villager_homes.png"));
+            yield return c.Frames(3);
+            Villagers.testRescued.Clear();
+            var darkHome = c.Spawn<VillagerHome>("villagerhome", 20, 1, 3);
+            yield return c.Frames(3);
+            c.Expect(darkHome == null || darkHome.Dead, "nobody keeps the shop of someone who is still lost");
+            {
+                // the street door of an open house leads into its room and back out; a lost keeper's house stays locked
+                Villagers.testRescued.Add(Villagers.All[1].id);
+                var front = c.Spawn<VillageBuilding>("building", 6, 1, 1);
+                var locked = c.Spawn<VillageBuilding>("building", 9, 1, 4);
+                var room = c.Spawn<VillageInterior>("interior", 24, 1, 1);
+                yield return c.Frames(4);
+                c.Expect(front != null && front.Open && locked != null && !locked.Open, "a freed keeper's house is open, a lost one's is locked");
+                c.Expect(locked != null && locked.GetPrompt(c.p).Contains("locked"), "the locked door says so");
+                c.Teleport(6.5f, 1f);
+                yield return c.Frames(4);
+                if (locked != null) locked.Interact(c.p);
+                yield return c.Frames(3);
+                c.Expect(Mathf.Abs(c.p.pos.x - 6.5f) < 1f, "a locked door lets nobody in");
+                if (front != null) front.Interact(c.p);
+                yield return new WaitForSecondsRealtime(0.7f);       // through the fade
+                c.Expect(room != null && Mathf.Abs(c.p.pos.x - (room.pos.x + 1f)) < 1f, $"the open door leads into the room (player x {c.p.pos.x:0.0})");
+                Entity keeper = null;
+                foreach (var e in c.world.Entities) if (e is VillagerHome vh && !vh.Dead && vh.Who == Villagers.All[1]) keeper = vh;
+                c.Expect(keeper != null, "the keeper is inside, behind the counter");
+                yield return c.Frames(20);
+                ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "village_room.png"));
+                yield return c.Frames(3);
+                if (room != null) room.Interact(c.p);
+                yield return new WaitForSecondsRealtime(0.7f);
+                c.Expect(front != null && Mathf.Abs(c.p.pos.x - front.pos.x) < 1f, "the room's door leads back out to the street");
+                c.dir.cameraFollow.SetBounds(new Rect(0, 0, c.world.Grid.Width, c.world.Grid.Height));
+                if (front != null) front.Despawn();
+                if (locked != null) locked.Despawn();
+                if (room != null) room.Despawn();
+                foreach (var e in c.world.Entities) if (e is VillagerHome vh && !vh.Dead) vh.Despawn();
+                Villagers.testRescued.Clear();
+            }
+            foreach (var e in c.world.Entities) if (e is ShopItem si && !si.Dead) si.Despawn();
+            if (home != null) home.Despawn();
+            if (darkHome != null) darkHome.Despawn();
+            if (elder != null) elder.Despawn();
+            run.gold = goldBefore;
+            Villagers.ResetTestState();
+            Villagers.testRescued = null;
         }
 
         static IEnumerator MinionSpotCase(Ctx c)

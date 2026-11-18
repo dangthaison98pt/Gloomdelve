@@ -30,6 +30,8 @@ namespace Gloomdelve
         public bool pathStartBottom = false;
         [Tooltip("The level runs sideways: enter at one side of the map and leave at the other. The path heads for the far side (weight Path Side) and now and then goes up or down a floor (Path Up / Path Down). Rooms X should be much larger than Rooms Y.")]
         public bool pathAcross = false;
+        [Tooltip("Outdoor areas: colour laid over the whole sky backdrop (white = the daytime sky as drawn; a dark blue makes it night).")]
+        public Color skyTint = Color.white;
         [HideInInspector] public int layoutVersion = 0;
 
         [Header("Footing")]
