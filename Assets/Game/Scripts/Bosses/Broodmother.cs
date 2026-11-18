@@ -7,7 +7,8 @@ namespace Gloomdelve
     /// other bosses:
     ///  - Drop: she runs up to the ceiling, crawls along it until she is above the player (grit trickles down
     ///    under her: watch it), stops for a blink and lets herself fall. Step aside: she lands stuck on her back
-    ///    legs for a moment - the opening.
+    ///    legs for a moment - the opening. Cocoons hang across her den: falling through one tears it open, and
+    ///    the spiderling inside drops out - so where the player stands when she lets go matters.
     ///  - Web: she lays a sheet of web on the floor where the player stands. Walking through it is slow (jumping
     ///    is not), and it stays for a while, so the room gets smaller.
     ///  - Eggs: she leaves egg sacs on the floor. Cut them before they hatch, or there are spiderlings to deal with.
@@ -170,6 +171,7 @@ namespace Gloomdelve
                 {
                     vel = new Vector2(0f, -dropSpeed);
                     var b = StepPhysics(dt, 0f, dropSpeed);
+                    TearCocoons();
                     if (b.landed || grounded) Landed();
                     break;
                 }
@@ -188,6 +190,15 @@ namespace Gloomdelve
                     if (timer <= 0f) { state = State.Ground; timer = Rest(restTime * 0.5f); }
                     break;
             }
+        }
+
+        /// <summary>Falling through a cocoon tears it open: its spiderling drops out.</summary>
+        void TearCocoons()
+        {
+            Cocoon hit = null;
+            foreach (var e in World.Entities)
+                if (e is Cocoon c && !c.Dead && c.Touches(pos, size.x * 0.5f, size.y)) { hit = c; break; }
+            if (hit != null) hit.Burst();
         }
 
         void Landed()

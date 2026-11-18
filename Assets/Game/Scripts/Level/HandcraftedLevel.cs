@@ -94,6 +94,7 @@ namespace Gloomdelve
                         case 'Q': d.spawns.Add(new SpawnPoint("building", cell, 0, 7)); break;
                         case 'I': d.spawns.Add(new SpawnPoint("interior", cell, 0, rooms++)); break;
                         // things that stand in the street
+                        case 'C': d.spawns.Add(new SpawnPoint("cocoon", cell)); break;             // a cocoon on its thread (the Broodmother's den)
                         case 'R': d.spawns.Add(new SpawnPoint("pavement", cell)); break;           // the paved street (put it in the second cell of the row)
                         case 'L': d.spawns.Add(new SpawnPoint("streetlamp", cell)); break;         // lamp post, a string of lights running on to the next
                         case 'J': d.spawns.Add(new SpawnPoint("streetlamp_end", cell)); break;     // the last post of the row

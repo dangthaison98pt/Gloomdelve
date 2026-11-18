@@ -1219,6 +1219,7 @@ namespace Gloomdelve.EditorTools
                 (e, go, sr) => { e.flipWithFacing = false; }));
             Reg("webpatch", Make<WebPatch>("WebPatch", "Traps", "web", new Vector2(2.4f, 0.45f), ArtGenerator.S("Sprites/Props/web"), null, 9,
                 (e, go, sr) => { e.flipWithFacing = false; }));
+            Reg("cocoon", Make<Cocoon>("Cocoon", "Traps", "cocoon", new Vector2(0.8f, 1.2f), ArtGenerator.S("Sprites/Props/cocoon"), null, 8, (e, go, sr) => { e.flipWithFacing = false; }));
             Reg("eggsac", Make<EggSac>("EggSac", "Enemies", "egg sac", new Vector2(0.6f, 0.65f), ArtGenerator.S("Sprites/Enemies/eggsac_0"), anims["eggsac_pulse"], 13,
                 (e, go, sr) => { e.goldDrop = 0; e.heartDropChance = 0f; e.animPulse = anims["eggsac_pulse"]; e.flipWithFacing = false; e.bloodColor = new Color(0.85f, 0.9f, 0.75f); }));
             Reg("foreman", Make<Foreman>("Foreman", "Enemies", "Foreman", new Vector2(1.6f, 1.9f), BS2("foreman_0"), anims["foreman_walk"], 15,

@@ -2456,6 +2456,23 @@ namespace Gloomdelve
             c.Expect(lowered, "after spitting she lowers herself to the floor without a drop attack");
             // only the fall hurts
             c.Expect(b.ContactDamage == 0 || b.Attacking, "on the ground or on the ceiling touching her is harmless");
+            {
+                // a cocoon hangs over the player: her next drop goes through it, and a spiderling falls out
+                foreach (var e in c.world.Entities) if (!e.Dead && (e is EggSac || e is Spider)) e.Despawn();
+                yield return c.Frames(2);
+                var co = c.Spawn<Cocoon>("cocoon", Mathf.FloorToInt(c.p.pos.x), 6);
+                c.Expect(co != null, "a cocoon hangs in the den");
+                bool torn = false, spiderOut = false, tornByHer = false;
+                for (int i = 0; i < 3000 && co != null && !(torn && spiderOut); i++)
+                {
+                    yield return new WaitForFixedUpdate();
+                    if (co.Dead && !torn) { torn = true; tornByHer = b.Attacking || b.Stuck; }
+                    if (torn && c.Count<Spider>() > 0) spiderOut = true;
+                    if (i == 30) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_broodmother_cocoon.png"));
+                }
+                c.Expect(torn && tornByHer, "dropping through the cocoon she tears it open");
+                c.Expect(spiderOut, "and the spiderling inside falls out");
+            }
             // web: slow on the ground, gone in time
             b.Despawn();
             ClearFight(c);

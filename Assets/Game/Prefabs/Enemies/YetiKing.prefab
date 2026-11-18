@@ -165,7 +165,7 @@ MonoBehaviour:
   goldChance: 0.8
   heartDropChance: 0
   maxHitDamage: 3
-  blastDamage: 1
+  trapGuardTime: 0.5
   goldChunks: 10
   emberDrop: 3
   rewardId: heartvessel

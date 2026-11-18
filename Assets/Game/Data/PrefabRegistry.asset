@@ -56,6 +56,8 @@ MonoBehaviour:
     prefab: {fileID: 7121322457674015416, guid: c4bfae8a5a8a26e47b1439b3aaa1ab6f, type: 3}
   - id: webpatch
     prefab: {fileID: 131890587425625013, guid: e944376e1aba74c49a1fba1e4ef21cf7, type: 3}
+  - id: cocoon
+    prefab: {fileID: 8700119720094587834, guid: a23e21478d14a3f44a345d65a9ae30d8, type: 3}
   - id: eggsac
     prefab: {fileID: 8925980840971589750, guid: b79ad21571033b04d899bcdd7d0a4beb, type: 3}
   - id: foreman

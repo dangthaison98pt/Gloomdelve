@@ -1268,6 +1268,19 @@ namespace Gloomdelve.EditorTools
                 p.Outline(C(40, 50, 34));
                 Save(p, $"Sprites/Enemies/eggsac_{f}", pv);
             }
+            {
+                // a cocoon on its thread: three tiles tall, the cocoon itself is the lower part
+                var p = new Px(16, 48);
+                Color32 silk = C(222, 226, 204), silkD = C(160, 170, 140), silkL = C(250, 252, 240), thread = C(200, 206, 186), ol = C(40, 50, 34);
+                p.Ellipse(8f, 9.5f, 5.4f, 9f, silk);
+                p.Ellipse(6.4f, 11f, 2f, 5f, silkL);
+                for (int y = 3; y < 18; y += 3) p.Line(3, y, 12, y + 2, silkD);          // the winding of the silk
+                p.Set(9, 8, C(40, 30, 50)); p.Set(10, 11, C(40, 30, 50));              // something moving inside
+                p.Outline(ol);
+                p.Rect(7, 19, 2, 2, silkD);
+                p.Rect(8, 21, 1, 27, thread); p.Rect(7, 21, 1, 27, ol);
+                Save(p, "Sprites/Props/cocoon", new Vector2(0.5f, 0f));
+            }
         }
 
         /// <summary>

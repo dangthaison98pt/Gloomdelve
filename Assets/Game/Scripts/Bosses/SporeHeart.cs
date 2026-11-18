@@ -5,8 +5,8 @@ namespace Gloomdelve
 {
     /// <summary>
     /// Sporegloom boss: the Rot Heart. A beating fungus heart hanging from the ceiling on a stalk - it never moves
-    /// and cannot be stomped. It hangs too high for a jump: bounce on the bounce mushrooms under it (or jump off
-    /// the side platforms) and slash it in the air, or throw things at it.
+    /// and cannot be stomped. It hangs too high for a jump, and so do the two platforms beside it: a bounce
+    /// mushroom under each platform carries the player up onto it; jump from there and slash it in the air, or throw things at it.
     /// Its moves come in random order (never the same twice running): a fan of spore darts aimed at the player (so bouncing on the mushrooms and
     /// slashing is never safe for long: the darts knock a bouncing player out of the air), a tendril that lashes
     /// across the whole room low along the floor (jump it), a rain of spore clouds on the floor (dizzy, no
