@@ -1561,7 +1561,7 @@ namespace Gloomdelve.EditorTools
                 var b = UIBuilder.TextButton(mt, name, label, new Vector2(0.5f, 1f), new Vector2(0, -20 - row * 66), bs, 42, out var tx);
                 return b;
             }
-            menu.startButton = Entry("Start", "Start Run", 0);
+            menu.startButton = Entry("Start", "Start", 0);
             menu.tutorialButton = Entry("Tutorial", "Tutorial", 1);
             menu.bossButton = Entry("BossTest", "Challenge", 2);
             menu.settingsButton = Entry("Settings", "Settings", 3);
@@ -1615,6 +1615,26 @@ namespace Gloomdelve.EditorTools
                 menu.bossStages = bossStages.ToArray();
                 menu.bossBack = UIBuilder.Button(bp.transform, "Back", "BACK", new Vector2(0.5f, 0f), new Vector2(0, 36), new Vector2(320, 66));
                 menu.bossPanel = bp.gameObject;
+            }
+            // save slots: Start Run asks which of the three to play
+            {
+                var sp = UIBuilder.Panel(t, "SlotPanel", new Vector2(0.5f, 0.5f), new Vector2(0, -40), new Vector2(1040, 600));
+                UIBuilder.Label(sp.transform, "Title", "CHOOSE A SAVE", 46, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -36), new Vector2(800, 64));
+                UIBuilder.Label(sp.transform, "Hint", "Each save keeps its own village, embers and records.", 22, new Color(1f, 1f, 1f, 0.75f),
+                    TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -104), new Vector2(900, 32));
+                int n = SaveSystem.SlotCount;
+                menu.slotButtons = new Button[n]; menu.slotTexts = new TMPro.TMP_Text[n];
+                menu.slotErase = new Button[n]; menu.slotEraseLabels = new TMPro.TMP_Text[n];
+                for (int i = 0; i < n; i++)
+                {
+                    float y = -160 - i * 104;
+                    menu.slotButtons[i] = UIBuilder.Button(sp.transform, "Slot_" + i, "", new Vector2(0.5f, 1f), new Vector2(-90, y), new Vector2(760, 92), out menu.slotTexts[i]);
+                    menu.slotTexts[i].fontSize = 26; menu.slotTexts[i].lineSpacing = 12f;
+                    menu.slotErase[i] = UIBuilder.Button(sp.transform, "Erase_" + i, "ERASE", new Vector2(0.5f, 1f), new Vector2(392, y), new Vector2(170, 92), out menu.slotEraseLabels[i]);
+                    menu.slotEraseLabels[i].fontSize = 26;
+                }
+                menu.slotBack = UIBuilder.Button(sp.transform, "Back", "BACK", new Vector2(0.5f, 0f), new Vector2(0, 36), new Vector2(320, 66));
+                menu.slotPanel = sp.gameObject;
             }
             menu.settingsPanel = UIBuilder.Settings(t);
             var rec = UIBuilder.Panel(t, "RecordsPanel", new Vector2(0.5f, 0.5f), new Vector2(0, -20), new Vector2(1180, 820));

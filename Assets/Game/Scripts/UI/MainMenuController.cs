@@ -27,12 +27,28 @@ namespace Gloomdelve
         [Tooltip("Records screen: the Challenge times of every boss.")] public TMPro.TMP_Text bossRecordsText;
         /// <summary>Set when a boss test ends: the menu opens on the boss list instead of the main panel.</summary>
         public static bool OpenBossListOnLoad;
+        [Header("Save slots")]
+        public GameObject slotPanel;
+        [Tooltip("One button per save slot (Start Run asks which save to play).")] public Button[] slotButtons;
+        public TMPro.TMP_Text[] slotTexts;
+        [Tooltip("Erase button beside each slot: the first press asks, the second erases.")] public Button[] slotErase;
+        public TMPro.TMP_Text[] slotEraseLabels;
+        public Button slotBack;
+        int eraseArmed = -1;
 
         void Start()
         {
             Time.timeScale = 1f;
             SaveSystem.EnsureLoaded();
-            UIUtil.Wire(startButton, StartRun);
+            UIUtil.Wire(startButton, OpenSlots);
+            UIUtil.Wire(slotBack, ShowMain);
+            if (slotButtons != null)
+                for (int i = 0; i < slotButtons.Length; i++)
+                {
+                    int slot = i;
+                    UIUtil.Wire(slotButtons[i], () => { SaveSystem.SelectSlot(slot); if (SaveSystem.SavedRun != null) ContinueRun(); else StartRun(); });
+                    if (slotErase != null && i < slotErase.Length) UIUtil.Wire(slotErase[i], () => EraseSlot(slot));
+                }
             UIUtil.Wire(tutorialButton, StartTutorial);
             UIUtil.Wire(settingsButton, () => Open(settingsPanel.gameObject, settingsPanel.First));
             UIUtil.Wire(recordsButton, () => { RefreshRecords(); Open(recordsPanel, recordsBack); });
@@ -52,7 +68,7 @@ namespace Gloomdelve
             settingsPanel.onBack = ShowMain;
             settingsPanel.onKeys = OpenKeys;
             if (keysPanel != null) keysPanel.onBack = () => Open(settingsPanel.gameObject, settingsPanel.keys != null ? settingsPanel.keys : settingsPanel.First);
-            if (versionText != null) versionText.text = $"v{GameConst.Version}   ·   last seed {SaveSystem.Records.lastSeed}";
+            RefreshVersion();
             ShowMain();
             if (AudioManager.Instance != null) { AudioManager.Instance.SetMusicPitch(1f); AudioManager.Instance.PlayMusic("menu"); }
             RunSession.Clear();
@@ -68,7 +84,7 @@ namespace Gloomdelve
                 }
 
             if (ScenarioRunner.Active) { StartCoroutine(ScenarioStart()); return; }
-            if (LoadingScreen.ShotDir != null && !loadingShotUsed) { loadingShotUsed = true; Invoke(nameof(StartRun), 0.8f); return; }
+            if (LoadingScreen.ShotDir != null && !loadingShotUsed) { loadingShotUsed = true; Invoke(SaveSystem.SavedRun != null ? nameof(ContinueRun) : nameof(StartRun), 0.8f); return; }
             if (AutoTest.Active)
             {
                 RunSession.NewRun(AutoTest.CurrentSeed, false, config.player);
@@ -184,6 +200,11 @@ namespace Gloomdelve
                 System.IO.File.AppendAllText(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_pad.txt"), "\nSwitch: " + swResult);
                 UnityEngine.InputSystem.InputSystem.settings.backgroundBehavior = prevBg;
             }
+            OpenSlots();
+            yield return new WaitForSecondsRealtime(0.3f);
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_slots.png"));
+            Layout("save slots");
+            yield return new WaitForSecondsRealtime(0.3f);
             Open(settingsPanel.gameObject, settingsPanel.First);
             yield return new WaitForSecondsRealtime(0.3f);
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_settings.png"));
@@ -240,6 +261,65 @@ namespace Gloomdelve
         public void OpenKeys()
         {
             if (keysPanel != null) Open(keysPanel.gameObject, keysPanel.First);
+        }
+
+        void RefreshVersion()
+        {
+            if (versionText != null) versionText.text = $"v{GameConst.Version}   ·   save {SaveSystem.Slot + 1}   ·   last seed {SaveSystem.Records.lastSeed}";
+        }
+
+        /// <summary>The save slots: what each one holds. Picking one plays it; Erase wipes it (asks once).</summary>
+        public void OpenSlots()
+        {
+            if (slotPanel == null) { StartRun(); return; }
+            eraseArmed = -1;
+            RefreshSlots();
+            Selectable first = slotBack;
+            if (slotButtons != null && slotButtons.Length > 0) first = slotButtons[Mathf.Clamp(SaveSystem.Slot, 0, slotButtons.Length - 1)];
+            Open(slotPanel, first);
+        }
+
+        void RefreshSlots()
+        {
+            for (int i = 0; slotTexts != null && i < slotTexts.Length; i++)
+            {
+                var r = SaveSystem.PeekSlot(i);
+                bool used = SaveSystem.SlotUsed(i) && r != null;
+                string head = $"SAVE {i + 1}" + (i == SaveSystem.Slot && used ? "   (last played)" : "");
+                if (!used) slotTexts[i].text = head + "\n<color=#FFFFFF99>empty  -  start a new game</color>";
+                else
+                {
+                    int freed = r.rescued != null ? r.rescued.Count : 0;
+                    string going = r.run != null && r.run.active ? $"   ·   <color=#FFD662>Continue: {r.run.stageName}</color>" : "";
+                    // (a night in progress is named beside the slot's name: picking the slot goes on with it)
+                    slotTexts[i].text = head + going + $"\n<color=#FFFFFFCC>{freed}/{Villagers.All.Length} villagers home   ·   {r.embers} embers   ·   {r.runs} nights, {r.wins} won</color>";
+                }
+                if (slotErase != null && i < slotErase.Length) slotErase[i].gameObject.SetActive(used);
+                if (slotEraseLabels != null && i < slotEraseLabels.Length) slotEraseLabels[i].text = eraseArmed == i ? "SURE?" : "ERASE";
+            }
+        }
+
+        void EraseSlot(int i)
+        {
+            if (eraseArmed != i) { eraseArmed = i; RefreshSlots(); return; }       // first press: ask
+            eraseArmed = -1;
+            SaveSystem.EraseSlot(i);
+            RefreshSlots();
+            RefreshVersion();
+            if (slotButtons != null && i < slotButtons.Length) UIUtil.Select(slotButtons[i]);
+        }
+
+        /// <summary>Goes on with the run saved in the slot being played: the level it had reached, from its start.</summary>
+        void ContinueRun()
+        {
+            if (LoadingScreen.Busy) return;
+            var saved = SaveSystem.SavedRun;
+            if (saved == null) { StartRun(); return; }
+            var run = RunSession.Restore(saved, config);
+            RunPlan.Ensure(run, config);
+            int at = Mathf.Clamp(run.stageIndex, 0, run.stageOrder.Length - 1);
+            LevelFactory.Pregenerate(config, config.stages[Mathf.Clamp(run.stageOrder[at], 0, config.stages.Length - 1)].Named(run.stageNames[at]), run.seed, run.stageIndex);
+            LoadingScreen.Load(GameConst.SceneGame);
         }
 
         void StartRun()
@@ -301,6 +381,7 @@ namespace Gloomdelve
             mainPanel.SetActive(false);
             ShowTitle(false);
             recordsPanel.SetActive(panel == recordsPanel);
+            if (slotPanel != null) slotPanel.SetActive(panel == slotPanel);
             if (bossPanel != null) bossPanel.SetActive(panel == bossPanel);
             settingsPanel.gameObject.SetActive(panel == settingsPanel.gameObject);
             if (keysPanel != null) keysPanel.gameObject.SetActive(panel == keysPanel.gameObject);
@@ -312,6 +393,7 @@ namespace Gloomdelve
             mainPanel.SetActive(true);
             ShowTitle(true);
             recordsPanel.SetActive(false);
+            if (slotPanel != null) slotPanel.SetActive(false);
             if (bossPanel != null) bossPanel.SetActive(false);
             settingsPanel.gameObject.SetActive(false);
             if (keysPanel != null) keysPanel.gameObject.SetActive(false);

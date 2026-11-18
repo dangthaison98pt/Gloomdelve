@@ -446,6 +446,61 @@ namespace Gloomdelve.EditorTools
                 Check("new run does not keep the previous run's state", fresh);
                 RunSession.Clear();
             }
+            // save slots (in a scratch folder: the player's own files are not touched)
+            {
+                string scratch = Path.Combine(Path.GetTempPath(), "gloomdelve_slot_test_" + Guid.NewGuid().ToString("N"));
+                Directory.CreateDirectory(scratch);
+                try
+                {
+                    File.WriteAllText(Path.Combine(scratch, "records.json"), "{\"runs\":7,\"embers\":2}");
+                    SaveSystem.DirOverride = scratch;
+                    SaveSystem.Reload();
+                    Check("save slots: a save from before slots existed becomes slot 1", SaveSystem.Slot == 0 && SaveSystem.SlotUsed(0) && SaveSystem.Records.runs == 7 && SaveSystem.Records.embers == 2);
+                    Check("save slots: the other two start empty", !SaveSystem.SlotUsed(1) && !SaveSystem.SlotUsed(2) && SaveSystem.PeekSlot(1) == null);
+                    SaveSystem.SelectSlot(1);
+                    SaveSystem.Records.embers = 4; SaveSystem.Records.rescued.Add("smith"); SaveSystem.SaveRecords();
+                    Check("save slots: choosing an empty slot starts a new game in it", SaveSystem.Slot == 1 && SaveSystem.SlotUsed(1) && SaveSystem.Records.runs == 0);
+                    SaveSystem.SelectSlot(0);
+                    Check("save slots: each slot keeps its own progress", SaveSystem.Records.embers == 2 && SaveSystem.Records.rescued.Count == 0 && SaveSystem.PeekSlot(1).embers == 4 && SaveSystem.PeekSlot(1).rescued.Count == 1);
+                    SaveSystem.Reload();
+                    Check("save slots: the game comes back to the slot played last", SaveSystem.Slot == 0);
+                    SaveSystem.SelectSlot(1); SaveSystem.Reload();
+                    Check("save slots: ... whichever it was", SaveSystem.Slot == 1 && SaveSystem.Records.embers == 4);
+                    SaveSystem.EraseSlot(1);
+                    Check("save slots: erasing empties a slot and leaves the others alone", !SaveSystem.SlotUsed(1) && SaveSystem.Records.embers == 0 && SaveSystem.PeekSlot(0).runs == 7);
+                }
+                finally
+                {
+                    SaveSystem.DirOverride = null;
+                    SaveSystem.Reload();
+                    try { Directory.Delete(scratch, true); } catch { }
+                }
+            }
+            // a run in progress: saved, written out, read back, the same
+            {
+                var a = RunSession.NewRun(4242, false, cfg.player);
+                RunPlan.Ensure(a, cfg);
+                a.stageIndex = 5; a.inVillage = false; a.gold = 137; a.health = 3; a.maxHealth = 11; a.bombs = 6; a.ropes = 1; a.totalTime = 321.5f; a.kills = 9;
+                a.extraTime = 120f; a.villagerFreed = true; a.bossDownStage = 3; a.shopkeeperWanted = true;
+                a.AddUpgrade(cfg.shop.Find("springboots")); a.AddUpgrade(cfg.shop.Find("compass")); a.AddResource("test_counter", 4);
+                a.Equip("rope");
+                var json = JsonUtility.ToJson(RunSession.Capture(a, "2-2"));
+                var b = RunSession.Restore(JsonUtility.FromJson<RunSave>(json), cfg);
+                bool same = b != a && b.seed == a.seed && b.stageIndex == 5 && b.gold == 137 && b.health == 3 && b.maxHealth == 11 && b.bombs == 6 && b.ropes == 1
+                    && Mathf.Approximately(b.totalTime, 321.5f) && b.kills == 9 && b.extraTime == 120f && b.villagerFreed && b.bossDownStage == 3 && b.shopkeeperWanted
+                    && b.HasUpgrade("springboots") && b.HasUpgrade("compass") && b.IsWorn("springboots") == a.IsWorn("springboots")
+                    && Mathf.Approximately(b.stats.jumpBonus, a.stats.jumpBonus) && b.GetResource("test_counter") == 4 && b.EquippedId == "rope"
+                    && b.gear.SequenceEqual(a.gear) && b.stageOrder.SequenceEqual(a.stageOrder) && b.stageNames.SequenceEqual(a.stageNames);
+                Check("saved run: everything carried comes back (seed, level, health, gold, gear, upgrades and what is worn)", same);
+                var levelA = LevelFactory.Create(cfg, cfg.stages[a.stageOrder[5]].Named(a.stageNames[5]), a.seed, 5);
+                var levelB = LevelFactory.Create(cfg, cfg.stages[b.stageOrder[5]].Named(b.stageNames[5]), b.seed, 5);
+                bool sameLevel = levelA.Width == levelB.Width && levelA.Height == levelB.Height && levelA.entrance == levelB.entrance && levelA.exit == levelB.exit && levelA.spawns.Count == levelB.spawns.Count;
+                for (int y = 0; sameLevel && y < levelA.Height; y++)
+                    for (int x = 0; x < levelA.Width; x++)
+                        if (levelA.grid.Get(x, y) != levelB.grid.Get(x, y)) { sameLevel = false; break; }
+                Check("saved run: the level it was in is built again exactly as it was", sameLevel);
+                RunSession.Clear();
+            }
             // shop effects
             {
                 var run = new RunState { bombs = 1, ropes = 1, health = 1 };

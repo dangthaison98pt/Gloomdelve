@@ -110,6 +110,10 @@ namespace Gloomdelve
                 run.gear.Add(Stage.area.grantGear);
                 grantedGear = true;
             }
+            // a saved game that goes on in an arena whose boss has already fallen: the arena is empty, the gate open
+            if (Stage.kind == LevelKind.Boss && run.bossDownStage == run.stageIndex && !run.bossPractice)
+                Level.spawns.RemoveAll(sp => config.prefabs.Get(sp.id) is Boss);
+            SaveSystem.Checkpoint(run, Stage.displayName);      // the game is saved at the start of every level
             LevelFactory.SpawnAll(world, Level, config.prefabs);
             // the level after this one is built in the background while this one is played
             // (in the village that is the first level of the run)
@@ -117,7 +121,15 @@ namespace Gloomdelve
             if (!ScenarioRunner.Active && !run.isTutorial && run.stageOrder != null && aheadAt < run.stageOrder.Length)
                 LevelFactory.Pregenerate(config, config.stages[Mathf.Clamp(run.stageOrder[aheadAt], 0, config.stages.Length - 1)].Named(run.stageNames[aheadAt]), run.seed, run.inVillage ? run.stageIndex : run.stageIndex + 1);
             int spawnCount = world.EntityCount;
-            Player = world.Spawn(config.prefabs.player, new Vector2(Level.entrance.x + 0.5f, Level.entrance.y));
+            var spawnAt = new Vector2(Level.entrance.x + 0.5f, Level.entrance.y);
+            if (run.inVillage && !run.wakeInBed)
+            {
+                // from the menu the player stands downstairs at home, a few steps from the door (the level's own
+                // entrance is the bed upstairs: that is where one wakes after a night that ended badly)
+                foreach (var sp in Level.spawns)
+                    if (sp.id == "interior" && sp.param == VillageBuilding.HomeOfPlayer) { spawnAt = new Vector2(sp.cell.x + 4.5f, sp.cell.y); break; }
+            }
+            Player = world.Spawn(config.prefabs.player, spawnAt);
             world.Player = Player;
             Player.input = input;
             Player.godMode = debugGodMode || (EditorPlaytest.Active && EditorPlaytest.GodMode);
@@ -376,6 +388,11 @@ namespace Gloomdelve
             if (b != Boss) return;
             bool final = Stage != null && Stage.kind == LevelKind.Final;
             if (!final && exitDoor != null) exitDoor.SetLocked(false);
+            if (Run != null && !Run.bossPractice && !final)
+            {
+                Run.bossDownStage = Run.stageIndex;
+                SaveSystem.CheckpointFlags(Run);
+            }
             if (Run != null && Run.bossPractice)
             {
                 hud.ShowBanner($"{b.displayName.ToUpperInvariant()} DEFEATED", "", 2.2f);
@@ -448,9 +465,15 @@ namespace Gloomdelve
             if (run.inVillage)
             {
                 // out of the village gate: the night on the mountain begins (the first level was built meanwhile)
-                run.inVillage = false;
-                Time.timeScale = 1f;
-                SceneManager.LoadScene(GameConst.SceneGame);
+                // ... through the same short fade as a house door, not a hard cut
+                if (ScreenFade.Busy) return;
+                Sfx.Play("land", p.pos);
+                ScreenFade.Through(() =>
+                {
+                    run.inVillage = false;
+                    Time.timeScale = 1f;
+                    SceneManager.LoadScene(GameConst.SceneGame);
+                }, 0.22f, 0.18f, 0.35f);
                 return;
             }
             if (run.bossPractice && !BossAlive) { ShowPracticeResult(); return; }      // boss test: nothing beyond the arena
@@ -607,6 +630,7 @@ namespace Gloomdelve
                 return;
             }
             RunSession.NewRun(sameSeed && old != null ? old.seed : RunSession.RandomSeed(), false, config.player);
+            RunSession.Current.wakeInBed = true;        // the night is over: wake in bed
             SceneManager.LoadScene(GameConst.SceneGame);
         }
 

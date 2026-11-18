@@ -20,8 +20,15 @@ namespace Gloomdelve
         public bool bossPractice;
         [Tooltip("The run has not left Brindlemoor yet: the player is walking through the village, before the first level.")]
         public bool inVillage;
+        /// <summary>The night before ended badly (or was given up): this run begins waking in bed, upstairs at home.
+        /// A game started or continued from the menu begins downstairs instead, ready to go out.</summary>
+        public bool wakeInBed;
         [Tooltip("The rescued villagers' gifts have been handed out for this run.")] public bool perksApplied;
         [Tooltip("Extra seconds in every level before the Reaper comes (the Lamplighter's lamp oil).")] public float extraTime;
+        /// <summary>The caged villager of this run has been freed (the cage is not filled again if the level is entered again).</summary>
+        public bool villagerFreed;
+        /// <summary>Position in the run of the boss level whose boss has fallen, -1 = none: entered again, that arena is empty.</summary>
+        public int bossDownStage = -1;
         /// <summary>Health lost in this run (shown on the boss test result).</summary>
         public int damageTaken;
 
@@ -111,6 +118,21 @@ namespace Gloomdelve
             upgrades.Add(o.id);
             owned[o.id] = o;
             if (string.IsNullOrEmpty(o.slot) || WornInSlot(o.slot) < SlotCapacity(o.slot)) worn.Add(o.id);
+            RecomputeStats();
+        }
+
+        /// <summary>Puts back the upgrades of a saved run: what was owned, and which of it was being worn.</summary>
+        public void RestoreUpgrades(IEnumerable<string> ids, IEnumerable<string> wornIds, ShopConfig shop)
+        {
+            if (ids != null && shop != null)
+                foreach (var id in ids)
+                {
+                    var o = shop.Find(id);
+                    if (o == null || upgrades.Contains(id)) continue;
+                    upgrades.Add(id);
+                    owned[id] = o;
+                }
+            if (wornIds != null) foreach (var w in wornIds) if (owned.ContainsKey(w) && !worn.Contains(w)) worn.Add(w);
             RecomputeStats();
         }
 
@@ -227,6 +249,47 @@ namespace Gloomdelve
         }
 
         public static void Clear() => Current = null;
+
+        /// <summary>What has to be kept of a run to go on with it later, from the start of the level it is in.</summary>
+        public static RunSave Capture(RunState r, string stageName)
+        {
+            var s = new RunSave
+            {
+                active = true, seed = r.seed, stageIndex = r.stageIndex, stageOrder = r.stageOrder, stageNames = r.stageNames,
+                inVillage = r.inVillage, extraTime = r.extraTime, damageTaken = r.damageTaken,
+                health = r.health, maxHealth = r.maxHealth, bombs = r.bombs, ropes = r.ropes, gold = r.gold, totalTime = r.totalTime,
+                equipped = r.equipped, previousEquipped = r.previousEquipped,
+                shopkeeperWanted = r.shopkeeperWanted, shopkeeperDead = r.shopkeeperDead, kills = r.kills, levelsCompleted = r.levelsCompleted,
+                villagerFreed = r.villagerFreed, bossDownStage = r.bossDownStage, stageName = stageName ?? "",
+            };
+            s.upgrades.AddRange(r.upgrades); s.worn.AddRange(r.worn); s.purchases.AddRange(r.purchases); s.gear.AddRange(r.gear);
+            foreach (var kv in r.counters) { s.counterIds.Add(kv.Key); s.counterValues.Add(kv.Value); }
+            return s;
+        }
+
+        /// <summary>Goes on with a saved run: the same night, the same level (it is built again from the same seed),
+        /// everything the player had when they entered it.</summary>
+        public static RunState Restore(RunSave s, GameConfig cfg)
+        {
+            RunCounter++;
+            var r = new RunState
+            {
+                seed = s.seed, stageIndex = s.stageIndex, stageOrder = s.stageOrder, stageNames = s.stageNames,
+                inVillage = s.inVillage, extraTime = s.extraTime, damageTaken = s.damageTaken, perksApplied = true,
+                health = s.health, maxHealth = s.maxHealth, bombs = s.bombs, ropes = s.ropes, gold = s.gold, totalTime = s.totalTime,
+                shopkeeperWanted = s.shopkeeperWanted, shopkeeperDead = s.shopkeeperDead, kills = s.kills, levelsCompleted = s.levelsCompleted,
+                villagerFreed = s.villagerFreed, bossDownStage = s.bossDownStage,
+            };
+            if (s.gear != null) r.gear.AddRange(s.gear);
+            r.equipped = Mathf.Clamp(s.equipped, 0, Mathf.Max(0, r.gear.Count - 1));
+            r.previousEquipped = s.previousEquipped;
+            if (s.purchases != null) r.purchases.AddRange(s.purchases);
+            for (int i = 0; s.counterIds != null && s.counterValues != null && i < s.counterIds.Count && i < s.counterValues.Count; i++)
+                r.counters[s.counterIds[i]] = s.counterValues[i];
+            r.RestoreUpgrades(s.upgrades, s.worn, cfg != null ? cfg.shop : null);
+            Current = r;
+            return r;
+        }
 
         public static int RandomSeed()
         {

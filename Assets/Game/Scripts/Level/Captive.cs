@@ -25,7 +25,8 @@ namespace Gloomdelve
             base.OnSpawn();
             var dir = GameDirector.Instance;
             int seed = dir != null && dir.Level != null ? dir.Level.seed : 0;
-            who = Villagers.Enabled ? Villagers.NextCaptive(seed) : null;
+            var session = RunSession.Current;
+            who = Villagers.Enabled && (session == null || !session.villagerFreed) ? Villagers.NextCaptive(seed) : null;
             if (who == null) { Despawn(); return; }
             int i = Villagers.IndexOf(who.id);
             if (sr != null && looks != null && i >= 0 && i < looks.Length && looks[i] != null) sr.sprite = looks[i];
@@ -43,6 +44,8 @@ namespace Gloomdelve
             freed = true;
             leaveTimer = 1.6f;
             Villagers.Rescue(who.id);
+            var session = RunSession.Current;
+            if (session != null) { session.villagerFreed = true; SaveSystem.CheckpointFlags(session); }      // one villager a run, even if the level is entered again
             if (cage != null) cage.enabled = false;
             Fx.Debris(Center, new Color(0.6f, 0.6f, 0.65f), 12);
             Fx.Shake(0.25f);

@@ -20,6 +20,15 @@ PASS  validator: 5-wide pit is not jumpable
 PASS  validator: 4-high wall is not climbable  
 PASS  validator: 3-high wall is climbable with a ledge grab  
 PASS  new run does not keep the previous run's state  
+PASS  save slots: a save from before slots existed becomes slot 1  
+PASS  save slots: the other two start empty  
+PASS  save slots: choosing an empty slot starts a new game in it  
+PASS  save slots: each slot keeps its own progress  
+PASS  save slots: the game comes back to the slot played last  
+PASS  save slots: ... whichever it was  
+PASS  save slots: erasing empties a slot and leaves the others alone  
+PASS  saved run: everything carried comes back (seed, level, health, gold, gear, upgrades and what is worn)  
+PASS  saved run: the level it was in is built again exactly as it was  
 PASS  shop effects apply  jump +0.17 whip +1/+0.45 blast +0.9
 PASS  an upgrade applies its modifiers only once  
 PASS  custom resources are counted  
@@ -33,4 +42,4 @@ PASS  forced template is placed in generated levels  6 rooms in 6 levels, 6 vali
 PASS  custom marker spawns its prefab  6 rocks in 6 forced rooms
 PASS  same seed -> identical level  
 
-34 passed, 0 failed
+43 passed, 0 failed
