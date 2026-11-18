@@ -105,9 +105,9 @@ namespace Gloomdelve
                     {
                         // a proper snowfall: flakes near and far, the big ones falling faster
                         float r = Random.value;
-                        m.size = r < 0.12f ? 3f : r < 0.5f ? 2f : 1f;
-                        m.vel = new Vector2(Random.Range(-0.7f, -0.1f), -Random.Range(0.7f, 1.3f) * (0.7f + m.size * 0.3f));
-                        m.alpha = m.size >= 3f ? Random.Range(0.75f, 1f) : Random.Range(0.45f, 0.9f);
+                        m.size = r < 0.1f ? 1.6f : r < 0.45f ? 1.1f : 0.7f;
+                        m.vel = new Vector2(Random.Range(-0.7f, -0.1f), -Random.Range(0.7f, 1.3f) * (0.6f + m.size * 0.5f));
+                        m.alpha = m.size >= 1.5f ? Random.Range(0.75f, 1f) : Random.Range(0.45f, 0.9f);
                     }
                     break;
                 case AmbientParticles.Spirits:
