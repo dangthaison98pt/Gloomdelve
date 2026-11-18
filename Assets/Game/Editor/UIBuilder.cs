@@ -11,7 +11,7 @@ namespace Gloomdelve.EditorTools
     {
         /// <summary>The game's typeface and its three looks (see TmpFonts).</summary>
         public static TMP_FontAsset font;
-        public static Material matPlain, matShadow, matTitle;
+        public static Material matPlain, matShadow, matTitle, matMenu;
         public static Sprite panelSprite, buttonSprite, slotSprite;
         /// <summary>When set, every label can show button pictures for input tokens such as "[jump]" (GlyphText).</summary>
         public static InputGlyphSet glyphSet;
@@ -179,10 +179,11 @@ namespace Gloomdelve.EditorTools
             hit.color = new Color(0f, 0f, 0f, 0f);
             Place(Rect(go), anchor, pos, size);
             text = Label(go.transform, "Label", label, fontSize, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, size);
+            if (matMenu != null) text.fontSharedMaterial = matMenu;
             var b = go.AddComponent<Button>();
             b.targetGraphic = text;
             var cb = b.colors;
-            cb.normalColor = new Color(0.86f, 0.9f, 1f);
+            cb.normalColor = Color.white;
             cb.highlightedColor = new Color(1f, 0.9f, 0.6f);
             cb.selectedColor = new Color(1f, 0.84f, 0.4f);
             cb.pressedColor = Color.white;

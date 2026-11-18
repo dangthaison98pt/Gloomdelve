@@ -2935,6 +2935,21 @@ namespace Gloomdelve.EditorTools
                     }
                 Save(p, "UI/slot_soft", PCenter, new Vector4(5, 5, 5, 5));
             }
+            {
+                // a soft round shade (white, tinted by the Image): laid behind the title-screen list so the
+                // words do not sink into the bright snow of the picture
+                const int S = 64;
+                var p = new Px(S, S);
+                for (int y = 0; y < S; y++)
+                    for (int x = 0; x < S; x++)
+                    {
+                        float dx = (x + 0.5f - S * 0.5f) / (S * 0.5f), dy = (y + 0.5f - S * 0.5f) / (S * 0.5f);
+                        float a = Mathf.Clamp01(1f - Mathf.Sqrt(dx * dx + dy * dy));
+                        a = a * a * (3f - 2f * a);
+                        p.Set(x, y, C(255, 255, 255, (byte)Mathf.RoundToInt(a * 255f)));
+                    }
+                Save(p, "UI/menu_shade", PCenter, Vector4.zero);
+            }
         }
 
         /// <summary>The marker beside the menu entry in focus: a small gold arrowhead.</summary>

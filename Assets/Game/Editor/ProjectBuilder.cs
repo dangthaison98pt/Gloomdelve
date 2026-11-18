@@ -54,7 +54,7 @@ namespace Gloomdelve.EditorTools
                 CreateServicesPrefab(cfg, sfx);
                 EditorUtility.DisplayProgressBar("Gloomdelve", "Scenes", 0.85f);
                 TmpFonts.Build();
-                UIBuilder.font = TmpFonts.font; UIBuilder.matPlain = TmpFonts.plain; UIBuilder.matShadow = TmpFonts.shadow; UIBuilder.matTitle = TmpFonts.title;
+                UIBuilder.font = TmpFonts.font; UIBuilder.matPlain = TmpFonts.plain; UIBuilder.matShadow = TmpFonts.shadow; UIBuilder.matTitle = TmpFonts.title; UIBuilder.matMenu = TmpFonts.menu;
                 UIBuilder.panelSprite = ArtGenerator.S("UI/panel");
                 UIBuilder.buttonSprite = ArtGenerator.S("UI/button");
                 UIBuilder.slotSprite = ArtGenerator.S("UI/slot");
@@ -1322,6 +1322,7 @@ namespace Gloomdelve.EditorTools
             // the main list: plain words, a gold marker beside the one in focus
             var main = UIBuilder.Node(t, "MainPanel");
             UIBuilder.Place(UIBuilder.Rect(main), new Vector2(0.5f, 0.5f), new Vector2(0, -170), new Vector2(620, 420));
+            var shade = UIBuilder.Img(main.transform, "Shade", ArtGenerator.S("UI/menu_shade"), new Color(0.02f, 0.03f, 0.1f, 0.78f), new Vector2(0.5f, 0.5f), new Vector2(0, 10), new Vector2(900, 640));
             var mt = main.transform;
             Vector2 bs = new Vector2(560, 60);
             Button Entry(string name, string label, int row)

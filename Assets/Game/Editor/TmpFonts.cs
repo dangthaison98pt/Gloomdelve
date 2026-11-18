@@ -20,7 +20,7 @@ namespace Gloomdelve.EditorTools
         const string FallbackPath = "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF - Fallback.asset";
 
         public static TMP_FontAsset font;
-        public static Material plain, shadow, title;
+        public static Material plain, shadow, title, menu;
 
         public static void Build()
         {
@@ -53,6 +53,13 @@ namespace Gloomdelve.EditorTools
             plain = font.material;
             shadow = Preset("Serif SDF - Shadow", new Color(0.02f, 0.03f, 0.1f, 0.92f), 0.35f, -0.35f, 0.45f, 0.3f);
             title = Preset("Serif SDF - Title", new Color(0.02f, 0.03f, 0.1f, 0.8f), 0.5f, -0.9f, 0.2f, 0.25f);
+            // the words of the title-screen list: no hard edge, just a soft drop shadow (the dark shade behind
+            // the list is what lifts them off the snowy picture)
+            menu = Preset("Serif SDF - Menu", new Color(0.02f, 0.03f, 0.1f, 0.85f), 0.4f, -0.7f, 0.25f, 0.35f);
+            menu.DisableKeyword("OUTLINE_ON");
+            menu.SetFloat(ShaderUtilities.ID_OutlineWidth, 0f);
+            menu.SetFloat(ShaderUtilities.ID_FaceDilate, 0f);
+            EditorUtility.SetDirty(menu);
             AssetDatabase.SaveAssets();
         }
 
