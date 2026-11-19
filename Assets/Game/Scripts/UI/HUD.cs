@@ -60,6 +60,7 @@ namespace Gloomdelve
         public GameObject bossRoot;
         public TMPro.TMP_Text bossName;
         public Image bossFill;
+        private string lastBossName = string.Empty;
         [Header("Dash energy")]
         [Tooltip("The bar under the health and the gold: what is left for dashing.")] public Image energyFill;
         public float energyFillWidth = 440f;
@@ -249,7 +250,12 @@ namespace Gloomdelve
                 if (bossRoot.activeSelf != showBoss) bossRoot.SetActive(showBoss);
                 if (showBoss)
                 {
-                    bossName.text = boss.displayName.ToUpperInvariant();
+                    if (boss.displayName != lastBossName)
+                    {
+                        lastBossName = boss.displayName;
+                        bossName.text = string.IsNullOrEmpty(lastBossName) ? string.Empty
+                            : System.Globalization.CultureInfo.InvariantCulture.TextInfo.ToTitleCase(lastBossName.ToLowerInvariant());
+                    }
                     bossFill.rectTransform.sizeDelta = new Vector2(bossFillWidth * boss.HealthFraction, bossFill.rectTransform.sizeDelta.y);
                 }
             }
