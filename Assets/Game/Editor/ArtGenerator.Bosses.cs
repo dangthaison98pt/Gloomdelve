@@ -91,7 +91,7 @@ namespace Gloomdelve.EditorTools
             Color32 lava = C(255, 150, 50), lavaL = C(255, 228, 124), horn = C(236, 220, 188), hornD = C(176, 148, 118);
             for (int f = 0; f < 4; f++)
             {
-                var p = new Px(78, 56);
+                var p = new Px(86, 56);      // (room to the right for the horns when its head goes forward)
                 bool charge = f == 2, dazed = f == 3;
                 int step = f == 1 ? 1 : 0;
                 int hx = charge ? 3 : 0, hy = charge ? -7 : dazed ? -3 : 0;      // where the head is
@@ -143,7 +143,7 @@ namespace Gloomdelve.EditorTools
                     p.Set(62, 52, star); p.Set(61, 51, star); p.Set(63, 51, star); p.Set(62, 50, star);
                     p.Set(71, 47, star); p.Set(70, 46, star); p.Set(72, 46, star); p.Set(71, 45, star);
                 }
-                Save(p, $"Sprites/Bosses/forgebrute_{f}", new Vector2(0.5f, 1f / 56f));
+                Save(p, $"Sprites/Bosses/forgebrute_{f}", new Vector2(39f / 86f, 1f / 56f));      // (its middle where it was)
             }
         }
 
@@ -158,7 +158,7 @@ namespace Gloomdelve.EditorTools
             Color32 gold = C(250, 204, 70), goldD = C(190, 136, 36), gem = C(220, 60, 80), tusk = C(250, 248, 236);
             for (int f = 0; f < 2; f++)
             {
-                var p = new Px(62, 68);
+                var p = Framed(62, 68);
                 // far arm
                 Bar(p, 12, 40, 6, 26, 3, dD); Bar(p, 6, 26, 9, 14, 3, dD); Ball(p, 9, 11, 5, 5, skinD, skinD, skin, skinL);
                 // legs and feet
@@ -197,7 +197,7 @@ namespace Gloomdelve.EditorTools
                 // eyes: cold light under a heavy brow
                 p.Rect(35, 50, 2, 2, iceL); p.Rect(40, 50, 2, 2, iceL); p.Set(36, 50, C(40, 120, 220)); p.Set(41, 50, C(40, 120, 220));
                 p.Line(33, 54, 37, 52, ol); p.Line(39, 52, 43, 54, ol);
-                Save(p, $"Sprites/Bosses/yetiking_{f}", new Vector2(0.5f, 1f / 68f));
+                Save(p, $"Sprites/Bosses/yetiking_{f}", FramedPivot(62, 68, 31, 1));
             }
         }
 
@@ -211,7 +211,7 @@ namespace Gloomdelve.EditorTools
             Color32 w = C(238, 244, 255), wD = C(186, 200, 232), beak = C(250, 200, 70), beakD = C(196, 140, 40), bolt = C(255, 240, 130);
             for (int f = 0; f < 2; f++)
             {
-                var p = new Px(76, 46);
+                var p = Framed(76, 46);
                 int by = 20;                                    // the body's height
                 bool up = f == 0;
                 // far wing (dark, behind the body)
@@ -246,11 +246,11 @@ namespace Gloomdelve.EditorTools
                 p.Outline(ol);
                 // the eye under its brow
                 p.Rect(56, by + 4, 2, 2, bolt); p.Set(57, by + 4, ol); p.Line(54, by + 7, 59, by + 6, ol);
-                Save(p, $"Sprites/Bosses/stormhawk_{f}", new Vector2(0.5f, 2f / 46f));
+                Save(p, $"Sprites/Bosses/stormhawk_{f}", FramedPivot(76, 46, 38, 2));
             }
             {
                 // folded, head down
-                var p = new Px(34, 60);
+                var p = Framed(34, 60);
                 Bar(p, 17, 46, 11, 58, 1, d); Bar(p, 17, 46, 17, 59, 1, m); Bar(p, 17, 46, 23, 58, 1, d);
                 p.Set(10, 59, w); p.Set(17, 59, w); p.Set(24, 59, w);
                 Ball(p, 17, 32, 8, 17, d, m, l, l);
@@ -262,7 +262,7 @@ namespace Gloomdelve.EditorTools
                 p.Rect(13, 22, 2, 3, beak); p.Rect(20, 22, 2, 3, beak);
                 p.Outline(ol);
                 p.Rect(13, 13, 2, 2, bolt); p.Rect(20, 13, 2, 2, bolt); p.Set(13, 13, ol); p.Set(21, 13, ol);
-                Save(p, "Sprites/Bosses/stormhawk_2", PCenter);
+                Save(p, "Sprites/Bosses/stormhawk_2", FramedPivot(34, 60, 17, 30));
             }
         }
 
@@ -322,7 +322,7 @@ namespace Gloomdelve.EditorTools
             Color32 cD = C(120, 62, 34), c = C(186, 106, 54), cL = C(240, 166, 90), red = C(255, 70, 50), hot = C(255, 220, 120), steam = C(226, 232, 240);
             for (int f = 0; f < 3; f++)
             {
-                var p = new Px(70, 62);
+                var p = Framed(70, 62, 7);
                 bool charge = f == 2;
                 int lean = charge ? 4 : 0, step = f == 1 ? 1 : 0;
                 // mace arm, behind
@@ -359,7 +359,7 @@ namespace Gloomdelve.EditorTools
                 p.Disc(sx + 7.5f, sy + 21.5f, 5.2f, d); p.Disc(sx + 7.5f, sy + 21.5f, 3.4f, m); p.Disc(sx + 7.5f, sy + 21.5f, 1.4f, dD);     // a gear for a boss
                 foreach (int ry in new[] { 8, 21, 34 }) { p.Rect(sx + 15, sy + ry, 3, 2, l); p.Set(sx + 18, sy + ry, l); }                 // spikes
                 p.Outline(ol);
-                Save(p, $"Sprites/Bosses/foreman_{f}", new Vector2(0.5f, 1f / 62f));
+                Save(p, $"Sprites/Bosses/foreman_{f}", FramedPivot(70, 62, 35, 1, 7));
             }
         }
 
@@ -375,7 +375,7 @@ namespace Gloomdelve.EditorTools
             int[] rags = { 2, 8, 4, 9, 1, 6, 9, 3, 7, 0, 8, 5 };      // how far down each rag of the hem hangs
             for (int f = 0; f < 2; f++)
             {
-                var p = new Px(68, 76);
+                var p = Framed(68, 76);
                 // sleeves and hands of bone
                 Bar(p, 18, 44, 8, 34 - f, 3, d); Bar(p, 50, 44, 60, 36 + f, 3, m);
                 p.Line(7, 31 - f, 3, 26 - f, bone); p.Line(8, 31 - f, 7, 24 - f, bone); p.Line(9, 31 - f, 11, 25 - f, bone); p.Set(5, 29 - f, boneD);
@@ -412,7 +412,7 @@ namespace Gloomdelve.EditorTools
                 p.Rect(31, 57, 4, 2 + e, glow); p.Rect(39, 57, 4, 2 + e, glow); p.Set(33, 58, glowL); p.Set(41, 58, glowL);
                 p.Set(30, 59 + e, glow); p.Set(43, 59 + e, glow);                              // the lights slant: it is not pleased
                 p.Set(36, 51, C(60, 140, 130)); p.Set(37, 50, C(60, 140, 130));                // a breath of cold
-                Save(p, $"Sprites/Bosses/warden_{f}", new Vector2(0.5f, 2f / 76f));
+                Save(p, $"Sprites/Bosses/warden_{f}", FramedPivot(68, 76, 34, 2));
             }
         }
     }

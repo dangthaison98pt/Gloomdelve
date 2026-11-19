@@ -257,7 +257,7 @@ namespace Gloomdelve.EditorTools
             for (int f = 0; f < 2; f++)
             {
                 // (3.5 tiles by 2.9: a fist to go with a body that fills the wall)
-                var p = new Px(56, 46);
+                var p = Framed(56, 46);
                 Color32 fD = C(64, 60, 104), fM = C(90, 86, 136), fL = C(120, 114, 168), fSeam = C(44, 42, 78), core = C(255, 190, 110), coreL = C(255, 240, 200);
                 for (int y = 1; y <= 33; y++)
                     for (int x = 4; x <= 51; x++)
@@ -282,7 +282,7 @@ namespace Gloomdelve.EditorTools
                     p.Line(28, 33, 22, 28, ol); p.Line(38, 12, 44, 6, ol); p.Line(18, 12, 12, 7, ol);
                 }
                 p.Outline(ol);
-                Save(p, $"Sprites/Bosses/facetfist_{f}", new Vector2(0.5f, 1f / 46f));
+                Save(p, $"Sprites/Bosses/facetfist_{f}", FramedPivot(56, 46, 28, 1));
             }
 
             // Dampener: a lump of dark felt bound in copper, a tuning fork through it

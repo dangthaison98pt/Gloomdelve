@@ -23,15 +23,27 @@ namespace Gloomdelve.EditorTools
 
         public static Color32 Lerp(Color32 a, Color32 b, float t) => Color32.Lerp(a, b, t);
 
-        public bool In(int x, int y) => x >= 0 && y >= 0 && x < w && y < h;
+        /// <summary>
+        /// Where the drawing's (0, 0) lies in the picture: a margin to the left and below, so that a drawing made
+        /// for a w x h sheet can be given room all round without changing one of its numbers (see Framed).
+        /// </summary>
+        public int ox, oy;
+
+        /// <summary>A sheet for a drawing of w x h with 'pad' empty pixels to the left, to the right and above it.</summary>
+        public static Px Framed(int w, int h, int pad = 4) => new Px(w + pad * 2, h + pad) { ox = pad };
+
+        /// <summary>The pivot (0..1) of a Framed sheet whose pivot is the drawing's pixel (px, py).</summary>
+        public static Vector2 FramedPivot(int w, int h, float px, float py, int pad = 4) => new Vector2((px + pad) / (w + pad * 2), py / (h + pad));
+
+        public bool In(int x, int y) => x + ox >= 0 && y + oy >= 0 && x + ox < w && y + oy < h;
 
         public void Set(int x, int y, Color32 col)
         {
-            if (In(x, y)) c[y * w + x] = col;
+            if (In(x, y)) c[(y + oy) * w + x + ox] = col;
         }
 
-        public Color32 Get(int x, int y) => In(x, y) ? c[y * w + x] : Clear;
-        public bool Opaque(int x, int y) => In(x, y) && c[y * w + x].a > 0;
+        public Color32 Get(int x, int y) => In(x, y) ? c[(y + oy) * w + x + ox] : Clear;
+        public bool Opaque(int x, int y) => In(x, y) && c[(y + oy) * w + x + ox].a > 0;
 
         public void Rect(int x, int y, int rw, int rh, Color32 col)
         {

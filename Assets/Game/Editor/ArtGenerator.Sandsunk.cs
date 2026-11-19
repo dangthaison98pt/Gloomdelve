@@ -148,7 +148,7 @@ namespace Gloomdelve.EditorTools
             // spines down her back, a crest of spines tipped with gold, two eyes, jaws with long fangs.
             for (int f = 0; f < 3; f++)
             {
-                var p = new Px(62, 66);
+                var p = Framed(62, 66);
                 Color32 hide = C(206, 142, 82), hideD = C(140, 88, 50), hideL = C(246, 200, 130), plate = C(112, 70, 60), plateL = C(164, 108, 86), plateD = C(74, 44, 40),
                         mouth = C(110, 22, 36), mouthD = C(60, 10, 22), tooth = C(252, 246, 222), eye = C(255, 214, 80), gold = C(250, 204, 70);
                 if (f == 2)
@@ -203,7 +203,7 @@ namespace Gloomdelve.EditorTools
                     p.Ellipse(29f, 1.4f, 21f, 2.6f, sandD); p.Rect(9, 0, 41, 1, sandDeep);              // the sand she stands in
                     p.Set(11, 3, sandL); p.Set(47, 3, sandL); p.Set(8, 2, sand); p.Set(51, 2, sand);
                 }
-                Save(p, $"Sprites/Bosses/dunequeen_{f}", new Vector2(0.5f, 1f / 66f));
+                Save(p, $"Sprites/Bosses/dunequeen_{f}", FramedPivot(62, 66, 31, 1));
             }
 
             // her spit: a clod of wet sand
