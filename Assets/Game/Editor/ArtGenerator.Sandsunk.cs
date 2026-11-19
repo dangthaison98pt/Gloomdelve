@@ -175,15 +175,15 @@ namespace Gloomdelve.EditorTools
                         int cx = 28 + Mathf.RoundToInt(lean * k * k);
                         int hw = 12 - Mathf.RoundToInt(k * 3f);
                         bool seam = y % 7 == 6;
+                        // (flat: her hide one tone with a seam at every ring, light down her belly, armour down her back)
                         p.Rect(cx - hw, y, hw * 2 + 1, 1, seam ? hideD : hide);
-                        p.Rect(cx - hw + 5, y, 3, 1, seam ? hideD : Mul(hide, 0.9f));                    // the turn of her side
-                        p.Rect(cx + hw - 3, y, 3, 1, seam ? hide : hideL);                               // light down her belly
-                        p.Rect(cx - hw, y, 5, 1, seam ? plateD : plate); if (!seam) p.Set(cx - hw + 4, y, plateL);     // armour down her back
+                        if (!seam) p.Rect(cx + hw - 2, y, 3, 1, hideL);
+                        p.Rect(cx - hw, y, 5, 1, seam ? plateD : plate);
                         if (y % 7 == 3 && y > 4) { p.Rect(cx - hw - 3, y, 3, 2, plate); p.Set(cx - hw - 4, y + 1, plateL); }     // a spine on every ring
                     }
                     int hx = 28 + lean;
-                    p.Ellipse(hx + 2f, 51f, 14f, 9f, hide); p.Ellipse(hx + 6f, 54f, 8f, 4f, hideL);
-                    p.Ellipse(hx - 4f, 54f, 9f, 7f, plate); p.Ellipse(hx - 3f, 56f, 6f, 3.5f, plateL);
+                    p.Ellipse(hx + 2f, 51f, 14f, 9f, hide);
+                    p.Ellipse(hx - 4f, 54f, 9f, 7f, plate);
                     // her crest: spines tipped with gold
                     Bar(p, hx - 1, 59, hx - 4, 64, 1, plate); p.Set(hx - 5, 65, gold); p.Set(hx - 4, 65, gold);
                     Bar(p, hx - 8, 58, hx - 14, 63, 1, plate); p.Set(hx - 15, 64, gold); p.Set(hx - 16, 64, gold);
@@ -192,7 +192,7 @@ namespace Gloomdelve.EditorTools
                     int open = f == 1 ? 10 : 3;
                     int my = 46 - open / 2;
                     p.Rect(hx + 5, my, 13, open + 2, mouth); p.Rect(hx + 5, my, 4, open + 2, mouthD);
-                    for (int i = 0; i < 5; i++) { p.Rect(hx + 8 + i * 2, my + open, 1, 2, tooth); p.Rect(hx + 8 + i * 2, my, 1, 2, tooth); }
+                    for (int i = 0; i < 3; i++) { p.Rect(hx + 7 + i * 3, my + open, 2, 2, tooth); p.Rect(hx + 7 + i * 3, my, 2, 2, tooth); }
                     Bar(p, hx + 16, my + open + 1, hx + 20, my + open - 2, 0, tooth); p.Line(hx + 17, my + open + 1, hx + 21, my + open - 2, tooth);       // fangs
                     Bar(p, hx + 16, my, hx + 20, my + 3, 0, tooth); p.Line(hx + 17, my, hx + 21, my + 3, tooth);
                     p.Outline(ol);

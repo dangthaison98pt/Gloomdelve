@@ -136,7 +136,7 @@ namespace Gloomdelve
                 if (sinceDash >= cfg.dashRegenDelay) dashEnergy = Mathf.Min(cfg.dashEnergyMax, dashEnergy + cfg.dashRegenRate * dt);
             }
             if (motor.grounded && dashTimer <= 0f) airDashed = false;
-            if (fi.dashPressed && !stunned && dashTimer <= 0f && motor.mode == MotorMode.Normal && !(airDashed && !motor.grounded))
+            if (fi.dashPressed && !(fi.interactPressed && interactable) && !stunned && dashTimer <= 0f && motor.mode == MotorMode.Normal && !(airDashed && !motor.grounded))
             {
                 if (dashEnergy >= cfg.dashCost) StartDash(fi.x != 0 ? Math.Sign(fi.x) : facing);
                 else { DashRefusals++; Sfx.Play("error", pos, 0.6f); }
@@ -455,9 +455,14 @@ namespace Gloomdelve
             foreach (var e in tmp) ((Pickup)e).Collect(this);
         }
 
+        // Something within reach answers the interact button. On a pad that button is also the dash, so while
+        // this is set the press goes to the thing and not to a dash.
+        bool interactable;
+
         void Interactions(FrameInput fi)
         {
             Prompt = null;
+            interactable = false;
             var r = Bounds;
             World.Query(r, tmp, e => e is IInteractable);
             IInteractable best = null; float bd = float.MaxValue;
@@ -469,6 +474,7 @@ namespace Gloomdelve
             }
             if (best != null)
             {
+                interactable = true;
                 Prompt = best.GetPrompt(this);
                 bool upOk = best.UpTriggers && fi.upPressed && motor.mode == MotorMode.Normal && grounded;
                 if ((fi.interactPressed || upOk) && !IsStunned) best.Interact(this);

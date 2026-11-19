@@ -78,10 +78,10 @@ namespace Gloomdelve.EditorTools
                 };
                 glyphs.entries = new[]
                 {
-                    GE("jump", "Z", GS("pad_green"), "A", false, "\u00D7", psCross, null, "B"), GE("confirm", "Enter", GS("pad_green"), "A", false, "\u00D7", psCross, null, "B"),
-                    GE("whip", "X", GS("pad_blue"), "X", false, "\u25A1", psSquare, null, "Y"), GE("use", "C", GS("pad_red"), "B", false, "\u25CB", psCircle, null, "A"),
-                    GE("enter", "A", GS("pad_yellow"), "Y", true, "\u25B2", psTriangle, null, "X"),
-                    GE("gear", "D", pill, "R1", false, "R1", null, pill, "R"), GE("walk", "Shift", pill, "LT", false, "L2", null, pill, "ZL"), GE("dash", "S", pill, "RT", false, "R2", null, pill, "ZR"),
+                    GE("jump", "Z", GS("pad_yellow"), "Y", true, "\u25B2", psTriangle, null, "X"), GE("confirm", "Enter", GS("pad_green"), "A", false, "\u00D7", psCross, null, "B"),
+                    GE("whip", "X", GS("pad_blue"), "X", false, "\u25A1", psSquare, null, "Y"), GE("use", "C", pill, "RT", false, "R2", null, pill, "ZR"),
+                    GE("enter", "A", GS("pad_red"), "B", false, "\u25CB", psCircle, null, "A"),
+                    GE("gear", "D", pill, "R1", false, "R1", null, pill, "R"), GE("walk", "Shift", pill, "L1", false, "L1", null, pill, "L"), GE("dash", "S", GS("pad_red"), "B", false, "\u25CB", psCircle, null, "A"),
                     GE("pause", "Esc", pill, "Start", false, "Options", null, pill, "+"), GE("inventory", "Tab", pill, "Select", false, "Share", null, pill, "\u2212"),
                     GE("up", "\u25B2", darkBtn, "\u25B2"), GE("down", "\u25BC", darkBtn, "\u25BC"),
                     GE("left", "\u25C4", darkBtn, "\u25C4"), GE("right", "\u25BA", darkBtn, "\u25BA"),
@@ -279,13 +279,13 @@ namespace Gloomdelve.EditorTools
                 "{\"name\":\"Arrows\",\"id\":\"" + Guid.NewGuid() + "\",\"path\":\"2DVector\",\"interactions\":\"\",\"processors\":\"\",\"groups\":\"\",\"action\":\"Move\",\"isComposite\":true,\"isPartOfComposite\":false}",
                 Part("up", "<Keyboard>/upArrow"), Part("down", "<Keyboard>/downArrow"), Part("left", "<Keyboard>/leftArrow"), Part("right", "<Keyboard>/rightArrow"),
                 B("Move", "<Gamepad>/leftStick"), B("Move", "<Gamepad>/dpad"),
-                B("Jump", "<Keyboard>/z"), B("Jump", "<Keyboard>/space"), B("Jump", "<Gamepad>/buttonSouth"),
+                B("Jump", "<Keyboard>/z"), B("Jump", "<Keyboard>/space"), B("Jump", "<Gamepad>/buttonNorth"),
                 B("Attack", "<Keyboard>/x"), B("Attack", "<Gamepad>/buttonWest"),
-                B("Use", "<Keyboard>/c"), B("Use", "<Gamepad>/buttonEast"),
+                B("Use", "<Keyboard>/c"), B("Use", "<Gamepad>/rightTrigger"),
                 B("Swap", "<Keyboard>/d"), B("Swap", "<Gamepad>/rightShoulder"),
-                B("Interact", "<Keyboard>/a"), B("Interact", "<Gamepad>/buttonNorth"),
-                B("Dash", "<Keyboard>/s"), B("Dash", "<Gamepad>/rightTrigger"),
-                B("Walk", "<Keyboard>/leftShift"), B("Walk", "<Keyboard>/rightShift"), B("Walk", "<Gamepad>/leftTrigger"),
+                B("Interact", "<Keyboard>/a"), B("Interact", "<Gamepad>/buttonEast"),
+                B("Dash", "<Keyboard>/s"), B("Dash", "<Gamepad>/buttonEast"),
+                B("Walk", "<Keyboard>/leftShift"), B("Walk", "<Keyboard>/rightShift"), B("Walk", "<Gamepad>/leftShoulder"),
                 B("Pause", "<Keyboard>/escape"), B("Pause", "<Keyboard>/p"), B("Pause", "<Gamepad>/start"),
                 B("Inventory", "<Keyboard>/tab"), B("Inventory", "<Keyboard>/i"), B("Inventory", "<Gamepad>/select"),
             };

@@ -17,14 +17,14 @@ MonoBehaviour:
     keyboard: {fileID: 21300000, guid: ac30c036278fcb6499565013b3b95aa4, type: 3}
     keyboardLabel: Z
     keyboardInk: {r: 0.17, g: 0.14, b: 0.19, a: 1}
-    gamepad: {fileID: 21300000, guid: f9b2892c85a0521489889fcb0284d6f0, type: 3}
-    gamepadLabel: A
-    gamepadInk: {r: 0.97, g: 0.96, b: 0.93, a: 1}
+    gamepad: {fileID: 21300000, guid: 01bc476b82d555e42a8443144e1a97ce, type: 3}
+    gamepadLabel: Y
+    gamepadInk: {r: 0.17, g: 0.14, b: 0.19, a: 1}
     playstation: {fileID: 21300000, guid: b6b5f86d61c1b87479c41a507069a8f5, type: 3}
-    playstationLabel: "\xD7"
-    playstationInk: {r: 0.55, g: 0.75, b: 1, a: 1}
+    playstationLabel: "\u25B2"
+    playstationInk: {r: 0.35, g: 0.92, b: 0.7, a: 1}
     nintendo: {fileID: 21300000, guid: b6b5f86d61c1b87479c41a507069a8f5, type: 3}
-    nintendoLabel: B
+    nintendoLabel: X
     nintendoInk: {r: 0.97, g: 0.96, b: 0.93, a: 1}
   - token: confirm
     keyboard: {fileID: 21300000, guid: ac30c036278fcb6499565013b3b95aa4, type: 3}
@@ -56,6 +56,19 @@ MonoBehaviour:
     keyboard: {fileID: 21300000, guid: ac30c036278fcb6499565013b3b95aa4, type: 3}
     keyboardLabel: C
     keyboardInk: {r: 0.17, g: 0.14, b: 0.19, a: 1}
+    gamepad: {fileID: 21300000, guid: 585ea53512aca6c4d927fe06b2f84905, type: 3}
+    gamepadLabel: RT
+    gamepadInk: {r: 0.97, g: 0.96, b: 0.93, a: 1}
+    playstation: {fileID: 21300000, guid: 585ea53512aca6c4d927fe06b2f84905, type: 3}
+    playstationLabel: R2
+    playstationInk: {r: 0.97, g: 0.96, b: 0.93, a: 1}
+    nintendo: {fileID: 21300000, guid: 585ea53512aca6c4d927fe06b2f84905, type: 3}
+    nintendoLabel: ZR
+    nintendoInk: {r: 0.97, g: 0.96, b: 0.93, a: 1}
+  - token: enter
+    keyboard: {fileID: 21300000, guid: ac30c036278fcb6499565013b3b95aa4, type: 3}
+    keyboardLabel: A
+    keyboardInk: {r: 0.17, g: 0.14, b: 0.19, a: 1}
     gamepad: {fileID: 21300000, guid: 776d96ff8f47c1b48a83b725424355fa, type: 3}
     gamepadLabel: B
     gamepadInk: {r: 0.97, g: 0.96, b: 0.93, a: 1}
@@ -64,19 +77,6 @@ MonoBehaviour:
     playstationInk: {r: 1, g: 0.45, b: 0.45, a: 1}
     nintendo: {fileID: 21300000, guid: b6b5f86d61c1b87479c41a507069a8f5, type: 3}
     nintendoLabel: A
-    nintendoInk: {r: 0.97, g: 0.96, b: 0.93, a: 1}
-  - token: enter
-    keyboard: {fileID: 21300000, guid: ac30c036278fcb6499565013b3b95aa4, type: 3}
-    keyboardLabel: A
-    keyboardInk: {r: 0.17, g: 0.14, b: 0.19, a: 1}
-    gamepad: {fileID: 21300000, guid: 01bc476b82d555e42a8443144e1a97ce, type: 3}
-    gamepadLabel: Y
-    gamepadInk: {r: 0.17, g: 0.14, b: 0.19, a: 1}
-    playstation: {fileID: 21300000, guid: b6b5f86d61c1b87479c41a507069a8f5, type: 3}
-    playstationLabel: "\u25B2"
-    playstationInk: {r: 0.35, g: 0.92, b: 0.7, a: 1}
-    nintendo: {fileID: 21300000, guid: b6b5f86d61c1b87479c41a507069a8f5, type: 3}
-    nintendoLabel: X
     nintendoInk: {r: 0.97, g: 0.96, b: 0.93, a: 1}
   - token: gear
     keyboard: {fileID: 21300000, guid: ac30c036278fcb6499565013b3b95aa4, type: 3}
@@ -96,26 +96,26 @@ MonoBehaviour:
     keyboardLabel: Shift
     keyboardInk: {r: 0.17, g: 0.14, b: 0.19, a: 1}
     gamepad: {fileID: 21300000, guid: 585ea53512aca6c4d927fe06b2f84905, type: 3}
-    gamepadLabel: LT
+    gamepadLabel: L1
     gamepadInk: {r: 0.97, g: 0.96, b: 0.93, a: 1}
     playstation: {fileID: 21300000, guid: 585ea53512aca6c4d927fe06b2f84905, type: 3}
-    playstationLabel: L2
+    playstationLabel: L1
     playstationInk: {r: 0.97, g: 0.96, b: 0.93, a: 1}
     nintendo: {fileID: 21300000, guid: 585ea53512aca6c4d927fe06b2f84905, type: 3}
-    nintendoLabel: ZL
+    nintendoLabel: L
     nintendoInk: {r: 0.97, g: 0.96, b: 0.93, a: 1}
   - token: dash
     keyboard: {fileID: 21300000, guid: ac30c036278fcb6499565013b3b95aa4, type: 3}
     keyboardLabel: S
     keyboardInk: {r: 0.17, g: 0.14, b: 0.19, a: 1}
-    gamepad: {fileID: 21300000, guid: 585ea53512aca6c4d927fe06b2f84905, type: 3}
-    gamepadLabel: RT
+    gamepad: {fileID: 21300000, guid: 776d96ff8f47c1b48a83b725424355fa, type: 3}
+    gamepadLabel: B
     gamepadInk: {r: 0.97, g: 0.96, b: 0.93, a: 1}
-    playstation: {fileID: 21300000, guid: 585ea53512aca6c4d927fe06b2f84905, type: 3}
-    playstationLabel: R2
-    playstationInk: {r: 0.97, g: 0.96, b: 0.93, a: 1}
-    nintendo: {fileID: 21300000, guid: 585ea53512aca6c4d927fe06b2f84905, type: 3}
-    nintendoLabel: ZR
+    playstation: {fileID: 21300000, guid: b6b5f86d61c1b87479c41a507069a8f5, type: 3}
+    playstationLabel: "\u25CB"
+    playstationInk: {r: 1, g: 0.45, b: 0.45, a: 1}
+    nintendo: {fileID: 21300000, guid: b6b5f86d61c1b87479c41a507069a8f5, type: 3}
+    nintendoLabel: A
     nintendoInk: {r: 0.97, g: 0.96, b: 0.93, a: 1}
   - token: pause
     keyboard: {fileID: 21300000, guid: ac30c036278fcb6499565013b3b95aa4, type: 3}
