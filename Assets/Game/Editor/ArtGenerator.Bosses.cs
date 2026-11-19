@@ -5,7 +5,7 @@ namespace Gloomdelve.EditorTools
 {
     /// <summary>
     /// The bosses that used to be their area's creature at double size, drawn for themselves: the Forge Brute,
-    /// the Yeti King, the Storm Hawk, the Rot Heart, the Foreman and the Hollow Warden. (The Broodmother is in
+    /// the Yeti King, the Storm Hawk, the Rot Heart and the Hollow Warden. (The Broodmother is in
     /// ArtGenerator.cs, the Dune Queen with her area, the Facet with the Geode.) All face right; flat tones,
     /// lit from the upper right, one dark pixel of outline.
     /// </summary>
@@ -100,7 +100,7 @@ namespace Gloomdelve.EditorTools
             YetiKingArt();
             StormHawkArt();
             RotHeartArt();
-            ForemanArt();
+            GearWyrmArt();
             WardenArt();
         }
 
@@ -391,55 +391,56 @@ namespace Gloomdelve.EditorTools
         }
 
         /// <summary>
-        /// The Foreman: an iron automaton behind a tower shield of copper, a red slit for eyes, a smokestack on its
-        /// back and a mace on a chain arm. 0 / 1 walking, 2 charging (leaning in behind the shield, steam up).
+        /// The Cogwyrm: a centipede of gears. Its head (0 jaws shut, 1 jaws wide and a glow in its throat) faces
+        /// right; a body segment (a copper gear), and the tail (a smaller gear with a spike). All drawn about
+        /// their middle: the game turns them. Flat, as the small creatures are.
         /// </summary>
-        static void ForemanArt()
+        static void GearWyrmArt()
         {
-            Color32 ol = C(18, 18, 26), dD = C(38, 40, 54), d = C(66, 70, 90), m = C(102, 108, 132), l = C(152, 160, 186);
-            Color32 cD = C(120, 62, 34), c = C(186, 106, 54), cL = C(240, 166, 90), red = C(255, 70, 50), hot = C(255, 220, 120), steam = C(226, 232, 240);
-            for (int f = 0; f < 3; f++)
+            Color32 ol = C(34, 22, 20), bD = C(138, 90, 40), b = C(198, 142, 60), bL = C(242, 198, 112);
+            Color32 st = C(168, 174, 196), stD = C(92, 96, 122), glow = C(255, 150, 50), glowL = C(255, 232, 130), dark = C(40, 28, 30);
+            Color32 cD = C(120, 62, 34), c = C(186, 106, 54), cL = C(240, 166, 90);
+            for (int f = 0; f < 2; f++)
             {
-                var p = Framed(70, 62, 7);
-                bool charge = f == 2;
-                int lean = charge ? 4 : 0, step = f == 1 ? 1 : 0;
-                // (flat, as the small creatures are: one tone to a part, shadow down its left side, no rivets)
-                int mo = charge ? 6 : 0;
-                // mace arm, behind: a ball with four studs
-                Bar(p, 18 + lean, 34, 8, 28 + mo, 1, d);
-                p.Disc(5.5f, 27.5f + mo, 4.4f, dD);
-                p.Rect(-1, 27 + mo, 2, 2, l); p.Rect(5, 32 + mo, 2, 2, l); p.Rect(5, 21 + mo, 2, 2, l); p.Rect(10, 27 + mo, 2, 2, l);
-                // smokestack, a puff of steam over it
-                p.Rect(12 + lean, 38, 7, 15, d); p.Rect(12 + lean, 38, 2, 15, dD); p.Rect(11 + lean, 52, 9, 2, c);
-                p.Rect(14 + lean, 56, 3, 3, steam);
-                if (charge) { p.Rect(11, 59, 4, 3, steam); p.Rect(6, 61, 4, 3, steam); }
-                // legs: pistons with copper knees, heavy feet
-                int a = step == 1 ? 3 : 0, b = step == 1 ? 0 : 3;
-                p.Rect(19 + a, 4, 8, 14, d); p.Rect(18 + a, 10, 10, 3, c);
-                p.Rect(33 + b, 4, 8, 14, d); p.Rect(32 + b, 10, 10, 3, c);
-                p.Rect(17 + a, 1, 13, 4, dD); p.Rect(31 + b, 1, 13, 4, dD);
-                // the body: a boiler, a furnace door in it
-                p.Rect(16 + lean, 17, 28, 24, m); p.Rect(16 + lean, 17, 4, 24, d); p.Rect(16 + lean, 17, 28, 3, d); p.Rect(41 + lean, 20, 3, 21, l);
-                p.Rect(23 + lean, 22, 11, 8, dD); p.Rect(24 + lean, 23, 9, 6, red); p.Rect(26 + lean, 24, 5, 3, hot);
-                // shoulder gear
-                p.Disc(20.5f + lean, 40.5f, 6.4f, c); p.Disc(20.5f + lean, 40.5f, 2.2f, dD);
-                for (int i = 0; i < 8; i++) { float an = i * Mathf.PI / 4f; p.Rect(Mathf.RoundToInt(20f + lean + Mathf.Cos(an) * 7f), Mathf.RoundToInt(40f + Mathf.Sin(an) * 7f), 2, 2, c); }
-                // head: a helmet with a crest, one red slit
-                Color32 hm = C(102, 108, 133);
-                p.Ellipse(33f + lean, 48f, 10f, 8f, hm);
-                Shade(p, hm, d, l, 2, 3, 2);
-                p.Rect(24 + lean, 41, 19, 3, d);                                                        // collar
-                p.Rect(31 + lean, 55, 4, 5, c);
-                p.Rect(31 + lean, 47, 12, 3, dD); p.Rect(34 + lean, 48, 8, 1, red); p.Rect(40 + lean, 48, 2, 1, hot);
-                // the shield arm and the tower shield before it
-                int sx = 48 + lean + (charge ? 3 : 0), sy = charge ? 3 : 6;
-                Bar(p, 42 + lean, 34, sx + 1, 30, 2, d);
-                p.Rect(sx, sy, 15, 44, c); p.Rect(sx, sy, 3, 44, cD); p.Rect(sx + 13, sy, 2, 44, cL);
-                p.Rect(sx, sy, 15, 3, d); p.Rect(sx, sy + 41, 15, 3, d);                                  // its iron bands
-                p.Disc(sx + 7.5f, sy + 21.5f, 5.2f, d); p.Disc(sx + 7.5f, sy + 21.5f, 2.2f, l);           // a boss in its middle
-                foreach (int ry in new[] { 8, 21, 34 }) { p.Rect(sx + 15, sy + ry, 3, 2, l); p.Set(sx + 18, sy + ry, l); }                 // spikes
+                var p = new Px(42, 34);
+                int open = f == 1 ? 4 : 0;
+                // feelers swept back, the collar its first segment hangs on
+                p.Line(14, 27, 6, 32, stD); p.Line(15, 27, 7, 32, stD); p.Line(12, 6, 5, 2, stD); p.Line(13, 6, 6, 2, stD);
+                p.Rect(2, 9, 5, 16, stD); p.Rect(3, 11, 3, 12, st);
+                // the skull: a brass dome
+                p.Ellipse(19f, 17f, 14f, 12f, b);
+                Shade(p, b, bD, bL, 4, 2, 2);
+                p.Rect(9, 7, 3, 20, bD);      // a band of plate behind the eye
+                // jaws: two steel pincers
+                Bar(p, 28, 21, 36, 23 + open, 1, st); p.Line(36, 22 + open, 40, 18 + open / 2, st); p.Line(37, 23 + open, 41, 19 + open / 2, st);
+                Bar(p, 28, 12, 36, 10 - open, 1, stD); p.Line(36, 11 - open, 40, 15 - open / 2, stD); p.Line(37, 10 - open, 41, 14 - open / 2, stD);
+                if (f == 1) { p.Rect(31, 14, 5, 6, glow); p.Rect(32, 15, 3, 4, glowL); }
+                // the core: the one soft thing in it
+                p.Disc(20f, 18f, 5.5f, dark); p.Disc(20f, 18f, 4f, glow); p.Disc(20f, 18f, 2f, glowL);
                 p.Outline(ol);
-                Save(p, $"Sprites/Bosses/foreman_{f}", FramedPivot(70, 62, 35, 1, 7));
+                p.Disc(20f, 18f, 4f, glow); p.Disc(20f, 18f, 2f, glowL);
+                Save(p, $"Sprites/Bosses/gearwyrm_{f}", PCenter);
+            }
+            {
+                // a segment: a copper gear with eight teeth
+                var p = new Px(28, 28);
+                for (int i = 0; i < 8; i++) { float a = i * Mathf.PI / 4f; p.Disc(13.5f + Mathf.Cos(a) * 10.5f, 13.5f + Mathf.Sin(a) * 10.5f, 2.4f, cD); }
+                p.Disc(13.5f, 13.5f, 9.5f, c);
+                Shade(p, c, cD, cL, 3, 2, 2);
+                p.Disc(13.5f, 13.5f, 4f, stD); p.Disc(13.5f, 13.5f, 2f, st);
+                p.Outline(ol);
+                Save(p, "Sprites/Bosses/gearwyrm_seg", PCenter);
+            }
+            {
+                // the tail: a smaller gear, a spike behind it
+                var p = new Px(24, 24);
+                Tri(p, new Vector2(1, 11.5f), new Vector2(9, 8), new Vector2(9, 15), st);
+                for (int i = 0; i < 6; i++) { float a = i * Mathf.PI / 3f; p.Disc(13.5f + Mathf.Cos(a) * 7.5f, 11.5f + Mathf.Sin(a) * 7.5f, 2f, cD); }
+                p.Disc(13.5f, 11.5f, 6.5f, c);
+                Shade(p, c, cD, cL, 2, 2, 2);
+                p.Disc(13.5f, 11.5f, 2.5f, stD);
+                p.Outline(ol);
+                Save(p, "Sprites/Bosses/gearwyrm_tail", PCenter);
             }
         }
 

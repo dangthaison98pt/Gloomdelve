@@ -102,8 +102,8 @@ MonoBehaviour:
     prefab: {fileID: 8700119720094587834, guid: a23e21478d14a3f44a345d65a9ae30d8, type: 3}
   - id: eggsac
     prefab: {fileID: 8925980840971589750, guid: b79ad21571033b04d899bcdd7d0a4beb, type: 3}
-  - id: foreman
-    prefab: {fileID: 2344891185622773827, guid: ee9fb64178fc62e478b5cdbb0314a958, type: 3}
+  - id: gearwyrm
+    prefab: {fileID: 6899472158271831835, guid: 3157ba7297cdcb145a8c1a78159d7636, type: 3}
   - id: puffshroom
     prefab: {fileID: 1301243544305453917, guid: 5d02074c75b71d84b87186a12ad67c97, type: 3}
   - id: moth

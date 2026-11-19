@@ -369,7 +369,7 @@ namespace Gloomdelve.EditorTools
             Anim("yetiking_idle", F(bo + "yetiking_0"), 1); Anim("yetiking_throw", F(bo + "yetiking_1"), 1); Anim("yetiking_crouch", F(bo + "yetiking_2"), 1); Anim("yetiking_slide", F(bo + "yetiking_3"), 1);
             Anim("stormhawk_fly", F(bo + "stormhawk_0", bo + "stormhawk_1"), 6f); Anim("stormhawk_dive", F(bo + "stormhawk_2"), 1);
             Anim("warden_float", F(bo + "warden_0", bo + "warden_1"), 3f);
-            Anim("foreman_walk", F(bo + "foreman_0", bo + "foreman_1"), 3f); Anim("foreman_charge", F(bo + "foreman_2"), 1); Anim("foreman_dazed", F(bo + "foreman_1"), 1);
+            Anim("gearwyrm_idle", F(bo + "gearwyrm_0"), 1); Anim("gearwyrm_open", F(bo + "gearwyrm_1"), 1);
             Anim("facet_idle", F(bo + "facet_0"), 1); Anim("facet_strike", F(bo + "facet_1"), 1); Anim("facet_cracked", F(bo + "facet_2"), 1);
             Anim("dunequeen_idle", F(bo + "dunequeen_0"), 1); Anim("dunequeen_rear", F(bo + "dunequeen_1"), 1); Anim("dunequeen_mound", F(bo + "dunequeen_2"), 1);
             Anim("sporeheart_beat", F(bo + "sporeheart_0", bo + "sporeheart_1"), 2.4f); Anim("sporeheart_swell", F(bo + "sporeheart_2"), 1);
@@ -1419,8 +1419,9 @@ namespace Gloomdelve.EditorTools
             Reg("cocoon", Make<Cocoon>("Cocoon", "Traps", "cocoon", new Vector2(0.8f, 1.2f), ArtGenerator.S("Sprites/Props/cocoon"), null, 8, (e, go, sr) => { e.flipWithFacing = false; }));
             Reg("eggsac", Make<EggSac>("EggSac", "Enemies", "egg sac", new Vector2(0.6f, 0.65f), ArtGenerator.S("Sprites/Enemies/eggsac_0"), anims["eggsac_pulse"], 13,
                 (e, go, sr) => { e.goldDrop = 0; e.heartDropChance = 0f; e.animPulse = anims["eggsac_pulse"]; e.flipWithFacing = false; e.bloodColor = new Color(0.85f, 0.9f, 0.75f); }));
-            Reg("foreman", Make<Foreman>("Foreman", "Enemies", "Foreman", new Vector2(1.9f, 2.0f), BS2("foreman_0"), anims["foreman_walk"], 15,
-                (e, go, sr) => { e.maxHealth = 30; e.chainMaterial = unlitMat; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animWalk = anims["foreman_walk"]; e.animCharge = anims["foreman_charge"]; e.animDazed = anims["foreman_dazed"]; e.animCounter = anims["foreman_charge"]; e.counterFx = anims["cfx_buck"]; e.counterMotion = Boss.CounterMotion.Burst; e.counterFxScale = 1.6f; e.bloodColor = new Color(0.85f, 0.7f, 0.4f); }));
+            // the Gearworks boss: only its head is a thing in the world; its body is drawn and judged by the head
+            Reg("gearwyrm", Make<GearWyrm>("GearWyrm", "Enemies", "Cogwyrm", new Vector2(1.1f, 1.0f), BS2("gearwyrm_0"), anims["gearwyrm_idle"], 15,
+                (e, go, sr) => { e.maxHealth = 30; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.flipWithFacing = false; e.segmentSprite = BS2("gearwyrm_seg"); e.tailSprite = BS2("gearwyrm_tail"); e.animIdle = anims["gearwyrm_idle"]; e.animOpen = anims["gearwyrm_open"]; e.animCounter = anims["gearwyrm_open"]; e.counterFx = anims["cfx_buck"]; e.counterMotion = Boss.CounterMotion.Burst; e.counterFxScale = 1.5f; e.bloodColor = new Color(0.95f, 0.75f, 0.35f); }));
             // Sporegloom: its creatures, the spore cloud and the plants
             Reg("puffshroom", Make<Puffshroom>("Puffshroom", "Enemies", "puffshroom", new Vector2(0.7f, 0.75f), ArtGenerator.S("Sprites/Enemies/puffshroom_0"), anims["puffshroom_walk"], 14,
                 (e, go, sr) => { e.animWalk = anims["puffshroom_walk"]; e.animSwell = anims["puffshroom_swell"]; e.animDeflated = anims["puffshroom_deflated"]; e.bloodColor = new Color(0.7f, 1f, 0.5f); }));

@@ -16,7 +16,7 @@ namespace Gloomdelve
         public int damage = 1;
         [Tooltip("Degrees per second the blade turns (visual).")] public float spin = 720f;
         [Tooltip("The rail drawn under a railed saw (tiled sprite). Hidden for loose saws.")] public SpriteRenderer rail;
-        [Header("Loose saw (thrown by the Foreman)")]
+        [Header("Loose saw (a segment the Cogwyrm has shed)")]
         public float looseSpeed = 4.5f;
         public float looseLife = 7f;
         public float gravity = 40f;

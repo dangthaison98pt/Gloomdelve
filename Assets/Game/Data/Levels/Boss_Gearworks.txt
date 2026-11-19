@@ -1,5 +1,5 @@
 name: The Assembly Floor
-boss: foreman
+boss: gearwyrm
 ---
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 X..............................X

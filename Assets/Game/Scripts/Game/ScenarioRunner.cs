@@ -336,8 +336,8 @@ namespace Gloomdelve
             new Scenario { name = "bosses: the broodmother drops from the ceiling and gets stuck, lays web that slows, and eggs that hatch unless cut", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => BroodmotherCase(c) },
 
-            new Scenario { name = "bosses: the foreman's shield stops the front, it rolls saws, reverses belts, stamps presses, then rewinds open", map = m => { Set(m, 3, 1, 'S'); },
-                run = c => ForemanCase(c) },
+            new Scenario { name = "bosses: the cogwyrm runs the floor, dives and sticks, spits bolts, rolls as a wheel, sheds segments as saws, and only its head can be hurt", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => GearWyrmCase(c) },
 
             new Scenario { name = "hawk dives at the player below it", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => HawkCase(c) },
@@ -3342,77 +3342,71 @@ namespace Gloomdelve
             c.p.godMode = true;
         }
 
-        static IEnumerator ForemanCase(Ctx c)
+        static IEnumerator GearWyrmCase(Ctx c)
         {
             c.p.godMode = true;
-            c.Bot(Seq((6000, F())));
-            c.Teleport(4.5f, 1f);
-            var belts = new List<Conveyor>();
-            for (int x = 7; x <= 12; x++) belts.Add(c.Spawn<Conveyor>("conveyor", x, 1, 0, null, 1));
-            var b = c.Spawn<Foreman>("foreman", 18, 1, 0, null, -1);     // facing the player, as in its arena
-            c.Expect(b != null && c.dir.Boss == b, "the foreman spawned and registered as the boss");
+            c.Bot(Seq((9000, F())));
+            c.Teleport(6.5f, 1f);
+            var b = c.Spawn<GearWyrm>("gearwyrm", 14, 1, 0, null, -1);
+            c.Expect(b != null && c.dir.Boss == b && b.maxHealth == 30 && b.SegmentCount == 6, "the cogwyrm spawned as the boss: 30 health, six segments");
             if (b == null) yield break;
-            yield return c.Frames(5);
-            // the shield: the player is in front of it
+            for (int i = 0; i < 400 && !b.Patrolling; i++) yield return new WaitForFixedUpdate();
+            c.Expect(b.Patrolling && b.HeadCentre.y > b.FloorLevel + 3f, $"it climbs to its track, out of reach (head {b.HeadCentre.y - b.FloorLevel:0.0} above the floor)");
+            // the dive: head first into the floor, and stuck there - the opening
+            b.ForceMove(1);
+            for (int i = 0; i < 600 && !b.Stuck; i++) yield return new WaitForFixedUpdate();
             int hp = b.health;
-            bool hit = b.TakeDamage(new DamageInfo(1, DamageType.Whip, c.p, Vector2.zero, "test"));
-            c.Expect(!hit && b.health == hp, "a blade from the front rings off its shield");
-            int dir0 = belts[0].dir;
-            bool saws = false, reversed = false, presses = false, pressDown = false, rewound = false, openHit = false, shots = false, maceOut = false;
-            for (int i = 0; i < 4000 && !(saws && reversed && presses && pressDown && rewound && openHit && maceOut); i++)
+            bool hurt = b.Stuck && b.TakeDamage(new DamageInfo(1, DamageType.Whip, c.p, Vector2.zero, "test"));
+            c.Expect(b.Stuck && hurt && b.health == hp - 1 && b.HeadCentre.y < b.FloorLevel + 1f, "it dives at the player and its head sticks in the floor, where a blade hurts it");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_cogwyrm_stuck.png"));
+            for (int i = 0; i < 600 && !b.Patrolling; i++) yield return new WaitForFixedUpdate();
+            // the floor run
+            b.ForceMove(0);
+            bool low = false;
+            for (int i = 0; i < 900 && !(low && b.Patrolling); i++)
             {
                 yield return new WaitForFixedUpdate();
-                if (b.MaceOut) maceOut = true;
-                foreach (var e in c.world.Entities)
-                {
-                    if (e.Dead) continue;
-                    if (e is SawBlade sb && sb.Loose) saws = true;
-                    else if (e is Press pr) { presses = true; if (pr.Down) pressDown = true; }
-                    else if (e is BossShot) shots = true;
-                }
-                if (belts[0].dir != dir0) reversed = true;
-                if (b.Rewinding)
-                {
-                    rewound = true;
-                    if (!openHit)
-                    {
-                        int h = b.health;
-                        openHit = b.TakeDamage(new DamageInfo(1, DamageType.Whip, c.p, Vector2.zero, "test")) && b.health == h - 1;
-                        ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_foreman.png"));
-                    }
-                }
+                if (b.Running && b.HeadCentre.y < b.FloorLevel + 1f) { if (!low) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_cogwyrm_run.png")); low = true; }
             }
-            c.Expect(saws, "it sends loose saw blades rolling along the floor");
-            c.Expect(reversed, "it pulls the lever: the belts run the other way");
-            c.Expect(presses && pressDown, $"a row of presses stamps down (spawned {presses}, reached the floor {pressDown})");
-            c.Expect(rewound, "then it has to rewind");
-            c.Expect(openHit, "and while it rewinds the same front hit goes through");
-            c.Expect(!shots, "no gear fan and no shockwave any more");
-            c.Expect(maceOut && b.MaceThrows > 0 && b.maxHealth == 30, $"it throws its mace out along the floor and has 30 health ({b.MaceThrows} throws)");
-            // behind it is not safe for long: the mace goes right round
-            for (int i = 0; i < 600 && (b.MaceOut || b.Rewinding); i++) yield return new WaitForFixedUpdate();
+            c.Expect(low && b.Patrolling, "it runs down the wall, along the floor and up the other side");
+            // bolts
+            b.ForceMove(2);
+            bool bolts = false;
+            for (int i = 0; i < 900 && !(bolts && b.Patrolling); i++) { yield return new WaitForFixedUpdate(); if (c.Count<BossShot>() >= 3) bolts = true; }
+            c.Expect(bolts, "it lowers its head and spits a fan of bolts");
+            // the wheel: nothing gets through
+            b.ForceMove(3);
+            bool rolled = false, proof = false;
+            for (int i = 0; i < 1500 && !(rolled && b.Patrolling); i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (b.Rolling && !rolled)
+                {
+                    rolled = true;
+                    int h = b.health;
+                    proof = !b.TakeDamage(new DamageInfo(1, DamageType.Whip, c.p, Vector2.zero, "test")) && b.health == h;
+                }
+                if (b.Rolling && i % 20 == 0) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_cogwyrm_wheel.png"));
+            }
+            c.Expect(rolled && proof && b.Patrolling, "it curls up into a wheel that nothing hurts, rolls there and back, and climbs again");
+            // a segment is a saw
             c.p.godMode = false;
             c.run.health = 8;
-            c.Teleport(b.pos.x - b.facing * 1.6f, 1f);
-            bool spun = false;
-            for (int i = 0; i < 500 && !(spun && !b.Spinning); i++) { yield return new WaitForFixedUpdate(); if (b.Spinning) spun = true; }
-            c.Expect(spun && b.Spins > 0 && c.run.health == 8 - b.spinDamage, $"a player who stays behind it has the mace swung round it (spins {b.Spins}, health 8 -> {c.run.health})");
+            Vector2 seg = b.SegmentAt(2);
+            c.Teleport(seg.x, seg.y - 0.4f);
+            yield return c.Frames(4);
+            c.Expect(c.run.health < 8, $"touching a segment hurts (health 8 -> {c.run.health})");
             c.p.godMode = true;
-            yield return c.Frames(40);
-            // stomped too often: steam throws the player off and the belts flip again
-            int dirNow = belts[0].dir;
-            c.p.godMode = false;
-            c.run.health = 8;
-            c.Teleport(b.pos.x, b.pos.y + b.size.y + 0.3f);
-            b.CounterStomp(c.p); b.CounterStomp(c.p);
-            bool countered = b.CounterStomp(c.p);
-            yield return c.Frames(2);
-            c.Expect(countered && c.p.vel.y > 8f && belts[0].dir != dirNow, $"a third stomp in a row: thrown off by steam, belts flipped (vy {c.p.vel.y:0.0})");
-            c.p.godMode = true;
-            for (int i = 0; i < 60 && !b.Dead; i++) { b.TakeDamage(new DamageInfo(3, DamageType.Whip, c.p, Vector2.zero, "test")); yield return c.Frames(14); }
+            c.Teleport(6.5f, 1f);
+            // a quarter of its health gone: the last segment drops off as a loose saw
+            b.health = Mathf.FloorToInt(b.maxHealth * 0.75f);
+            yield return c.Frames(3);
+            bool saw = false;
+            foreach (var e in c.world.Entities) if (!e.Dead && e is SawBlade sb && sb.Loose) saw = true;
+            c.Expect(b.Shed == 1 && b.SegmentCount == 5 && saw, $"at three quarters of its health a segment drops off and rolls away as a saw ({b.SegmentCount} left)");
+            for (int i = 0; i < 400 && !b.Dead; i++) { b.TakeDamage(new DamageInfo(3, DamageType.Whip, c.p, Vector2.zero, "test")); yield return c.Frames(14); }
             c.Expect(b.Dead, "it can be killed");
-            foreach (var e in belts) e.Despawn();
-            foreach (var e in c.world.Entities) if (!e.Dead && (e is SawBlade || e is Press)) e.Despawn();
+            foreach (var e in c.world.Entities) if (!e.Dead && (e is SawBlade || e is BossShot)) e.Despawn();
             ClearFight(c);
         }
 

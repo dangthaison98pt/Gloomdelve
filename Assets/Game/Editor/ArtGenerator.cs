@@ -1741,7 +1741,7 @@ namespace Gloomdelve.EditorTools
                 Save(p, o + dst, centre ? PCenter : new Vector2(0.5f, 2f / p.h));
             }
             BroodmotherArt();
-            OldBossesArt();      // the Forge Brute, the Yeti King, the Storm Hawk, the Rot Heart, the Foreman, the Hollow Warden
+            OldBossesArt();      // the Forge Brute, the Yeti King, the Storm Hawk, the Rot Heart, the Hollow Warden, the Cogwyrm
             {
                 // the Yeti King's snow boulder (it grows and turns at runtime)
                 var p = new Px(20, 20);
