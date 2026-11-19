@@ -1,6 +1,6 @@
-# Tham chiếu: Spelunky 2 → Gloomdelve
+# Tham chiếu: Spelunky 2 → Brindlemoor: The Sunstone Hunt (Gloomdelve)
 
-Gloomdelve là game **tự làm**: tên, nhân vật, hình ảnh (vẽ bằng code), âm thanh/nhạc (tổng hợp bằng code), màn chơi và mã nguồn đều là sản phẩm mới. Spelunky 2 chỉ là tham chiếu về **cảm giác điều khiển, cấu trúc sinh màn và chiều sâu tương tác**. Không sao chép tên, nhân vật, hình ảnh, âm thanh, câu chữ hay màn chơi của Spelunky.
+Brindlemoor: The Sunstone Hunt (tên nội bộ Gloomdelve) là game **tự làm**: tên, nhân vật, hình ảnh (vẽ bằng code), âm thanh/nhạc (tổng hợp bằng code), màn chơi và mã nguồn đều là sản phẩm mới. Spelunky 2 chỉ là tham chiếu về **cảm giác điều khiển, cấu trúc sinh màn và chiều sâu tương tác**. Không sao chép tên, nhân vật, hình ảnh, âm thanh, câu chữ hay màn chơi của Spelunky.
 
 ## Nguồn đã tra cứu (11/2026)
 
@@ -26,18 +26,20 @@ Gloomdelve là game **tự làm**: tên, nhân vật, hình ảnh (vẽ bằng c
 
 ## Suy luận / quyết định thiết kế riêng (chưa xác minh với nguồn)
 
-| Hạng mục | Lựa chọn trong Gloomdelve | Lý do |
+| Hạng mục | Lựa chọn trong game (hiện tại) | Lý do |
 |---|---|---|
 | Độ cao nhảy | ~2,3–2,4 ô; với bám mép tới 3 ô | Cảm giác "nhảy lên 2 ô, bám mép lên 3 ô" quen thuộc của thể loại |
 | Coyote time / bộ đệm nhảy | 0,08 s / 0,12 s | Yêu cầu của đề bài; giá trị thường dùng cho platformer chính xác |
 | Bám mép | Tự động khi rơi sát mép, đang hướng về tường | Suy luận từ trải nghiệm thể loại |
 | Bò xuống mép → treo | Có | Kỹ thuật an toàn đặc trưng của thể loại |
-| Sát thương rơi | ≥ 9 ô: −1 máu + choáng 1 s | Suy luận; bộ kiểm tra màn không bao giờ đòi hỏi cú rơi gây thương |
-| Cảnh báo hồn ma | 2:30, xuất hiện 3:00, lặp mỗi 60 s, chạm là chết | Mốc 3:00 có nguồn; mốc cảnh báo 2:30 lấy từ các bản cũ |
-| Lưới phòng | 4×4 phòng 10×8 ô cho cả hai khu | Theo nguồn (4×4), kích thước phòng là suy luận |
+| Sát thương rơi | ≥ 9 ô: −2 máu (trên 10 máu) + choáng 1 s | Suy luận; bộ kiểm tra màn không bao giờ đòi hỏi cú rơi gây thương |
+| Chông | −2 máu + hất lên, không chết ngay (trừ vực gai của cổng lượn) | Khác nguồn có chủ ý: chết ngay vì chông quá nặng với lượt chơi 18 chặng |
+| Áp lực thời gian | Thần chết (Reaper): cảnh báo 9:00, xuất hiện 10:00, thêm một con mỗi 60 s, chạm là chết | Nguồn là 3:00; màn của game dài gấp đôi (lưới 6×9 hoặc 11×5 phòng) nên mốc được lùi |
+| Lưới phòng | Phòng 10×8 ô; lưới 6×9 (đi xuống), 6×8 (leo lên), 11×5 (đi ngang); chỉ đường giải và nhánh là phòng | Bắt đầu từ 4×4 theo nguồn, sau đó nới để màn dài hơn và có hình riêng |
 | Thêm loại phòng 4 (cả 4 hướng) | Có | Cần khi đường đi rơi qua hai phòng liên tiếp |
-| Cửa hàng | Chủ tiệm nổi giận khi bị tấn công, đồ thành miễn phí | Suy luận về chiều sâu tương tác của thể loại |
-| Tượng vàng | Mang ra cửa được +1200 vàng; vật nặng (chậm hơn) | Rủi ro/phần thưởng kiểu thể loại |
+| Cửa hàng | Chủ tiệm cảnh báo 2 lần rồi mới nổi giận, đồ thành miễn phí, ghi thù cả lượt | Suy luận về chiều sâu tương tác của thể loại |
+| Phím mặc định | Space nhảy, Q chém, Shift lướt, W dùng đồ, Tab đổi đồ, E vào cửa/mua, S đi chậm, I túi đồ; đổi được trong game | Ban đầu theo bố cục Z/X/C/D/A của nguồn; đổi sang bố cục gần tay trái theo yêu cầu (19/11) |
+| Tượng vàng | Mang ra cửa được +400 vàng; vật nặng (chậm hơn) | Rủi ro/phần thưởng kiểu thể loại |
 
 ## Những gì cố ý **không** làm giống
 - Không dùng tên khu vực, quái, vật phẩm, nhân vật hay câu thoại của Spelunky.

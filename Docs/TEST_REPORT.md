@@ -1,4 +1,23 @@
-# Báo cáo kiểm thử – Gloomdelve v0.1.0 (cập nhật 16/11/2026)
+# Báo cáo kiểm thử – Brindlemoor: The Sunstone Hunt (Gloomdelve) – cập nhật 19/11/2026
+
+## Số liệu mới nhất
+Game hiện có 8 khu (bốc 4 mỗi lượt), 24 màn sinh ngẫu nhiên trong danh mục, 9 boss, làng Brindlemoor, 3 ô lưu. Mỗi dòng dưới đây là một lần chạy thật; file gốc trong `Docs/TestResults/` (kịch bản chạy lẻ ghi vào `%USERPROFILE%\AppData\LocalLow\Gloomdelve Team\Gloomdelve\autotest\`).
+
+| Kiểm tra | Kết quả | Ngày |
+|---|---|---|
+| Test logic (`logic_tests.txt`) | **45/45 PASS** | 19/11 |
+| Quét seed (`seed_sweep.txt`), seed 1–20 × 24 màn | **480 màn, 0 màn không có đường, 0 vấn đề an toàn lối vào**, 287 lần sinh lại (tối đa 14 attempt/màn), trung bình 197 ms/màn; 180 màn có chướng ngại bắt buộc (219 cổng: 70 dây, 71 bom, 78 lượn), mỗi cổng được chứng minh hai chiều; 19 màn có lồng dân làng. Ghi chú: seed 12 màn 4-1 không đặt được shop bắt buộc | 19/11 |
+| Kịch bản trong build, chạy đủ (`scenario_report.txt`) | **79/79 PASS** | 18/11 |
+| Kịch bản đổi phím (`-scenarioFilter "keyboard keys"`) sau khi đổi phím mặc định | **1/1 PASS** | 19/11 |
+| Bot chơi trọn 3 lượt (`autotest_report.txt`, seed 201–203) | **54/54 chặng PASS**, 3/3 lượt tới VICTORY, 0 rò rỉ trạng thái (bot không đánh boss) | 17/11 |
+
+Hiện có **90 kịch bản** trong `ScenarioRunner`; lần chạy đủ gần nhất (18/11) có 79, nên chưa có lần chạy đủ 90/90 trên bản hiện tại. Bot chưa chạy lại từ khi có làng, ô lưu, Sandsunk, Geode và Cogwyrm.
+
+Các mục bên dưới là báo cáo chi tiết của các đợt trước (giữ lại làm lịch sử, số liệu theo phiên bản lúc đó).
+
+---
+
+## Lịch sử (16–17/11)
 
 > **Cập nhật 17/11 (thêm khu nấm tối Sporegloom, 15 màn sinh ngẫu nhiên mỗi lượt):** test logic 34/34; quét 150 seed = **2250 màn, 0 màn không có đường, 0 vấn đề an toàn, 568 lần sinh lại**; kịch bản trong build **65/65** (4 kịch bản mới: nấm nảy, puffshroom + mặt nạ, gloom moth, lurecap); bot chơi trọn 3 lượt (seed 101-103) **63/63 chặng**.
 >
@@ -68,6 +87,9 @@ roi giết rắn đang lao tới · giẫm đầu rắn · nhặt đá ném ch�
 Unity -batchmode -projectPath "<project>" -executeMethod Gloomdelve.EditorTools.GameTests.BatchAll -seeds 150 -logFile Logs/tests.log
 Unity -batchmode -projectPath "<project>" -executeMethod Gloomdelve.EditorTools.GameTests.BatchLogic -logFile Logs/tests_logic.log
 Builds/Windows/Gloomdelve.exe -scenarios -autotestOut <thư mục>
+Builds/Windows/Gloomdelve.exe -scenarios -scenarioFilter "từ1,từ2"      (chỉ các kịch bản có tên chứa các từ đó)
 Builds/Windows/Gloomdelve.exe -autotest 6 -autotestSeed 101 -autotestOut <thư mục> [-autotestShots]
+Builds/Windows/Gloomdelve.exe -bossTest N [-shotEvery N <thư mục>]      (vào thẳng boss thứ N của danh sách Challenge)
 ```
+Chạy bản build để kiểm thử luôn ở cửa sổ nhỏ (`-screen-fullscreen 0 -screen-width 1280 -screen-height 720`; game tự ép cửa sổ khi có cờ kiểm thử).
 Hoặc trong Editor: menu **Gloomdelve > Tests**.

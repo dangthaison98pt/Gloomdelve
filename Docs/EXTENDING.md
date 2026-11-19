@@ -1,21 +1,23 @@
-# Hướng dẫn mở rộng – Gloomdelve
+# Hướng dẫn mở rộng – Brindlemoor: The Sunstone Hunt (Gloomdelve)
 
 Tài liệu này chỉ ra **phải đụng vào đâu** khi thêm nội dung mới. Nguyên tắc chung của code:
 
 - **Dữ liệu nằm trong asset** (`Assets/Game/Data`), hành vi nằm trong class nhỏ đăng ký theo **id chuỗi**. Thêm thứ mới = thêm asset + (nếu cần) một class, không sửa `PlayerController`, HUD hay bộ sinh màn.
 - **Mọi màn sinh ra đều được `LevelValidator` chứng minh là qua được**, nên nội dung mới sai chỉ khiến màn bị sinh lại chứ không tạo ra màn kẹt.
-- Sau khi sửa: **Gloomdelve > Tests > Logic Tests** và **Seed Sweep**; nếu đổi prefab/art/scene thì chạy **Gloomdelve > Build Everything** trước.
+- Sau khi sửa: **Gloomdelve > Tests > Logic Tests** và **Seed Sweep**; nếu đổi prefab/art/scene thì chạy **Gloomdelve > Build Everything** trước. Trong bản build, chỉ chạy các kịch bản liên quan: `Gloomdelve.exe -scenarios -scenarioFilter "từ1,từ2"` (ghi `scenario_report_partial.txt`).
 
 | Muốn thêm | Cần code? | Làm ở đâu |
 |---|---|---|
 | Mẫu phòng mới | Không | Tool **Gloomdelve > Room Template Editor** |
 | Đặt một prefab bất kỳ vào mẫu phòng | Không | `GameConfig > Custom Markers` |
 | Nâng cấp chỉ cộng chỉ số | Không | `ShopConfig > Offers` |
-| Nâng cấp có hành vi riêng | Vài dòng | `ShopConfig` + `Run.HasUpgrade("id")` |
+| Nâng cấp có hành vi riêng | Vài dòng | `ShopConfig` + `RunState.HasActive("id")` |
 | Vật phẩm nhặt (pickup) mới | Không (chỉ prefab) | Prefab `Pickup` + `PrefabRegistry` |
-| Trang bị mới (như bom/dây/tàu lượn) | 1 class | `Scripts/Gear` |
+| Đồ dùng mới (như bom/dây/tàu lượn/Recall Charm) | 1 class | `Scripts/Gear` |
 | Kẻ địch / bẫy mới | 1 class | `Scripts/Enemies`, `Scripts/Traps` + `PrefabRegistry` |
-| Khu / màn mới | Không | `AreaConfig` + `GameConfig > Stages` |
+| Boss mới | 1 class | `Scripts/Bosses` (kế thừa `Boss`) + đấu trường `Levels/Boss_*.txt` |
+| Khu mới (trọn gói) | Có | `AreaConfig` + `GameConfig > Stages` + quái, bẫy, boss, đồ nổi bật (mục 6) |
+| Phím đổi được cho hành động mới | 1 dòng | `KeyBindings.Slots` (mục 7) |
 
 ---
 
@@ -43,7 +45,7 @@ Mở **Gloomdelve > Room Template Editor**. Tool đọc/ghi thẳng `Assets/Game
 
 **Ý nghĩa ký hiệu** – xem bảng ngay trong tool (hoặc `RoomLegend.cs`). Lưu ý các ký hiệu bẫy/quái/kho báu là *vị trí có thể xuất hiện*: xác suất thật do `AreaConfig` của khu quyết định, nên cùng một phòng sẽ khác nhau giữa các khu.
 
-**Tag đặc biệt**: `start`, `exit` (cần đúng 1 cửa `D`), `shop` (cần `K` và `S`, hở bên phải), `idol` (cần `O`), `vault`, `surface`/`under` (khu ngoài trời), `gate_<id trang bị>` (phòng chướng ngại bắt buộc dùng trang bị đó).
+**Tag đặc biệt**: `start`, `exit` (cần đúng 1 cửa `D`), `shop` (cần `K` và `S`, hở bên phải), `idol` (cần `O`), `vault`, `surface`/`under` (khu ngoài trời), `up_out`/`up_in` (đoạn leo), `gate_<id đồ>` (phòng chướng ngại bắt buộc dùng đồ đó).
 
 ### Đặt prefab mới vào phòng mà không cần code
 
@@ -58,22 +60,22 @@ Mở **Gloomdelve > Room Template Editor**. Tool đọc/ghi thẳng `Assets/Game
 | Placement | `OnFloor` (cần sàn), `UnderCeiling` (cần trần), `Anywhere` |
 | Tile | Ô địa hình ghi vào chỗ đó (thường `Empty`) |
 
-Ký hiệu mới xuất hiện ngay trong tool (đóng/mở lại cửa sổ hoặc bấm *Tải lại*), dùng được cả trong `Levels/Tutorial.txt` và `Levels/FinalVault.txt`.
+Ký hiệu mới xuất hiện ngay trong tool (đóng/mở lại cửa sổ hoặc bấm *Tải lại*), dùng được cả trong các màn làm tay `Levels/*.txt` (Tutorial, Camp, FinalVault, đấu trường boss).
 
 ---
 
 ## 2. Nâng cấp (bán trong cửa hàng)
 
-`ShopConfig.asset > Offers > +`, tick **Is Upgrade**.
+`ShopConfig.asset > Offers > +`, tick **Is Upgrade** và chọn **Slot** (feet / body / hand / charm). Chỉ món đang mặc mới có tác dụng; món mới tự mặc nếu ô còn trống, không thì nằm trong túi (tab WEAR).
 
 - **Chỉ cộng chỉ số** → điền `Modifiers`, không cần code:
-  `jumpBonus` (0.17 = nhảy mạnh hơn 17%), `whipDamageBonus`, `whipRangeBonus`, `blastRadiusBonus`. Các nâng cấp cộng dồn với nhau.
-- **Có hành vi riêng** → trong code hỏi `RunSession.Current.HasUpgrade("id_cua_ban")`. Ví dụ có sẵn: la bàn (`HUD.cs`), hình roi sắt (`PlayerController.cs`).
-- **Cần một chỉ số mới** (ví dụ tốc độ chạy): thêm 1 trường vào `StatModifiers` + 1 dòng trong `StatModifiers.Add` (`Configs.cs`), rồi đọc `Run.stats.<trường>` ở nơi dùng.
+  `jumpBonus` (0.17 = nhảy mạnh hơn 17%), `whipDamageBonus`, `whipRangeBonus`, `blastRadiusBonus`, `iceGrip`, `coldResist`, `sporeResist`, `lightBonus`, `beltGrip`, `shieldPierce`, `sandGrip`, `goldWard`, `shardWard`, `mimicSight`. Các món đang mặc cộng dồn với nhau.
+- **Có hành vi riêng** → trong code hỏi `RunSession.Current.HasActive("id_cua_ban")` (đang mặc; `HasUpgrade` chỉ là đã sở hữu). Ví dụ có sẵn: Compass (`HUD.cs`), Tempered Blade (`PlayerController.cs`).
+- **Cần một chỉ số mới** (ví dụ tốc độ chạy): thêm 1 trường vào `StatModifiers` và vào `Add`, `Clear`, `IsZero` (`Configs.cs`), rồi đọc `Run.stats.<trường>` ở nơi dùng.
 
-Cửa hàng tự chọn ngẫu nhiên 2 nâng cấp mỗi lần, HUD tự hiện tên nâng cấp đã mua, lượt mới tự xoá sạch.
+Kệ shop trên núi có 5 món: bom, dây, một món hồi máu và 2 nâng cấp (món nổi bật của khu trong `AreaConfig.shopFeatured`, không có thì ngẫu nhiên); món đã sở hữu không được bày. HUD hiện biểu tượng đồ đang mặc, lượt mới tự xoá sạch. Muốn dân làng bán món đó (giá bằng ember): thêm id vào danh sách hàng của người đó trong `Villagers.cs`.
 
-Món tiêu hao (không tick Is Upgrade): điền `Resource` + `Amount`. Resource có sẵn: `gold`, `health`, `bombs`, `ropes`; id khác được lưu thành bộ đếm riêng (`RunState.GetResource / AddResource`), dùng làm đạn cho trang bị mới.
+Món tiêu hao (không tick Is Upgrade): điền `Resource` + `Amount`. Resource có sẵn: `gold`, `health`, `bombs`, `ropes`, `maxhealth`…; id khác được lưu thành bộ đếm riêng (`RunState.GetResource / AddResource`), dùng làm đạn cho đồ dùng mới.
 
 ## 3. Vật phẩm nhặt (pickup)
 
@@ -81,7 +83,7 @@ Prefab có component `Pickup`: `Resource` (như trên), `Value`, `Label` (chữ 
 
 Để đặt trong phòng: dùng Custom Marker (mục 1). Để nó rơi ra từ thùng: thêm id vào danh sách `contents` của `crate` trong `ProjectBuilder.CreatePrefabs` (prefab có sẵn như Crate được sinh lại mỗi lần *Build Everything*, nên sửa trực tiếp trên prefab đó sẽ bị mất).
 
-## 4. Trang bị mới (gear)
+## 4. Đồ dùng mới (gear)
 
 Ví dụ thêm "cuốc" đào đất:
 
@@ -103,9 +105,9 @@ Ví dụ thêm "cuốc" đào đất:
    ```
 2. **Đăng ký** – thêm 1 dòng trong `GearRegistry` (`GearBehaviour.cs`): `Register("pickaxe", new PickaxeGear());`
 3. **Dữ liệu** – *Create > Gloomdelve > Equipment*, đặt `id = pickaxe`, tên, mô tả, icon; kéo vào `GameConfig > Equipment`.
-4. **Cho người chơi** – thêm id vào `PlayerConfig > Starting Gear`, hoặc `AreaConfig > Grant Gear` để nhận khi vào khu.
+4. **Cho người chơi** – thêm id vào `PlayerConfig > Starting Gear` (hiện là bom, dây, Recall Charm), hoặc `AreaConfig > Grant Gear` để nhận khi vào khu.
 
-Vòng chọn trang bị, HUD, số đạn tự hoạt động. Các hook khác của `GearBehaviour`:
+Vòng chọn đồ, tab ITEMS của túi đồ, HUD, số đạn tự hoạt động. Các hook khác của `GearBehaviour`:
 
 - `ModifyMotor` – đổi cách di chuyển khi đang trang bị (tàu lượn dùng cái này); khi đó đặt `AffectsMovement => true`.
 - `ApplyToValidator` – nếu trang bị cho phép vượt địa hình mà bình thường không qua được, khai báo để validator biết.
@@ -114,7 +116,7 @@ Vòng chọn trang bị, HUD, số đạn tự hoạt động. Các hook khác c
 
 ## 5. Kẻ địch / bẫy mới
 
-1. Class kế thừa `Enemy` (hoặc `Entity` cho bẫy) – xem `Snake.cs` (32 dòng) làm mẫu. Ghi đè `Tick(dt)`.
+1. Class kế thừa `Enemy` (hoặc `Entity` cho bẫy) – xem `Snake.cs` (45 dòng) làm mẫu. Ghi đè `Tick(dt)`. Quái chỉ gây sát thương khi `Attacking` (dùng `Enemy.Melee` cho đòn cận chiến).
 2. Bẫy: ghi đè `IsHazard => true` (và `IsCeilingHazard => true` nếu rơi từ trần) để bộ sinh màn tự giữ nó xa lối vào, ngoài cửa hàng. Kẻ địch kế thừa `Enemy` đã là hazard sẵn.
 3. Tạo prefab, thêm vào `PrefabRegistry.asset`.
 4. Cho xuất hiện: thêm id vào `AreaConfig > Ground Enemies / Ceiling Enemies / Air Enemies` (kèm trọng số), hoặc đặt tay bằng Custom Marker.
@@ -135,12 +137,20 @@ Prefab có sẵn trong dự án được sinh bằng code trong `ProjectBuilder.
 
 Muốn một prefab tự phát sáng: thêm component **Glow Light** (màu, bán kính, độ nhấp nháy). Với prefab có sẵn, thêm một dòng vào bảng `glows` trong `ProjectBuilder`. Bloom, vignette, độ tương phản chỉnh trong `Assets/Game/Settings/PostFX.asset` (giá trị được giữ khi *Build Everything*).
 
-## 6. Khu / màn mới
+## 6. Khu mới (trọn gói)
 
-1. *Create > Gloomdelve > Area Config*: bộ tile, nhạc, danh sách quái, mật độ bẫy, trang bị bắt buộc...
-2. Thêm các dòng vào `GameConfig > Stages` (danh sách này không còn bị ghi đè khi *Build Everything*).
-3. Trong tool mẫu phòng, tick khu mới cho các phòng riêng của khu (không tick khu nào = dùng chung).
-4. Chạy *Seed Sweep* – báo cáo cho biết khu mới có sinh màn ổn không.
+Một khu mới luôn đi trọn gói: **quái riêng + cơ chế riêng + ít nhất một bẫy mới + boss riêng có bộ chiêu khác hẳn**, kèm (không bắt buộc) 1–2 món đồ giúp khu đó dễ hơn. Xem Sandsunk Tombs và Shardlight Geode làm mẫu (`ArtGenerator.Sandsunk.cs`, `ArtGenerator.Geode.cs`).
+
+1. *Create > Gloomdelve > Area Config*: bộ tile, nhạc, ánh sáng, danh sách quái, mật độ bẫy, kiểu đường đi (`pathUp/Side/Down`, `pathAcross`), cơ chế (`groundGrip`, `conveyorChance`…), đồ bắt buộc, `shopFeatured`.
+2. Thêm một khối vào `GameConfig > Stages`: 3 màn kiểu Area + 1 chặng kiểu Boss trỏ tới `Levels/Boss_<Khu>.txt` (dòng `boss: id`, ký hiệu `Z` là chỗ boss). Khối mới tự vào vòng bốc 4 khu mỗi lượt và tự có trong danh sách Challenge sau *Build Everything*.
+3. Boss: class kế thừa `Boss` (`Scripts/Bosses`), chiêu chọn bằng `Boss.NextMove`, báo trước bằng `Tell`, dùng chung `FireShot / FanAt / Shockwave`. Thanh máu, phần thưởng (vàng, ember, Heart Vessel), phản đòn khi bị giẫm liên tục đã có sẵn trong `Boss`.
+4. Trong tool mẫu phòng, tick khu mới cho các phòng riêng của khu (không tick khu nào = dùng chung).
+5. Chạy *Seed Sweep* – báo cáo cho biết khu mới có sinh màn ổn không. Trong lúc làm có thể dựng một bản build riêng chỉ có khu đó (như `Builds/SandsunkTest`, `Builds/GeodeTest`) để chơi thử nhanh; bản này không đẩy lên repo.
+
+## 7. Phím bấm và hình nút
+
+- Hành động mới có phím đổi được: thêm một `Slot` trong `KeyBindings.Slots` (phím mặc định phải trùng binding bàn phím trong `ProjectBuilder.InputActions`), rồi *Build Everything*; một dòng tự hiện trên màn CONTROLS / KEYS.
+- Hình nút trong chữ: viết token (`[jump]`, `[use]`, `[gear]`, `[dash]`…) trong bất kỳ chữ UI nào; token mới thêm vào bảng `glyphs.entries` trong `ProjectBuilder` (sinh ra `Data/InputGlyphs.asset`).
 
 ---
 
@@ -148,11 +158,12 @@ Muốn một prefab tự phát sáng: thêm component **Glow Light** (màu, bán
 
 | Thư mục | Nội dung |
 |---|---|
-| `Scripts/Core` | Config (ScriptableObject), `RunState` (toàn bộ trạng thái một lượt chơi), lưu file, âm thanh |
+| `Scripts/Core` | Config (ScriptableObject), `RunState` (toàn bộ trạng thái một lượt chơi), `SaveSystem` (3 ô lưu), `Villagers` (làng, ember), âm thanh |
 | `Scripts/Gear` | `GearBehaviour` + các trang bị |
 | `Scripts/Player` | `PlayerMotor` (chuyển động tất định, dùng chung cho game + validator + bot), `PlayerController` (hành động, sát thương) |
 | `Scripts/World` | `TileGrid`, va chạm, `World` (vòng mô phỏng, nổ, spawn), `Entity` |
 | `Scripts/Level` | `RoomTemplates` (đọc/ghi mẫu phòng), `RoomLegend` + `RoomLint` (ký hiệu, quy tắc), `LevelGenerator`, `LevelValidator` |
 | `Scripts/Enemies`, `Traps`, `Items` | Mỗi loại một class nhỏ |
-| `Scripts/Game` | `GameDirector` (luồng một màn), bot và kịch bản kiểm thử |
-| `Editor` | `ProjectBuilder` (sinh asset), `RoomTemplateEditor` (tool GD), `GameTests` |
+| `Scripts/Bosses` | `Boss` (khung chung: chiêu, phần thưởng, phản đòn) + mỗi boss một class |
+| `Scripts/Game` | `GameDirector` (luồng một màn), `RunPlan` (bốc khu cho lượt), `LevelFactory`, bot và kịch bản kiểm thử |
+| `Editor` | `ProjectBuilder` (sinh asset), `ArtGenerator*` (vẽ mọi hình), `RoomTemplateEditor` (tool GD), `GameTests` |
