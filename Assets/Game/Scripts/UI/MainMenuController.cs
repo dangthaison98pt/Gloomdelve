@@ -251,8 +251,11 @@ namespace Gloomdelve
 
         void Update()
         {
+            // Esc, or a gamepad's back button (the right-hand face button), leaves the panel that is open
             var kb = Keyboard.current;
-            if (kb == null || !kb.escapeKey.wasPressedThisFrame || mainPanel.activeSelf || KeyBindings.Busy) return;   // Busy: Esc is cancelling a key change
+            var gp = Gamepad.current;
+            bool back = (kb != null && kb.escapeKey.wasPressedThisFrame) || (gp != null && gp.buttonEast.wasPressedThisFrame);
+            if (!back || mainPanel.activeSelf || KeyBindings.Busy) return;   // Busy: the press is cancelling a key change
             if (keysPanel != null && keysPanel.gameObject.activeSelf) keysPanel.onBack?.Invoke();                      // back to Settings
             else ShowMain();
         }
@@ -337,7 +340,7 @@ namespace Gloomdelve
         static bool bossTestArgUsed, loadingShotUsed;
 
         /// <summary>"01:00.2  [flawless]" for a boss that was beaten in Challenge, "" otherwise.</summary>
-        static string BossBest(string boss, string never)
+        public static string BossBest(string boss, string never)
         {
             var rec = SaveSystem.BossRecordOf(boss);
             if (rec == null) return never;

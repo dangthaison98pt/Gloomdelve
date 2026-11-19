@@ -579,6 +579,103 @@ namespace Gloomdelve
                 c.dir.pauseMenu.settingsPanel.music.value = 0.25f;
                 c.Expect(Mathf.Abs(SaveSystem.Settings.musicVolume - 0.25f) < 0.001f, "music volume saved");
                 c.dir.pauseMenu.settingsPanel.music.value = before;
+
+                // a gamepad's back button (real presses on a virtual pad): out of the open panel, then out of the pause
+                var pm = c.dir.pauseMenu;
+                var prevBg = InputSystem.settings.backgroundBehavior;
+                InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+                var pad = InputSystem.AddDevice<Gamepad>("ScenarioBackPad");
+                var none = new GamepadState();
+                var east = new GamepadState().WithButton(GamepadButton.East);
+                yield return Send(pad, none, 0.1f);
+                yield return Send(pad, east, 0.15f);
+                yield return Send(pad, none, 0.15f);
+                c.Expect(pm.mainPanel.activeSelf && !pm.settingsPanel.gameObject.activeSelf && c.dir.Paused, "the pad's back button leaves Settings for the pause screen");
+                c.run.isTutorial = false;
+                pm.Show(c.run);
+                pm.giveUpButton.onClick.Invoke();
+                yield return new WaitForSecondsRealtime(0.1f);
+                yield return Send(pad, east, 0.15f);
+                yield return Send(pad, none, 0.15f);
+                c.Expect(pm.mainPanel.activeSelf && !pm.confirmPanel.activeSelf && c.dir.Paused && !c.dir.Ended, "it turns down the \"give up?\" question");
+                c.run.bossPractice = true;
+                pm.Show(c.run);
+                pm.bossListButton.onClick.Invoke();
+                yield return new WaitForSecondsRealtime(0.1f);
+                yield return Send(pad, east, 0.15f);
+                yield return Send(pad, none, 0.15f);
+                c.Expect(pm.mainPanel.activeSelf && !pm.bossPanel.activeSelf && c.dir.Paused, "it closes the boss list");
+                c.run.bossPractice = false;
+                c.run.isTutorial = true;
+                yield return Send(pad, east, 0.15f);
+                yield return Send(pad, none, 0.15f);
+                c.Expect(!c.dir.Paused && !pm.root.activeSelf, "and on the pause screen itself it goes back into the game");
+                InputSystem.RemoveDevice(pad);
+                InputSystem.settings.backgroundBehavior = prevBg;
+            }
+            else
+            {
+                // what the pause screen offers depends on the place (scenarios run as the tutorial: make it a run on the mountain)
+                var pm = c.dir.pauseMenu;
+                c.run.isTutorial = false;
+                pm.Show(c.run);
+                yield return new WaitForSecondsRealtime(0.15f);
+                c.Expect(c.dir.CanGiveUp && pm.giveUpButton.gameObject.activeSelf && !pm.fightAgainButton.gameObject.activeSelf && !pm.bossListButton.gameObject.activeSelf,
+                    "on the mountain: Give Up is offered, the Challenge buttons are not");
+                ScreenCapture.CaptureScreenshot(Path.Combine(outDir, "pause_mountain.png"));
+                yield return new WaitForSecondsRealtime(0.3f);
+                pm.giveUpButton.onClick.Invoke();
+                yield return new WaitForSecondsRealtime(0.15f);
+                c.Expect(pm.confirmPanel.activeSelf && !pm.mainPanel.activeSelf && !c.dir.Ended && c.dir.Paused, "Give Up asks first: nothing has ended yet");
+                var asked = UIOverlap.Find();
+                c.Expect(asked.Count == 0, "the question is laid out cleanly" + (asked.Count > 0 ? " (" + asked[0] + ")" : ""));
+                ScreenCapture.CaptureScreenshot(Path.Combine(outDir, "pause_giveup_confirm.png"));
+                yield return new WaitForSecondsRealtime(0.3f);
+                c.Expect(pm.HandleBack() && pm.mainPanel.activeSelf && !pm.confirmPanel.activeSelf, "Esc on the question goes back to the pause screen");
+                pm.giveUpButton.onClick.Invoke();
+                yield return new WaitForSecondsRealtime(0.1f);
+                pm.confirmNoButton.onClick.Invoke();
+                yield return new WaitForSecondsRealtime(0.1f);
+                c.Expect(pm.mainPanel.activeSelf && !pm.confirmPanel.activeSelf && c.dir.Paused && !c.dir.Ended, "Keep Going: back on the pause screen, the run goes on");
+
+                c.run.bossPractice = true;          // a Challenge fight
+                pm.Show(c.run);
+                yield return new WaitForSecondsRealtime(0.15f);
+                c.Expect(!c.dir.CanGiveUp && !pm.giveUpButton.gameObject.activeSelf && pm.fightAgainButton.gameObject.activeSelf && pm.bossListButton.gameObject.activeSelf,
+                    "in a Challenge fight: Fight Again and Boss List, no Give Up");
+                var five = UIOverlap.Find();
+                c.Expect(five.Count == 0, "five buttons fit the panel" + (five.Count > 0 ? " (" + five[0] + ")" : ""));
+                ScreenCapture.CaptureScreenshot(Path.Combine(outDir, "pause_challenge.png"));
+                yield return new WaitForSecondsRealtime(0.3f);
+                // Boss List opens the list here, in the game: nothing is left, and Back returns to the pause screen
+                var sceneBefore = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+                pm.bossListButton.onClick.Invoke();
+                yield return new WaitForSecondsRealtime(0.3f);
+                int rows = 0;
+                if (pm.bossButtons != null) foreach (var bb in pm.bossButtons) if (bb != null && bb.gameObject.activeInHierarchy) rows++;
+                c.Expect(pm.bossPanel != null && pm.bossPanel.activeSelf && !pm.mainPanel.activeSelf && c.dir.Paused && !c.dir.Ended && rows >= 9
+                         && UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == sceneBefore && RunSession.Current == c.run,
+                    $"Boss List opens the list of bosses inside the pause screen ({rows} bosses): still in the game, the fight still there");
+                var listed = UIOverlap.Find();
+                c.Expect(listed.Count == 0, "the boss list is laid out cleanly" + (listed.Count > 0 ? " (" + listed[0] + ")" : ""));
+                ScreenCapture.CaptureScreenshot(Path.Combine(outDir, "pause_boss_list.png"));
+                yield return new WaitForSecondsRealtime(0.3f);
+                pm.bossBack.onClick.Invoke();
+                yield return new WaitForSecondsRealtime(0.1f);
+                c.Expect(pm.mainPanel.activeSelf && !pm.bossPanel.activeSelf && c.dir.Paused, "Back returns to the pause screen of the same fight");
+                pm.bossListButton.onClick.Invoke();
+                yield return new WaitForSecondsRealtime(0.1f);
+                c.Expect(pm.HandleBack() && pm.mainPanel.activeSelf && !pm.bossPanel.activeSelf, "and so does Esc");
+                c.run.bossPractice = false;
+
+                c.run.inVillage = true;             // at home there is nothing to give up
+                pm.Show(c.run);
+                yield return new WaitForSecondsRealtime(0.1f);
+                c.Expect(!pm.giveUpButton.gameObject.activeSelf && !pm.fightAgainButton.gameObject.activeSelf && !pm.bossListButton.gameObject.activeSelf,
+                    "in the village: only Resume, Settings and Main Menu");
+                c.run.inVillage = false;
+                c.run.isTutorial = true;
+                pm.Show(c.run);
             }
         }
 
@@ -3377,6 +3474,21 @@ namespace Gloomdelve
             bool bolts = false;
             for (int i = 0; i < 900 && !(bolts && b.Patrolling); i++) { yield return new WaitForFixedUpdate(); if (c.Count<BossShot>() >= 3) bolts = true; }
             c.Expect(bolts, "it lowers its head and spits a fan of bolts");
+            // ... and then lowers it further to load again: a jump reaches it, a blow counts
+            b.ForceMove(2);
+            bool reload = false, reloadHurt = false; float reloadAt = 99f;
+            for (int i = 0; i < 900 && !(reload && b.Patrolling); i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (b.Reloading && !reload)
+                {
+                    reload = true; reloadAt = b.HeadCentre.y - b.FloorLevel;
+                    int h = b.health;
+                    reloadHurt = b.TakeDamage(new DamageInfo(1, DamageType.Whip, c.p, Vector2.zero, "test")) && b.health == h - 1;
+                    ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_cogwyrm_reload.png"));
+                }
+            }
+            c.Expect(reload && reloadHurt && reloadAt < 2.6f && b.Patrolling, $"after its fans its head hangs low to load again, within reach of a jump ({reloadAt:0.0} above the floor), and a blow hurts it");
             // the wheel: nothing gets through
             b.ForceMove(3);
             bool rolled = false, proof = false;
@@ -3392,7 +3504,32 @@ namespace Gloomdelve
                 if (b.Rolling && i % 20 == 0) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_cogwyrm_wheel.png"));
             }
             c.Expect(rolled && proof && b.Patrolling, "it curls up into a wheel that nothing hurts, rolls there and back, and climbs again");
+            // the wheel's last bounce throws it against the wall: dazed, flat on the floor, its head out in the hall
+            b.ForceMove(3);
+            bool dazed = false, dazedHurt = false, flat = false, headOut = false;
+            for (int i = 0; i < 1500 && !(dazed && b.Patrolling); i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (b.Dazed && !dazed)
+                {
+                    dazed = true;
+                    for (int k = 0; k < 24; k++) yield return new WaitForFixedUpdate();      // (it has fallen apart by now)
+                    int h = b.health;
+                    dazedHurt = b.Dazed && b.TakeDamage(new DamageInfo(1, DamageType.Whip, c.p, Vector2.zero, "test")) && b.health == h - 1;
+                    flat = true; headOut = true;
+                    float wallSide = b.SegmentAt(b.SegmentCount - 1).x - b.HeadCentre.x;      // the tail lies towards the wall
+                    for (int k = 0; k < b.SegmentCount; k++)
+                    {
+                        Vector2 sg = b.SegmentAt(k);
+                        if (sg.y > b.FloorLevel + 1f) flat = false;
+                        if ((sg.x - b.HeadCentre.x) * wallSide <= 0f) headOut = false;
+                    }
+                    ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_cogwyrm_dazed.png"));
+                }
+            }
+            c.Expect(dazed && dazedHurt && flat && headOut && b.Patrolling, $"the wheel's last bounce throws it against the wall: it lies dazed along the floor, head out in the hall, and a blow hurts it (hurt {dazedHurt}, flat {flat}, head out {headOut})");
             // a segment is a saw
+            yield return c.Frames(50);         // (it may just have brushed the player, who cannot be hurt in this test)
             c.p.godMode = false;
             c.run.health = 8;
             Vector2 seg = b.SegmentAt(2);
@@ -3401,12 +3538,37 @@ namespace Gloomdelve
             c.Expect(c.run.health < 8, $"touching a segment hurts (health 8 -> {c.run.health})");
             c.p.godMode = true;
             c.Teleport(6.5f, 1f);
-            // a quarter of its health gone: the last segment drops off as a loose saw
+            // a quarter of its health gone while the player is at its stuck head: nothing comes off yet
+            b.ForceMove(1);
+            for (int i = 0; i < 600 && !b.Stuck; i++) yield return new WaitForFixedUpdate();
             b.health = Mathf.FloorToInt(b.maxHealth * 0.75f);
-            yield return c.Frames(3);
-            bool saw = false;
-            foreach (var e in c.world.Entities) if (!e.Dead && e is SawBlade sb && sb.Loose) saw = true;
-            c.Expect(b.Shed == 1 && b.SegmentCount == 5 && saw, $"at three quarters of its health a segment drops off and rolls away as a saw ({b.SegmentCount} left)");
+            yield return c.Frames(20);
+            SawBlade Loose() { foreach (var e in c.world.Entities) if (!e.Dead && e is SawBlade sb && sb.Loose) return sb; return null; }
+            c.Expect(b.Shed == 0 && !b.ShedWarning && Loose() == null, "a quarter of its health gone while its head is stuck: no segment comes off beside the player");
+            // back on its track the segment glows first, then falls as itself, lies a moment and rolls at the player
+            for (int i = 0; i < 900 && !b.ShedWarning; i++) yield return new WaitForFixedUpdate();
+            Vector2 glow = b.SegmentAt(b.SegmentCount - 2);
+            c.Expect(b.ShedWarning && b.Patrolling && b.Shed == 0 && glow.y > b.FloorLevel + 2.5f && Mathf.Abs(glow.x - c.p.pos.x) >= 2.4f,
+                $"back under the ceiling, and not over the player's head, the segment glows and sparks before it comes off ({glow.y - b.FloorLevel:0.0} up, {Mathf.Abs(glow.x - c.p.pos.x):0.0} to the side)");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_cogwyrm_shed_tell.png"));
+            int warned = 0;
+            for (int i = 0; i < 300 && b.Shed == 0; i++) { yield return new WaitForFixedUpdate(); warned++; }
+            var piece = Loose();
+            float fellFrom = piece != null ? piece.pos.y - b.FloorLevel : 0f;
+            c.Expect(b.Shed == 1 && b.SegmentCount == 5 && warned >= 25 && piece != null && !piece.Rolling && fellFrom > 2f && piece.Picture == b.segmentSprite,
+                $"after {warned} frames of warning the segment comes off where it was ({fellFrom:0.0} above the floor), wearing the segment's own picture ({b.SegmentCount} left)");
+            yield return c.Frames(6);
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_cogwyrm_shed_fall.png"));
+            int landedAt = -1, rolledAt = -1; float landX = 0f;
+            for (int i = 0; i < 400 && piece != null && !piece.Dead && rolledAt < 0; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (landedAt < 0 && piece.grounded) { landedAt = i; landX = piece.pos.x; }
+                if (piece.Rolling) rolledAt = i;
+            }
+            yield return c.Frames(10);
+            bool toPlayer = piece != null && !piece.Dead && Mathf.Abs(piece.pos.x - c.p.pos.x) < Mathf.Abs(landX - c.p.pos.x);
+            c.Expect(landedAt >= 0 && rolledAt - landedAt >= 20 && toPlayer, $"it falls to the floor, lies there {rolledAt - landedAt} frames, then rolls at the player");
             for (int i = 0; i < 400 && !b.Dead; i++) { b.TakeDamage(new DamageInfo(3, DamageType.Whip, c.p, Vector2.zero, "test")); yield return c.Frames(14); }
             c.Expect(b.Dead, "it can be killed");
             foreach (var e in c.world.Entities) if (!e.Dead && (e is SawBlade || e is BossShot)) e.Despawn();

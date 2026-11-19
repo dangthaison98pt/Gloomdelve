@@ -227,8 +227,8 @@ namespace Gloomdelve
         public static void SaveSettings() => Write(SettingsPath, Settings);
         public static void SaveRecords() => Write(RecordsPath, Records);
 
-        /// <summary>Returns a short "new record" summary.</summary>
-        public static string RecordRunEnd(RunState run, int stageReached)
+        /// <summary>Returns a short "new record" summary. givenUp: the player ended the run from the pause screen - a run, but not a death.</summary>
+        public static string RecordRunEnd(RunState run, int stageReached, bool givenUp = false)
         {
             EnsureLoaded();
             var r = Records;
@@ -241,7 +241,7 @@ namespace Gloomdelve
                 r.wins++;
                 if (r.fastestWin < 0f || run.totalTime < r.fastestWin) { r.fastestWin = run.totalTime; news += "NEW FASTEST WIN!  "; }
             }
-            else r.deaths++;
+            else if (!givenUp) r.deaths++;
             if (stageReached > r.bestStage) { r.bestStage = stageReached; r.bestStageName = run.reachedStageName; news += "NEW DEEPEST!  "; }
             if (run.gold > r.bestGold) { r.bestGold = run.gold; news += "NEW BEST GOLD!"; }
             r.lastPlayed = DateTime.Now.ToString("yyyy-MM-dd HH:mm");

@@ -320,6 +320,12 @@ namespace Gloomdelve
                 if (Paused) { if (!pauseMenu.HandleBack()) SetPaused(false); }
                 else SetPaused(true);
             }
+            // a gamepad's back button does what Esc does on the pause screen: out of the panel that is open (settings,
+            // keys, the boss list, the "give up?" question), and from the pause screen itself back into the game
+            else if (Paused && !Ended && input != null && input.BackPressed)
+            {
+                if (!pauseMenu.HandleBack()) SetPaused(false);
+            }
             if (Paused || Ended) return;
             float dt = Time.deltaTime;
             var run = Run;
@@ -455,6 +461,15 @@ namespace Gloomdelve
             SaveSystem.RecordBossWin(practiceBoss, practiceTime, flawless, !ScenarioRunner.Active && !AutoTest.Active, out bool newBest, out bool firstFlawless);
             var rec = SaveSystem.BossRecordOf(practiceBoss);
             results.ShowBossTest(Run, practiceBoss, practiceTime, newBest, firstFlawless, rec != null ? rec.bestTime : practiceTime, rec != null && rec.noDamage);
+        }
+
+        /// <summary>Challenge, from the pause screen: leaves this fight for another boss (or the same one) without going out to the menu.</summary>
+        public void SwitchBoss(int catalogueStage)
+        {
+            if (Run == null || !Run.bossPractice || catalogueStage < 0 || catalogueStage >= config.stages.Length) return;
+            Time.timeScale = 1f;
+            RunSession.NewBossPractice(catalogueStage, config.player);
+            SceneManager.LoadScene(GameConst.SceneGame);
         }
 
         public void BackToBossList()
@@ -667,6 +682,29 @@ namespace Gloomdelve
             if (ScenarioRunner.Active || AutoTest.Active) { SceneManager.LoadScene(GameConst.SceneGame); return; }
             // the screen goes dark slowly, and it is morning in Brindlemoor when it clears
             ScreenFade.Through(() => SceneManager.LoadScene(GameConst.SceneGame), 0.7f, 0.45f, 1.1f);
+        }
+
+        /// <summary>A run on the mountain can be given up from the pause screen: not the village, the tutorial or a Challenge fight.</summary>
+        public bool CanGiveUp => Run != null && !Ended && !Run.inVillage && !Run.isTutorial && !Run.bossPractice;
+
+        /// <summary>
+        /// The player gives the run up (pause screen, after being asked): it ends here as a run that was not won - no
+        /// death is counted - and the player wakes at home in Brindlemoor, as after a death.
+        /// </summary>
+        public void GiveUp()
+        {
+            if (!CanGiveUp || ScreenFade.Busy) return;
+            var run = Run;
+            Ended = true;
+            run.finished = true;
+            Paused = false;
+            pauseMenu.Hide();
+            if (!ScenarioRunner.Active && !AutoTest.Active)
+            {
+                SaveSystem.RecordRunEnd(run, run.stageIndex, true);
+                SaveSystem.AppendRunLog($"seed {run.seed} GIVEN UP at {Stage.displayName}");
+            }
+            RestartRun(false, true);
         }
 
         public void QuitToMenu()

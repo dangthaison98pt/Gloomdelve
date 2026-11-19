@@ -6,8 +6,9 @@ namespace Gloomdelve
     /// Gearworks trap: a spinning saw. On a rail it runs back and forth along a stretch of floor for ever: jump
     /// over it (the generator only lays rails where there is room to jump). It cuts whatever it touches - the
     /// player, and creatures too, so a sentry can be led into it. It cannot be broken.
-    /// The Foreman throws loose saws: no rail, they roll one way along the floor (a conveyor under them speeds
-    /// them up or slows them down), and shatter at the first wall or after a few seconds.
+    /// A segment the Cogwyrm sheds is a loose saw: no rail. It falls from where it came off, lies where it lands
+    /// for a moment, then rolls along the floor at the player and shatters at the first wall or after a few
+    /// seconds. It wears the picture of the segment it was.
     /// Spawn point: the cell is the left end of the rail, param is the rail length in cells.
     /// </summary>
     public class SawBlade : Entity
@@ -21,12 +22,15 @@ namespace Gloomdelve
         public float looseLife = 7f;
         public float gravity = 40f;
 
-        float x0, x1, life, hitCd, angle;
+        float x0, x1, life, hitCd, angle, wait;
         int dir = 1;
-        bool loose;
+        bool loose, rolling, atPlayer;
 
         public override bool IsHazard => true;
         public bool Loose => loose;
+        /// <summary>A loose saw that has landed, waited and set off along the floor.</summary>
+        public bool Rolling => loose && rolling;
+        public Sprite Picture => sr != null ? sr.sprite : null;
 
         public override void Configure(SpawnPoint sp)
         {
@@ -52,10 +56,21 @@ namespace Gloomdelve
         /// <summary>Turns a freshly spawned saw into a loose one rolling this way (+1 right).</summary>
         public void Launch(int direction)
         {
-            loose = true;
+            loose = true; rolling = true; atPlayer = false; wait = 0f;
             dir = direction >= 0 ? 1 : -1;
             life = looseLife;
             if (rail != null) rail.enabled = false;
+        }
+
+        /// <summary>
+        /// Turns a freshly spawned saw into a piece that has come off something: it wears that piece's picture, falls
+        /// from where it is, lies 'rest' seconds where it lands and only then rolls off - towards the player.
+        /// </summary>
+        public void Drop(Sprite picture, float rest)
+        {
+            Launch(1);
+            rolling = false; atPlayer = true; wait = Mathf.Max(0f, rest);
+            if (picture != null && sr != null) sr.sprite = picture;
         }
 
         public override void Tick(float dt)
@@ -63,10 +78,28 @@ namespace Gloomdelve
             hitCd -= dt;
             if (loose)
             {
-                life -= dt;
-                vel.x = dir * looseSpeed;
-                var b = StepPhysics(dt, gravity);
-                if (b.hitLeft || b.hitRight || life <= 0f) { Shatter(); return; }
+                if (!rolling)
+                {
+                    // falling, then lying where it landed: time to see it and get ready
+                    vel.x = 0f;
+                    bool was = grounded;
+                    StepPhysics(dt, gravity);
+                    if (grounded && !was) { Fx.Dust(pos, 4); Sfx.Play("thud", pos, 0.7f, 1.4f); }
+                    if (grounded) wait -= dt;
+                    if (grounded && wait <= 0f)
+                    {
+                        rolling = true;
+                        var pl = World.Player;
+                        if (atPlayer && pl != null) dir = pl.pos.x < pos.x ? -1 : 1;
+                    }
+                }
+                else
+                {
+                    life -= dt;
+                    vel.x = dir * looseSpeed;
+                    var b = StepPhysics(dt, gravity);
+                    if (b.hitLeft || b.hitRight || life <= 0f) { Shatter(); return; }
+                }
             }
             else
             {
@@ -101,7 +134,7 @@ namespace Gloomdelve
             base.LateUpdate();
             if (sr != null)
             {
-                angle -= dir * spin * Time.deltaTime;
+                angle -= dir * spin * (loose && !rolling ? 0.35f : 1f) * Time.deltaTime;
                 sr.transform.localRotation = Quaternion.Euler(0f, 0f, angle);
             }
             if (rail != null && rail.enabled)       // the rail stays where it lies while the saw runs along it

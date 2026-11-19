@@ -1713,6 +1713,101 @@ namespace Gloomdelve.EditorTools
             return cam;
         }
 
+        /// <summary>What BossListPanel has built: the panel, one button per boss with its best-time label, and Back.</summary>
+        class BossListUI
+        {
+            public GameObject panel;
+            public Button[] buttons;
+            public TMPro.TMP_Text[] best;
+            public string[] names;
+            public int[] stages;
+            public Button back;
+        }
+
+        /// <summary>
+        /// The Challenge list: one button per boss stage of the catalogue (area bosses and the final guardian), six
+        /// rows shown and the rest scrolled to. Built for the main menu and again for the pause screen of a
+        /// Challenge fight, where another boss can be picked without leaving the game.
+        /// </summary>
+        static BossListUI BossListPanel(Transform parent, GameConfig cfg, Vector2 pos, string hint)
+        {
+            var ui = new BossListUI();
+            var gold = new Color(1f, 0.84f, 0.38f);
+            var bossReg = AssetDatabase.LoadAssetAtPath<PrefabRegistry>(G + "Data/PrefabRegistry.asset");
+            var bossStages = new List<int>();
+            var bossNames = new List<string>();
+            var bossKeys = new List<string>();        // display name as written on the prefab: the key of its record
+            for (int si = 0; si < cfg.stages.Length; si++)
+            {
+                var st = cfg.stages[si];
+                if ((st.kind != LevelKind.Boss && st.kind != LevelKind.Final) || st.handcrafted == null) continue;
+                string bossId = "";
+                foreach (var line in st.handcrafted.text.Split('\n'))
+                {
+                    string l = line.Trim();
+                    if (l == "---") break;
+                    if (l.StartsWith("boss:")) bossId = l.Substring(5).Trim();
+                }
+                // looked up in the registry asset itself (cfg.prefabs is not reliable while scenes are being rebuilt)
+                var entry = bossId.Length > 0 && bossReg != null ? bossReg.entries.Find(en => en != null && en.id == bossId) : null;
+                var prefab = entry != null ? entry.prefab : null;
+                if (prefab == null) continue;
+                bossStages.Add(si);
+                bossKeys.Add(prefab.displayName);
+                bossNames.Add(prefab.displayName);       // just the name, as it is written (areas come in a different order every run)
+            }
+            // The list grows with every boss added, the panel does not: it shows six rows, and the rest is reached
+            // with the scrollbar, the mouse wheel, or simply by moving the selection down (ScrollToSelected).
+            const float rowStep = 72f;
+            int rowsShown = Mathf.Min(6, bossStages.Count);
+            float listHeight = rowsShown * rowStep;
+            var bp = UIBuilder.Panel(parent, "BossPanel", new Vector2(0.5f, 0.5f), pos, new Vector2(820, 330 + listHeight));
+            UIBuilder.Label(bp.transform, "Title", "CHALLENGE", 46, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -36), new Vector2(700, 64));
+            UIBuilder.Label(bp.transform, "Hint", hint, 22, new Color(1f, 1f, 1f, 0.75f),
+                TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -112), new Vector2(760, 64));
+            // the window the rows are seen through
+            var view = UIBuilder.Img(bp.transform, "BossView", null, new Color(0f, 0f, 0f, 0f), new Vector2(0.5f, 1f), new Vector2(-8, -190), new Vector2(724, listHeight));       // (top anchor: the position is that of the top edge)
+            view.raycastTarget = true;                                   // so the wheel works between the rows too
+            view.gameObject.AddComponent<RectMask2D>();
+            var content = UIBuilder.Node(view.transform, "Content");
+            var crt = UIBuilder.Rect(content);
+            crt.anchorMin = new Vector2(0f, 1f); crt.anchorMax = new Vector2(1f, 1f); crt.pivot = new Vector2(0.5f, 1f);
+            crt.anchoredPosition = Vector2.zero; crt.sizeDelta = new Vector2(0f, bossStages.Count * rowStep);
+            var scroll = view.gameObject.AddComponent<ScrollRect>();
+            scroll.content = crt; scroll.viewport = view.rectTransform;
+            scroll.horizontal = false; scroll.vertical = true;
+            scroll.movementType = ScrollRect.MovementType.Clamped; scroll.scrollSensitivity = 36f; scroll.inertia = false;
+            view.gameObject.AddComponent<ScrollToSelected>();
+            if (bossStages.Count > rowsShown)
+            {
+                var track = UIBuilder.Img(bp.transform, "BossScrollbar", null, new Color(1f, 1f, 1f, 0.1f), new Vector2(0.5f, 1f), new Vector2(374, -195), new Vector2(10, listHeight - 10));
+                track.raycastTarget = true;
+                var handle = UIBuilder.Img(track.transform, "Handle", null, new Color(1f, 0.84f, 0.38f, 0.85f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+                handle.rectTransform.anchorMin = Vector2.zero; handle.rectTransform.anchorMax = Vector2.one;
+                handle.rectTransform.offsetMin = Vector2.zero; handle.rectTransform.offsetMax = Vector2.zero;
+                handle.raycastTarget = true;
+                var bar = track.gameObject.AddComponent<Scrollbar>();
+                bar.direction = Scrollbar.Direction.BottomToTop;
+                bar.handleRect = handle.rectTransform; bar.targetGraphic = handle;
+                var nav = bar.navigation; nav.mode = Navigation.Mode.None; bar.navigation = nav;      // the keys go from row to row, never onto the bar
+                scroll.verticalScrollbar = bar;
+                scroll.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
+            }
+            ui.buttons = new Button[bossStages.Count];
+            ui.best = new TMPro.TMP_Text[bossStages.Count];
+            ui.names = bossKeys.ToArray();
+            for (int i = 0; i < bossStages.Count; i++)
+            {
+                ui.buttons[i] = UIBuilder.Button(content.transform, "Boss_" + i, bossNames[i], new Vector2(0.5f, 1f), new Vector2(0, -5 - i * rowStep), new Vector2(700, 62));
+                // best time and the no-damage badge, at the right end of the button
+                ui.best[i] = UIBuilder.Label(ui.buttons[i].transform, "Best", "", 22, new Color(1f, 0.84f, 0.38f), TextAnchor.MiddleRight, new Vector2(1f, 0.5f), new Vector2(-22, 0), new Vector2(240, 50), false);
+            }
+            ui.stages = bossStages.ToArray();
+            ui.back = UIBuilder.Button(bp.transform, "Back", "BACK", new Vector2(0.5f, 0f), new Vector2(0, 36), new Vector2(320, 66));
+            ui.panel = bp.gameObject;
+            return ui;
+        }
+
         static void BuildMenuScene(GameConfig cfg)
         {
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -1790,78 +1885,9 @@ namespace Gloomdelve.EditorTools
             menu.keysPanel = UIBuilder.KeysPanel(t);
             // boss test: one button per boss stage of the run (area bosses and the final guardian)
             {
-                var bossReg = AssetDatabase.LoadAssetAtPath<PrefabRegistry>(G + "Data/PrefabRegistry.asset");
-                var bossStages = new List<int>();
-                var bossNames = new List<string>();
-                var bossKeys = new List<string>();        // display name as written on the prefab: the key of its record
-                for (int si = 0; si < cfg.stages.Length; si++)
-                {
-                    var st = cfg.stages[si];
-                    if ((st.kind != LevelKind.Boss && st.kind != LevelKind.Final) || st.handcrafted == null) continue;
-                    string bossId = "";
-                    foreach (var line in st.handcrafted.text.Split('\n'))
-                    {
-                        string l = line.Trim();
-                        if (l == "---") break;
-                        if (l.StartsWith("boss:")) bossId = l.Substring(5).Trim();
-                    }
-                    // looked up in the registry asset itself (cfg.prefabs is not reliable while scenes are being rebuilt)
-                    var entry = bossId.Length > 0 && bossReg != null ? bossReg.entries.Find(en => en != null && en.id == bossId) : null;
-                    var prefab = entry != null ? entry.prefab : null;
-                    if (prefab == null) continue;
-                    bossStages.Add(si);
-                    bossKeys.Add(prefab.displayName);
-                    bossNames.Add(prefab.displayName);       // just the name, as it is written (areas come in a different order every run)
-                }
-                // The list grows with every boss added, the panel does not: it shows six rows, and the rest is reached
-                // with the scrollbar, the mouse wheel, or simply by moving the selection down (ScrollToSelected).
-                const float rowStep = 72f;
-                int rowsShown = Mathf.Min(6, bossStages.Count);
-                float listHeight = rowsShown * rowStep;
-                var bp = UIBuilder.Panel(t, "BossPanel", new Vector2(0.5f, 0.5f), new Vector2(0, -40), new Vector2(820, 330 + listHeight));
-                UIBuilder.Label(bp.transform, "Title", "CHALLENGE", 46, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -36), new Vector2(700, 64));
-                UIBuilder.Label(bp.transform, "Hint", "Pick a boss and fight it straight away.\nDying starts the fight again. Your best time against each boss is kept.", 22, new Color(1f, 1f, 1f, 0.75f),
-                    TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -112), new Vector2(760, 64));
-                // the window the rows are seen through
-                var view = UIBuilder.Img(bp.transform, "BossView", null, new Color(0f, 0f, 0f, 0f), new Vector2(0.5f, 1f), new Vector2(-8, -190), new Vector2(724, listHeight));       // (top anchor: the position is that of the top edge)
-                view.raycastTarget = true;                                   // so the wheel works between the rows too
-                view.gameObject.AddComponent<RectMask2D>();
-                var content = UIBuilder.Node(view.transform, "Content");
-                var crt = UIBuilder.Rect(content);
-                crt.anchorMin = new Vector2(0f, 1f); crt.anchorMax = new Vector2(1f, 1f); crt.pivot = new Vector2(0.5f, 1f);
-                crt.anchoredPosition = Vector2.zero; crt.sizeDelta = new Vector2(0f, bossStages.Count * rowStep);
-                var scroll = view.gameObject.AddComponent<ScrollRect>();
-                scroll.content = crt; scroll.viewport = view.rectTransform;
-                scroll.horizontal = false; scroll.vertical = true;
-                scroll.movementType = ScrollRect.MovementType.Clamped; scroll.scrollSensitivity = 36f; scroll.inertia = false;
-                view.gameObject.AddComponent<ScrollToSelected>();
-                if (bossStages.Count > rowsShown)
-                {
-                    var track = UIBuilder.Img(bp.transform, "BossScrollbar", null, new Color(1f, 1f, 1f, 0.1f), new Vector2(0.5f, 1f), new Vector2(374, -195), new Vector2(10, listHeight - 10));
-                    track.raycastTarget = true;
-                    var handle = UIBuilder.Img(track.transform, "Handle", null, new Color(1f, 0.84f, 0.38f, 0.85f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
-                    handle.rectTransform.anchorMin = Vector2.zero; handle.rectTransform.anchorMax = Vector2.one;
-                    handle.rectTransform.offsetMin = Vector2.zero; handle.rectTransform.offsetMax = Vector2.zero;
-                    handle.raycastTarget = true;
-                    var bar = track.gameObject.AddComponent<Scrollbar>();
-                    bar.direction = Scrollbar.Direction.BottomToTop;
-                    bar.handleRect = handle.rectTransform; bar.targetGraphic = handle;
-                    var nav = bar.navigation; nav.mode = Navigation.Mode.None; bar.navigation = nav;      // the keys go from row to row, never onto the bar
-                    scroll.verticalScrollbar = bar;
-                    scroll.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
-                }
-                menu.bossButtons = new Button[bossStages.Count];
-                menu.bossBest = new TMPro.TMP_Text[bossStages.Count];
-                menu.bossNames = bossKeys.ToArray();
-                for (int i = 0; i < bossStages.Count; i++)
-                {
-                    menu.bossButtons[i] = UIBuilder.Button(content.transform, "Boss_" + i, bossNames[i], new Vector2(0.5f, 1f), new Vector2(0, -5 - i * rowStep), new Vector2(700, 62));
-                    // best time and the no-damage badge, at the right end of the button
-                    menu.bossBest[i] = UIBuilder.Label(menu.bossButtons[i].transform, "Best", "", 22, new Color(1f, 0.84f, 0.38f), TextAnchor.MiddleRight, new Vector2(1f, 0.5f), new Vector2(-22, 0), new Vector2(240, 50), false);
-                }
-                menu.bossStages = bossStages.ToArray();
-                menu.bossBack = UIBuilder.Button(bp.transform, "Back", "BACK", new Vector2(0.5f, 0f), new Vector2(0, 36), new Vector2(320, 66));
-                menu.bossPanel = bp.gameObject;
+                var ui = BossListPanel(t, cfg, new Vector2(0, -40), "Pick a boss and fight it straight away.\nDying starts the fight again. Your best time against each boss is kept.");
+                menu.bossButtons = ui.buttons; menu.bossBest = ui.best; menu.bossNames = ui.names; menu.bossStages = ui.stages;
+                menu.bossBack = ui.back; menu.bossPanel = ui.panel;
             }
             // save slots: Start Run asks which of the three to play
             {
@@ -2296,6 +2322,25 @@ namespace Gloomdelve.EditorTools
             pm.resumeButton = UIBuilder.Button(pmain.transform, "Resume", "RESUME", new Vector2(0.5f, 1f), new Vector2(0, -172), pb);
             pm.settingsButton = UIBuilder.Button(pmain.transform, "Settings", "SETTINGS", new Vector2(0.5f, 1f), new Vector2(0, -250), pb);
             pm.menuButton = UIBuilder.Button(pmain.transform, "Menu", "MAIN MENU", new Vector2(0.5f, 1f), new Vector2(0, -328), pb);
+            // buttons that belong to one place only (PauseMenu.Layout shows them, puts every button in its row and fits the panel)
+            pm.giveUpButton = UIBuilder.Button(pmain.transform, "GiveUp", "GIVE UP", new Vector2(0.5f, 1f), new Vector2(0, -406), pb);
+            pm.fightAgainButton = UIBuilder.Button(pmain.transform, "FightAgain", "FIGHT AGAIN", new Vector2(0.5f, 1f), new Vector2(0, -406), pb);
+            pm.bossListButton = UIBuilder.Button(pmain.transform, "BossList", "BOSS LIST", new Vector2(0.5f, 1f), new Vector2(0, -484), pb);
+            // "give up this run?"
+            var pconfirm = UIBuilder.Panel(proot.transform, "ConfirmPanel", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(760, 470));
+            UIBuilder.Label(pconfirm.transform, "Title", "GIVE UP THIS RUN?", 48, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -64), new Vector2(700, 70), true, FontStyle.Bold);
+            UIBuilder.Label(pconfirm.transform, "Body", "You go home to Brindlemoor and lose what you carry.\nEmbers and freed villagers are kept.", 26, new Color(1, 1, 1, 0.85f), TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -160), new Vector2(680, 100));
+            pm.confirmYesButton = UIBuilder.Button(pconfirm.transform, "Yes", "BACK TO VILLAGE", new Vector2(0.5f, 1f), new Vector2(0, -276), pb);
+            pm.confirmNoButton = UIBuilder.Button(pconfirm.transform, "No", "KEEP GOING", new Vector2(0.5f, 1f), new Vector2(0, -354), pb);
+            pm.confirmPanel = pconfirm.gameObject;
+            pconfirm.gameObject.SetActive(false);
+            // the list of bosses, inside the game: another boss without going out to the title screen
+            {
+                var ui = BossListPanel(proot.transform, cfg, Vector2.zero, "Pick another boss: the fight starts at once.\nBack returns to the fight you are in.");
+                pm.bossButtons = ui.buttons; pm.bossBest = ui.best; pm.bossNames = ui.names; pm.bossStages = ui.stages;
+                pm.bossBack = ui.back; pm.bossPanel = ui.panel;
+                ui.panel.SetActive(false);
+            }
             pm.infoText = UIBuilder.Label(pmain.transform, "Info", "", 22, new Color(1, 1, 1, 0.75f), TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0, 46), new Vector2(720, 90));
             pm.mainPanel = pmain.gameObject;
             pm.keysPanel = UIBuilder.KeysPanel(proot.transform);

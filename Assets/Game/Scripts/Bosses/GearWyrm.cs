@@ -13,12 +13,15 @@ namespace Gloomdelve
     ///    through. A belt under it speeds it up or slows it down.
     ///  - Dive: from the ceiling over the player, head first into the floor - and stuck there for a moment, its
     ///    body hanging above it. The opening of the fight.
-    ///  - Bolts: it lowers its head from the ceiling and spits two fans of bolts. The head is within reach of a
-    ///    jump for that long.
+    ///  - Bolts: it lowers its head from the ceiling and spits two fans of bolts, then lowers it further, jaws
+    ///    open, to load again: a jump and a blow reach it then.
     ///  - Wheel: it curls up into one great gear and bounces across the hall and back. Nothing hurts it then; run
-    ///    under it while it is high.
-    /// At every quarter of its health its last segment drops off and rolls away as a loose saw; shorter, it is
-    /// faster. At half health it dives twice and runs the floor there and back.
+    ///    under it while it is high. Its last bounce throws it against the wall: it comes apart flat along the
+    ///    floor, its head out in the hall, and lies dazed - the second opening.
+    /// At every quarter of its health it sheds a segment - not at once: only when it is back on its track under
+    /// the ceiling does the segment before its tail glow and spark, come off and fall. It lies where it lands for
+    /// a moment and then rolls at the player as a loose saw. Shorter, the wyrm is faster. At half health it dives
+    /// twice and runs the floor there and back.
     /// It never touches the tiles: it moves along a path worked out from the hall it wakes up in.
     /// </summary>
     public class GearWyrm : Boss
@@ -47,25 +50,34 @@ namespace Gloomdelve
         public float boltSpeed = 9f;
         public float boltSpread = 16f;
         public float boltHold = 1.5f;
+        [Tooltip("After its two fans it lowers its head to this height above the floor to load again: within reach of a jump.")] public float reloadHeight = 2.4f;
+        [Tooltip("Seconds its head hangs there, jaws open.")] public float reloadTime = 0.6f;
         [Header("Wheel")]
         public float wheelRadius = 1.1f;
         public float wheelSpeed = 8f;
         public float wheelBounce = 2.5f;
         [Tooltip("Tiles between two bounces.")] public float wheelBounceLength = 5f;
+        [Tooltip("Seconds it lies dazed on the floor after its last bounce has thrown it against the wall (the opening).")] public float wheelDaze = 3f;
+        [Tooltip("Seconds the wheel takes to come back off the wall and fall apart along the floor.")] public float wheelCrashTime = 0.4f;
         [Header("Shed segments")]
         public string sawId = "sawblade";
         public int maxShed = 3;
+        [Tooltip("Seconds the segment glows and sparks before it comes off (only while the wyrm is on its track).")] public float shedTell = 0.6f;
+        [Tooltip("Seconds the fallen segment lies where it landed before it rolls at the player.")] public float shedRest = 0.4f;
+        [Tooltip("The segment only comes off this far (tiles, sideways) from the player...")] public float shedClear = 2.5f;
+        [Tooltip("... unless the player has stayed under it this long: then it comes off anyway (still warned, still from under the ceiling).")] public float shedPatience = 3f;
         public Sprite segmentSprite, tailSprite;
         public SpriteAnim animIdle, animOpen;
 
         static readonly Color Brass = new Color(0.95f, 0.75f, 0.35f);
-        enum State { Rise, Patrol, RunSeek, RunTell, Run, DiveSeek, DiveTell, DiveDown, DiveStuck, DiveUp, BoltSeek, BoltDown, BoltHold, BoltUp, WheelSeek, WheelCurl, WheelRoll, WheelUncurl }
+        enum State { Rise, Patrol, RunSeek, RunTell, Run, DiveSeek, DiveTell, DiveDown, DiveStuck, DiveUp, BoltSeek, BoltDown, BoltHold, BoltReloadDown, BoltReload, BoltUp, WheelSeek, WheelCurl, WheelRoll, WheelCrash, WheelDazed, WheelUncurl }
         State state;
 
         // the hall, and the track round it
         float floorY, L, R, T, B, H, W, per, uA, uB;
         Vector2 hc, headDir = Vector2.right;      // the head's centre, and where it is going
-        float s, timer, runLeft, speedMul = 1f, curl, spin, travelled, hurtCd, targetS, boltT;
+        float s, timer, runLeft, speedMul = 1f, curl, spin, travelled, hurtCd, targetS, boltT, shedTimer = -1f, shedWait, crashT;
+        Vector2 crashFrom, crashTo;
         int dirS = 1, runDir, runPasses, divesLeft, wheelDir, wheelPasses, segCount, shed, forced = -1, volleys;
         Vector2 moveTo;
         readonly List<Vector2> trail = new List<Vector2>();
@@ -79,7 +91,13 @@ namespace Gloomdelve
         public bool Stuck => state == State.DiveStuck;
         public bool Running => state == State.Run;
         public bool Rolling => state == State.WheelCurl || state == State.WheelRoll;
+        /// <summary>Thrown against the wall by its last bounce: flat on the floor, open to a blow.</summary>
+        public bool Dazed => state == State.WheelDazed;
         public bool Spitting => state == State.BoltHold;
+        /// <summary>Its two fans spat, its head hangs low to load again: within reach.</summary>
+        public bool Reloading => state == State.BoltReload;
+        /// <summary>A segment is glowing: it is about to come off.</summary>
+        public bool ShedWarning => shedTimer >= 0f;
         public int SegmentCount => segCount;
         public int Shed => shed;
         public Vector2 HeadCentre => hc;
@@ -204,7 +222,7 @@ namespace Gloomdelve
             pos = new Vector2(hc.x, hc.y - size.y * 0.5f);
             vel = Vector2.zero;
 
-            Shedding(p);
+            Shedding(p, dt);
             // every segment is a saw; curled up, so is the whole wheel
             if (p != null && hurtCd <= 0f)
             {
@@ -238,7 +256,7 @@ namespace Gloomdelve
                     else if (s <= uA) { s = uA; dirS = 1; }
                     hc = P(s);
                     timer -= dt;
-                    if (p != null && (timer <= 0f || forced >= 0))
+                    if (p != null && (timer <= 0f || forced >= 0) && !ShedDue)       // (a segment comes off first)
                     {
                         int kind = forced >= 0 ? forced : NextMove(0, 1, 2, 3);
                         forced = -1;
@@ -330,6 +348,16 @@ namespace Gloomdelve
                         FanAt(hc, p.Center, 3, boltSpread, boltSpeed, boltId);
                         Sfx.Play("throw", pos, 1f, 1.2f);
                     }
+                    if (timer <= 0f) { moveTo = new Vector2(hc.x, floorY + reloadHeight); Go(State.BoltReloadDown); }
+                    break;
+                case State.BoltReloadDown:
+                    // its fans spat, it lowers its head further to load again
+                    headDir = Vector2.down;
+                    if (MoveHead(moveTo, riseSpeed, dt)) { Go(State.BoltReload, reloadTime); Fx.Sparks(hc, Brass, 5, 3f); Sfx.Play("crack", pos, 0.6f, 1.3f); }
+                    break;
+                case State.BoltReload:
+                    timer -= dt;
+                    headDir = Vector2.down;
                     if (timer <= 0f) { moveTo = P(s); anim?.Play(animIdle); Go(State.BoltUp); }
                     break;
                 case State.BoltUp:
@@ -370,17 +398,61 @@ namespace Gloomdelve
                     if (hop < 0.08f && Random.value < 0.5f) Fx.Dust(new Vector2(x, floorY), 1);
                     if (wheelPasses <= 0)
                     {
-                        s = hc.x < (L + R) * 0.5f ? uA : uB;
-                        moveTo = P(s);
-                        Go(State.WheelUncurl);
+                        // thrown against the wall: it comes back off it in one low hop and falls apart along the floor,
+                        // its head furthest out in the hall
+                        bool leftWall = hc.x < (L + R) * 0.5f;
+                        s = leftWall ? uA : uB;
+                        float wall = leftWall ? L : R, len = segCount * segmentSpacing + 0.7f;
+                        crashFrom = hc;
+                        crashTo = new Vector2(Mathf.Clamp(wall + (leftWall ? len : -len), L + 0.5f, R - 0.5f), floorY + wheelRadius);
+                        crashT = 0f;
+                        Fx.Shake(0.5f); Fx.Sparks(new Vector2(wall, hc.y), Brass, 12, 6f);
+                        Go(State.WheelCrash);
                     }
                     break;
                 }
+                case State.WheelCrash:
+                {
+                    crashT += dt / Mathf.Max(0.05f, wheelCrashTime);
+                    float k = Mathf.Clamp01(crashT);
+                    hc = Vector2.Lerp(crashFrom, crashTo, k) + new Vector2(0f, Mathf.Sin(k * Mathf.PI) * 0.9f);
+                    if (k >= 1f)
+                    {
+                        hc = crashTo;
+                        LayFlat();
+                        anim?.Play(animIdle);
+                        Fx.Shake(0.35f); Fx.Dust(new Vector2(hc.x, floorY), 8); Sfx.Play("thud", pos, 1f, 0.7f);
+                        Go(State.WheelDazed, wheelDaze);
+                    }
+                    break;
+                }
+                case State.WheelDazed:
+                    timer -= dt;
+                    // the wheel falls apart: the head sinks to the floor, the segments out of their ring into a line
+                    if (curl > 0f || hc.y > B)
+                    {
+                        curl = Mathf.MoveTowards(curl, 0f, dt / 0.25f);
+                        hc.y = Mathf.MoveTowards(hc.y, B, dt * 3f);
+                        LayFlat();
+                    }
+                    if (Random.value < 0.15f) Fx.Sparks(new Vector2(hc.x, hc.y + size.y * 0.5f), Brass, 1, 2f);
+                    if (timer <= 0f) { moveTo = P(s); Go(State.WheelUncurl); }
+                    break;
                 case State.WheelUncurl:
                     curl = Mathf.MoveTowards(curl, 0f, dt / 0.35f);
                     if (MoveHead(moveTo, riseSpeed, dt) && curl <= 0f) { dirS = Mathf.Approximately(s, uA) ? 1 : -1; Go(State.Patrol, Rest(actionGap)); }
                     break;
             }
+        }
+
+        /// <summary>Lays its body out flat on the floor between its head and the nearer wall (the wall it has just hit); it looks out into the hall.</summary>
+        void LayFlat()
+        {
+            float back = hc.x < (L + R) * 0.5f ? -1f : 1f;
+            trail.Clear();
+            trail.Add(hc);
+            for (int i = 1; i < 200; i++) trail.Add(new Vector2(Mathf.Clamp(hc.x + back * i * TrailStep, L, R), B));
+            headDir = new Vector2(-back, 0f);
         }
 
         /// <summary>A belt under its head, running its way, hurries it along the floor; one against it holds it back.</summary>
@@ -394,29 +466,53 @@ namespace Gloomdelve
             return 1f;
         }
 
-        /// <summary>At every quarter of its health the last segment drops off and rolls away as a loose saw.</summary>
-        void Shedding(PlayerController p)
+        /// <summary>A quarter of its health has gone and the segment owed for it has not come off yet.</summary>
+        bool ShedDue => shed < maxShed && segCount > 1 && HealthFraction <= 1f - 0.25f * (shed + 1);
+        /// <summary>The segment that comes off next: the one before the tail (the tail closes up behind it).</summary>
+        int ShedIndex => Mathf.Max(0, segCount - 2);
+
+        /// <summary>
+        /// At every quarter of its health a segment comes off - but never while the player is at its head: it waits
+        /// until the wyrm is back on its track under the ceiling. There the segment before the tail glows and sparks
+        /// for 'shedTell' seconds, then drops: the same gear, falling from where it was. It lies where it lands for
+        /// a moment before it rolls at the player (SawBlade.Drop). One segment at a time.
+        /// </summary>
+        void Shedding(PlayerController p, float dt)
         {
-            while (shed < maxShed && segCount > 1 && HealthFraction <= 1f - 0.25f * (shed + 1))
+            int i = ShedIndex;
+            if (shedTimer < 0f)
             {
-                Vector2 at = segPos[segCount - 1];
-                shed++; segCount--;
-                speedMul = 1f + speedPerShed * shed;
-                // (the tail picture moves up to the new last segment)
-                if (segSr[segCount] != null) segSr[segCount].enabled = false;
-                if (segSr[segCount - 1] != null && tailSprite != null) segSr[segCount - 1].sprite = tailSprite;
-                Fx.Debris(at, Brass, 10);
-                float x = Mathf.Clamp(at.x, L + 0.5f, R - 0.5f);
-                var saw = World.SpawnById(sawId, new Vector2(x, floorY)) as SawBlade;
-                if (saw != null) saw.Launch(p != null && p.pos.x < x ? -1 : 1);
-                Sfx.Play("crack", pos, 1f, 0.8f);
+                if (!ShedDue || state != State.Patrol) { shedWait = 0f; return; }
+                // the segment itself must be up under the ceiling (after a dive the body still hangs where the player
+                // stands) and not over the player's head
+                shedWait += dt;
+                bool up = segPos[i].y >= P(uA).y - 0.4f;
+                bool clear = p == null || Mathf.Abs(segPos[i].x - p.pos.x) >= shedClear || shedWait >= shedPatience;
+                if (up && clear) { shedTimer = shedTell; shedWait = 0f; Sfx.Play("crack", pos, 0.7f, 1.5f); }
+                return;
             }
+            shedTimer -= dt;
+            if (segSr[i] != null) segSr[i].color = Mathf.Repeat(shedTimer, 0.16f) < 0.08f ? new Color(1f, 0.55f, 0.25f) : Color.white;
+            if (Random.value < 0.5f) Fx.Sparks(segPos[i], Brass, 1, 3f);
+            if (shedTimer > 0f) return;
+            shedTimer = -1f;
+            Vector2 at = segPos[i];
+            if (segSr[i] != null) segSr[i].color = Color.white;
+            shed++; segCount--;
+            speedMul = 1f + speedPerShed * shed;
+            // (the tail closes up: its picture moves to what is now the last segment)
+            if (segSr[segCount] != null) segSr[segCount].enabled = false;
+            if (segSr[segCount - 1] != null && tailSprite != null) segSr[segCount - 1].sprite = tailSprite;
+            Fx.Debris(at, Brass, 6);
+            var saw = World.SpawnById(sawId, new Vector2(Mathf.Clamp(at.x, L + 0.5f, R - 0.5f), Mathf.Max(floorY, at.y - 0.35f))) as SawBlade;
+            if (saw != null) saw.Drop(segmentSprite, shedRest);
+            Sfx.Play("crack", pos, 1f, 0.8f);
         }
 
         /// <summary>Curled up into a wheel nothing gets through to its head.</summary>
         public override bool TakeDamage(in DamageInfo d)
         {
-            if (!Dead && (state == State.WheelRoll || state == State.WheelCurl))
+            if (!Dead && (state == State.WheelRoll || state == State.WheelCurl || state == State.WheelCrash))
             {
                 Fx.Sparks(hc, Brass, 8, 5f);
                 Sfx.Play("crack", pos, 0.8f, 1.5f);
