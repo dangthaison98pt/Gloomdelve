@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50eb2b5ae35d0bc4ab03ac6edf0faa99, type: 3}
+  m_Name: broodmother_walk
+  m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
+  frames:
+  - {fileID: 21300000, guid: 868cdc74acfc18a4698ca0f9f617e873, type: 3}
+  - {fileID: 21300000, guid: fd720d97fa68d29499301b6cfa5a4d99, type: 3}
+  - {fileID: 21300000, guid: 36dbae0e8f62e5a40b8c5c3df299d19d, type: 3}
+  - {fileID: 21300000, guid: 37461fb26dba87a448ab37d1b0d09dec, type: 3}
+  fps: 10
+  loop: 1

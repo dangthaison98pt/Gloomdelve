@@ -48,6 +48,9 @@ namespace Gloomdelve
         public bool stunned, noGrab;
         /// <summary>Glider equipped: holding jump while falling glides.</summary>
         public bool glide;
+        /// <summary>Dashing: -1 / +1 the direction, 0 not dashing. Straight along at dashSpeed, no gravity, no steering.</summary>
+        public int dash;
+        public float dashSpeed;
         public float speedMult, jumpMult;
         /// <summary>Ground grip: 1 (or 0 = not set) is normal footing, lower is ice - slow to get going, slow to stop.</summary>
         public float grip;
@@ -116,6 +119,21 @@ namespace Gloomdelve
             float hw = st.width * 0.5f, h = st.height;
             bool stunned = i.stunned;
             int ix = stunned ? 0 : Math.Sign(i.x);
+
+            // --- Dash: straight along, level, until it ends or meets a wall (the controller decides when) ---
+            if (i.dash != 0 && !stunned)
+            {
+                s.crouching = false; s.jumping = false; s.gliding = false;
+                s.facing = i.dash;
+                s.vel = new Vector2(i.dash * i.dashSpeed, 0f);
+                var db = new Body { pos = s.pos, vel = s.vel, hw = hw, h = h, grounded = s.grounded };
+                BodyPhysics.Move(g, ref db, dt, false);
+                s.pos = db.pos; s.vel = db.vel; s.grounded = db.grounded;
+                s.hitWall = db.hitLeft || db.hitRight;
+                s.apexY = s.pos.y;          // a dash is not part of a fall
+                s.coyote = 0f;
+                return;
+            }
 
             // --- Grab ladder / rope ---
             if (!stunned && s.climbCooldown <= 0f)

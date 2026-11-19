@@ -60,6 +60,13 @@ namespace Gloomdelve
         public GameObject bossRoot;
         public TMPro.TMP_Text bossName;
         public Image bossFill;
+        [Header("Dash energy")]
+        [Tooltip("The bar under the health and the gold: what is left for dashing.")] public Image energyFill;
+        public float energyFillWidth = 440f;
+        public Color energyColor = new Color(0.45f, 0.9f, 1f);
+        [Tooltip("The bar when there is not enough left for a dash.")] public Color energyLowColor = new Color(0.95f, 0.45f, 0.4f);
+        int shownRefusals;
+        float energyFlash;
         public float bossFillWidth = 752f;
 
         [Tooltip("The corner panels (health, gear, stage and clock): hidden while the result screen is up, which needs the room.")]
@@ -120,6 +127,18 @@ namespace Gloomdelve
             {
                 shownHealth = run.health; shownMax = run.maxHealth;
                 healthText.text = run.maxHealth > 0 ? run.health + "/" + run.maxHealth : run.health.ToString();
+            }
+            if (energyFill != null)
+            {
+                var pl = dir.Player;
+                float frac = pl != null && pl.DashEnergyMax > 0f ? Mathf.Clamp01(pl.DashEnergy / pl.DashEnergyMax) : 1f;
+                var rt = energyFill.rectTransform;
+                rt.sizeDelta = new Vector2(energyFillWidth * frac, rt.sizeDelta.y);
+                // asked for a dash it could not pay for: the bar flashes white
+                if (pl != null && pl.DashRefusals != shownRefusals) { shownRefusals = pl.DashRefusals; energyFlash = 0.3f; }
+                energyFlash -= dt;
+                Color c = pl == null || pl.CanAffordDash ? energyColor : energyLowColor;
+                energyFill.color = energyFlash > 0f ? Color.Lerp(c, Color.white, energyFlash / 0.3f) : c;
             }
             if (lastHealth >= 0 && run.health != lastHealth) heartPulse = 0.4f;
             lastHealth = run.health;

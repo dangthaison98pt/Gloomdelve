@@ -94,13 +94,15 @@ namespace Gloomdelve
             return l;
         }
 
-        static FrameInput F(int x = 0, bool up = false, bool down = false, bool jp = false, bool jh = false, bool atk = false, bool bomb = false, bool rope = false, bool act = false, bool use = false)
-            => new FrameInput { x = x, up = up, down = down, jumpPressed = jp, jumpHeld = jh, attackPressed = atk, usePressed = bomb || rope || use, interactPressed = act };
+        static FrameInput F(int x = 0, bool up = false, bool down = false, bool jp = false, bool jh = false, bool atk = false, bool bomb = false, bool rope = false, bool act = false, bool use = false, bool dash = false)
+            => new FrameInput { x = x, up = up, down = down, jumpPressed = jp, jumpHeld = jh, attackPressed = atk, usePressed = bomb || rope || use, interactPressed = act, dashPressed = dash };
 
         static void Set(char[,] m, int x, int y, char c) { if (x >= 0 && x < W && y >= 0 && y < H) m[x, y] = c; }
 
         static readonly List<Scenario> all = new List<Scenario>
         {
+            new Scenario { name = "player: a dash goes straight through what would hurt, stops at walls, is paid from an energy bar that fills again, and works once in the air", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => DashCase(c) },
             new Scenario { name = "whip kills an approaching snake", map = m => { Set(m, 3, 1, 'S'); Set(m, 4, 1, 's'); },
                 run = c => Run(c, Seq((2, F()), (1, F(atk: true)), (40, F())), 45, () => { c.Expect(c.Count<Snake>() == 0, "snake dead"); c.Expect(c.run.health == 4, "no damage"); }) },
 
@@ -1210,6 +1212,89 @@ namespace Gloomdelve
             c.dir.results.root.SetActive(false);
             c.run.bossPractice = false;
             ClearFight(c);
+        }
+
+        static IEnumerator DashCase(Ctx c)
+        {
+            var cfg = c.p.cfg;
+            c.p.godMode = false;
+            c.run.maxHealth = 10; c.run.health = 10;
+            c.Teleport(6.5f, 1f);
+            yield return c.Frames(10);
+            // a dash: about dashSpeed x dashTime along the floor, and nothing hurts while it lasts
+            float x0 = c.p.pos.x;
+            int n0 = c.p.Dashes;
+            c.Bot(Seq((1, F(x: 1)), (1, F(dash: true)), (400, F())));
+            yield return c.Frames(4);
+            c.Expect(c.p.Dashing && c.p.Dashes == n0 + 1, "the dash button starts a dash");
+            bool hurtInDash = c.p.TakeDamage(new DamageInfo(2, DamageType.Contact, null, new Vector2(5f, 5f), "test"));
+            c.Expect(!hurtInDash && c.run.health == 10, $"nothing hurts in a dash (health {c.run.health})");
+            for (int i = 0; i < 60 && c.p.Dashing; i++) yield return new WaitForFixedUpdate();
+            float went = c.p.pos.x - x0, want = cfg.dashSpeed * cfg.dashTime;
+            c.Expect(Mathf.Abs(went - want) < 0.9f, $"it carries the player about {want:0.0} tiles ({went:0.0})");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "player_dash.png"));
+            // each dash is paid from the energy bar: 100 holds three, the fourth is refused
+            c.Expect(Mathf.Abs(c.p.DashEnergy - (cfg.dashEnergyMax - cfg.dashCost)) < 0.5f, $"a dash costs {cfg.dashCost:0} of {cfg.dashEnergyMax:0} energy ({c.p.DashEnergy:0} left)");
+            for (int k = 0; k < 2; k++)
+            {
+                c.Bot(Seq((1, F(dash: true)), (400, F())));
+                yield return c.Frames(3);
+                for (int i = 0; i < 60 && c.p.Dashing; i++) yield return new WaitForFixedUpdate();
+            }
+            float left = c.p.DashEnergy;
+            int refused0 = c.p.DashRefusals;
+            c.Bot(Seq((1, F(dash: true)), (400, F())));
+            yield return c.Frames(4);
+            c.Expect(c.p.Dashes == n0 + 3 && !c.p.Dashing && c.p.DashRefusals == refused0 + 1 && left < cfg.dashCost, $"three dashes empty the bar and a fourth is refused ({left:0} left, {c.p.Dashes - n0} dashes)");
+            // not dashing, the energy comes back by itself: nothing for the first half second, then all of it
+            float e0 = c.p.DashEnergy;
+            yield return c.Frames(Mathf.CeilToInt(cfg.dashRegenDelay * 0.6f / GameConst.Dt));
+            bool held = Mathf.Abs(c.p.DashEnergy - e0) < 0.01f;
+            yield return c.Frames(Mathf.CeilToInt((cfg.dashRegenDelay + cfg.dashEnergyMax / cfg.dashRegenRate + 0.3f) / GameConst.Dt));
+            c.Expect(held && Mathf.Abs(c.p.DashEnergy - cfg.dashEnergyMax) < 0.01f, $"left alone for {cfg.dashRegenDelay:0.0} s the bar fills again ({c.p.DashEnergy:0})");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "player_dash_energy.png"));
+            // once the moment of safety is over, a blow counts again
+            bool hurtAfter = c.p.TakeDamage(new DamageInfo(1, DamageType.Contact, null, Vector2.zero, "test"));
+            c.Expect(hurtAfter && c.run.health == 9, $"once it is over a blow counts again (health {c.run.health})");
+            for (int i = 0; i < 200 && (c.p.InvulnTime > 0f || c.p.IsStunned); i++) yield return new WaitForFixedUpdate();
+            // through something that flies at the player: a shockwave along the floor
+            c.Teleport(6.5f, 1f);
+            yield return c.Frames(10);
+            c.run.health = 10;
+            var wave = c.Spawn<BossShot>("shockwave", 11, 1);
+            bool dashed = false;
+            if (wave != null) { wave.pos = new Vector2(11.5f, 1.3f); wave.vel = new Vector2(-7f, 0f); }      // (clear of the floor: a shot that touches it bursts)
+            for (int i = 0; i < 200 && wave != null && !wave.Dead && wave.pos.x > 2f; i++)
+            {
+                if (!dashed && wave.pos.x - c.p.pos.x < 1.6f) { dashed = true; c.Bot(Seq((1, F(x: 1)), (1, F(dash: true)), (400, F()))); }
+                yield return new WaitForFixedUpdate();
+            }
+            c.Expect(wave != null && dashed && c.run.health == 10, $"dashed into, a shockwave does nothing (health {c.run.health}, dashed {dashed})");
+            foreach (var e in c.world.Entities) if (!e.Dead && e is BossShot) e.Despawn();
+            yield return c.Frames(Mathf.CeilToInt((cfg.dashRegenDelay + cfg.dashEnergyMax / cfg.dashRegenRate + 0.3f) / GameConst.Dt));
+            // a wall stops it
+            c.Teleport(2.4f, 1f);
+            yield return c.Frames(10);
+            c.Bot(Seq((1, F(x: -1)), (1, F(dash: true)), (400, F())));
+            yield return c.Frames(3);
+            bool started = c.p.Dashing || c.p.Dashes == n0 + 5;
+            int f = 0;
+            for (; f < 60 && c.p.Dashing; f++) yield return new WaitForFixedUpdate();
+            c.Expect(started && c.p.pos.x >= 1.25f && c.p.pos.x < 2.0f && f * GameConst.Dt < cfg.dashTime * 0.7f, $"a wall stops it short (x {c.p.pos.x:0.00}, {f} more frames)");
+            yield return c.Frames(Mathf.CeilToInt((cfg.dashRegenDelay + cfg.dashEnergyMax / cfg.dashRegenRate + 0.3f) / GameConst.Dt));
+            // in the air: level, and only once until the feet are down again
+            c.Teleport(6.5f, 1f);
+            yield return c.Frames(10);
+            int n1 = c.p.Dashes;
+            c.Bot(Seq((1, F(jp: true, jh: true)), (12, F(jh: true)), (1, F(x: 1, jh: true, dash: true)), (400, F())));
+            yield return c.Frames(16);
+            float y0 = c.p.pos.y;
+            bool airborne = c.p.Dashing && !c.p.grounded;
+            yield return c.Frames(6);
+            c.Expect(airborne && c.p.Dashes == n1 + 1 && Mathf.Abs(c.p.pos.y - y0) < 0.05f, $"in the air it goes level (y {y0:0.00} -> {c.p.pos.y:0.00})");
+            for (int i = 0; i < 300 && !c.p.grounded; i++) yield return new WaitForFixedUpdate();
+            c.p.godMode = false;
+            c.run.health = 4;
         }
 
         static IEnumerator RunPlanCase(Ctx c)

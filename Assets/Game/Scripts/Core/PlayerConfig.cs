@@ -34,6 +34,15 @@ namespace Gloomdelve
         public float stompBounce = 9f;
         public float stompBounceHeld = 13.5f;
 
+        [Header("Dash")]
+        [Tooltip("Speed of the dash, tiles a second (it must stay under one tile a simulation step).")] public float dashSpeed = 17f;
+        [Tooltip("Seconds a dash lasts (speed times this is how far it goes: 3.4 tiles).")] public float dashTime = 0.2f;
+        [Tooltip("The energy bar a dash is paid from.")] public float dashEnergyMax = 100f;
+        [Tooltip("Energy one dash costs.")] public float dashCost = 30f;
+        [Tooltip("Seconds without dashing before the energy starts to come back.")] public float dashRegenDelay = 0.5f;
+        [Tooltip("Energy that comes back each second once it has started to.")] public float dashRegenRate = 60f;
+        [Tooltip("Seconds after a dash has ended in which nothing can hurt yet: time to come out of whatever was dashed through.")] public float dashGrace = 0.12f;
+
         [Header("Damage")]
         public float invulnTime = 1.2f;
         [Tooltip("Health lost when landing on spikes (99 = instant death, the old rule). The player is thrown clear and is briefly invulnerable.")]

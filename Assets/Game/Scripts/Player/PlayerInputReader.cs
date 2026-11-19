@@ -9,7 +9,7 @@ namespace Gloomdelve
         public int x;
         public bool up, down, walk;
         public bool jumpPressed, jumpHeld;
-        public bool attackPressed, usePressed, interactPressed, upPressed;
+        public bool attackPressed, usePressed, interactPressed, upPressed, dashPressed;
     }
 
     public interface IFrameInputSource
@@ -26,8 +26,8 @@ namespace Gloomdelve
         public InputActionAsset actions;
 
         InputActionMap map;
-        InputAction move, jump, attack, use, swap, interact, walk, pause, inventory;
-        bool jumpL, attackL, useL, interactL, upL, prevUp;
+        InputAction move, jump, attack, use, swap, interact, walk, pause, inventory, dash;
+        bool jumpL, attackL, useL, interactL, upL, prevUp, dashL;
 
         public InputAction PauseAction => pause;
 
@@ -44,6 +44,7 @@ namespace Gloomdelve
             walk = map.FindAction("Walk", true);
             pause = map.FindAction("Pause", true);
             inventory = map.FindAction("Inventory", false);
+            dash = map.FindAction("Dash", false);
             KeyBindings.Apply(actions);             // the keyboard keys the player chose
             KeyBindings.Changed += ApplyKeys;
             map.Enable();
@@ -67,6 +68,7 @@ namespace Gloomdelve
             if (attack.WasPressedThisFrame()) attackL = true;
             if (use.WasPressedThisFrame()) useL = true;
             if (interact.WasPressedThisFrame()) interactL = true;
+            if (dash != null && dash.WasPressedThisFrame()) dashL = true;
             bool up = MoveValue.y > 0.5f;
             if (up && !prevUp) upL = true;
             prevUp = up;
@@ -74,7 +76,7 @@ namespace Gloomdelve
 
         public void ClearLatches()
         {
-            jumpL = attackL = useL = interactL = upL = false;
+            jumpL = attackL = useL = interactL = upL = dashL = false;
         }
 
         // KeyBindings.Busy: the change-keys screen is waiting for a key, so that key press must not pause or confirm anything
@@ -103,6 +105,7 @@ namespace Gloomdelve
             f.usePressed = useL;
             f.interactPressed = interactL;
             f.upPressed = upL;
+            f.dashPressed = dashL;
             ClearLatches();
             return f;
         }

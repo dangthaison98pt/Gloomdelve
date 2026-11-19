@@ -1628,7 +1628,8 @@ namespace Gloomdelve.EditorTools
         /// <summary>
         /// The Broodmother, drawn for herself (4 tiles by 2.9; she faces right): a swollen abdomen with a red
         /// hourglass, a plated chest, a head full of eyes, eight jointed legs arching over her back.
-        /// 0 standing, 1 crouched to strike (jaws apart, eyes ablaze), 2 falling (legs trailing above her).
+        /// 0 standing, 1 crouched to strike (jaws apart, eyes ablaze), 2 falling (legs trailing above her),
+        /// 3-6 crawling: her legs step in two sets of four, each set forward while the other pushes back.
         /// </summary>
         static void BroodmotherArt()
         {
@@ -1662,10 +1663,11 @@ namespace Gloomdelve.EditorTools
                 p.Disc(kx + 0.5f, ky, 1.6f, near ? legL : farM);      // the knee
             }
 
-            for (int f = 0; f < 3; f++)
+            for (int f = 0; f < 7; f++)
             {
                 var p = new Px(64, 46);
-                int by = f == 1 ? -4 : f == 2 ? -6 : 0;     // how far the body hangs down between the legs
+                bool crawl = f >= 3;
+                int by = f == 1 ? -4 : f == 2 ? -6 : crawl && f % 2 == 0 ? -1 : 0;     // how far the body hangs down between the legs
                 // (hip x, knee x, knee y, foot x) of the four legs on one side, front to back
                 int[,] stand = { { 46, 56, 32, 62 }, { 43, 50, 37, 54 }, { 39, 31, 39, 22 }, { 37, 18, 41, 5 } };
                 int[,] fall = { { 46, 57, 27, 62 }, { 43, 51, 31, 54 }, { 39, 30, 31, 21 }, { 37, 14, 29, 6 } };
@@ -1702,7 +1704,15 @@ namespace Gloomdelve.EditorTools
                         if (f == 2) { hx = fall[i, 0]; kx = fall[i, 1]; ky = fall[i, 2]; fx = fall[i, 3]; fy = 44; }
                         else { hx = stand[i, 0]; kx = stand[i, 1]; ky = stand[i, 2] + (f == 1 ? 2 : 0); fx = stand[i, 3]; fy = 1; }
                         if (!near) { int back = i < 2 ? -4 : 4; kx += back; ky -= 5; fx += back; if (f == 2) fy -= 3; }
-                        Leg(p, hx, 18 + by, kx, ky, fx, fy, near);
+                        if (crawl)
+                        {
+                            // a step: the foot swings forward off the ground, comes down, and is drawn back along it
+                            float t = (f - 3) / 4f + ((i % 2 == 0) == near ? 0f : 0.5f);
+                            float swing = Mathf.Cos(t * Mathf.PI * 2f), lift = Mathf.Sin(t * Mathf.PI * 2f);
+                            fx += Mathf.RoundToInt(swing * 3f); kx += Mathf.RoundToInt(swing * 1.5f);
+                            if (lift > 0.3f) { fy += 3; ky += 1; }
+                        }
+                        Leg(p, hx, 18 + by, kx, ky, Mathf.Clamp(fx, 1, 62), fy, near);
                     }
                 }
                 p.Outline(ol);

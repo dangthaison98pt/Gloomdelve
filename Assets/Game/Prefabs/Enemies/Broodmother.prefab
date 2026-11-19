@@ -93,6 +93,7 @@ MonoBehaviour:
   spitId: venomshot
   lowerSpeed: 7
   animIdle: {fileID: 11400000, guid: 53e40c77c1956124d923480fd97369e2, type: 2}
+  animWalk: {fileID: 11400000, guid: 5c07ea02541d014419b003b2e20632fd, type: 2}
   animJump: {fileID: 11400000, guid: 30aad3d355b46864ba410bcab5bf1026, type: 2}
   animFall: {fileID: 11400000, guid: 27745f9b6b9811d4d99587b2666bc1ce, type: 2}
 --- !u!1 &9021173479815016475

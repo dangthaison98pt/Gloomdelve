@@ -33,6 +33,7 @@ namespace Gloomdelve
             new Slot("right", "Right", "Move", "rightArrow", "right"),
             new Slot("jump", "Jump", "Jump", "z", "jump"),
             new Slot("attack", "Blade", "Attack", "x", "whip"),
+            new Slot("dash", "Dash", "Dash", "s", "dash"),
             new Slot("use", "Use gear", "Use", "c", "use"),
             new Slot("swap", "Change gear", "Swap", "d", "gear"),
             new Slot("interact", "Enter / buy", "Interact", "a", "enter"),

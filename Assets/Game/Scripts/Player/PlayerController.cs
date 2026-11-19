@@ -65,6 +65,30 @@ namespace Gloomdelve
         int tintState;      // 0 normal, 1 frozen (blue), 2 dizzy (green)
 
         float whipTimer = -1f, whipCooldown, invuln, stunTimer, lookTimer, throwAnimTimer;
+
+        // The dash: a short burst straight along the way the player faces (or steers), on the ground or once in
+        // the air. While it lasts - and for a moment after - nothing hurts: it goes through creatures, bosses
+        // and whatever they throw. Walls stop it. Each dash is paid from an energy bar (PlayerConfig.dashCost of
+        // dashEnergyMax); the bar fills again by itself once the player has not dashed for a moment.
+        float dashTimer, dashGrace, ghostT, dashEnergy = -1f, sinceDash = 99f;
+        int dashDir = 1;
+        bool airDashed;
+        static readonly Color DashColor = new Color(0.6f, 0.95f, 1f);
+        readonly List<SpriteRenderer> ghosts = new List<SpriteRenderer>();
+        readonly List<float> ghostLife = new List<float>();
+        const float GhostTime = 0.22f;
+        public bool Dashing => dashTimer > 0f;
+        /// <summary>Nothing can hurt: dashing, or just out of a dash.</summary>
+        public bool DashSafe => dashTimer > 0f || dashGrace > 0f;
+        /// <summary>What is left in the energy bar, and how much it holds.</summary>
+        public float DashEnergy => dashEnergy < 0f ? cfg.dashEnergyMax : dashEnergy;
+        public float DashEnergyMax => cfg.dashEnergyMax;
+        /// <summary>Enough energy for another dash.</summary>
+        public bool CanAffordDash => DashEnergy >= cfg.dashCost;
+        /// <summary>Goes up each time the dash button was pressed without the energy for it (the bar on the screen flashes).</summary>
+        public int DashRefusals { get; private set; }
+        /// <summary>Dashes made so far (tests).</summary>
+        public int Dashes { get; private set; }
         readonly HashSet<Entity> whipHits = new HashSet<Entity>();
         readonly List<Entity> tmp = new List<Entity>();
         static readonly Color BloodRed = new Color(0.75f, 0.1f, 0.12f);
@@ -103,10 +127,26 @@ namespace Gloomdelve
             JumpHeld = fi.jumpHeld;
             bool stunned = stunTimer > 0f;
 
+            dashGrace -= dt;
+            if (dashEnergy < 0f) dashEnergy = cfg.dashEnergyMax;        // the bar starts full
+            if (dashTimer <= 0f)
+            {
+                // left alone for a moment, the energy comes back
+                sinceDash += dt;
+                if (sinceDash >= cfg.dashRegenDelay) dashEnergy = Mathf.Min(cfg.dashEnergyMax, dashEnergy + cfg.dashRegenRate * dt);
+            }
+            if (motor.grounded && dashTimer <= 0f) airDashed = false;
+            if (fi.dashPressed && !stunned && dashTimer <= 0f && motor.mode == MotorMode.Normal && !(airDashed && !motor.grounded))
+            {
+                if (dashEnergy >= cfg.dashCost) StartDash(fi.x != 0 ? Math.Sign(fi.x) : facing);
+                else { DashRefusals++; Sfx.Play("error", pos, 0.6f); }
+            }
+
             var mi = new MotorInput
             {
                 x = fi.x, up = fi.up, down = fi.down, jumpPressed = fi.jumpPressed, jumpHeld = fi.jumpHeld, walk = fi.walk,
                 stunned = stunned,
+                dash = dashTimer > 0f ? dashDir : 0, dashSpeed = cfg.dashSpeed,
                 speedMult = (held != null && held.heavy ? cfg.heavyCarrySpeed : 1f) * (slowTimer > 0f ? 1f - slowAmount : 1f),
                 jumpMult = Run != null ? 1f + Run.stats.jumpBonus : 1f,
                 grip = Mathf.Max(World.Level != null ? World.Level.grip : 1f, Run != null ? Run.stats.iceGrip : 0f),
@@ -119,10 +159,18 @@ namespace Gloomdelve
             MotorEvents(prevMode);
             if (IsDead) return;
 
-            if (!stunned) HandleActions(fi);
+            if (dashTimer > 0f)
+            {
+                dashTimer -= dt;
+                ghostT -= dt;
+                if (ghostT <= 0f) { ghostT = 0.035f; SpawnGhost(); }
+                if (motor.hitWall || motor.mode != MotorMode.Normal || stunned || dashTimer <= 0f) EndDash();
+            }
+
+            if (!stunned && !Dashing) HandleActions(fi);
             TickWhip(dt);
             UpdateHeld();
-            if (!godMode) Contacts(fi, prevVy);
+            if (!godMode && !DashSafe) Contacts(fi, prevVy);
             Pickups();
             Interactions(fi);
             Look(fi, dt);
@@ -175,6 +223,66 @@ namespace Gloomdelve
                 else TakeDamage(new DamageInfo(Mathf.Max(1, cfg.spikeDamage), DamageType.Spikes, null,
                     new Vector2(away * 3f, cfg.spikeBounce), "spikes"));
             }
+        }
+
+        // ------------------------------------------------------------------ dash
+
+        void StartDash(int dir)
+        {
+            dashDir = dir != 0 ? dir : 1;
+            dashTimer = cfg.dashTime;
+            dashEnergy = Mathf.Max(0f, dashEnergy - cfg.dashCost);
+            sinceDash = 0f;
+            if (!motor.grounded) airDashed = true;
+            whipTimer = -1f;
+            ghostT = 0f;
+            Dashes++;
+            squash = new Vector2(1.35f, 0.72f);
+            Fx.Dust(pos, 4);
+            Sfx.Play("throw", pos, 0.8f, 1.7f);
+        }
+
+        void EndDash()
+        {
+            dashTimer = 0f;
+            dashGrace = cfg.dashGrace;
+            sinceDash = 0f;
+            // it does not coast on at dash speed
+            float run = cfg.motor.runSpeed;
+            motor.vel.x = Mathf.Clamp(motor.vel.x, -run, run);
+            vel = motor.vel;
+        }
+
+        /// <summary>A fading picture of the player left behind in the dash.</summary>
+        void SpawnGhost()
+        {
+            if (sr == null || sr.sprite == null) return;
+            int slot = -1;
+            for (int i = 0; i < ghosts.Count; i++) if (ghosts[i] != null && ghostLife[i] <= 0f) { slot = i; break; }
+            if (slot < 0)
+            {
+                if (ghosts.Count >= 8) return;
+                var go = new GameObject("DashGhost");
+                var r = go.AddComponent<SpriteRenderer>();
+                r.sharedMaterial = sr.sharedMaterial;
+                r.sortingLayerID = sr.sortingLayerID; r.sortingOrder = sr.sortingOrder - 1;
+                ghosts.Add(r); ghostLife.Add(0f);
+                slot = ghosts.Count - 1;
+            }
+            var g = ghosts[slot];
+            g.sprite = sr.sprite; g.flipX = sr.flipX;
+            g.transform.position = sr.transform.position;
+            g.transform.localScale = sr.transform.lossyScale;
+            g.color = new Color(DashColor.r, DashColor.g, DashColor.b, 0.6f);
+            g.enabled = true;
+            ghostLife[slot] = GhostTime;
+        }
+
+        protected override void OnDespawn()
+        {
+            base.OnDespawn();
+            foreach (var g in ghosts) if (g != null) Destroy(g.gameObject);
+            ghosts.Clear(); ghostLife.Clear();
         }
 
         // ------------------------------------------------------------------ actions
@@ -391,6 +499,8 @@ namespace Gloomdelve
         public override bool TakeDamage(in DamageInfo d)
         {
             if (IsDead || godMode || Run == null) return false;
+            // in a dash nothing hurts - except what nothing can stop (the Reaper, and whatever kills outright)
+            if (DashSafe && d.type != DamageType.Wraith && d.amount < 99) return false;
             bool bypass = d.type == DamageType.Wraith || d.type == DamageType.Explosion || d.amount >= 99;
             if (invuln > 0f && !bypass) return false;
             Run.health -= d.amount;
@@ -422,7 +532,7 @@ namespace Gloomdelve
         /// <summary>Pushed without being hurt (snowballs): a short stagger and a knockback, no damage, no invulnerability.</summary>
         public void Shove(Vector2 knockback, float stun)
         {
-            if (IsDead || godMode) return;
+            if (IsDead || godMode || DashSafe) return;
             stunTimer = Mathf.Max(stunTimer, stun);
             motor.mode = MotorMode.Normal;
             motor.vel = knockback;
@@ -495,7 +605,7 @@ namespace Gloomdelve
         /// <summary>Frozen solid for a moment: no damage, but no control either.</summary>
         public void Freeze(float seconds)
         {
-            if (IsDead || godMode) return;
+            if (IsDead || godMode || DashSafe) return;
             frozen = Mathf.Max(frozen, seconds);
             stunTimer = Mathf.Max(stunTimer, seconds);
             Fx.Text(Center + Vector2.up * 0.9f, "FROZEN", new Color(0.7f, 0.9f, 1f), 1f);
@@ -578,6 +688,13 @@ namespace Gloomdelve
         protected override void LateUpdate()
         {
             base.LateUpdate();
+            for (int i = 0; i < ghosts.Count; i++)
+            {
+                if (ghosts[i] == null || ghostLife[i] <= 0f) continue;
+                ghostLife[i] -= Time.deltaTime;
+                if (ghostLife[i] <= 0f) { ghosts[i].enabled = false; continue; }
+                var gc = ghosts[i].color; gc.a = 0.6f * ghostLife[i] / GhostTime; ghosts[i].color = gc;
+            }
             int tint = Frozen ? 1 : Confused ? 2 : 0;
             if (sr != null && tintState != tint)
             {

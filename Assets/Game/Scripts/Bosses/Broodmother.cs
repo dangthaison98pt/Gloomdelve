@@ -41,6 +41,7 @@ namespace Gloomdelve
         public string spitId = "venomshot";
         [Tooltip("Speed at which she lowers herself back to the floor afterwards (harmless).")] public float lowerSpeed = 7f;
         public SpriteAnim animIdle;
+        [Tooltip("Crawling along the ceiling: her legs step.")] public SpriteAnim animWalk;
         public SpriteAnim animJump;
         [Tooltip("Falling picture: legs trailing above her.")] public SpriteAnim animFall;
 
@@ -162,6 +163,7 @@ namespace Gloomdelve
                     BodyPhysics.Move(World.Grid, ref b, dt, true);
                     pos = b.pos;
                     if (Mathf.Abs(want) > 0.3f) facing = want > 0 ? 1 : -1;
+                    anim?.Play(Mathf.Abs(want) > 0.3f && animWalk != null ? animWalk : animIdle);      // her legs step while she crawls
                     dripT -= dt;
                     if (dripT <= 0f) { dripT = 0.12f; Fx.Dust(new Vector2(pos.x, pos.y - 0.1f), 1); }      // grit falls where she is
                     if (aiming && timer <= 0f) { state = State.Drop; vel = new Vector2(0f, -dropSpeed); anim?.Play(animFall); Sfx.Play("toad", pos, 1f, 0.45f); }

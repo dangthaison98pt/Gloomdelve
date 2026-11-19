@@ -81,7 +81,7 @@ namespace Gloomdelve.EditorTools
                     GE("jump", "Z", GS("pad_green"), "A", false, "\u00D7", psCross, null, "B"), GE("confirm", "Enter", GS("pad_green"), "A", false, "\u00D7", psCross, null, "B"),
                     GE("whip", "X", GS("pad_blue"), "X", false, "\u25A1", psSquare, null, "Y"), GE("use", "C", GS("pad_red"), "B", false, "\u25CB", psCircle, null, "A"),
                     GE("enter", "A", GS("pad_yellow"), "Y", true, "\u25B2", psTriangle, null, "X"),
-                    GE("gear", "D", pill, "R1", false, "R1", null, pill, "R"), GE("walk", "Shift", pill, "LT", false, "L2", null, pill, "ZL"),
+                    GE("gear", "D", pill, "R1", false, "R1", null, pill, "R"), GE("walk", "Shift", pill, "LT", false, "L2", null, pill, "ZL"), GE("dash", "S", pill, "RT", false, "R2", null, pill, "ZR"),
                     GE("pause", "Esc", pill, "Start", false, "Options", null, pill, "+"), GE("inventory", "Tab", pill, "Select", false, "Share", null, pill, "\u2212"),
                     GE("up", "\u25B2", darkBtn, "\u25B2"), GE("down", "\u25BC", darkBtn, "\u25BC"),
                     GE("left", "\u25C4", darkBtn, "\u25C4"), GE("right", "\u25BA", darkBtn, "\u25BA"),
@@ -272,7 +272,7 @@ namespace Gloomdelve.EditorTools
             var actions = new List<string>
             {
                 A("Move", "Value", "Vector2"), A("Jump", "Button", "Button"), A("Attack", "Button", "Button"), A("Use", "Button", "Button"),
-                A("Swap", "Button", "Button"), A("Interact", "Button", "Button"), A("Walk", "Button", "Button"), A("Pause", "Button", "Button"), A("Inventory", "Button", "Button"),
+                A("Swap", "Button", "Button"), A("Interact", "Button", "Button"), A("Walk", "Button", "Button"), A("Pause", "Button", "Button"), A("Inventory", "Button", "Button"), A("Dash", "Button", "Button"),
             };
             var bindings = new List<string>
             {
@@ -284,6 +284,7 @@ namespace Gloomdelve.EditorTools
                 B("Use", "<Keyboard>/c"), B("Use", "<Gamepad>/buttonEast"),
                 B("Swap", "<Keyboard>/d"), B("Swap", "<Gamepad>/rightShoulder"),
                 B("Interact", "<Keyboard>/a"), B("Interact", "<Gamepad>/buttonNorth"),
+                B("Dash", "<Keyboard>/s"), B("Dash", "<Gamepad>/rightTrigger"),
                 B("Walk", "<Keyboard>/leftShift"), B("Walk", "<Keyboard>/rightShift"), B("Walk", "<Gamepad>/leftTrigger"),
                 B("Pause", "<Keyboard>/escape"), B("Pause", "<Keyboard>/p"), B("Pause", "<Gamepad>/start"),
                 B("Inventory", "<Keyboard>/tab"), B("Inventory", "<Keyboard>/i"), B("Inventory", "<Gamepad>/select"),
@@ -363,7 +364,7 @@ namespace Gloomdelve.EditorTools
             const string bo = "Sprites/Bosses/";
             Anim("venom_fly", F(bo + "venom_0", bo + "venom_1"), 10f);
             Anim("shock_run", F(bo + "shock_0", bo + "shock_1"), 12f);
-            Anim("broodmother_idle", F(bo + "broodmother_0"), 1); Anim("broodmother_jump", F(bo + "broodmother_1"), 1); Anim("broodmother_fall", F(bo + "broodmother_2"), 1);
+            Anim("broodmother_idle", F(bo + "broodmother_0"), 1); Anim("broodmother_walk", F(bo + "broodmother_3", bo + "broodmother_4", bo + "broodmother_5", bo + "broodmother_6"), 10f); Anim("broodmother_jump", F(bo + "broodmother_1"), 1); Anim("broodmother_fall", F(bo + "broodmother_2"), 1);
             Anim("forgebrute_walk", F(bo + "forgebrute_0", bo + "forgebrute_1"), 4f); Anim("forgebrute_charge", F(bo + "forgebrute_2"), 1); Anim("forgebrute_dazed", F(bo + "forgebrute_3"), 1);
             Anim("yetiking_idle", F(bo + "yetiking_0"), 1); Anim("yetiking_throw", F(bo + "yetiking_1"), 1);
             Anim("stormhawk_fly", F(bo + "stormhawk_0", bo + "stormhawk_1"), 6f); Anim("stormhawk_dive", F(bo + "stormhawk_2"), 1);
@@ -1436,7 +1437,7 @@ namespace Gloomdelve.EditorTools
             // bosses (one per area + the final guardian), their projectile, and the treasure chest
             Sprite BS(string n) => ArtGenerator.S("Sprites/Bosses/" + n);
             Reg("broodmother", Make<Broodmother>("Broodmother", "Enemies", "Broodmother", new Vector2(2.1f, 1.4f), BS("broodmother_0"), anims["broodmother_idle"], 15,
-                (e, go, sr) => { e.maxHealth = 14; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animIdle = anims["broodmother_idle"]; e.animJump = anims["broodmother_jump"]; e.animFall = anims["broodmother_fall"]; e.animCounter = anims["broodmother_jump"]; e.counterFx = anims["cfx_bite"]; e.counterMotion = Boss.CounterMotion.Lunge; e.counterFxScale = 1.2f; e.bloodColor = new Color(0.5f, 0.3f, 0.6f); }));
+                (e, go, sr) => { e.maxHealth = 14; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animIdle = anims["broodmother_idle"]; e.animWalk = anims["broodmother_walk"]; e.animJump = anims["broodmother_jump"]; e.animFall = anims["broodmother_fall"]; e.animCounter = anims["broodmother_jump"]; e.counterFx = anims["cfx_bite"]; e.counterMotion = Boss.CounterMotion.Lunge; e.counterFxScale = 1.2f; e.bloodColor = new Color(0.5f, 0.3f, 0.6f); }));
             Reg("forgebrute", Make<ForgeBrute>("ForgeBrute", "Enemies", "Forge Brute", new Vector2(2.0f, 1.8f), BS("forgebrute_0"), anims["forgebrute_walk"], 15,
                 (e, go, sr) => { e.maxHealth = 16; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animWalk = anims["forgebrute_walk"]; e.animCharge = anims["forgebrute_charge"]; e.animCounter = anims["forgebrute_charge"]; e.counterFx = anims["cfx_buck"]; e.counterMotion = Boss.CounterMotion.Buck; e.animDazed = anims["forgebrute_dazed"]; e.bloodColor = new Color(0.9f, 0.4f, 0.2f); }));
             Reg("yetiking", Make<YetiKing>("YetiKing", "Enemies", "Yeti King", new Vector2(1.9f, 2.3f), BS("yetiking_0"), anims["yetiking_idle"], 15,
@@ -2070,12 +2071,12 @@ namespace Gloomdelve.EditorTools
             var vig = UIBuilder.Img(hudGo.transform, "DamageVignette", ArtGenerator.S("UI/vignette"), new Color(0.8f, 0f, 0f, 0f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
             UIBuilder.Stretch(vig.rectTransform);
             hud.damageVignette = vig;
-            var bar = UIBuilder.Panel(hudGo.transform, "TopLeft", new Vector2(0f, 1f), new Vector2(16, -16), new Vector2(490, 84));
+            var bar = UIBuilder.Panel(hudGo.transform, "TopLeft", new Vector2(0f, 1f), new Vector2(16, -8), new Vector2(490, 104));
             TMPro.TMP_Text Stat(string name, string icon, float x, out Image img)
             {
-                img = UIBuilder.Img(bar.transform, name + "Icon", ArtGenerator.S(icon), Color.white, new Vector2(0f, 0.5f), new Vector2(x, 0), new Vector2(48, 48));
+                img = UIBuilder.Img(bar.transform, name + "Icon", ArtGenerator.S(icon), Color.white, new Vector2(0f, 0.5f), new Vector2(x, 9), new Vector2(48, 48));
                 img.rectTransform.pivot = new Vector2(0f, 0.5f);
-                var tx = UIBuilder.Label(bar.transform, name, "0", 40, Color.white, TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(x + 56, 0), new Vector2(120, 60), true, FontStyle.Bold);
+                var tx = UIBuilder.Label(bar.transform, name, "0", 40, Color.white, TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(x + 56, 9), new Vector2(120, 60), true, FontStyle.Bold);
                 tx.rectTransform.pivot = new Vector2(0f, 0.5f);
                 return tx;
             }
@@ -2086,14 +2087,24 @@ namespace Gloomdelve.EditorTools
             hud.goldSprite = ArtGenerator.S("UI/icon_gold"); hud.emberSprite = ArtGenerator.S("UI/icon_ember");
             hud.goldText.color = gold;
             hud.goldText.rectTransform.sizeDelta = new Vector2(180, 60);
+            // dash energy: one plain bar along the bottom of that panel, under the health and the gold (which sit a
+            // little above the middle to leave it room)
+            {
+                const float ew = 440f;
+                var eBack = UIBuilder.Img(bar.transform, "EnergyBack", ArtGenerator.S("Center/pixel"), new Color(0.2f, 0.23f, 0.32f, 1f), new Vector2(0f, 0f), new Vector2(23, 13), new Vector2(ew + 4, 10));
+                eBack.rectTransform.pivot = new Vector2(0f, 0f);
+                hud.energyFill = UIBuilder.Img(eBack.transform, "Fill", ArtGenerator.S("Center/pixel"), new Color(0.45f, 0.9f, 1f), new Vector2(0f, 0.5f), new Vector2(2, 0), new Vector2(ew, 6));
+                hud.energyFill.rectTransform.pivot = new Vector2(0f, 0.5f);
+                hud.energyFillWidth = ew;
+            }
             hud.upgradesText = UIBuilder.Label(hudGo.transform, "Upgrades", "", 24, new Color(0.7f, 1f, 0.75f), TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(28, -108), new Vector2(900, 40));
             hud.upgradesText.rectTransform.pivot = new Vector2(0f, 1f);
-            hud.upgradesText.rectTransform.anchoredPosition = new Vector2(28, -216);
+            hud.upgradesText.rectTransform.anchoredPosition = new Vector2(28, -226);
 
             // Item in hand: just the icon with its count in the corner, the button that changes it on top and the
             // button that uses it underneath. Its name pops up over the player when it is switched.
             var gearBox = UIBuilder.Node(hudGo.transform, "Gear");
-            UIBuilder.Place(UIBuilder.Rect(gearBox), new Vector2(0f, 1f), new Vector2(24, -110), new Vector2(104, 172));
+            UIBuilder.Place(UIBuilder.Rect(gearBox), new Vector2(0f, 1f), new Vector2(24, -120), new Vector2(104, 172));
             var gframe = UIBuilder.Img(gearBox.transform, "IconFrame", UIBuilder.Slot, new Color(1f, 0.8f, 0.35f), new Vector2(0.5f, 1f), new Vector2(0, -34), new Vector2(104, 104), true);
             hud.equipIcon = UIBuilder.Img(gframe.transform, "Icon", ArtGenerator.S("UI/icon_bomb"), Color.white, new Vector2(0.5f, 0.5f), new Vector2(0, 4), new Vector2(76, 76));
             hud.equipName = null;
