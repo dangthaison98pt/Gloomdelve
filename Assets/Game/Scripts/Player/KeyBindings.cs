@@ -31,14 +31,14 @@ namespace Gloomdelve
             new Slot("down", "Down / crouch", "Move", "downArrow", "down"),
             new Slot("left", "Left", "Move", "leftArrow", "left"),
             new Slot("right", "Right", "Move", "rightArrow", "right"),
-            new Slot("jump", "Jump", "Jump", "z", "jump"),
-            new Slot("attack", "Blade", "Attack", "x", "whip"),
-            new Slot("dash", "Dash", "Dash", "s", "dash"),
-            new Slot("use", "Use gear", "Use", "c", "use"),
-            new Slot("swap", "Change gear", "Swap", "d", "gear"),
-            new Slot("interact", "Enter / buy", "Interact", "a", "enter"),
-            new Slot("walk", "Walk slowly", "Walk", "leftShift", "walk"),
-            new Slot("inventory", "Equipment", "Inventory", "tab", "inventory"),
+            new Slot("jump", "Jump", "Jump", "space", "jump"),
+            new Slot("attack", "Blade", "Attack", "q", "whip"),
+            new Slot("dash", "Dash", "Dash", "leftShift", "dash"),
+            new Slot("use", "Use gear", "Use", "w", "use"),
+            new Slot("swap", "Change gear", "Swap", "tab", "gear"),
+            new Slot("interact", "Enter / buy", "Interact", "e", "enter"),
+            new Slot("walk", "Walk slowly", "Walk", "s", "walk"),
+            new Slot("inventory", "Equipment", "Inventory", "i", "inventory"),
         };
 
         /// <summary>Goes up on every change: texts with button pictures redraw themselves.</summary>
@@ -136,8 +136,8 @@ namespace Gloomdelve
         }
 
         /// <summary>
-        /// Writes the chosen keys onto the action asset. Keyboard bindings that are not a Slot (Space for jump,
-        /// right Shift, P, I) keep working as extras, unless the player gave that key to an action: then the extra is off.
+        /// Writes the chosen keys onto the action asset. Keyboard bindings that are not a Slot (P for pause)
+        /// keep working as extras, unless the player gave that key to an action: then the extra is off.
         /// </summary>
         public static void Apply(InputActionAsset asset)
         {

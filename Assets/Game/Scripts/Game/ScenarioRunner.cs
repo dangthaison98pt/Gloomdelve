@@ -2140,36 +2140,39 @@ namespace Gloomdelve
             InputAction jump = map.FindAction("Jump"), attack = map.FindAction("Attack"), use = map.FindAction("Use"), move = map.FindAction("Move");
             KeyBindings.ResetAll();
 
-            yield return Keys(kb, 0.1f, Key.Z);
-            c.Expect(jump.IsPressed(), "default: Z jumps");
+            yield return Keys(kb, 0.1f, Key.Space);
+            c.Expect(jump.IsPressed(), "default: Space jumps");
             yield return Keys(kb, 0.1f);
 
             KeyBindings.Assign("jump", "k");
             yield return Keys(kb, 0.1f, Key.K);
             c.Expect(jump.IsPressed(), "after the change K jumps");
-            yield return Keys(kb, 0.1f, Key.Z);
-            c.Expect(!jump.IsPressed(), "and Z no longer does");
+            yield return Keys(kb, 0.1f, Key.Space);
+            c.Expect(!jump.IsPressed(), "and Space no longer does");
             yield return Keys(kb, 0.1f);
             c.Expect(KeyBindings.GlyphLabel("jump", out var lbl) && lbl == "K", "the [jump] picture now reads K (got " + lbl + ")");
 
             // a key that another action already has: the two swap
             var swapped = KeyBindings.Assign("attack", "k");
-            c.Expect(swapped != null && swapped.id == "jump" && KeyBindings.KeyOf("jump") == "x" && KeyBindings.KeyOf("attack") == "k",
+            c.Expect(swapped != null && swapped.id == "jump" && KeyBindings.KeyOf("jump") == "q" && KeyBindings.KeyOf("attack") == "k",
                 $"giving K to the blade swaps: jump {KeyBindings.KeyOf("jump")}, blade {KeyBindings.KeyOf("attack")}");
-            yield return Keys(kb, 0.1f, Key.X);
-            c.Expect(jump.IsPressed() && !attack.IsPressed(), "X jumps now, it does not swing the blade");
+            yield return Keys(kb, 0.1f, Key.Q);
+            c.Expect(jump.IsPressed() && !attack.IsPressed(), "Q jumps now, it does not swing the blade");
             yield return Keys(kb, 0.1f);
 
-            // Space is an extra jump key until the player gives it another job
-            yield return Keys(kb, 0.1f, Key.Space);
-            c.Expect(jump.IsPressed(), "Space still jumps as an extra key");
+            // P is an extra pause key until the player gives it another job
+            var pause = map.FindAction("Pause");
+            KeyBindings.Busy = true;            // (the action is read, the game itself is not paused by it)
+            yield return Keys(kb, 0.1f, Key.P);
+            c.Expect(pause.IsPressed(), "P still pauses as an extra key");
             yield return Keys(kb, 0.1f);
-            KeyBindings.Assign("use", "space");
-            yield return Keys(kb, 0.1f, Key.Space);
-            c.Expect(use.IsPressed() && !jump.IsPressed(), "Space given to 'use gear': it uses gear and no longer jumps");
+            KeyBindings.Busy = false;
+            KeyBindings.Assign("use", "p");
+            yield return Keys(kb, 0.1f, Key.P);
+            c.Expect(use.IsPressed() && !pause.IsPressed(), "P given to 'use gear': it uses gear and no longer pauses");
             yield return Keys(kb, 0.1f);
 
-            c.Expect(!KeyBindings.Allowed("escape") && KeyBindings.Assign("jump", "escape") == null && KeyBindings.KeyOf("jump") == "x", "Esc cannot be given to an action");
+            c.Expect(!KeyBindings.Allowed("escape") && KeyBindings.Assign("jump", "escape") == null && KeyBindings.KeyOf("jump") == "q", "Esc cannot be given to an action");
 
             // the screen itself, from the pause menu: choose the 'Up' row, press W
             c.dir.SetPaused(true);
@@ -2206,8 +2209,8 @@ namespace Gloomdelve
             c.dir.SetPaused(false);
 
             KeyBindings.ResetAll();
-            yield return Keys(kb, 0.1f, Key.Z);
-            c.Expect(KeyBindings.AllDefault && jump.IsPressed(), "defaults: Z jumps again");
+            yield return Keys(kb, 0.1f, Key.Space);
+            c.Expect(KeyBindings.AllDefault && jump.IsPressed(), "defaults: Space jumps again");
             yield return Keys(kb, 0.1f);
 
             KeyBindings.Restore(saved);         // whatever the player had set up on this machine

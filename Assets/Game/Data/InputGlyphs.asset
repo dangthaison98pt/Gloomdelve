@@ -15,7 +15,7 @@ MonoBehaviour:
   entries:
   - token: jump
     keyboard: {fileID: 21300000, guid: ac30c036278fcb6499565013b3b95aa4, type: 3}
-    keyboardLabel: Z
+    keyboardLabel: Space
     keyboardInk: {r: 0.17, g: 0.14, b: 0.19, a: 1}
     gamepad: {fileID: 21300000, guid: 01bc476b82d555e42a8443144e1a97ce, type: 3}
     gamepadLabel: Y
@@ -41,7 +41,7 @@ MonoBehaviour:
     nintendoInk: {r: 0.97, g: 0.96, b: 0.93, a: 1}
   - token: whip
     keyboard: {fileID: 21300000, guid: ac30c036278fcb6499565013b3b95aa4, type: 3}
-    keyboardLabel: X
+    keyboardLabel: Q
     keyboardInk: {r: 0.17, g: 0.14, b: 0.19, a: 1}
     gamepad: {fileID: 21300000, guid: b5f5ea526fdfa1e4cb0544b7ad39f87c, type: 3}
     gamepadLabel: X
@@ -54,7 +54,7 @@ MonoBehaviour:
     nintendoInk: {r: 0.97, g: 0.96, b: 0.93, a: 1}
   - token: use
     keyboard: {fileID: 21300000, guid: ac30c036278fcb6499565013b3b95aa4, type: 3}
-    keyboardLabel: C
+    keyboardLabel: W
     keyboardInk: {r: 0.17, g: 0.14, b: 0.19, a: 1}
     gamepad: {fileID: 21300000, guid: 585ea53512aca6c4d927fe06b2f84905, type: 3}
     gamepadLabel: RT
@@ -67,7 +67,7 @@ MonoBehaviour:
     nintendoInk: {r: 0.97, g: 0.96, b: 0.93, a: 1}
   - token: enter
     keyboard: {fileID: 21300000, guid: ac30c036278fcb6499565013b3b95aa4, type: 3}
-    keyboardLabel: A
+    keyboardLabel: E
     keyboardInk: {r: 0.17, g: 0.14, b: 0.19, a: 1}
     gamepad: {fileID: 21300000, guid: 776d96ff8f47c1b48a83b725424355fa, type: 3}
     gamepadLabel: B
@@ -80,7 +80,7 @@ MonoBehaviour:
     nintendoInk: {r: 0.97, g: 0.96, b: 0.93, a: 1}
   - token: gear
     keyboard: {fileID: 21300000, guid: ac30c036278fcb6499565013b3b95aa4, type: 3}
-    keyboardLabel: D
+    keyboardLabel: Tab
     keyboardInk: {r: 0.17, g: 0.14, b: 0.19, a: 1}
     gamepad: {fileID: 21300000, guid: 585ea53512aca6c4d927fe06b2f84905, type: 3}
     gamepadLabel: R1
@@ -93,7 +93,7 @@ MonoBehaviour:
     nintendoInk: {r: 0.97, g: 0.96, b: 0.93, a: 1}
   - token: walk
     keyboard: {fileID: 21300000, guid: ac30c036278fcb6499565013b3b95aa4, type: 3}
-    keyboardLabel: Shift
+    keyboardLabel: S
     keyboardInk: {r: 0.17, g: 0.14, b: 0.19, a: 1}
     gamepad: {fileID: 21300000, guid: 585ea53512aca6c4d927fe06b2f84905, type: 3}
     gamepadLabel: L1
@@ -106,7 +106,7 @@ MonoBehaviour:
     nintendoInk: {r: 0.97, g: 0.96, b: 0.93, a: 1}
   - token: dash
     keyboard: {fileID: 21300000, guid: ac30c036278fcb6499565013b3b95aa4, type: 3}
-    keyboardLabel: S
+    keyboardLabel: Shift
     keyboardInk: {r: 0.17, g: 0.14, b: 0.19, a: 1}
     gamepad: {fileID: 21300000, guid: 776d96ff8f47c1b48a83b725424355fa, type: 3}
     gamepadLabel: B
@@ -132,7 +132,7 @@ MonoBehaviour:
     nintendoInk: {r: 0.97, g: 0.96, b: 0.93, a: 1}
   - token: inventory
     keyboard: {fileID: 21300000, guid: ac30c036278fcb6499565013b3b95aa4, type: 3}
-    keyboardLabel: Tab
+    keyboardLabel: I
     keyboardInk: {r: 0.17, g: 0.14, b: 0.19, a: 1}
     gamepad: {fileID: 21300000, guid: 585ea53512aca6c4d927fe06b2f84905, type: 3}
     gamepadLabel: Select
