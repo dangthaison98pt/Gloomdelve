@@ -87,7 +87,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 2.5, y: 2.5}
+  m_Size: {x: 3.875, y: 4.25}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -152,7 +152,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.YetiKing
   displayName: Yeti King
-  size: {x: 1.5, y: 1.9}
+  size: {x: 1.9, y: 2.3}
   maxHealth: 16
   flipWithFacing: 1
   artFacesLeft: 0

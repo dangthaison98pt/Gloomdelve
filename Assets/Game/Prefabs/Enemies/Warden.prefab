@@ -47,7 +47,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.Warden
   displayName: Hollow Warden
-  size: {x: 1.4, y: 1.8}
+  size: {x: 1.7, y: 2.2}
   maxHealth: 24
   flipWithFacing: 1
   artFacesLeft: 0
@@ -191,7 +191,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 3, y: 3}
+  m_Size: {x: 4.25, y: 4.75}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1

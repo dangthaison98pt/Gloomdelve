@@ -227,7 +227,7 @@ namespace Gloomdelve
             new Scenario { name = "boss test: winning shows the result screen and waits; storm hawk points along its flight", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => BossTestCase(c) },
 
-            new Scenario { name = "run plan: each run draws 4 areas by its seed, starts in the first, ends with camp and vault", map = m => { Set(m, 3, 1, 'S'); },
+            new Scenario { name = "run plan: each run draws 4 areas by its seed, the first one too, ends with camp and vault", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => RunPlanCase(c) },
 
             new Scenario { name = "bosses: the forge brute's fire is five short-lived spots, each slam is a leap, and its charge tears through dirt in its way",
@@ -1219,6 +1219,7 @@ namespace Gloomdelve
             foreach (var st in cfg.stages) if ((st.kind == LevelKind.Area || st.kind == LevelKind.Boss) && !areas.Contains(st.area)) areas.Add(st.area);
             c.Expect(areas.Count > cfg.areasPerRun && cfg.areasPerRun == 4, $"the catalogue has more areas ({areas.Count}) than one run uses ({cfg.areasPerRun})");
             var seenSecond = new HashSet<AreaConfig>();
+            var seenFirst = new HashSet<AreaConfig>();
             var seenAny = new HashSet<AreaConfig>();
             bool allOk = true; string bad = "";
             for (int seed = 1; seed <= 200; seed++)
@@ -1236,7 +1237,8 @@ namespace Gloomdelve
                     if (!names[i].StartsWith(place + "-")) ok = false;
                     if (i > 0 && cfg.stages[order[i - 1]].area == st.area && cfg.stages[order[i - 1]].kind == LevelKind.Boss) ok = false;
                 }
-                ok &= runAreas.Count == cfg.areasPerRun && runAreas[0] == areas[0];
+                ok &= runAreas.Count == cfg.areasPerRun;
+                if (runAreas.Count > 0) seenFirst.Add(runAreas[0]);
                 ok &= cfg.stages[order[order.Length - 1]].kind == LevelKind.Final && cfg.stages[order[order.Length - 2]].kind == LevelKind.Rest;
                 foreach (var a in runAreas) { int n = 0; foreach (int i in order) if (cfg.stages[i].area == a && cfg.stages[i].kind == LevelKind.Boss) n++; if (n != 1) ok = false; }
                 if (!ok) { allOk = false; bad += seed + " "; }
@@ -1246,9 +1248,10 @@ namespace Gloomdelve
                 RunPlan.Build(cfg, seed, out var again, out _);
                 for (int i = 0; i < order.Length; i++) if (again[i] != order[i]) { allOk = false; bad += seed + "(not repeatable) "; break; }
             }
-            c.Expect(allOk, "200 seeds: 4 areas each (levels then boss), first area fixed, then camp and vault; repeatable " + bad);
+            c.Expect(allOk, "200 seeds: 4 areas each (levels then boss), then camp and vault; repeatable " + bad);
             c.Expect(seenAny.Count == areas.Count, $"every area turns up in some run ({seenAny.Count} of {areas.Count})");
-            c.Expect(seenSecond.Count == areas.Count - 1, $"the second area differs from run to run ({seenSecond.Count} different ones)");
+            c.Expect(!cfg.firstAreaFixed && seenFirst.Count == areas.Count, $"the first area differs from run to run: any of them can open a run ({seenFirst.Count} of {areas.Count})");
+            c.Expect(seenSecond.Count == areas.Count, $"the second area differs from run to run ({seenSecond.Count} different ones)");
             yield return c.Frames(2);
         }
 
@@ -1396,13 +1399,16 @@ namespace Gloomdelve
             // one cage per run, never in the first area: the second, third or fourth (levels 4-6, 8-10, 12-14 of the run)
             {
                 bool ok = true; var areas = new HashSet<int>();
+                int without = 0;
                 for (int seed = 1; seed <= 300; seed++)
                 {
                     int st = Villagers.CaptiveStage(seed);
+                    if (st < 0) { without++; continue; }
                     if (st < 4 || st > 14 || st % 4 == 3) ok = false;
                     areas.Add(st / 4);
                 }
                 c.Expect(ok && areas.Count == 3, $"the cage is in one level of area 2, 3 or 4 - never the first, never a boss room ({areas.Count} different areas over 300 runs)");
+                c.Expect(without > 110 && without < 190, $"about every other run has no caged villager at all ({without} of 300 runs without)");
             }
 
             // embers: the money of the village. Only with the elder's pouch, and only as many as it holds

@@ -1626,8 +1626,99 @@ namespace Gloomdelve.EditorTools
         }
 
         /// <summary>
-        /// Bosses are the area's signature creature at double size with their own colours (and a crown for the
-        /// yeti king). Also the boss projectile and the treasure chest.
+        /// The Broodmother, drawn for herself (4 tiles by 2.9; she faces right): a swollen abdomen with a red
+        /// hourglass, a plated chest, a head full of eyes, eight jointed legs arching over her back.
+        /// 0 standing, 1 crouched to strike (jaws apart, eyes ablaze), 2 falling (legs trailing above her).
+        /// </summary>
+        static void BroodmotherArt()
+        {
+            Color32 d = C(46, 20, 68), m = C(88, 42, 124), l = C(134, 74, 172), h = C(186, 128, 218);
+            Color32 legD = C(58, 26, 84), legM = C(104, 52, 140), legL = C(160, 100, 196);
+            Color32 farD = C(36, 16, 54), farM = C(62, 30, 90);
+            Color32 ol = C(22, 9, 34), red = C(232, 52, 84), redL = C(255, 140, 150), fang = C(238, 228, 200);
+
+            // a round body lit from the upper right, in four flat tones
+            void Blob(Px p, float cx, float cy, float rx, float ry)
+            {
+                for (int y = Mathf.FloorToInt(cy - ry); y <= Mathf.CeilToInt(cy + ry); y++)
+                    for (int x = Mathf.FloorToInt(cx - rx); x <= Mathf.CeilToInt(cx + rx); x++)
+                    {
+                        float nx = (x - cx) / rx, ny = (y - cy) / ry;
+                        if (nx * nx + ny * ny > 1f) continue;
+                        float v = nx * 0.45f + ny * 0.75f;
+                        p.Set(x, y, v > 0.55f ? h : v > 0.12f ? l : v > -0.38f ? m : d);
+                    }
+            }
+            // one segment of a leg, two pixels thick, lit along its upper side
+            void Seg(Px p, int x0, int y0, int x1, int y1, Color32 body, Color32 lit)
+            {
+                p.Line(x0, y0, x1, y1, body); p.Line(x0 + 1, y0, x1 + 1, y1, body); p.Line(x0, y0 - 1, x1, y1 - 1, body);
+                p.Line(x0, y0 + 1, x1, y1 + 1, lit);
+            }
+            void Leg(Px p, int hx, int hy, int kx, int ky, int fx, int fy, bool near)
+            {
+                Seg(p, hx, hy, kx, ky, near ? legM : farM, near ? legL : farM);
+                Seg(p, kx, ky, fx, fy, near ? legD : farD, near ? legM : farD);
+                p.Disc(kx + 0.5f, ky, 1.6f, near ? legL : farM);      // the knee
+            }
+
+            for (int f = 0; f < 3; f++)
+            {
+                var p = new Px(64, 46);
+                int by = f == 1 ? -4 : f == 2 ? -6 : 0;     // how far the body hangs down between the legs
+                // (hip x, knee x, knee y, foot x) of the four legs on one side, front to back
+                int[,] stand = { { 46, 56, 32, 62 }, { 43, 50, 37, 54 }, { 39, 31, 39, 22 }, { 37, 18, 41, 5 } };
+                int[,] fall = { { 46, 57, 27, 62 }, { 43, 51, 31, 54 }, { 39, 30, 31, 21 }, { 37, 14, 29, 6 } };
+                for (int pass = 0; pass < 2; pass++)
+                {
+                    bool near = pass == 1;
+                    if (near)
+                    {
+                        // the body goes between the far legs and the near ones
+                        Blob(p, 21, 22 + by, 15, 12);
+                        // plates across the abdomen, and the hourglass
+                        for (int i = 0; i < 3; i++)
+                            for (int y = 12 + by; y <= 33 + by; y++)
+                            {
+                                int x = 10 + i * 7 + Mathf.RoundToInt(Mathf.Abs(y - 22 - by) * 0.25f);
+                                if (p.Opaque(x, y)) p.Set(x, y, d);
+                            }
+                        for (int dy = -5; dy <= 5; dy++)
+                        {
+                            int half = Mathf.RoundToInt(Mathf.Abs(dy) * 0.7f);
+                            for (int dx = -half; dx <= half; dx++) p.Set(22 + dx, 23 + by + dy, dy > 0 && dx >= 0 ? redL : red);
+                        }
+                        p.Rect(5, 20 + by, 2, 3, d);                                   // spinneret
+                        Blob(p, 41, 17 + by, 9, 8);
+                        Blob(p, 49, 16 + by, 6, 6);
+                        p.Line(36, 22 + by, 44, 24 + by, d);                            // the seam of her chest plate
+                        // jaws: shut, or apart with venom on them
+                        if (f == 1) { p.Line(50, 10 + by, 48, 5 + by, fang); p.Line(54, 11 + by, 57, 6 + by, fang); p.Set(48, 4 + by, C(150, 230, 90)); p.Set(57, 5 + by, C(150, 230, 90)); }
+                        else { p.Line(50, 10 + by, 51, 6 + by, fang); p.Line(53, 11 + by, 54, 7 + by, fang); }
+                    }
+                    for (int i = 0; i < 4; i++)
+                    {
+                        int hx, kx, ky, fx, fy;
+                        if (f == 2) { hx = fall[i, 0]; kx = fall[i, 1]; ky = fall[i, 2]; fx = fall[i, 3]; fy = 44; }
+                        else { hx = stand[i, 0]; kx = stand[i, 1]; ky = stand[i, 2] + (f == 1 ? 2 : 0); fx = stand[i, 3]; fy = 1; }
+                        if (!near) { int back = i < 2 ? -4 : 4; kx += back; ky -= 5; fx += back; if (f == 2) fy -= 3; }
+                        Leg(p, hx, 18 + by, kx, ky, fx, fy, near);
+                    }
+                }
+                p.Outline(ol);
+                // eyes: two big ones and a scatter of small ones (ablaze when she strikes), bristles on her back
+                Color32 eye = f == 1 ? C(255, 210, 80) : red, glint = C(255, 255, 255);
+                p.Rect(49, 17 + by, 3, 3, eye); p.Set(51, 19 + by, glint);
+                p.Rect(53, 15 + by, 2, 2, eye); p.Set(54, 16 + by, glint);
+                p.Set(47, 20 + by, eye); p.Set(51, 13 + by, eye); p.Set(46, 16 + by, eye);
+                p.Line(12, 32 + by, 10, 35 + by, ol); p.Line(19, 34 + by, 18, 37 + by, ol); p.Line(27, 33 + by, 28, 36 + by, ol);
+                Save(p, $"Sprites/Bosses/broodmother_{f}", new Vector2(0.5f, 1f / 46f));
+            }
+        }
+
+        /// <summary>
+        /// The bosses (each drawn for itself: see BroodmotherArt and ArtGenerator.Bosses.cs), what they throw, and
+        /// the treasure chest.
         /// </summary>
         static void BossArt()
         {
@@ -1639,25 +1730,8 @@ namespace Gloomdelve.EditorTools
                 extra?.Invoke(p);
                 Save(p, o + dst, centre ? PCenter : new Vector2(0.5f, 2f / p.h));
             }
-            Big("spider_0", "broodmother_0", 1.9f, 1.35f, 2.1f); Big("spider_1", "broodmother_1", 1.9f, 1.35f, 2.1f);
-            Big("spider_3", "broodmother_2", 1.9f, 1.35f, 2.1f);        // falling: legs trailing above her
-            for (int f = 0; f < 4; f++) Big($"brute_{f}", $"forgebrute_{f}", 1.25f, 0.72f, 0.6f);
-            void Crown(Px p)
-            {
-                int top = 0;
-                for (int y = p.h - 1; y >= 0 && top == 0; y--)
-                    for (int x = 14; x < 26; x++) if (p.Opaque(x, y)) { top = y; break; }
-                Color32 gold = C(250, 204, 70), goldD = C(190, 136, 36);
-                p.Rect(13, top - 1, 14, 3, gold); p.Rect(13, top - 1, 14, 1, goldD);
-                p.Rect(13, top + 2, 2, 3, gold); p.Rect(19, top + 2, 2, 4, gold); p.Rect(25, top + 2, 2, 3, gold);
-                p.Set(20, top, C(220, 60, 80)); p.Set(19, top, C(220, 60, 80));
-            }
-            Big("yeti_0", "yetiking_0", 0.92f, 0.96f, 1.08f, Crown); Big("yeti_1", "yetiking_1", 0.92f, 0.96f, 1.08f, Crown);
-            Big("hawk_0", "stormhawk_0", 0.8f, 0.85f, 1.2f); Big("hawk_1", "stormhawk_1", 0.8f, 0.85f, 1.2f);
-            Big("hawk_2", "stormhawk_2", 0.8f, 0.85f, 1.2f, null, true);
-            Big("specter_0", "warden_0", 1.25f, 0.75f, 1.3f); Big("specter_1", "warden_1", 1.25f, 0.75f, 1.3f);
-            // The Foreman (Gearworks): the sentry at double size in dark iron and copper.
-            for (int f = 0; f < 3; f++) Big($"sentry_{f}", $"foreman_{f}", 0.8f, 0.72f, 0.7f);
+            BroodmotherArt();
+            OldBossesArt();      // the Forge Brute, the Yeti King, the Storm Hawk, the Rot Heart, the Foreman, the Hollow Warden
             {
                 // the Yeti King's snow boulder (it grows and turns at runtime)
                 var p = new Px(20, 20);
@@ -1686,36 +1760,6 @@ namespace Gloomdelve.EditorTools
                 p.Set(5, 11, redL); p.Set(4, 10, redL); p.Set(3, 12, goldL); p.Set(12, 12, goldL); p.Set(8, 2, goldD); p.Set(7, 2, goldD);
                 p.Outline(C(60, 34, 14));
                 Save(p, "UI/Glyphs/flawless", PCenter);
-            }
-            // The Rot Heart (Sporegloom): a fungus heart on a long stalk that hangs from the ceiling.
-            // 0 / 1 = the beat, 2 = swollen and bright (the tell before a move). The pivot is the bottom of the heart.
-            for (int f = 0; f < 3; f++)
-            {
-                var p = new Px(30, 70);
-                Color32 flesh = C(150, 70, 170), fleshD = C(96, 40, 116), fleshL = C(214, 140, 230), vein = C(70, 214, 186), veinL = C(190, 255, 236), stalk = C(92, 76, 110), stalkD = C(58, 46, 74);
-                if (f == 2) { flesh = C(190, 96, 200); fleshL = C(244, 190, 250); vein = C(150, 255, 220); }
-                // stalk: a twisted column from the heart up to the ceiling, with a few side roots at the top
-                for (int y = 22; y < 70; y++)
-                {
-                    int sway = (int)Mathf.Round(Mathf.Sin(y * 0.35f) * 1.2f);
-                    p.Rect(13 + sway, y, 4, 1, stalk); p.Set(16 + sway, y, stalkD);
-                    if (y % 9 == 3) p.Set(12 + sway, y, vein);
-                }
-                p.Line(13, 66, 7, 69, stalk); p.Line(17, 65, 23, 69, stalk); p.Line(14, 60, 10, 64, stalkD);
-                // the heart
-                float rx = f == 0 ? 11.5f : f == 1 ? 12.6f : 13.6f, ry = f == 0 ? 11.5f : f == 1 ? 12.2f : 12.8f;
-                p.Ellipse(15f, 13f, rx, ry, flesh);
-                p.Ellipse(11f, 20f, 6f, 5f, flesh); p.Ellipse(19.5f, 20f, 6f, 5f, flesh);           // two lobes on top
-                p.Ellipse(15f, 8f, rx - 3f, 5f, fleshD);                                           // shadow underneath
-                p.Ellipse(10f, 17f, 3.4f, 3f, fleshL); p.Set(9, 19, veinL);
-                // glowing veins
-                p.Line(15, 23, 13, 15, vein); p.Line(13, 15, 16, 9, vein); p.Line(16, 9, 14, 3, vein);
-                p.Line(13, 15, 7, 12, vein); p.Line(16, 12, 23, 14, vein); p.Line(20, 19, 23, 14, vein);
-                p.Set(7, 12, veinL); p.Set(23, 14, veinL); p.Set(14, 3, veinL); p.Set(16, 9, veinL);
-                // spore pores along the bottom
-                for (int i = 0; i < 5; i++) p.Set(8 + i * 3, 3 + (i % 2), fleshD);
-                p.Outline(C(22, 14, 34));
-                Save(p, o + $"sporeheart_{f}", new Vector2(0.5f, 0f));
             }
             {
                 var p = new Px(9, 9);

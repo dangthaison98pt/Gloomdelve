@@ -5,7 +5,8 @@ namespace Gloomdelve
     /// <summary>
     /// Which stages a run goes through. GameConfig.stages is the catalogue of everything there is: one block of
     /// stages per area (its levels and its boss arena), then the stages every run ends with (camp, final vault).
-    /// Each run draws GameConfig.areasPerRun of the area blocks by its seed and plays them in that drawn order,
+    /// Each run draws GameConfig.areasPerRun of the area blocks by its seed and plays them in that drawn order
+    /// (the first one too, unless GameConfig.firstAreaFixed pins the run's start to the first area of the catalogue),
     /// then the ending stages. The same seed always gives the same run.
     /// To add an area: add its block of stages to GameConfig.stages - it joins the draw by itself.
     /// </summary>

@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.Foreman
   displayName: Foreman
-  size: {x: 1.6, y: 1.9}
+  size: {x: 1.9, y: 2}
   maxHealth: 16
   flipWithFacing: 1
   artFacesLeft: 0
@@ -181,7 +181,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 2.25, y: 2.25}
+  m_Size: {x: 4.375, y: 3.875}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1

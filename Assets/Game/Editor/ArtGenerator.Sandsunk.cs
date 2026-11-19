@@ -144,50 +144,66 @@ namespace Gloomdelve.EditorTools
                 Save(p, $"Sprites/Enemies/sandworm_{f}", new Vector2(0.5f, 1f / 28f));
             }
 
-            // the Dune Queen: 0 risen, 1 rearing (jaws open), 2 her mound
+            // the Dune Queen: 0 risen, 1 rearing (jaws open), 2 her mound. A worm as thick as a pillar: armour and
+            // spines down her back, a crest of spines tipped with gold, two eyes, jaws with long fangs.
             for (int f = 0; f < 3; f++)
             {
-                var p = new Px(44, 48);
-                Color32 hide = C(206, 142, 82), hideD = C(140, 88, 50), hideL = C(246, 200, 130), plate = C(112, 70, 60), plateL = C(164, 108, 86),
-                        mouth = C(110, 22, 36), tooth = C(252, 246, 222), eye = C(255, 214, 80);
+                var p = new Px(62, 66);
+                Color32 hide = C(206, 142, 82), hideD = C(140, 88, 50), hideL = C(246, 200, 130), plate = C(112, 70, 60), plateL = C(164, 108, 86), plateD = C(74, 44, 40),
+                        mouth = C(110, 22, 36), mouthD = C(60, 10, 22), tooth = C(252, 246, 222), eye = C(255, 214, 80), gold = C(250, 204, 70);
                 if (f == 2)
                 {
                     // under the sand: only the spines of her back cut through it, a little wake of sand to either side
                     // (nothing broad or flat - it must never be taken for something to stand on)
-                    p.Rect(10, 0, 26, 1, sandD); p.Rect(12, 1, 22, 2, sand); p.Rect(14, 3, 18, 1, sandL); p.Set(9, 2, sandL); p.Set(36, 2, sandL); p.Set(7, 1, sandL); p.Set(38, 1, sandL);
-                    int[] sx = { 14, 20, 26 }, sh = { 9, 14, 10 };
+                    p.Rect(14, 0, 36, 1, sandD); p.Rect(17, 1, 30, 2, sand); p.Rect(20, 3, 24, 1, sandL); p.Set(12, 2, sandL); p.Set(50, 2, sandL); p.Set(10, 1, sandL); p.Set(53, 1, sandL);
+                    int[] sx = { 19, 27, 36 }, sh = { 12, 19, 13 };
                     for (int i = 0; i < 3; i++)
                         for (int y = 0; y < sh[i]; y++)
                         {
-                            int w = y < sh[i] - 6 ? 5 : y < sh[i] - 3 ? 3 : y < sh[i] - 1 ? 2 : 1;
+                            int w = y < sh[i] - 8 ? 7 : y < sh[i] - 5 ? 5 : y < sh[i] - 2 ? 3 : 1;
                             p.Rect(sx[i] + y / 3, 2 + y, w, 1, y % 3 == 2 ? plateL : plate);
+                            if (w > 2) p.Set(sx[i] + y / 3, 2 + y, plateD);
                         }
                     p.Outline(ol);
                 }
                 else
                 {
-                    int lean = f == 1 ? 3 : 0;
-                    for (int y = 0; y < 34; y++)
+                    int lean = f == 1 ? 4 : 0;
+                    for (int y = 0; y < 46; y++)
                     {
-                        float k = y / 34f;
-                        int cx = 20 + Mathf.RoundToInt(lean * k * k);
-                        int hw = 9 - Mathf.RoundToInt(k * 2f);
-                        p.Rect(cx - hw, y, hw * 2 + 1, 1, y % 6 >= 4 ? hideD : hide);
-                        p.Rect(cx - hw, y, 3, 1, plate); if (y % 6 < 4) p.Set(cx - hw + 3, y, plateL);     // armour down her back
-                        p.Rect(cx + hw - 2, y, 2, 1, hideL);
+                        float k = y / 46f;
+                        int cx = 28 + Mathf.RoundToInt(lean * k * k);
+                        int hw = 12 - Mathf.RoundToInt(k * 3f);
+                        bool seam = y % 7 == 6;
+                        p.Rect(cx - hw, y, hw * 2 + 1, 1, seam ? hideD : hide);
+                        p.Rect(cx - hw + 5, y, 3, 1, seam ? hideD : Mul(hide, 0.9f));                    // the turn of her side
+                        p.Rect(cx + hw - 3, y, 3, 1, seam ? hide : hideL);                               // light down her belly
+                        p.Rect(cx - hw, y, 5, 1, seam ? plateD : plate); if (!seam) p.Set(cx - hw + 4, y, plateL);     // armour down her back
+                        if (y % 7 == 3 && y > 4) { p.Rect(cx - hw - 3, y, 3, 2, plate); p.Set(cx - hw - 4, y + 1, plateL); }     // a spine on every ring
                     }
-                    int hx = 20 + lean;
-                    p.Ellipse(hx + 1f, 37f, 10f, 7f, hide); p.Ellipse(hx - 3f, 39f, 6f, 5f, plate);
-                    p.Disc(hx + 1f, 41f, 1.6f, eye); p.Set(hx + 1, 41, C(40, 20, 20));
-                    int open = f == 1 ? 6 : 2;
-                    p.Rect(hx + 4, 34 - open / 2, 8, open + 2, mouth);
-                    for (int i = 0; i < 4; i++) { p.Set(hx + 5 + i * 2, 35 + open / 2, tooth); p.Set(hx + 5 + i * 2, 33 - open / 2, tooth); }
-                    p.Line(hx + 2, 44, hx - 2, 47, plate); p.Line(hx - 4, 43, hx - 9, 46, plate);       // crest spines
+                    int hx = 28 + lean;
+                    p.Ellipse(hx + 2f, 51f, 14f, 9f, hide); p.Ellipse(hx + 6f, 54f, 8f, 4f, hideL);
+                    p.Ellipse(hx - 4f, 54f, 9f, 7f, plate); p.Ellipse(hx - 3f, 56f, 6f, 3.5f, plateL);
+                    // her crest: spines tipped with gold
+                    Bar(p, hx - 1, 59, hx - 4, 64, 1, plate); p.Set(hx - 5, 65, gold); p.Set(hx - 4, 65, gold);
+                    Bar(p, hx - 8, 58, hx - 14, 63, 1, plate); p.Set(hx - 15, 64, gold); p.Set(hx - 16, 64, gold);
+                    Bar(p, hx + 5, 59, hx + 5, 63, 1, plate); p.Set(hx + 5, 65, gold); p.Set(hx + 6, 65, gold);
+                    // jaws
+                    int open = f == 1 ? 10 : 3;
+                    int my = 46 - open / 2;
+                    p.Rect(hx + 5, my, 13, open + 2, mouth); p.Rect(hx + 5, my, 4, open + 2, mouthD);
+                    for (int i = 0; i < 5; i++) { p.Rect(hx + 8 + i * 2, my + open, 1, 2, tooth); p.Rect(hx + 8 + i * 2, my, 1, 2, tooth); }
+                    Bar(p, hx + 16, my + open + 1, hx + 20, my + open - 2, 0, tooth); p.Line(hx + 17, my + open + 1, hx + 21, my + open - 2, tooth);       // fangs
+                    Bar(p, hx + 16, my, hx + 20, my + 3, 0, tooth); p.Line(hx + 17, my, hx + 21, my + 3, tooth);
                     p.Outline(ol);
-                    p.Ellipse(21f, 1.2f, 15f, 2.2f, sandD); p.Rect(7, 0, 29, 1, sandDeep);             // the sand she stands in
-                    p.Set(9, 3, sandL); p.Set(34, 3, sandL);
+                    // eyes (after the outline: they shine)
+                    p.Disc(hx + 4.5f, 54.5f, 2.4f, eye); p.Rect(hx + 4, 53, 1, 4, C(40, 20, 20)); p.Set(hx + 6, 56, C(255, 250, 220));
+                    p.Disc(hx + 11.5f, 53.5f, 1.5f, eye); p.Set(hx + 11, 53, C(40, 20, 20));
+                    p.Line(hx + 1, 58, hx + 8, 57, ol);
+                    p.Ellipse(29f, 1.4f, 21f, 2.6f, sandD); p.Rect(9, 0, 41, 1, sandDeep);              // the sand she stands in
+                    p.Set(11, 3, sandL); p.Set(47, 3, sandL); p.Set(8, 2, sand); p.Set(51, 2, sand);
                 }
-                Save(p, $"Sprites/Bosses/dunequeen_{f}", new Vector2(0.5f, 1f / 48f));
+                Save(p, $"Sprites/Bosses/dunequeen_{f}", new Vector2(0.5f, 1f / 66f));
             }
 
             // her spit: a clod of wet sand

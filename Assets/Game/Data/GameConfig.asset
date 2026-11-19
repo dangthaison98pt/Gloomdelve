@@ -193,7 +193,7 @@ MonoBehaviour:
     levelNumber: 1
     handcrafted: {fileID: 4900000, guid: 029a92843949fa845bca2034ac97c53c, type: 3}
   areasPerRun: 4
-  firstAreaFixed: 1
+  firstAreaFixed: 0
   tutorial:
     displayName: TUTORIAL
     kind: 2

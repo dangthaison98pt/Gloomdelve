@@ -646,6 +646,7 @@ namespace Gloomdelve
         /// </summary>
         public void RestartRun(bool sameSeed, bool toVillage = true)
         {
+            if (ScreenFade.Busy) return;        // already on the way home
             var old = Run;
             Time.timeScale = 1f;
             if (old != null && old.bossPractice)        // in a boss test "new run" means: this boss again
@@ -663,7 +664,9 @@ namespace Gloomdelve
                 return;
             }
             RunSession.Current.wakeInBed = true;        // the night is over: wake in bed
-            SceneManager.LoadScene(GameConst.SceneGame);
+            if (ScenarioRunner.Active || AutoTest.Active) { SceneManager.LoadScene(GameConst.SceneGame); return; }
+            // the screen goes dark slowly, and it is morning in Brindlemoor when it clears
+            ScreenFade.Through(() => SceneManager.LoadScene(GameConst.SceneGame), 0.7f, 0.45f, 1.1f);
         }
 
         public void QuitToMenu()

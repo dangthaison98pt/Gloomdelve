@@ -18,8 +18,8 @@ namespace Gloomdelve
         public StageDef[] stages;
         [Tooltip("How many areas one run goes through, drawn at random (by the run seed) from the catalogue. 0 = all of them in the written order.")]
         public int areasPerRun = 4;
-        [Tooltip("Every run starts in the first area of the catalogue (the gentlest one); only the others are drawn at random.")]
-        public bool firstAreaFixed = true;
+        [Tooltip("On: every run starts in the first area of the catalogue and only the others are drawn at random. Off: every area is drawn at random, the first one too.")]
+        public bool firstAreaFixed = false;
         public StageDef tutorial;
         [Tooltip("Brindlemoor: the village the player walks through before every run (hand-made level).")] public StageDef village;
         public TextAsset roomTemplates;

@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.ForgeBrute
   displayName: Forge Brute
-  size: {x: 1.6, y: 1.7}
+  size: {x: 2, y: 1.8}
   maxHealth: 16
   flipWithFacing: 1
   artFacesLeft: 0
@@ -182,7 +182,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 3, y: 3}
+  m_Size: {x: 4.875, y: 3.5}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
