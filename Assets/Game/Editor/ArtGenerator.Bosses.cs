@@ -11,7 +11,20 @@ namespace Gloomdelve.EditorTools
     /// </summary>
     public static partial class ArtGenerator
     {
-        /// <summary>A round shape in four flat tones, lit from the upper right.</summary>
+        /// <summary>
+        /// The tone of a point on a rounded form (nx, ny: -1..1 across it), lit from the upper right as a ball is:
+        /// most of it the middle tone, a crescent of shadow hugging the lower left edge, the light on the upper
+        /// right and one small bright spot in it. (Not bands straight across: those read as stripes.)
+        /// </summary>
+        static Color32 Round(float nx, float ny, Color32 d, Color32 m, Color32 l, Color32 h)
+        {
+            float nz = Mathf.Sqrt(Mathf.Max(0f, 1f - nx * nx - ny * ny));
+            float lam = nx * 0.42f + ny * 0.56f + nz * 0.71f;
+            // (the deepest of the shadow a shade darker still, the bright spot a shade brighter than the light)
+            return lam > 0.955f ? Lerp(h, C(255, 255, 255), 0.3f) : lam > 0.82f ? l : lam > 0.34f ? m : lam > 0.08f ? d : Mul(d, 0.78f);
+        }
+
+        /// <summary>A round shape in four flat tones, lit from the upper right (see Round).</summary>
         static void Ball(Px p, float cx, float cy, float rx, float ry, Color32 d, Color32 m, Color32 l, Color32 h)
         {
             for (int y = Mathf.FloorToInt(cy - ry); y <= Mathf.CeilToInt(cy + ry); y++)
@@ -19,8 +32,7 @@ namespace Gloomdelve.EditorTools
                 {
                     float nx = (x - cx) / rx, ny = (y - cy) / ry;
                     if (nx * nx + ny * ny > 1f) continue;
-                    float v = nx * 0.45f + ny * 0.75f;
-                    p.Set(x, y, v > 0.55f ? h : v > 0.12f ? l : v > -0.38f ? m : d);
+                    p.Set(x, y, Round(nx, ny, d, m, l, h));
                 }
         }
 
@@ -84,12 +96,12 @@ namespace Gloomdelve.EditorTools
                 int step = f == 1 ? 1 : 0;
                 int hx = charge ? 3 : 0, hy = charge ? -7 : dazed ? -3 : 0;      // where the head is
                 // far legs
-                p.Rect(15 + (step == 1 ? 3 : -1) - (charge ? 4 : 0), 1, 7, 14, dD);
-                p.Rect(49 + (step == 1 ? -2 : 2) + (charge ? 4 : 0), 1, 7, 14, dD);
+                p.Rect(15 + (step == 1 ? 3 : -1) - (charge ? 4 : 0), 1, 7, 20, dD);
+                p.Rect(49 + (step == 1 ? -2 : 2) + (charge ? 4 : 0), 1, 7, 20, dD);
                 // rump, barrel, the hump of its shoulders
-                Ball(p, 17, 25, 12, 13, dD, d, m, l);
-                Ball(p, 33, 26, 23, 16, dD, d, m, l);
-                Ball(p, 44, 35, 14, 11, dD, d, m, l);
+                Ball(p, 17, 25, 12, 13, d, m, l, l);
+                Ball(p, 33, 26, 23, 16, d, m, l, l);
+                Ball(p, 44, 35, 14, 11, d, m, l, l);
                 // plates of basalt along its back
                 for (int i = 0; i < 5; i++) { int bx = 12 + i * 8, bh = 3 + (i % 2) * 2 + (i == 3 ? 2 : 0); Tri(p, new Vector2(bx, 38 + i), new Vector2(bx + 6, 38 + i), new Vector2(bx + 2, 41 + i + bh), dD); p.Line(bx + 2, 41 + i + bh, bx + 5, 39 + i, d); }
                 // the furnace in its belly, and the lava in its cracks
@@ -103,14 +115,16 @@ namespace Gloomdelve.EditorTools
                 int nf = 51 + (step == 1 ? 2 : -2) + (charge ? 5 : 0), nh = 11 + (step == 1 ? -2 : 3) - (charge ? 5 : 0);
                 foreach (int lx in new[] { nh, nf })
                 {
-                    p.Rect(lx, 1, 8, 15, d); p.Rect(lx + 5, 1, 3, 15, m); p.Rect(lx, 1, 8, 3, dD); p.Rect(lx + 1, 9, 6, 1, lava);
+                    // (each leg runs up into a haunch on the body: no gap under the round of its belly)
+                    Ball(p, lx + 4, 21, 7, 8, d, m, l, l);
+                    p.Rect(lx, 1, 8, 19, d); p.Rect(lx + 5, 1, 3, 19, m); p.Rect(lx, 1, 8, 3, dD); p.Rect(lx + 1, 9, 6, 1, lava);
                 }
                 // the neck (the head never leaves the shoulders, however low it goes), and the horn of its far side
                 // behind the head: darker, only its sweep and its point showing over the skull
-                Ball(p, 52 + hx / 2, 29 + hy / 2, 11, 10, dD, d, m, l);
+                Ball(p, 52 + hx / 2, 29 + hy / 2, 11, 10, d, m, l, l);
                 Bar(p, 64 + hx, 33 + hy, 67 + hx, 40 + hy, 1, hornD); Bar(p, 67 + hx, 40 + hy, 73 + hx, 42 + hy, 1, hornD); p.Set(75 + hx, 42 + hy, hornD);
                 // head: a blunt skull, a heavy jaw, an ember for an eye
-                Ball(p, 60 + hx, 27 + hy, 11, 10, dD, d, m, l);
+                Ball(p, 60 + hx, 27 + hy, 11, 10, d, m, l, l);
                 p.Rect(64 + hx, 18 + hy, 9, 8, m); p.Rect(64 + hx, 25 + hy, 9, 1, l); p.Rect(72 + hx, 18 + hy, 1, 8, l);      // muzzle
                 p.Rect(62 + hx, 15 + hy, 10, 3, d); p.Rect(62 + hx, 15 + hy, 10, 1, dD);                                      // jaw
                 p.Set(71 + hx, 22 + hy, lava); p.Set(71 + hx, 20 + hy, dD);                                                    // nostril, breathing fire
@@ -158,8 +172,7 @@ namespace Gloomdelve.EditorTools
                     {
                         float ax = (x - 29) / 20f, ay = (y - 24) / 19f, bx = (x - 29) / 22f, by = (y - 39) / 13f;
                         if (ax * ax + ay * ay > 1f && bx * bx + by * by > 1f) continue;
-                        float v = (x - 29) / 22f * 0.45f + (y - 30) / 25f * 0.75f;
-                        p.Set(x, y, v > 0.55f ? l : v > 0.12f ? m : v > -0.38f ? d : dD);
+                        p.Set(x, y, Round((x - 29) / 24f, (y - 29) / 26f, d, m, l, l));
                     }
                 // shag: tufts along the outline and strokes in the fur
                 int[,] tufts = { { 8, 22 }, { 9, 30 }, { 7, 38 }, { 50, 20 }, { 51, 30 }, { 52, 40 }, { 18, 6 }, { 29, 5 }, { 40, 6 } };
@@ -167,7 +180,7 @@ namespace Gloomdelve.EditorTools
                 int[,] strokes = { { 16, 30 }, { 22, 20 }, { 30, 14 }, { 36, 28 }, { 42, 20 }, { 26, 32 }, { 18, 42 }, { 38, 40 }, { 44, 32 }, { 30, 24 } };
                 for (int i = 0; i < strokes.GetLength(0); i++) { int sx = strokes[i, 0], sy = strokes[i, 1]; p.Line(sx, sy, sx + 1, sy - 3, dD); p.Set(sx + 2, sy - 1, dD); }
                 // head, and the bare blue face in it
-                Ball(p, 33, 50, 12, 11, dD, d, m, l);
+                Ball(p, 33, 50, 12, 11, d, m, l, l);
                 p.Ellipse(37f, 49f, 8f, 7f, skin); p.Ellipse(38f, 51f, 6f, 4f, skinL);
                 p.Rect(34, 43, 9, 3, skinD);                                               // mouth
                 p.Rect(35, 44, 1, 4, tusk); p.Rect(41, 44, 1, 4, tusk);                    // tusks
@@ -208,7 +221,7 @@ namespace Gloomdelve.EditorTools
                 Bar(p, 26, by, 8, by - 5, 1, d); Bar(p, 26, by, 6, by, 1, m); Bar(p, 26, by, 8, by + 5, 1, d);
                 p.Set(6, by - 6, w); p.Set(4, by, w); p.Set(6, by + 6, w);
                 // body and the white head
-                Ball(p, 38, by, 15, 8, dD, d, m, l);
+                Ball(p, 38, by, 15, 8, d, m, l, l);
                 Ball(p, 55, by + 3, 7, 7, wD, wD, w, w);
                 p.Ellipse(47f, by + 1f, 4f, 6f, wD);            // ruff
                 // the beak: heavy and hooked
@@ -240,8 +253,8 @@ namespace Gloomdelve.EditorTools
                 var p = new Px(34, 60);
                 Bar(p, 17, 46, 11, 58, 1, d); Bar(p, 17, 46, 17, 59, 1, m); Bar(p, 17, 46, 23, 58, 1, d);
                 p.Set(10, 59, w); p.Set(17, 59, w); p.Set(24, 59, w);
-                Ball(p, 17, 32, 8, 17, dD, d, m, l);
-                Ball(p, 8, 34, 5, 16, dD, dD, d, m); Ball(p, 26, 34, 5, 16, dD, d, m, l);        // the folded wings
+                Ball(p, 17, 32, 8, 17, d, m, l, l);
+                Ball(p, 8, 34, 5, 16, dD, dD, d, m); Ball(p, 26, 34, 5, 16, d, m, l, l);        // the folded wings
                 p.Line(8, 22, 8, 46, dD); p.Line(26, 22, 26, 46, d);
                 p.Line(27, 40, 25, 34, bolt); p.Line(25, 34, 27, 31, bolt); p.Line(27, 31, 25, 26, bolt);
                 Ball(p, 17, 13, 7, 7, wD, wD, w, w);
@@ -279,8 +292,8 @@ namespace Gloomdelve.EditorTools
                 }
                 Bar(p, 22, 62, 11, 69, 1, stalk); Bar(p, 28, 61, 39, 69, 1, stalk); p.Line(24, 56, 16, 63, stalkD); p.Line(27, 55, 34, 62, stalkD);
                 // the heart: one great chamber, two lobes above it
-                Ball(p, 15, 33, 10, 8, dD, d, m, l); Ball(p, 34, 33, 10, 8, dD, d, m, l);
-                Ball(p, 25, 21, 19 + grow, 18 + grow * 0.6f, dD, d, m, l);
+                Ball(p, 15, 33, 10, 8, d, m, l, l); Ball(p, 34, 33, 10, 8, d, m, l, l);
+                Ball(p, 25, 21, 19 + grow, 18 + grow * 0.6f, d, m, l, l);
                 // pustules
                 int[,] pods = { { 11, 14 }, { 38, 12 }, { 9, 26 }, { 40, 27 }, { 18, 6 }, { 32, 5 } };
                 for (int i = 0; i < pods.GetLength(0); i++) { p.Disc(pods[i, 0] + 0.5f, pods[i, 1] + 0.5f, 2.2f, l); p.Set(pods[i, 0], pods[i, 1], dD); }
@@ -333,7 +346,7 @@ namespace Gloomdelve.EditorTools
                 p.Disc(20.5f + lean, 40.5f, 6.4f, cD); p.Disc(20.5f + lean, 40.5f, 4.6f, c); p.Disc(20.5f + lean, 40.5f, 1.8f, dD);
                 for (int i = 0; i < 8; i++) { float an = i * Mathf.PI / 4f; p.Rect(Mathf.RoundToInt(20f + lean + Mathf.Cos(an) * 7f), Mathf.RoundToInt(40f + Mathf.Sin(an) * 7f), 2, 2, c); }
                 // head: a helmet with a crest, one red slit
-                Ball(p, 33 + lean, 48, 10, 8, dD, d, m, l);
+                Ball(p, 33 + lean, 48, 10, 8, d, m, l, l);
                 p.Rect(24 + lean, 41, 19, 3, d); p.Rect(24 + lean, 43, 19, 1, l);                       // collar
                 p.Rect(31 + lean, 55, 4, 5, c); p.Rect(31 + lean, 59, 4, 1, cL); p.Rect(33 + lean, 55, 2, 5, cL);
                 p.Rect(31 + lean, 47, 12, 3, dD); p.Rect(34 + lean, 48, 8, 1, red); p.Set(40 + lean, 48, hot); p.Set(41 + lean, 48, hot);
@@ -387,8 +400,8 @@ namespace Gloomdelve.EditorTools
                 }
                 p.Rect(22, 30, 25, 2, dD); p.Rect(31, 28, 6, 6, gold); p.Rect(32, 29, 4, 4, goldD); p.Set(33, 31, glow); p.Set(34, 30, glow);       // a belt and its clasp
                 // the mantle over its shoulders, the hood
-                Ball(p, 34, 46, 19, 7, dD, d, m, l);
-                Ball(p, 34, 58, 14, 14, dD, d, m, l);
+                Ball(p, 34, 46, 19, 7, d, m, l, l);
+                Ball(p, 34, 58, 14, 14, d, m, l, l);
                 // nothing in the hood but two lights
                 p.Ellipse(36f, 56f, 9f, 10f, dark);
                 // the broken crown
