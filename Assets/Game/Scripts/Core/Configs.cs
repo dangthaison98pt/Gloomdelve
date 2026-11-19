@@ -73,21 +73,23 @@ namespace Gloomdelve
         [Tooltip("Above 0: the wearer's blade goes through a sentry's shield.")] public float shieldPierce;
         [Tooltip("Above 0: quicksand neither slows nor swallows the wearer.")] public float sandGrip;
         [Tooltip("Above 0: a mummy's grab cannot take the wearer's gold.")] public float goldWard;
+        [Tooltip("Above 0: the shards of a bursting crystal pass through the wearer.")] public float shardWard;
+        [Tooltip("Above 0: a mimic lying still is shown with a red cast.")] public float mimicSight;
 
         public void Add(StatModifiers o)
         {
             if (o == null) return;
             jumpBonus += o.jumpBonus; whipDamageBonus += o.whipDamageBonus;
             whipRangeBonus += o.whipRangeBonus; blastRadiusBonus += o.blastRadiusBonus;
-            iceGrip = Mathf.Max(iceGrip, o.iceGrip); coldResist += o.coldResist; sporeResist += o.sporeResist; lightBonus += o.lightBonus; beltGrip += o.beltGrip; shieldPierce += o.shieldPierce; sandGrip += o.sandGrip; goldWard += o.goldWard;
+            iceGrip = Mathf.Max(iceGrip, o.iceGrip); coldResist += o.coldResist; sporeResist += o.sporeResist; lightBonus += o.lightBonus; beltGrip += o.beltGrip; shieldPierce += o.shieldPierce; sandGrip += o.sandGrip; goldWard += o.goldWard; shardWard += o.shardWard; mimicSight += o.mimicSight;
         }
 
         public void Clear()
         {
-            jumpBonus = 0f; whipDamageBonus = 0; whipRangeBonus = 0f; blastRadiusBonus = 0f; iceGrip = 0f; coldResist = 0f; sporeResist = 0f; lightBonus = 0f; beltGrip = 0f; shieldPierce = 0f; sandGrip = 0f; goldWard = 0f;
+            jumpBonus = 0f; whipDamageBonus = 0; whipRangeBonus = 0f; blastRadiusBonus = 0f; iceGrip = 0f; coldResist = 0f; sporeResist = 0f; lightBonus = 0f; beltGrip = 0f; shieldPierce = 0f; sandGrip = 0f; goldWard = 0f; shardWard = 0f; mimicSight = 0f;
         }
 
-        public bool IsZero => jumpBonus == 0f && whipDamageBonus == 0 && whipRangeBonus == 0f && blastRadiusBonus == 0f && iceGrip == 0f && coldResist == 0f && sporeResist == 0f && lightBonus == 0f && beltGrip == 0f && shieldPierce == 0f && sandGrip == 0f && goldWard == 0f;
+        public bool IsZero => jumpBonus == 0f && whipDamageBonus == 0 && whipRangeBonus == 0f && blastRadiusBonus == 0f && iceGrip == 0f && coldResist == 0f && sporeResist == 0f && lightBonus == 0f && beltGrip == 0f && shieldPierce == 0f && sandGrip == 0f && goldWard == 0f && shardWard == 0f && mimicSight == 0f;
     }
 
     /// <summary>

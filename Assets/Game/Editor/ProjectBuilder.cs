@@ -346,6 +346,11 @@ namespace Gloomdelve.EditorTools
             Anim("sentry_walk", F(e + "sentry_0", e + "sentry_1"), 4f); Anim("sentry_jab", F(e + "sentry_2"), 1);
             Anim("drone_hover", F(e + "drone_0", e + "drone_1"), 14f); Anim("drone_aim", F(e + "drone_2", e + "drone_1"), 14f);
             Anim("beetle_walk", F(e + "beetle_0", e + "beetle_1"), 9f); Anim("beetle_primed", F(e + "beetle_2", e + "beetle_1"), 14f);
+            // Shardlight Geode
+            Anim("shardling_walk", F(e + "shardling_0", e + "shardling_1"), 5f); Anim("shardling_rush", F(e + "shardling_2"), 1);
+            Anim("shardlet_walk", F(e + "shardlet_0", e + "shardlet_1"), 9f);
+            Anim("glint_hang", F(e + "glint_2"), 1); Anim("glint_fly", F(e + "glint_0", e + "glint_1"), 11f);
+            foreach (var mk in ArtGenerator.MimicDisguises) { Anim("mimic_" + mk.key + "_dormant", F(mk.sprite), 1); Anim("mimic_" + mk.key + "_awake", F("Sprites/Mimic/" + mk.key + "_0", "Sprites/Mimic/" + mk.key + "_1"), 7f); }
             // Sandsunk Tombs
             Anim("quicksand_flow", F("Sprites/Props/quicksand_0", "Sprites/Props/quicksand_1"), 1.6f);
             Anim("scarab_walk", F(e + "scarab_0", e + "scarab_1"), 12f);
@@ -364,6 +369,7 @@ namespace Gloomdelve.EditorTools
             Anim("stormhawk_fly", F(bo + "stormhawk_0", bo + "stormhawk_1"), 6f); Anim("stormhawk_dive", F(bo + "stormhawk_2"), 1);
             Anim("warden_float", F(bo + "warden_0", bo + "warden_1"), 3f);
             Anim("foreman_walk", F(bo + "foreman_0", bo + "foreman_1"), 3f); Anim("foreman_charge", F(bo + "foreman_2"), 1); Anim("foreman_dazed", F(bo + "foreman_1"), 1);
+            Anim("facet_idle", F(bo + "facet_0"), 1); Anim("facet_strike", F(bo + "facet_1"), 1); Anim("facet_cracked", F(bo + "facet_2"), 1);
             Anim("dunequeen_idle", F(bo + "dunequeen_0"), 1); Anim("dunequeen_rear", F(bo + "dunequeen_1"), 1); Anim("dunequeen_mound", F(bo + "dunequeen_2"), 1);
             Anim("sporeheart_beat", F(bo + "sporeheart_0", bo + "sporeheart_1"), 2.4f); Anim("sporeheart_swell", F(bo + "sporeheart_2"), 1);
             Anim("hawk_fly", F(e + "hawk_0", e + "hawk_1"), 7f);
@@ -398,7 +404,7 @@ namespace Gloomdelve.EditorTools
         {
             var result = new Dictionary<string, TileSet>();
             // "Village" is the Frost art used in the open: the snow of Brindlemoor under the night sky
-            foreach (var setName in new[] { "Mossroot", "Emberdeep", "Vault", "Sunfall", "Frost", "Sporegloom", "Gearworks", "Sandsunk", "Village" })
+            foreach (var setName in new[] { "Mossroot", "Emberdeep", "Vault", "Sunfall", "Frost", "Sporegloom", "Gearworks", "Sandsunk", "Geode", "Village" })
             {
                 string area = setName == "Village" ? "Frost" : setName;
                 string d = "Tiles/" + area + "/";
@@ -535,6 +541,13 @@ namespace Gloomdelve.EditorTools
             if (shop.Find("lantern") == null)
                 shop.offers.Add(new ShopOffer { id = "lantern", displayName = "Lantern", price = 600, isUpgrade = true, slot = "charm",
                     description = "your light reaches much further in the dark", modifiers = new StatModifiers { lightBonus = 0.6f } });
+            // Shardlight Geode: the two things worth having there
+            if (shop.Find("dampener") == null)
+                shop.offers.Add(new ShopOffer { id = "dampener", displayName = "Dampener", price = 600, isUpgrade = true, slot = "charm",
+                    description = "the shards of a bursting crystal pass through you", modifiers = new StatModifiers { shardWard = 1f } });
+            if (shop.Find("truthlens") == null)
+                shop.offers.Add(new ShopOffer { id = "truthlens", displayName = "Truth Lens", price = 500, isUpgrade = true, slot = "charm",
+                    description = "a mimic in disguise shows red", modifiers = new StatModifiers { mimicSight = 1f } });
             // Sandsunk Tombs: the two things worth having there
             if (shop.Find("sandstriders") == null)
                 shop.offers.Add(new ShopOffer { id = "sandstriders", displayName = "Sand Striders", price = 600, isUpgrade = true, slot = "feet",
@@ -554,6 +567,7 @@ namespace Gloomdelve.EditorTools
                 ["springboots"] = "Sprites/Items/springboots", ["ironwhip"] = "Sprites/Items/ironwhip", ["compass"] = "Sprites/Items/compass",
                 ["blastpowder"] = "Sprites/Items/blastpowder",
             };
+            icons["dampener"] = "Sprites/Items/dampener"; icons["truthlens"] = "Sprites/Items/truthlens";
             icons["sandstriders"] = "Sprites/Items/sandstriders"; icons["wardscarab"] = "Sprites/Items/wardscarab";
             icons["vigor"] = "Sprites/NPC/ware_vigor"; icons["lampoil"] = "Sprites/NPC/ware_lampoil";
             foreach (var o in shop.offers) if (icons.TryGetValue(o.id, out var ic)) o.icon = ArtGenerator.S(ic);
@@ -789,6 +803,38 @@ namespace Gloomdelve.EditorTools
             sand.backdropTint = new Color(0.46f, 0.4f, 0.32f);
             sand.tiles = ts["Sandsunk"];
             EditorUtility.SetDirty(sand);
+
+            // Shardlight Geode: the inside of a great crystal-lined hollow. Resonant crystals in the floors, lenses in
+            // the ceilings; shardlings that come apart, glints that shoot light, gems that bite.
+            var geode = LoadOrCreate<AreaConfig>(G + "Data/Area9_Geode.asset", out bool newGeode);
+            if (newGeode)
+            {
+                geode.displayName = "Shardlight Geode"; geode.areaNumber = 9; geode.musicId = "area1";
+                geode.cameraBackground = new Color(0.05f, 0.05f, 0.1f);
+                geode.items = new[] { new WeightedId("rock", 3f), new WeightedId("pot", 1f), new WeightedId("crate", 1f) };
+                geode.spikes = true; geode.arrowTraps = false; geode.stalactites = true; geode.crushers = false; geode.flameVents = false;
+                geode.spikeDensity = 0.022f; geode.ceilingHazardChance = 0.35f;
+                geode.goldVeinChance = 0.015f; geode.gemVeinChance = 0.006f; geode.treasureChancePath = 0.35f; geode.treasureChanceSide = 0.7f;
+                geode.requiredGear = ""; geode.gatesByLevel = new[] { 0, 0, 0 };
+                geode.shopFeatured = new[] { "dampener", "truthlens" };
+                geode.shopChanceByLevel = new[] { 1f, 0.6f, 0.5f };
+                geode.roomsX = 6; geode.roomsY = 9;
+                geode.pathAcross = false; geode.pathUp = 0f; geode.pathSide = 3f; geode.pathDown = 1f; geode.pathStartBottom = false;
+                geode.branchDensity = 0.24f; geode.layoutVersion = 4;
+            }
+            // (tuned in code, not in the inspector: these are set again on every build)
+            // (a mimic in every disguise it has: together about as common as the single one used to be)
+            var geodeGround = new List<WeightedId> { new WeightedId("shardling", 2f) };
+            foreach (var mk in ArtGenerator.MimicDisguises) geodeGround.Add(new WeightedId("mimic_" + mk.key, 0.4f));
+            geode.groundEnemies = geodeGround.ToArray();
+            geode.ceilingEnemies = new[] { new WeightedId("glint", 2f), new WeightedId("bat", 1f) };
+            geode.crystalChance = 0.05f; geode.lensChance = 0.035f;
+            geode.ambientColor = new Color(0.78f, 0.86f, 1f); geode.ambientIntensity = 0.46f;
+            geode.torchColor = new Color(0.6f, 0.9f, 1f); geode.torchChance = 0.03f;
+            geode.ambientParticles = AmbientParticles.Spirits; geode.ambientParticleCount = 22;
+            geode.backdropTint = new Color(0.3f, 0.32f, 0.5f);
+            geode.tiles = ts["Geode"];
+            EditorUtility.SetDirty(geode);
 
             var vault = LoadOrCreate<AreaConfig>(G + "Data/Area3_Vault.asset", out bool newVault);
             if (newVault)
@@ -1093,6 +1139,21 @@ namespace Gloomdelve.EditorTools
                 list.InsertRange(at, add);
                 cfg.stages = list.ToArray();
             }
+            // Shardlight Geode joins the catalogue the same way: three levels and the Facet's hall.
+            if (!System.Array.Exists(cfg.stages, st => st.area == geode))
+            {
+                var list = new List<StageDef>(cfg.stages);
+                int at = list.FindIndex(st => st.kind == LevelKind.Rest || st.kind == LevelKind.Final);
+                if (at < 0) at = list.Count;
+                int blocks = 1; AreaConfig prevA = null;
+                foreach (var st in list) if ((st.kind == LevelKind.Area || st.kind == LevelKind.Boss) && st.area != prevA) { blocks++; prevA = st.area; }
+                var add = new List<StageDef>();
+                for (int lv = 1; lv <= 3; lv++) add.Add(new StageDef { displayName = $"{blocks}-{lv}", kind = LevelKind.Area, area = geode, levelNumber = lv });
+                add.Add(new StageDef { displayName = $"{blocks}-4", kind = LevelKind.Boss, area = geode, levelNumber = 4,
+                    handcrafted = AssetDatabase.LoadAssetAtPath<TextAsset>(G + "Data/Levels/Boss_Geode.txt") });
+                list.InsertRange(at, add);
+                cfg.stages = list.ToArray();
+            }
             cfg.tutorial = new StageDef { displayName = "TUTORIAL", kind = LevelKind.Tutorial, area = moss, levelNumber = 1, handcrafted = tut };
             cfg.village = new StageDef { displayName = "BRINDLEMOOR", kind = LevelKind.Rest, area = villageArea, levelNumber = 1,
                 handcrafted = AssetDatabase.LoadAssetAtPath<TextAsset>(G + "Data/Levels/Village.txt") };
@@ -1157,6 +1218,12 @@ namespace Gloomdelve.EditorTools
             ["Bomb"] = (new Color(1f, 0.6f, 0.25f), 3.2f, 1.3f, 0.45f, false, false, new Vector2(0f, 0.4f)),
             ["FlameVent"] = (new Color(1f, 0.5f, 0.15f), 5.5f, 1.9f, 0.3f, false, false, new Vector2(0f, 1f)),
             ["Gem"] = (new Color(0.4f, 1f, 0.6f), 2.2f, 0.75f, 0.2f, true, true, new Vector2(0f, 0.2f)),
+            // Shardlight Geode: the crystals are its lamps
+            ["ResonantCrystal"] = (new Color(0.5f, 0.95f, 1f), 3.6f, 0.85f, 0.15f, true, true, new Vector2(0f, 0.5f)),
+            ["LightLens"] = (new Color(0.6f, 0.95f, 1f), 2.4f, 0.6f, 0.1f, true, true, new Vector2(0f, 0.2f)),
+            ["Glint"] = (new Color(0.85f, 0.6f, 1f), 2.8f, 0.8f, 0.25f, false, true, new Vector2(0f, 0.3f)),
+            ["Facet"] = (new Color(0.5f, 0.95f, 1f), 9f, 1.1f, 0.15f, true, true, new Vector2(0f, -1.5f)),             // its face, high on the back wall
+            ["FacetFist"] = (new Color(0.5f, 0.95f, 1f), 4.4f, 0.8f, 0.15f, false, true, new Vector2(0f, 1f)),
             ["Idol"] = (new Color(1f, 0.82f, 0.3f), 3.2f, 0.95f, 0.15f, true, true, new Vector2(0f, 0.35f)),
             ["Heartstone"] = (new Color(1f, 0.8f, 0.4f), 5.6f, 1.6f, 0.2f, true, true, new Vector2(0f, 0.35f)),
             ["Heart"] = (new Color(1f, 0.35f, 0.4f), 2f, 0.6f, 0.2f, true, true, new Vector2(0f, 0.2f)),
@@ -1259,6 +1326,41 @@ namespace Gloomdelve.EditorTools
                 (e, go, sr) => { e.flipWithFacing = false; }));
             Reg("icechunk", Make<IceChunk>("IceChunk", "Items", "ice chunk", new Vector2(0.45f, 0.4f), ArtGenerator.S(I("icechunk")), null, 12,
                 (e, g, s) => { e.flipWithFacing = false; e.impactSfx = "thud"; }));
+            // Shardlight Geode: the resonant crystal and its shards, the light lens, its creatures, the Facet and its volley
+            Reg("crystal", Make<ResonantCrystal>("ResonantCrystal", "Traps", "resonant crystal", new Vector2(0.8f, 0.95f), ArtGenerator.S("Sprites/Traps/crystal_0"), null, 7,
+                (e, go, sr) => { e.flipWithFacing = false; e.frames = new[] { ArtGenerator.S("Sprites/Traps/crystal_0"), ArtGenerator.S("Sprites/Traps/crystal_1"), ArtGenerator.S("Sprites/Traps/crystal_2") }; }));
+            Reg("crystalshard", Make<CrystalShard>("CrystalShard", "Traps", "crystal shard", new Vector2(0.35f, 0.25f), ArtGenerator.S("Sprites/Traps/crystalshard"), null, 32,
+                (e, go, sr) => { e.flipWithFacing = false; sr.sharedMaterial = unlitMat; }));
+            Reg("lightlens", Make<LightLens>("LightLens", "Traps", "light lens", new Vector2(0.9f, 0.6f), ArtGenerator.S("Sprites/Traps/lens"), null, 7,
+                (e, go, sr) => { e.flipWithFacing = false; e.beamMaterial = unlitMat; }));
+            Reg("shardling", Make<Shardling>("Shardling", "Enemies", "shardling", new Vector2(0.9f, 0.6f), ArtGenerator.S("Sprites/Enemies/shardling_0"), anims["shardling_walk"], 14,
+                (e, go, sr) => { e.maxHealth = 2; e.goldDrop = 100; e.stompable = false; e.animWalk = anims["shardling_walk"]; e.animRush = anims["shardling_rush"]; e.bloodColor = new Color(0.6f, 0.9f, 1f); }));
+            Reg("shardlet", Make<Shardling>("Shardlet", "Enemies", "shardlet", new Vector2(0.5f, 0.38f), ArtGenerator.S("Sprites/Enemies/shardlet_0"), anims["shardlet_walk"], 14,
+                (e, go, sr) => { e.maxHealth = 1; e.goldDrop = 0; e.heartDropChance = 0f; e.stompable = false; e.splitId = ""; e.speed = 2.2f; e.rushSpeed = 9f; e.rushWindup = 0.3f; e.rushRange = 3.5f; e.animWalk = anims["shardlet_walk"]; e.animRush = anims["shardlet_walk"]; e.bloodColor = new Color(0.6f, 0.9f, 1f); }));
+            Reg("glint", Make<Glint>("Glint", "Enemies", "glint", new Vector2(0.6f, 0.55f), ArtGenerator.S("Sprites/Enemies/glint_2"), anims["glint_hang"], 14,
+                (e, go, sr) => { e.goldDrop = 100; e.beamMaterial = unlitMat; e.animHang = anims["glint_hang"]; e.animFly = anims["glint_fly"]; e.bloodColor = new Color(0.85f, 0.7f, 1f); }));
+            // the mimic, once for every thing it can pose as: the picture, the size, the glow and the place in the draw order of the real thing
+            var mimicLike = new Dictionary<string, (string like, Vector2 size, int order)>
+            {
+                ["gem"] = ("Gem", new Vector2(0.4f, 0.4f), 11), ["pot"] = ("Pot", new Vector2(0.55f, 0.6f), 12), ["crate"] = ("Crate", new Vector2(0.7f, 0.65f), 12),
+            };
+            foreach (var mk in ArtGenerator.MimicDisguises)
+            {
+                var ml = mimicLike[mk.key];
+                string pid = "Mimic_" + mk.key;
+                if (highlights.TryGetValue(ml.like, out var mh)) highlights[pid] = mh;
+                if (glows.TryGetValue(ml.like, out var mg)) glows[pid] = mg;
+                SpriteAnim dormant = anims["mimic_" + mk.key + "_dormant"], awake = anims["mimic_" + mk.key + "_awake"];
+                var mp = Make<Mimic>(pid, "Enemies", "mimic", ml.size, ArtGenerator.S(mk.sprite), dormant, ml.order,
+                    (e, go, sr) => { e.maxHealth = 2; e.goldDrop = 150; e.goldChance = 1f; e.heartDropChance = 0f; e.flipWithFacing = false; e.animDormant = dormant; e.animAwake = awake; e.bloodColor = new Color(0.4f, 0.9f, 0.6f); });
+                Reg("mimic_" + mk.key, mp);
+                if (mk.key == "gem") Reg("mimic", mp);
+            }
+            // the Facet: the body is a picture on the back wall (drawn behind the rock, hung from its forehead); the fists are the fight
+            Reg("facet", Make<FacetGolem>("Facet", "Enemies", "The Facet", new Vector2(1f, 0.6f), ArtGenerator.S("Sprites/Bosses/facet_0"), anims["facet_idle"], -9,
+                (e, go, sr) => { e.maxHealth = 40; e.contactDamage = 0; e.stompable = false; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.flipWithFacing = false; e.beamMaterial = unlitMat; e.animIdle = anims["facet_idle"]; e.animStrike = anims["facet_strike"]; e.animCracked = anims["facet_cracked"]; e.bloodColor = new Color(0.6f, 0.9f, 1f); }));
+            Reg("facetfist", Make<FacetFist>("FacetFist", "Enemies", "the Facet's fist", new Vector2(2.5f, 1.6f), ArtGenerator.S("Sprites/Bosses/facetfist_0"), null, 15,
+                (e, go, sr) => { e.maxHealth = 1; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.flipWithFacing = false; e.frames = new[] { ArtGenerator.S("Sprites/Bosses/facetfist_0"), ArtGenerator.S("Sprites/Bosses/facetfist_1") }; e.bloodColor = new Color(0.6f, 0.9f, 1f); }));
             // Sandsunk Tombs: quicksand, the spear plate, its creatures, the Dune Queen and her spit
             Reg("quicksand", Make<Quicksand>("Quicksand", "Traps", "quicksand", new Vector2(1f, 0.3f), ArtGenerator.S("Sprites/Props/quicksand_0"), anims["quicksand_flow"], 3,
                 (e, go, sr) => { e.flipWithFacing = false; e.animFlow = anims["quicksand_flow"]; }));

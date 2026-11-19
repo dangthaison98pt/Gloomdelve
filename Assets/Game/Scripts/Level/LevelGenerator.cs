@@ -905,6 +905,45 @@ namespace Gloomdelve
                     }
             }
 
+            // ---------------------------------------------------------------- 9h. Shardlight Geode: resonant crystals and light lenses
+            // Crystals stand on plain floor with air above; lenses hang in the ceiling over plain floor, three to eight
+            // cells up. Both keep clear of the doors and of each other. They are extras: the route check ignores them.
+            if (area.crystalChance > 0f || area.lensChance > 0f)
+            {
+                var taken = new HashSet<Vector2Int>();
+                foreach (var sp in spawns) taken.Add(sp.cell);
+                bool NearADoor(int x, int y) => (Mathf.Abs(x - data.entrance.x) <= 3 && Mathf.Abs(y - data.entrance.y) <= 2) || (Mathf.Abs(x - data.exit.x) <= 3 && Mathf.Abs(y - data.exit.y) <= 2);
+                var crystals = new List<Vector2Int>();
+                var lenses = new List<Vector2Int>();
+                for (int y = 2; y < H - 2; y++)
+                    for (int x = 2; x < W - 2; x++)
+                    {
+                        if (!g.IsEmpty(x, y) || InShop(x, y)) continue;
+                        var here = new Vector2Int(x, y);
+                        // a crystal: plain floor, two cells of air
+                        if (g.IsSolid(x, y - 1) && g.IsEmpty(x, y + 1) && !taken.Contains(here) && !NearADoor(x, y) && !g.IsSpike(x - 1, y) && !g.IsSpike(x + 1, y) &&
+                            rng.Chance(area.crystalChance))
+                        {
+                            bool near = false;
+                            foreach (var c in crystals) if (Mathf.Abs(c.x - x) + Mathf.Abs(c.y - y) < 5) { near = true; break; }
+                            if (!near) { crystals.Add(here); taken.Add(here); continue; }
+                        }
+                        // a lens: this cell is right under the ceiling, and straight below it lies plain floor
+                        if (g.IsSolid(x, y + 1) && !taken.Contains(here) && rng.Chance(area.lensChance))
+                        {
+                            int fy = y;
+                            while (fy > 1 && g.IsEmpty(x, fy - 1)) fy--;
+                            int drop = y - fy;
+                            if (drop < 3 || drop > 8 || !g.IsSolid(x, fy - 1) || g.IsSpike(x, fy) || NearADoor(x, fy) || InShop(x, fy)) continue;
+                            bool near = false;
+                            foreach (var c in lenses) if (Mathf.Abs(c.x - x) + Mathf.Abs(c.y - y) < 6) { near = true; break; }
+                            if (!near) { lenses.Add(here); taken.Add(here); }
+                        }
+                    }
+                foreach (var c in crystals) spawns.Add(new SpawnPoint("crystal", c));
+                foreach (var c in lenses) spawns.Add(new SpawnPoint("lightlens", c));
+            }
+
             // ---------------------------------------------------------------- 10. safety + cleanup
             SafetyPass(data, cfg, area);
 

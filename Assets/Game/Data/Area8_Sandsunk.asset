@@ -76,6 +76,8 @@ MonoBehaviour:
   sawChance: 0
   quicksandChance: 0.55
   spearChance: 0.4
+  crystalChance: 0
+  lensChance: 0
   perLevelDensityBonus: 0.15
   requiredGear: 
   gatesByLevel: 000000000000000000000000

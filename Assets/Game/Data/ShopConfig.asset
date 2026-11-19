@@ -33,6 +33,8 @@ MonoBehaviour:
       shieldPierce: 0
       sandGrip: 0
       goldWard: 0
+      shardWard: 0
+      mimicSight: 0
     icon: {fileID: 21300000, guid: 22c0851038970d04dafd99a51a258b04, type: 3}
     description: +3 bombs
   - id: ropes
@@ -55,6 +57,8 @@ MonoBehaviour:
       shieldPierce: 0
       sandGrip: 0
       goldWard: 0
+      shardWard: 0
+      mimicSight: 0
     icon: {fileID: 21300000, guid: 9ad97bda8a453844594bc92a37ef73fe, type: 3}
     description: +3 ropes
   - id: heart
@@ -77,6 +81,8 @@ MonoBehaviour:
       shieldPierce: 0
       sandGrip: 0
       goldWard: 0
+      shardWard: 0
+      mimicSight: 0
     icon: {fileID: 21300000, guid: 4e142a90c5a0dca4b8d8592ac12cf2cc, type: 3}
     description: +1 health
   - id: springboots
@@ -99,6 +105,8 @@ MonoBehaviour:
       shieldPierce: 0
       sandGrip: 0
       goldWard: 0
+      shardWard: 0
+      mimicSight: 0
     icon: {fileID: 21300000, guid: fbfb0a5b4cca04347be78c091c9351b0, type: 3}
     description: jump about 40% higher
   - id: ironwhip
@@ -121,6 +129,8 @@ MonoBehaviour:
       shieldPierce: 0
       sandGrip: 0
       goldWard: 0
+      shardWard: 0
+      mimicSight: 0
     icon: {fileID: 21300000, guid: 9573d34ca403fd644976448e13e6c829, type: 3}
     description: blade deals 2 damage and reaches further
   - id: compass
@@ -143,6 +153,8 @@ MonoBehaviour:
       shieldPierce: 0
       sandGrip: 0
       goldWard: 0
+      shardWard: 0
+      mimicSight: 0
     icon: {fileID: 21300000, guid: 3a271a22a3e72734c97e1cdc2f00c1e2, type: 3}
     description: points to the exit
   - id: blastpowder
@@ -165,6 +177,8 @@ MonoBehaviour:
       shieldPierce: 0
       sandGrip: 0
       goldWard: 0
+      shardWard: 0
+      mimicSight: 0
     icon: {fileID: 21300000, guid: 8e652c6ec7e4b604e8044920b34b166f, type: 3}
     description: bigger bomb blasts
   - id: iceboots
@@ -187,6 +201,8 @@ MonoBehaviour:
       shieldPierce: 0
       sandGrip: 0
       goldWard: 0
+      shardWard: 0
+      mimicSight: 0
     icon: {fileID: 21300000, guid: ca46dee40c33a8d45b4551af47ab9e06, type: 3}
     description: 'spiked soles: no sliding on ice'
   - id: warmcoat
@@ -209,6 +225,8 @@ MonoBehaviour:
       shieldPierce: 0
       sandGrip: 0
       goldWard: 0
+      shardWard: 0
+      mimicSight: 0
     icon: {fileID: 21300000, guid: 4654bf18d521cf74b8ce7b23a5c922b3, type: 3}
     description: snowballs only slow you instead of freezing you
   - id: sporemask
@@ -231,6 +249,8 @@ MonoBehaviour:
       shieldPierce: 0
       sandGrip: 0
       goldWard: 0
+      shardWard: 0
+      mimicSight: 0
     icon: {fileID: 21300000, guid: 9340f5070bb37f6478a92d082c8369b0, type: 3}
     description: spore clouds cannot make you dizzy
   - id: lantern
@@ -253,6 +273,8 @@ MonoBehaviour:
       shieldPierce: 0
       sandGrip: 0
       goldWard: 0
+      shardWard: 0
+      mimicSight: 0
     icon: {fileID: 21300000, guid: e5e874b40a3fadb4bbbdd1bfefb5cd1a, type: 3}
     description: your light reaches much further in the dark
   - id: heavyboots
@@ -275,6 +297,8 @@ MonoBehaviour:
       shieldPierce: 0
       sandGrip: 0
       goldWard: 0
+      shardWard: 0
+      mimicSight: 0
     icon: {fileID: 21300000, guid: 5da6b8788c5e8724cb64142550351deb, type: 3}
     description: 'iron soles: conveyor belts cannot carry you'
   - id: magnetcharm
@@ -297,6 +321,8 @@ MonoBehaviour:
       shieldPierce: 1
       sandGrip: 0
       goldWard: 0
+      shardWard: 0
+      mimicSight: 0
     icon: {fileID: 21300000, guid: b550b21fb08ea5244b4becf24b7dc124, type: 3}
     description: 'pulls shields aside: your blade cuts through a sentry''s guard'
   - id: vigor
@@ -319,6 +345,8 @@ MonoBehaviour:
       shieldPierce: 0
       sandGrip: 0
       goldWard: 0
+      shardWard: 0
+      mimicSight: 0
     icon: {fileID: 21300000, guid: 224db3d531f0f1349a712722ab21b76e, type: 3}
     description: +1 heart until you sleep
   - id: lampoil
@@ -341,6 +369,8 @@ MonoBehaviour:
       shieldPierce: 0
       sandGrip: 0
       goldWard: 0
+      shardWard: 0
+      mimicSight: 0
     icon: {fileID: 21300000, guid: ad0e3be8950c79540b1308dbbb2486e7, type: 3}
     description: the Reaper comes 2 minutes later
   - id: heart3
@@ -363,6 +393,8 @@ MonoBehaviour:
       shieldPierce: 0
       sandGrip: 0
       goldWard: 0
+      shardWard: 0
+      mimicSight: 0
     icon: {fileID: 21300000, guid: 43264eb6072d88b4b8806e1d670c878b, type: 3}
     description: +3 health
   - id: heartfull
@@ -385,6 +417,8 @@ MonoBehaviour:
       shieldPierce: 0
       sandGrip: 0
       goldWard: 0
+      shardWard: 0
+      mimicSight: 0
     icon: {fileID: 21300000, guid: 282641eb9f93d6b46a91db7069a21564, type: 3}
     description: back to full health
   - id: sandstriders
@@ -407,6 +441,8 @@ MonoBehaviour:
       shieldPierce: 0
       sandGrip: 1
       goldWard: 0
+      shardWard: 0
+      mimicSight: 0
     icon: {fileID: 21300000, guid: 74335e29e4b4d6743bf29ee379bac5b3, type: 3}
     description: 'wide woven soles: quicksand holds like stone'
   - id: wardscarab
@@ -429,7 +465,57 @@ MonoBehaviour:
       shieldPierce: 0
       sandGrip: 0
       goldWard: 1
+      shardWard: 0
+      mimicSight: 0
     icon: {fileID: 21300000, guid: 53d54b952e5c6864d915244c5345eb02, type: 3}
     description: a mummy's grab cannot take your gold
+  - id: dampener
+    displayName: Dampener
+    price: 600
+    resource: 
+    amount: 1
+    isUpgrade: 1
+    slot: charm
+    modifiers:
+      jumpBonus: 0
+      whipDamageBonus: 0
+      whipRangeBonus: 0
+      blastRadiusBonus: 0
+      iceGrip: 0
+      coldResist: 0
+      sporeResist: 0
+      lightBonus: 0
+      beltGrip: 0
+      shieldPierce: 0
+      sandGrip: 0
+      goldWard: 0
+      shardWard: 1
+      mimicSight: 0
+    icon: {fileID: 21300000, guid: e826c5242a69a8343b89f012a624c816, type: 3}
+    description: the shards of a bursting crystal pass through you
+  - id: truthlens
+    displayName: Truth Lens
+    price: 500
+    resource: 
+    amount: 1
+    isUpgrade: 1
+    slot: charm
+    modifiers:
+      jumpBonus: 0
+      whipDamageBonus: 0
+      whipRangeBonus: 0
+      blastRadiusBonus: 0
+      iceGrip: 0
+      coldResist: 0
+      sporeResist: 0
+      lightBonus: 0
+      beltGrip: 0
+      shieldPierce: 0
+      sandGrip: 0
+      goldWard: 0
+      shardWard: 0
+      mimicSight: 1
+    icon: {fileID: 21300000, guid: ca5369188bbe9d34d880822575775227, type: 3}
+    description: a mimic in disguise shows red
   shopkeeperHealth: 6
   warningsBeforeAngry: 2

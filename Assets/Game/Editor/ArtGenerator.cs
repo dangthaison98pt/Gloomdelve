@@ -141,6 +141,7 @@ namespace Gloomdelve.EditorTools
             EnemyArt();
             ItemArt();
             TrapAndPropArt();
+            MimicArt();
             VillagerArt();
             BossArt();
             CounterFxArt();
@@ -262,8 +263,21 @@ namespace Gloomdelve.EditorTools
             style = 2, ashlar = true
         };
 
+        // Shardlight Geode: deep indigo rock with a crust of pale crystal on every top face; violet spikes.
+        static readonly Pal Geode = new Pal
+        {
+            b = C(72, 66, 112), d = C(52, 48, 86), l = C(100, 94, 146), deep = C(30, 26, 54),
+            top = C(120, 214, 226), topL = C(214, 252, 255), topD = C(64, 138, 170),
+            rock = C(48, 46, 72), rockD = C(32, 30, 52), rockL = C(78, 76, 110), rockDeep = C(16, 14, 28),
+            bg = C(26, 24, 44), bgD = C(18, 16, 32), bgL = C(40, 38, 64),
+            wood = C(110, 100, 140), woodD = C(70, 62, 96), woodL = C(156, 146, 190),
+            spike = C(168, 130, 226), spikeD = C(104, 72, 160), spikeL = C(226, 200, 255), spikeTip = C(220, 255, 255),
+            style = 1
+        };
+
         static void AllTiles()
         {
+            TileSetArt("Geode", Geode, 131);
             TileSetArt("Sandsunk", Sand, 113);
             TileSetArt("Gearworks", Gear, 97);
             TileSetArt("Sporegloom", Spore, 83);
@@ -1098,6 +1112,7 @@ namespace Gloomdelve.EditorTools
             SporeArt(pv18);
             GearworksArt(pv18);
             SandsunkArt();
+            GeodeArt();
             BroodArt(pv18);
             TreeArt();
             // Spider

@@ -1,0 +1,233 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &474274028316385181
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3213279409798836197}
+  - component: {fileID: 1781908380618766726}
+  - component: {fileID: 2590651883647424117}
+  m_Layer: 0
+  m_Name: Sprite
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3213279409798836197
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 474274028316385181}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 3475123538531324657}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!212 &1781908380618766726
+SpriteRenderer:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 474274028316385181}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: da14ca7730f8b7e419ee60026776113d, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 0
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: -9
+  m_MaskInteraction: 0
+  m_Sprite: {fileID: 21300000, guid: a527bf0f042b99247888d26325bbd775, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_FlipX: 0
+  m_FlipY: 0
+  m_DrawMode: 0
+  m_Size: {x: 30, y: 9}
+  m_AdaptiveModeThreshold: 0.5
+  m_SpriteTileMode: 0
+  m_WasSpriteAssigned: 1
+  m_SpriteSortPoint: 0
+--- !u!114 &2590651883647424117
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 474274028316385181}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: daa63ecacbce80d4ea16ca938fee6869, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnimator
+  initial: {fileID: 11400000, guid: 6105ae597853f8b4996ef3656d8198f3, type: 2}
+  speed: 1
+--- !u!1 &4000866240977242097
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3475123538531324657}
+  - component: {fileID: 6388976821970391802}
+  - component: {fileID: 6851807857089926776}
+  m_Layer: 0
+  m_Name: Facet
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3475123538531324657
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4000866240977242097}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 1
+  m_Children:
+  - {fileID: 3213279409798836197}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6388976821970391802
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4000866240977242097}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 930abec07b4e1374086364497b3fe8c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.FacetGolem
+  displayName: The Facet
+  size: {x: 1, y: 0.6}
+  maxHealth: 40
+  flipWithFacing: 0
+  artFacesLeft: 0
+  contactDamage: 0
+  stompable: 0
+  gravity: 40
+  knockbackScale: 1
+  bloodColor: {r: 0.6, g: 0.9, b: 1, a: 1}
+  goldDrop: 0
+  goldChance: 0.8
+  heartDropChance: 0
+  maxHitDamage: 3
+  trapGuardTime: 0.5
+  goldChunks: 10
+  emberDrop: 3
+  rewardId: heartvessel
+  bossShotId: gloomorb
+  freeStomps: 2
+  stompCounterWindow: 1.5
+  animCounter: {fileID: 0}
+  counterFx: {fileID: 0}
+  counterMotion: 0
+  counterTime: 0.5
+  counterFxScale: 1.4
+  counterFxOnBody: 0
+  restScale: 0.7
+  restScaleLow: 0.75
+  actionGap: 1.5
+  tellTime: 0.55
+  headHeight: 7
+  fistId: facetfist
+  fistSpread: 6.5
+  hoverHeight: 4.6
+  crackedTime: 3
+  crackGuard: 1.2
+  trackTime: 0.8
+  trackSpeed: 11
+  hangTime: 0.32
+  slamSpeed: 32
+  groundTime: 0.9
+  sweepSpeed: 12
+  sweepTell: 0.7
+  sweepShardLead: 5
+  beams: 3
+  beamSpread: 16
+  beamAim: 0.95
+  beamLock: 0.35
+  beamBurn: 0.4
+  beamWidth: 0.3
+  beamDamage: 1
+  beamBounces: 3
+  gemHeight: 0.27
+  beamMaterial: {fileID: 2100000, guid: 71f4b9bdde8354942977b450a30471f2, type: 2}
+  rainSpikes: 3
+  rainInterval: 0.4
+  animIdle: {fileID: 11400000, guid: 6105ae597853f8b4996ef3656d8198f3, type: 2}
+  animStrike: {fileID: 11400000, guid: ee0523e9552e19b47aacb08060515420, type: 2}
+  animCracked: {fileID: 11400000, guid: f0e17c6e5f44b5649bd790d4825e5a4e, type: 2}
+--- !u!114 &6851807857089926776
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4000866240977242097}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d8828b6c7ceef944cb677be5cb97a47b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.GlowLight
+  color: {r: 0.5, g: 0.95, b: 1, a: 1}
+  radius: 9
+  intensity: 1.1
+  flicker: 0.15
+  pulse: 1
+  offset: {x: 0, y: -1.5}
+  startOn: 1

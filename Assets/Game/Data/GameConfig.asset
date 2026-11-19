@@ -162,6 +162,26 @@ MonoBehaviour:
     area: {fileID: 11400000, guid: 510912a927f7067479af86f8309dd295, type: 2}
     levelNumber: 4
     handcrafted: {fileID: 4900000, guid: 4a4e14cbdbedd2845b045f1d4ff1a830, type: 3}
+  - displayName: 8-1
+    kind: 0
+    area: {fileID: 11400000, guid: ef66b5f48e662fc43b35f1565f9114ab, type: 2}
+    levelNumber: 1
+    handcrafted: {fileID: 0}
+  - displayName: 8-2
+    kind: 0
+    area: {fileID: 11400000, guid: ef66b5f48e662fc43b35f1565f9114ab, type: 2}
+    levelNumber: 2
+    handcrafted: {fileID: 0}
+  - displayName: 8-3
+    kind: 0
+    area: {fileID: 11400000, guid: ef66b5f48e662fc43b35f1565f9114ab, type: 2}
+    levelNumber: 3
+    handcrafted: {fileID: 0}
+  - displayName: 8-4
+    kind: 3
+    area: {fileID: 11400000, guid: ef66b5f48e662fc43b35f1565f9114ab, type: 2}
+    levelNumber: 4
+    handcrafted: {fileID: 4900000, guid: df2f1184e858e4d44afdbb295297f348, type: 3}
   - displayName: THE LAST CAMP
     kind: 4
     area: {fileID: 11400000, guid: adeb2330f47fe2a4eb3ec3bf955d22ac, type: 2}

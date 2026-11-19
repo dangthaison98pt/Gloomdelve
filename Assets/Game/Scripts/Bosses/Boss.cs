@@ -322,14 +322,15 @@ namespace Gloomdelve
             return n;
         }
 
-        /// <summary>Makes a rock spike fall from the ceiling above column x (no ceiling there: nothing happens).</summary>
-        protected void DropFromCeiling(int x)
+        /// <summary>Makes a rock spike fall from the ceiling above column x (no ceiling there: nothing happens).
+        /// 'fromY': the row to look upwards from (default: just above the boss).</summary>
+        protected void DropFromCeiling(int x, int fromY = -1)
         {
             var g = World.Grid;
             x = Mathf.Clamp(x, 1, g.Width - 2);
             var prefab = World.config.prefabs.Get("stalactite");
             if (prefab == null) return;
-            for (int y = Mathf.FloorToInt(pos.y) + 2; y < g.Height - 1; y++)
+            for (int y = fromY >= 0 ? fromY : Mathf.FloorToInt(pos.y) + 2; y < g.Height - 1; y++)
             {
                 if (!g.IsEmpty(x, y)) return;
                 if (g.IsSolid(x, y + 1))

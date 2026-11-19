@@ -91,6 +91,12 @@ namespace Gloomdelve
         [Tooltip("Chance that a stretch of plain floor (with room to jump) holds a spear plate or two. 0 = none.")]
         [Range(0, 1)] public float spearChance = 0f;
 
+        [Header("Shardlight Geode")]
+        [Tooltip("Chance of a resonant crystal on each suitable floor spot (they keep apart from each other). 0 = none.")]
+        [Range(0, 0.3f)] public float crystalChance = 0f;
+        [Tooltip("Chance of a light lens in each suitable ceiling spot over plain floor (they keep apart from each other). 0 = none.")]
+        [Range(0, 0.3f)] public float lensChance = 0f;
+
         [Header("Difficulty scaling per level (added per level beyond the first)")]
         public float perLevelDensityBonus = 0.15f;
 

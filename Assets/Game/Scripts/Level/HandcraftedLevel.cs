@@ -94,6 +94,7 @@ namespace Gloomdelve
                         case 'Q': d.spawns.Add(new SpawnPoint("building", cell, 0, 7)); break;
                         case 'I': d.spawns.Add(new SpawnPoint("interior", cell, 0, rooms++)); break;
                         // things that stand in the street
+                        case 'j': d.spawns.Add(new SpawnPoint("crystal", cell)); break;             // a resonant crystal (the Facet's hall)
                         case 'i': d.spawns.Add(new SpawnPoint("sandpillar", cell)); break;          // a stone slab that rises and sinks, in this cell and the next (the Dune Queen's chamber)
                         case '~': d.spawns.Add(new SpawnPoint("quicksand", cell)); break;          // a cell of quicksand in the floor (the Dune Queen's chamber)
                         case 'C': d.spawns.Add(new SpawnPoint("cocoon", cell)); break;             // a cocoon on its thread (the Broodmother's den)

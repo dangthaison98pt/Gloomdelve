@@ -1,0 +1,104 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fba76dd5935fa7a43abf3cc03dde5205, type: 3}
+  m_Name: Area9_Geode
+  m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.AreaConfig
+  displayName: Shardlight Geode
+  areaNumber: 9
+  tiles: {fileID: 11400000, guid: c52e3670539a46244a7d0eb6b5b1e7b8, type: 2}
+  musicId: area1
+  cameraBackground: {r: 0.05, g: 0.05, b: 0.1, a: 1}
+  roomsX: 6
+  roomsY: 9
+  outdoor: 0
+  skyRows: 7
+  treeChance: 0.25
+  pathUp: 0
+  pathSide: 3
+  pathDown: 1
+  pathStartBottom: 0
+  pathAcross: 0
+  skyTint: {r: 1, g: 1, b: 1, a: 1}
+  branchDensity: 0.24
+  layoutVersion: 4
+  groundGrip: 1
+  groundEnemies:
+  - id: shardling
+    weight: 2
+  - id: mimic_gem
+    weight: 0.4
+  - id: mimic_pot
+    weight: 0.4
+  - id: mimic_crate
+    weight: 0.4
+  ceilingEnemies:
+  - id: glint
+    weight: 2
+  - id: bat
+    weight: 1
+  groundEnemyChance: 0.45
+  ceilingEnemyChance: 0.4
+  extraEnemiesPerRoom: 0.25
+  airEnemies: []
+  airEnemiesPerLevel: 0
+  sideRoomRiskMultiplier: 1.4
+  items:
+  - id: rock
+    weight: 3
+  - id: pot
+    weight: 1
+  - id: crate
+    weight: 1
+  itemChance: 0.5
+  treasureChancePath: 0.35
+  treasureChanceSide: 0.7
+  goldVeinChance: 0.015
+  gemVeinChance: 0.006
+  idolRoomChance: 0.35
+  vaultRoomChance: 0.3
+  spikes: 1
+  arrowTraps: 0
+  stalactites: 1
+  crushers: 0
+  flameVents: 0
+  spikeDensity: 0.022
+  arrowTrapDensity: 0.025
+  ceilingHazardChance: 0.35
+  markedTrapChance: 0.75
+  bounceCapChance: 0
+  glowPlantChance: 0
+  conveyorChance: 0
+  sawChance: 0
+  quicksandChance: 0
+  spearChance: 0
+  crystalChance: 0.05
+  lensChance: 0.035
+  perLevelDensityBonus: 0.15
+  requiredGear: 
+  gatesByLevel: 000000000000000000000000
+  grantGear: 
+  ambientColor: {r: 0.78, g: 0.86, b: 1, a: 1}
+  ambientIntensity: 0.46
+  playerLightIntensity: 0.85
+  playerLightRadius: 7.5
+  torchColor: {r: 0.6, g: 0.9, b: 1, a: 1}
+  torchChance: 0.03
+  ambientParticles: 4
+  ambientParticleCount: 22
+  backdropTint: {r: 0.3, g: 0.32, b: 0.5, a: 1}
+  shopChanceByLevel:
+  - 1
+  - 0.6
+  - 0.5
+  shopFeatured:
+  - dampener
+  - truthlens

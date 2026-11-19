@@ -36,6 +36,30 @@ MonoBehaviour:
     prefab: {fileID: 2113863251027895771, guid: 562f1e798aaa281479aa2992449f5d6f, type: 3}
   - id: icechunk
     prefab: {fileID: 4421726030908069735, guid: b2c8ae4991401ab4eaf60ad9a10291e7, type: 3}
+  - id: crystal
+    prefab: {fileID: 3058676563983725228, guid: 34cac5fd2e4f27341b0a06617e190030, type: 3}
+  - id: crystalshard
+    prefab: {fileID: 5256242828002419356, guid: 15cfb349d1857d546a552aa5f9d8e23f, type: 3}
+  - id: lightlens
+    prefab: {fileID: 6655837377379222200, guid: 362e00d348e4c7c41b289b72ad099d6a, type: 3}
+  - id: shardling
+    prefab: {fileID: 2602993512241817973, guid: 5c9e62b4d3a3857498fef7d0ceb0e28d, type: 3}
+  - id: shardlet
+    prefab: {fileID: 4738896308837851991, guid: 1175c327cbc8ebe45894d4e1ad962664, type: 3}
+  - id: glint
+    prefab: {fileID: 3385363389752492415, guid: 7d2cb9b636f81d747a05f98b4f904771, type: 3}
+  - id: mimic_gem
+    prefab: {fileID: 3069479447251775862, guid: 08217bfd10147504c899377d529dd212, type: 3}
+  - id: mimic
+    prefab: {fileID: 3069479447251775862, guid: 08217bfd10147504c899377d529dd212, type: 3}
+  - id: mimic_pot
+    prefab: {fileID: 9114635925430427322, guid: c7339e5f6bc9827408db1f315f4f13af, type: 3}
+  - id: mimic_crate
+    prefab: {fileID: 2604895586770442669, guid: 8ebaf33c0b5c6d94e8bea93b866eaef4, type: 3}
+  - id: facet
+    prefab: {fileID: 6388976821970391802, guid: 9fa54d4b4f420f84c9b98edaeafba609, type: 3}
+  - id: facetfist
+    prefab: {fileID: 2166643002632257151, guid: 9b045e3d217f234439f685460880eee6, type: 3}
   - id: quicksand
     prefab: {fileID: 3728869993759036327, guid: 92e2574ae9223cb4aa7f67c0a10de6c9, type: 3}
   - id: sandpillar

@@ -76,6 +76,8 @@ MonoBehaviour:
   sawChance: 0
   quicksandChance: 0
   spearChance: 0
+  crystalChance: 0
+  lensChance: 0
   perLevelDensityBonus: 0.15
   requiredGear: glider
   gatesByLevel: 010000000100000002000000

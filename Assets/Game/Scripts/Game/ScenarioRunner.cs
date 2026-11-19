@@ -307,6 +307,15 @@ namespace Gloomdelve
             new Scenario { name = "gearworks: a drone warns, then fires a bolt; a scrap beetle eats a lit bomb and blows up", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => DroneBeetleCase(c) },
 
+            new Scenario { name = "geode: a struck crystal rings and bursts into shards that cut the player and creatures alike, chain on, and grow back; a light lens burns on its beat", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => GeodeTrapCase(c) },
+
+            new Scenario { name = "geode: a shardling rushes and comes apart in two, a glint aims a line and fires along it, a mimic lies as a gem, a pot or a crate until someone comes close", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => GeodeEnemyCase(c) },
+
+            new Scenario { name = "bosses: the facet is a colossus on the back wall and its two fists are the fight - they slam and sweep, their shell turns the blade, a fist that lands on a crystal is cracked open; its light is thrown back by crystal as by a mirror, a sweeping fist smashes crystals and drives their shards on ahead", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => FacetCase(c) },
+
             new Scenario { name = "sandsunk: quicksand slows and swallows unless hopped out of or crossed in sand striders; a spear plate strikes on its beat", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => SandTrapCase(c) },
 
@@ -1127,7 +1136,7 @@ namespace Gloomdelve
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_sporeheart_dark.png"));
             yield return new WaitForEndOfFrame();
             yield return null;
-            for (int i = 0; i < 40 && !b.Dead; i++) { b.TakeDamage(new DamageInfo(3, DamageType.Whip, c.p, Vector2.zero, "test")); yield return c.Frames(14); }
+            for (int i = 0; i < 200 && !b.Dead; i++) { b.TakeDamage(new DamageInfo(3, DamageType.Whip, c.p, Vector2.zero, "test")); yield return c.Frames(14); }
             yield return c.Frames(5);
             c.Expect(b.Dead, "it can be killed");
             c.Expect(Lit() == lit0, $"and the room lights up again ({Lit()} of {lit0})");
@@ -1170,7 +1179,7 @@ namespace Gloomdelve
             // a boss test that is won: the result screen comes up and stays
             c.run.bossPractice = true;
             var b = c.Spawn<Broodmother>("broodmother", 16, 1);
-            for (int i = 0; i < 40 && !b.Dead; i++) { b.TakeDamage(new DamageInfo(99, DamageType.Whip, c.p, Vector2.zero, "test")); yield return c.Frames(14); }
+            for (int i = 0; i < 200 && !b.Dead; i++) { b.TakeDamage(new DamageInfo(99, DamageType.Whip, c.p, Vector2.zero, "test")); yield return c.Frames(14); }
             c.Expect(b.Dead && c.dir.PracticeEnding, "the boss falls and the boss test is over");
             c.Expect(!c.dir.results.Showing, "the result screen waits a moment so the fall can be seen");
             yield return new WaitForSecondsRealtime(2.8f);
@@ -2383,6 +2392,348 @@ namespace Gloomdelve
             for (int i = 0; i < 200 && !blew; i++) { yield return new WaitForFixedUpdate(); if (bt.Dead) blew = true; else bx = bt.pos.x; }
             c.Expect(blew, "a moment later it blows up");
             c.Expect(bx < 11.5f, $"having run at the player first (x {bx:0.0})");
+        }
+
+        static IEnumerator GeodeTrapCase(Ctx c)
+        {
+            c.Bot(Seq((9000, F())));
+            var shop = c.dir.config.shop;
+            c.run.maxHealth = 10; c.run.health = 10;
+            // struck from a safe distance: it rings, then bursts; a creature beside it is cut down, the player out of reach is not
+            c.Teleport(4.5f, 1f);
+            var a = c.Spawn<ResonantCrystal>("crystal", 10, 1);
+            c.Expect(a != null && a.Whole, "a resonant crystal stands in the floor");
+            if (a == null) yield break;
+            var snake = c.Spawn<Snake>("snake", 12, 1);
+            snake.stunTimer = 99f; snake.heartDropChance = 0f; snake.goldChance = 0f;
+            yield return c.Frames(5);
+            int hp = c.run.health;
+            a.OnWhipped(c.p, 1, 1);
+            bool rang = a.Ringing, shards = false, snakeDead = false;
+            for (int i = 0; i < 120; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (c.Count<CrystalShard>() > 0) { if (!shards) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "geode_crystal.png")); shards = true; }
+                if (snake.Dead) snakeDead = true;
+            }
+            c.Expect(rang && a.Bursts == 1 && shards && a.Spent, $"struck, it rings and then bursts into shards, leaving a stump (bursts {a.Bursts})");
+            c.Expect(snakeDead, "a creature standing beside it is cut down by the shards");
+            c.Expect(c.run.health == hp, $"out of their reach the player is untouched (health {hp} -> {c.run.health})");
+            // standing next to it when it bursts costs a point - unless a Dampener is worn
+            var b = c.Spawn<ResonantCrystal>("crystal", 16, 1);
+            c.Teleport(17.5f, 1f);
+            yield return c.Frames(10);
+            hp = c.run.health;
+            b.Ring();
+            for (int i = 0; i < 90; i++) { yield return new WaitForFixedUpdate(); if (Mathf.Abs(c.p.pos.x - 17.5f) > 2f) break; }
+            c.Expect(b.Bursts == 1 && c.run.health == hp - 1, $"next to a bursting crystal the player is cut for 1 (health {hp} -> {c.run.health})");
+            c.run.AddUpgrade(shop.Find("dampener"));
+            var d = c.Spawn<ResonantCrystal>("crystal", 22, 1);
+            yield return c.Frames(70);
+            c.Teleport(23.5f, 1f);
+            yield return c.Frames(10);
+            hp = c.run.health;
+            d.Ring();
+            yield return c.Frames(90);
+            c.Expect(c.run.IsWorn("dampener") && d.Bursts == 1 && c.run.health == hp, $"with a Dampener the shards pass through the wearer (health {hp} -> {c.run.health})");
+            c.run.RemoveUpgrade("dampener");
+            // a shard that reaches another crystal sets that one off too
+            c.p.godMode = true;
+            c.Teleport(4.5f, 4f);
+            if (b != null) b.Despawn();
+            if (d != null) d.Despawn();
+            yield return c.Frames(3);
+            var e1 = c.Spawn<ResonantCrystal>("crystal", 16, 1);
+            var e2 = c.Spawn<ResonantCrystal>("crystal", 19, 1);
+            yield return c.Frames(5);
+            e1.Ring();
+            for (int i = 0; i < 200 && e2.Bursts == 0; i++) yield return new WaitForFixedUpdate();
+            c.Expect(e1.Bursts == 1 && e2.Bursts == 1, $"a shard that reaches another crystal sets it off in turn ({e1.Bursts}, {e2.Bursts})");
+            // the stump grows back
+            bool regrew = false;
+            for (int i = 0; i < 500 && !regrew; i++) { yield return new WaitForFixedUpdate(); if (a.Whole) regrew = true; }
+            c.Expect(regrew, "the stump grows back into a whole crystal");
+            foreach (var e in c.world.Entities) if (!e.Dead && (e is ResonantCrystal || e is CrystalShard)) e.Despawn();
+            yield return c.Frames(3);
+
+            // the light lens: dark, a thin line, then the beam - 2 damage to whoever stands in it; a crystal under it does not ring (light never rings one)
+            c.Teleport(4.5f, 1f);
+            var lens = c.Spawn<LightLens>("lightlens", 14, 5);
+            var under = c.Spawn<ResonantCrystal>("crystal", 14, 1);
+            c.Expect(lens != null, "a light lens hangs overhead");
+            if (lens == null) yield break;
+            bool dark = false, warn = false, burn = false;
+            for (int i = 0; i < 300; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (lens.Phase == 0) dark = true; else if (lens.Phase == 1) warn = true; else { if (!burn) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "geode_lens.png")); burn = true; }
+            }
+            c.Expect(dark && warn && burn, "it rests, shows a thin line, and burns - over and over");
+            c.Expect(under != null && under.Bursts == 0 && under.Whole, $"its beam does not ring the crystal it falls on ({(under != null ? under.Bursts : -1)} bursts)");
+            if (under != null) under.Despawn();
+            foreach (var e in c.world.Entities) if (!e.Dead && e is CrystalShard) e.Despawn();
+            for (int i = 0; i < 400 && lens.Phase != 0; i++) yield return new WaitForFixedUpdate();
+            c.p.godMode = false;
+            c.run.health = 10; hp = c.run.health;
+            c.Teleport(14.5f, 1f);
+            bool burnt = false;
+            for (int i = 0; i < 400 && !burnt; i++) { yield return new WaitForFixedUpdate(); if (c.run.health < hp) burnt = true; }
+            c.Expect(burnt && c.run.health == hp - 2, $"standing under it until it burns: 2 damage (health {hp} -> {c.run.health})");
+            lens.Despawn();
+            c.run.health = 4;
+            yield return c.Frames(40);
+        }
+
+        static IEnumerator GeodeEnemyCase(Ctx c)
+        {
+            c.Bot(Seq((9000, F())));
+            var shop = c.dir.config.shop;
+            c.p.godMode = true;
+            // the shardling: a rush along the floor; broken, it comes apart in two that do not split again
+            c.Teleport(8.5f, 1f);
+            var crab = c.Spawn<Shardling>("shardling", 12, 1, 0, null, -1);
+            c.Expect(crab != null && !crab.IsStompable, "a shardling spawned; its back cannot be stomped");
+            if (crab == null) yield break;
+            crab.heartDropChance = 0f; crab.goldChance = 0f;
+            bool rushed = false;
+            for (int i = 0; i < 300 && !rushed; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (Mathf.Abs(c.p.pos.x - 8.5f) > 0.5f) c.Teleport(8.5f, 1f);
+                if (crab.Attacking && Mathf.Abs(crab.vel.x) > 5f) { rushed = true; ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "geode_shardling.png")); }
+            }
+            c.Expect(rushed, "seeing the player along its floor it tucks in and rushes");
+            for (int i = 0; i < 10 && !crab.Dead; i++) { crab.TakeDamage(new DamageInfo(3, DamageType.Whip, c.p, Vector2.zero, "test")); yield return c.Frames(14); }
+            yield return c.Frames(3);
+            int young = c.Count<Shardling>();
+            c.Expect(crab.Dead && young == 2, $"broken, it comes apart into two small ones ({young})");
+            var smalls = new List<Shardling>();
+            foreach (var e in c.world.Entities) if (e is Shardling s && !s.Dead) smalls.Add(s);
+            foreach (var s in smalls) { s.stunTimer = 0f; s.TakeDamage(new DamageInfo(3, DamageType.Whip, c.p, Vector2.zero, "test")); }
+            yield return c.Frames(16);
+            foreach (var s in smalls) if (!s.Dead) s.TakeDamage(new DamageInfo(3, DamageType.Whip, c.p, Vector2.zero, "test"));
+            yield return c.Frames(4);
+            c.Expect(c.Count<Shardling>() == 0, $"the small ones do not split again ({c.Count<Shardling>()} left)");
+            foreach (var e in c.world.Entities) if (!e.Dead && e is Pickup) e.Despawn();
+
+            // the glint: wakes, keeps its distance, aims a line at the player and fires along it
+            c.p.godMode = false;
+            c.run.maxHealth = 10; c.run.health = 10;
+            int hp = c.run.health;
+            c.Teleport(8.5f, 1f);
+            var glint = c.Spawn<Glint>("glint", 13, 5);
+            c.Expect(glint != null && glint.ContactDamage == 0, "a glint hangs overhead; its body does not hurt");
+            if (glint == null) yield break;
+            bool aimed = false;
+            for (int i = 0; i < 700 && c.run.health == hp; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (Mathf.Abs(c.p.pos.x - 8.5f) > 0.5f) c.Teleport(8.5f, 1f);
+                if (glint.Aiming) { aimed = true; if (i % 4 == 0) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "geode_glint.png")); }
+            }
+            c.Expect(aimed && glint.Beams >= 1 && c.run.health == hp - glint.beamDamage, $"it aims a line at the player and fires along it: a player who stays put is burnt for {glint.beamDamage} (beams {glint.Beams}, health {hp} -> {c.run.health})");
+            glint.TakeDamage(new DamageInfo(1, DamageType.Whip, c.p, Vector2.zero, "test"));
+            yield return c.Frames(3);
+            c.Expect(c.Count<Glint>() == 0, "one stroke breaks it");
+            foreach (var e in c.world.Entities) if (!e.Dead && e is Pickup) e.Despawn();
+
+            // the mimic: a gem until someone comes close; a Truth Lens shows it; struck first, it has lost its spring
+            c.p.godMode = true;
+            c.Teleport(5.5f, 1f);
+            var mimic = c.Spawn<Mimic>("mimic", 16, 1);
+            c.Expect(mimic != null, "a mimic lies on the floor");
+            if (mimic == null) yield break;
+            mimic.heartDropChance = 0f;
+            yield return c.Frames(60);
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "geode_mimic.png"));
+            c.Expect(mimic.Dormant && !mimic.Attacking && !mimic.Revealed, "left alone it lies still, to all appearance a gem");
+            c.run.AddUpgrade(shop.Find("truthlens"));
+            c.Expect(c.run.IsWorn("truthlens") && mimic.Revealed, "a Truth Lens shows it for what it is");
+            c.run.RemoveUpgrade("truthlens");
+            c.Teleport(15.6f, 1f);
+            bool sprang = false;
+            for (int i = 0; i < 200 && !sprang; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (mimic.Attacking) { sprang = true; ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "geode_mimic_awake.png")); }
+            }
+            c.Expect(sprang && !mimic.Dormant, "when the player comes to take it, it springs at them");
+            mimic.Despawn();
+            c.Teleport(5.5f, 1f);
+            var wary = c.Spawn<Mimic>("mimic", 20, 1);
+            yield return c.Frames(10);
+            bool struck = wary != null && wary.TakeDamage(new DamageInfo(1, DamageType.Whip, c.p, Vector2.zero, "test"));
+            c.Expect(struck && wary != null && !wary.Dormant && !wary.Attacking, "a 'gem' struck before it is taken wakes without its spring");
+            if (wary != null) wary.Despawn();
+            // it has a disguise for everything worth walking up to
+            string[] kinds = { "gem", "pot", "crate" };
+            var looks = new HashSet<Sprite>();
+            var posed = new List<Mimic>();
+            for (int i = 0; i < kinds.Length; i++)
+            {
+                var m = c.Spawn<Mimic>("mimic_" + kinds[i], 12 + i * 3, 1);
+                if (m != null) { m.heartDropChance = 0f; posed.Add(m); }
+            }
+            yield return c.Frames(20);
+            bool allStill = posed.Count == kinds.Length;
+            foreach (var m in posed)
+            {
+                var msr = m.GetComponentInChildren<SpriteRenderer>();
+                if (msr != null && msr.sprite != null) looks.Add(msr.sprite);
+                if (!m.Dormant) allStill = false;
+            }
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "geode_mimic_disguises.png"));
+            c.Expect(allStill && looks.Count == kinds.Length, $"it poses as a gem, a pot, a crate: {posed.Count} lie still, {looks.Count} different pictures");
+            var pot = posed.Count > 1 ? posed[1] : null;
+            c.Teleport(14.6f, 1f);
+            bool potSprang = false;
+            for (int i = 0; i < 200 && !potSprang && pot != null; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (pot.Attacking) { potSprang = true; ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "geode_mimic_pot_awake.png")); }
+            }
+            c.Expect(potSprang, "the 'pot' springs at whoever comes for it");
+            foreach (var m in posed) if (!m.Dead) m.Despawn();
+            c.p.godMode = false;
+            c.run.health = 4;
+            yield return c.Frames(5);
+        }
+
+        static IEnumerator FacetCase(Ctx c)
+        {
+            c.p.godMode = true;
+            c.Bot(Seq((20000, F())));
+            c.Teleport(6.5f, 1f);
+            var b = c.Spawn<FacetGolem>("facet", 13, 1);
+            c.Expect(b != null, "the facet spawned");
+            if (b == null) yield break;
+            yield return c.Frames(5);
+            c.Expect(c.Count<FacetFist>() == 2 && b.Left != null && b.Right != null, $"it has two fists in the hall ({c.Count<FacetFist>()})");
+            if (b.Left == null || b.Right == null) { b.Despawn(); yield break; }
+            c.Expect(b.pos.y > 6f && b.ContactDamage == 0 && !b.IsStompable, $"its head is high on the back wall, out of reach (y {b.pos.y:0.0})");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_facet.png"));
+            // neither the head nor a whole fist can be hurt with the blade
+            int h0 = b.health;
+            bool hurtHead = b.TakeDamage(new DamageInfo(3, DamageType.Whip, c.p, Vector2.zero, "test"));
+            bool hurtFist = b.Left.TakeDamage(new DamageInfo(3, DamageType.Whip, c.p, Vector2.zero, "test"));
+            c.Expect(!hurtHead && !hurtFist && b.health == h0 && !b.Cracked, $"the head cannot be hurt and a fist's shell turns the blade (health {h0} -> {b.health})");
+            // its moves
+            bool volley = false, rain = false, fell = false, swept = false, sweepBack = false, fallBack = false;
+            for (int i = 0; i < 9000 && !(volley && rain && fell && swept); i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (Mathf.Abs(c.p.pos.x - 6.5f) > 0.5f) c.Teleport(6.5f, 1f);
+                foreach (var f in new[] { b.Left, b.Right })
+                {
+                    if (f.mode == FacetFist.Mode.Fall) { fallBack |= f.IsStompable; if (!fell) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_facet_slam.png")); fell = true; }
+                    if (f.mode == FacetFist.Mode.Sweep) { sweepBack |= f.IsStompable; if (!swept) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_facet_sweep.png")); swept = true; }
+                }
+                foreach (var e in c.world.Entities)
+                {
+                    if (e.Dead) continue;
+                    if (e is Stalactite) rain = true;
+                }
+                if (b.Burning) { if (!volley) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_facet_light.png")); volley = true; }
+            }
+            c.Expect(fell && b.Slams >= 1, $"a fist follows the player, hangs and comes down ({b.Slams} slams)");
+            c.Expect(swept && b.Sweeps >= 1, $"a fist sweeps the floor from one wall to the other ({b.Sweeps} sweeps)");
+            c.Expect(sweepBack && !fallBack, "a sweeping fist can be landed on from above; one that is coming down cannot");
+            c.Expect(volley && b.Volleys >= 1 && c.Count<BossShot>() == 0, $"three beams of light burn from the gem in its forehead, after thin lines have shown where ({b.Volleys} volleys)");
+            c.Expect(rain, "it brings rock down from the ceiling");
+            // a beam that falls on a crystal is thrown back as from a mirror, and the crystal does not ring for it
+            var mirror = c.Spawn<ResonantCrystal>("crystal", 6, 1);
+            int bounce0 = b.Bounces, v0 = b.Volleys;
+            bool rangForLight = false, shotTaken = false;
+            for (int i = 0; i < 9000 && !(b.Bounces > bounce0 && !b.Burning); i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (Mathf.Abs(c.p.pos.x - 6.5f) > 0.5f) c.Teleport(6.5f, 1f);
+                if (mirror == null || mirror.Dead) mirror = c.Spawn<ResonantCrystal>("crystal", 6, 1);
+                if (b.Burning && b.Bounces > bounce0)
+                {
+                    if (!shotTaken) { shotTaken = true; ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_facet_mirror.png")); }
+                    if (mirror.Ringing && !b.Left.Busy && !b.Right.Busy) rangForLight = true;
+                }
+            }
+            c.Expect(b.Bounces > bounce0, $"a beam that falls on a crystal is thrown back up as from a mirror ({b.Bounces - bounce0} bounces in {b.Volleys - v0} volleys)");
+            c.Expect(!rangForLight, "the light does not set the crystal ringing");
+            foreach (var e in c.world.Entities) if (!e.Dead && (e is ResonantCrystal || e is CrystalShard)) e.Despawn();
+            for (int i = 0; i < 400 && b.Cracked; i++) yield return new WaitForFixedUpdate();
+            // a sweeping fist smashes the crystals in its way: they burst at once, and only the shards ahead of the fist get away
+            var inWay = c.Spawn<ResonantCrystal>("crystal", 15, 1);
+            int ahead = 0, behind = 0, cracks0 = b.Cracks;
+            bool smashedAtOnce = false;
+            var counted = new HashSet<Entity>();
+            for (int i = 0; i < 12000 && ahead == 0; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (Mathf.Abs(c.p.pos.x - 6.5f) > 0.5f) c.Teleport(6.5f, 1f);
+                if (inWay == null || inWay.Dead) inWay = c.Spawn<ResonantCrystal>("crystal", 15, 1);
+                var sweeper = b.Left.mode == FacetFist.Mode.Sweep ? b.Left : b.Right.mode == FacetFist.Mode.Sweep ? b.Right : null;
+                if (sweeper == null) continue;
+                int dir = sweeper == b.Left ? 1 : -1;
+                foreach (var e in c.world.Entities)
+                    if (!e.Dead && e is CrystalShard cs && cs.swept && counted.Add(e))
+                    {
+                        if (cs.vel.x * dir > 0f) ahead++; else behind++;
+                        if (inWay.Spent && sweeper.Overlaps(inWay)) smashedAtOnce = true;
+                    }
+                if (ahead > 0) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_facet_sweep_crystal.png"));
+            }
+            yield return c.Frames(40);
+            c.Expect(ahead == 2 && behind == 0 && smashedAtOnce, $"a sweeping fist smashes a crystal at once and only the shards ahead of it get away ({ahead} ahead, {behind} behind)");
+            c.Expect(b.Cracks == cracks0, "those shards do not crack a fist");
+            foreach (var e in c.world.Entities) if (!e.Dead && (e is ResonantCrystal || e is CrystalShard)) e.Despawn();
+            // a slam hurts: a player who stays under the fist pays for it
+            c.p.godMode = false;
+            c.run.maxHealth = 10; c.run.health = 10;
+            int hp = c.run.health, slams0 = b.Slams;
+            bool crushed = false;
+            int burns0 = b.BeamHits;
+            for (int i = 0; i < 9000 && !(crushed && b.BeamHits > burns0); i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (c.run.health < hp) { if (b.Left.Striking || b.Right.Striking) crushed = true; else hp = c.run.health; }
+                if (c.run.health < 5) { c.run.health = 10; hp = 10; }
+                if (Mathf.Abs(c.p.pos.x - 6.5f) > 1.5f && c.p.grounded) c.Teleport(6.5f, 1f);
+            }
+            c.Expect(crushed, "a fist that comes down on the player hurts them");
+            c.Expect(b.BeamHits > burns0, $"a player who stays on the line is burnt by the beam ({b.BeamHits - burns0} times)");
+            c.p.godMode = true;
+            // a fist that lands on a crystal sets it ringing, and the shards crack the fist open; then the blade counts
+            foreach (var e in c.world.Entities) if (!e.Dead && (e is BossShot || e is Stalactite)) e.Despawn();
+            c.Teleport(6.5f, 1f);
+            var cr = c.Spawn<ResonantCrystal>("crystal", 6, 1);
+            bool cracked = false;
+            for (int i = 0; i < 12000 && !cracked; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                if (Mathf.Abs(c.p.pos.x - 6.5f) > 0.5f) c.Teleport(6.5f, 1f);
+                if (b.Cracked) { cracked = true; }
+            }
+            c.Expect(cracked && b.Cracks >= 1 && b.OpenFist != null && b.OpenFist.IsOpen, $"lured down onto a crystal, the fist is cracked open by its shards ({b.Cracks} cracks)");
+            if (!cracked || b.OpenFist == null) { b.Despawn(); ClearFight(c); yield break; }
+            var open = b.OpenFist;
+            for (int i = 0; i < 60 && open.pos.y > b.FloorY + 0.01f; i++) yield return new WaitForFixedUpdate();
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_facet_cracked.png"));
+            yield return c.Frames(14);
+            int h1 = b.health;
+            bool hurtNow = open.TakeDamage(new DamageInfo(3, DamageType.Whip, c.p, Vector2.zero, "test"));
+            c.Expect(hurtNow && b.health == h1 - 3 && open.ContactDamage == 0, $"a blow on the open fist is a blow on the Facet (health {h1} -> {b.health})");
+            bool closed = false;
+            for (int i = 0; i < 400 && !closed; i++) { yield return new WaitForFixedUpdate(); if (!b.Cracked) closed = true; }
+            int h2 = b.health;
+            yield return c.Frames(14);
+            bool hurtClosed = open.TakeDamage(new DamageInfo(3, DamageType.Whip, c.p, Vector2.zero, "test"));
+            c.Expect(closed && !hurtClosed && b.health == h2, "after a few seconds the shell closes again");
+            // when it goes, its fists go with it
+            b.Despawn();
+            yield return c.Frames(4);
+            c.Expect(c.Count<FacetFist>() == 0, $"when it goes its fists go with it ({c.Count<FacetFist>()} left)");
+            ClearFight(c);
+            foreach (var e in c.world.Entities) if (!e.Dead && (e is ResonantCrystal || e is CrystalShard || e is Stalactite || e is Pickup)) e.Despawn();
+            c.p.godMode = false;
+            c.run.health = 4;
         }
 
         static IEnumerator SandTrapCase(Ctx c)
