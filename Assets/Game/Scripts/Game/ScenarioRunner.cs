@@ -239,6 +239,8 @@ namespace Gloomdelve
             new Scenario { name = "bosses: the yeti king's snow boulder hurts more the bigger it has grown", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => BoulderCase(c) },
 
+            new Scenario { name = "bosses: the yeti king's leap lands with a wave, his slide lies low and can be jumped, and enraged he comes back off the wall", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => YetiKingMovesCase(c) },
             new Scenario { name = "bosses: the yeti king runs in and punches a frozen player, once per freeze", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => YetiPunchCase(c) },
 
@@ -1644,6 +1646,49 @@ namespace Gloomdelve
             c.Expect(bothSides, $"helpers come from both sides over time (left {left}, right {right})");
             ClearFight(c);
             b.Despawn();
+        }
+
+        static IEnumerator YetiKingMovesCase(Ctx c)
+        {
+            c.p.godMode = true;
+            c.Bot(Seq((6000, F())));
+            c.Teleport(5.5f, 1f);
+            var b = c.Spawn<YetiKing>("yetiking", 17, 1, 0, null, -1);
+            c.Expect(b != null && b.maxHealth == 30, "the yeti king spawned with 30 health");
+            if (b == null) yield break;
+            yield return c.Frames(5);
+            float tall = b.size.y;
+            // his leap comes down with a wave of ice to either side
+            b.LeapNow(c.p);
+            for (int i = 0; i < 200 && b.Stomps == 0; i++) yield return new WaitForFixedUpdate();
+            yield return c.Frames(2);
+            c.Expect(b.Stomps == 1 && c.Count<BossShot>() >= 2, $"the landing of his leap sends a wave along the floor each way ({c.Count<BossShot>()} waves)");
+            foreach (var e in c.world.Entities) if (!e.Dead && (e is BossShot || e is Snowball || e is Penguin || e is RollingBall)) e.Despawn();
+            // the slide: flat on his belly, low enough to jump, dazed by the wall
+            yield return c.Frames(20);
+            b.pos = new Vector2(17.5f, 1f); b.vel = Vector2.zero; b.facing = -1;
+            c.Teleport(c.world.Grid.Width - 3.5f, 1f);      // out of his way, behind him
+            b.SlideNow();
+            for (int i = 0; i < 120 && !b.Sliding; i++) yield return new WaitForFixedUpdate();
+            yield return c.Frames(3);
+            c.Expect(b.Sliding && b.size.y < 1.5f, $"sliding, he lies {b.size.y:0.00} tall (standing {tall:0.00})");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_yeti_slide.png"));
+            for (int i = 0; i < 400 && b.Sliding; i++) yield return new WaitForFixedUpdate();
+            c.Expect(!b.Sliding && b.Dazed && b.Rebounds == 0 && Mathf.Abs(b.size.y - tall) < 0.01f, $"the wall dazes him and he stands up again (rebounds {b.Rebounds}, {b.size.y:0.00} tall)");
+            // at half health: the slide comes back off the first wall, the second one dazes him
+            b.health = b.maxHealth / 2;
+            for (int i = 0; i < 300 && b.Dazed; i++) yield return new WaitForFixedUpdate();
+            foreach (var e in c.world.Entities) if (!e.Dead && (e is BossShot || e is Snowball || e is Penguin || e is RollingBall)) e.Despawn();
+            b.pos = new Vector2(17.5f, 1f); b.vel = Vector2.zero; b.facing = -1;
+            b.SlideNow();
+            for (int i = 0; i < 120 && !b.Sliding; i++) yield return new WaitForFixedUpdate();
+            bool came = false;
+            for (int i = 0; i < 400 && b.Sliding && b.Rebounds == 0; i++) yield return new WaitForFixedUpdate();
+            came = b.Rebounds == 1 && b.Sliding;
+            for (int i = 0; i < 500 && b.Sliding; i++) yield return new WaitForFixedUpdate();
+            c.Expect(b.Enraged && came && b.Rebounds == 1 && !b.Sliding && b.Dazed, $"enraged, he comes back off the first wall and the second dazes him (rebounds {b.Rebounds})");
+            b.Despawn();
+            ClearFight(c);
         }
 
         static IEnumerator YetiPunchCase(Ctx c)
@@ -3313,10 +3358,11 @@ namespace Gloomdelve
             bool hit = b.TakeDamage(new DamageInfo(1, DamageType.Whip, c.p, Vector2.zero, "test"));
             c.Expect(!hit && b.health == hp, "a blade from the front rings off its shield");
             int dir0 = belts[0].dir;
-            bool saws = false, reversed = false, presses = false, pressDown = false, rewound = false, openHit = false, shots = false;
-            for (int i = 0; i < 3000 && !(saws && reversed && presses && pressDown && rewound && openHit); i++)
+            bool saws = false, reversed = false, presses = false, pressDown = false, rewound = false, openHit = false, shots = false, maceOut = false;
+            for (int i = 0; i < 4000 && !(saws && reversed && presses && pressDown && rewound && openHit && maceOut); i++)
             {
                 yield return new WaitForFixedUpdate();
+                if (b.MaceOut) maceOut = true;
                 foreach (var e in c.world.Entities)
                 {
                     if (e.Dead) continue;
@@ -3342,6 +3388,17 @@ namespace Gloomdelve
             c.Expect(rewound, "then it has to rewind");
             c.Expect(openHit, "and while it rewinds the same front hit goes through");
             c.Expect(!shots, "no gear fan and no shockwave any more");
+            c.Expect(maceOut && b.MaceThrows > 0 && b.maxHealth == 30, $"it throws its mace out along the floor and has 30 health ({b.MaceThrows} throws)");
+            // behind it is not safe for long: the mace goes right round
+            for (int i = 0; i < 600 && (b.MaceOut || b.Rewinding); i++) yield return new WaitForFixedUpdate();
+            c.p.godMode = false;
+            c.run.health = 8;
+            c.Teleport(b.pos.x - b.facing * 1.6f, 1f);
+            bool spun = false;
+            for (int i = 0; i < 500 && !(spun && !b.Spinning); i++) { yield return new WaitForFixedUpdate(); if (b.Spinning) spun = true; }
+            c.Expect(spun && b.Spins > 0 && c.run.health == 8 - b.spinDamage, $"a player who stays behind it has the mace swung round it (spins {b.Spins}, health 8 -> {c.run.health})");
+            c.p.godMode = true;
+            yield return c.Frames(40);
             // stomped too often: steam throws the player off and the belts flip again
             int dirNow = belts[0].dir;
             c.p.godMode = false;

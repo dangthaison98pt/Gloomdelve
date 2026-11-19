@@ -7,7 +7,9 @@ namespace Gloomdelve
     /// a fur coat stops the freeze), a belly slide across the whole arena (jump it: he is dazed when he hits the
     /// wall), a snow boulder rolled at the player that grows as it rolls and hurts more the bigger it gets (jump it
     /// early, or cut it down - three strokes or a bomb - once it is too tall), a penguin called in now and then, a leap at the player, and
-    /// icicles shaken loose above the player.
+    /// icicles shaken loose above the player. His leap comes down with a wave of ice along the floor to either side.
+    /// At half health he roars: shorter rests, five snowballs to a fan, and his slide comes back off the first wall
+    /// before the second one dazes him.
     /// </summary>
     public class YetiKing : Boss
     {
@@ -34,8 +36,27 @@ namespace Gloomdelve
         [Header("Snow boulder")]
         public string boulderId = "snowboulder";
         public float boulderTell = 0.55f;
+        [Header("Stomp (the landing of his leap)")]
+        public float shockSpeed = 8f;
+        [Header("Enraged (half health and under)")]
+        [Tooltip("His rests are this much of what they were.")] public float enragedGap = 0.75f;
+        public int enragedBalls = 5;
+        [Tooltip("How tall he is while he slides on his belly (he can be jumped).")] public float slideHeight = 1.25f;
         public SpriteAnim animIdle;
         public SpriteAnim animThrow;
+        [Tooltip("Down on his knuckles: about to slide.")] public SpriteAnim animCrouch;
+        [Tooltip("On his belly, arms out in front.")] public SpriteAnim animSlide;
+
+        /// <summary>At half health and under.</summary>
+        public bool Enraged => HealthFraction <= 0.5f;
+        public bool Sliding => sliding;
+        public bool Dazed => daze > 0f;
+        /// <summary>Leaps that came down with a wave / times a slide came back off a wall (tests).</summary>
+        public int Stomps { get; private set; }
+        public int Rebounds { get; private set; }
+        bool leaping, rebounded, roared;
+        float fullHeight;
+        static readonly Color Ice = new Color(0.75f, 0.92f, 1f);
 
         float timer, windup, summonTimer, slideTell, slideT, daze, icicleTell, boulderT, punchT;
         bool punchArmed;
@@ -55,7 +76,26 @@ namespace Gloomdelve
             base.OnSpawn();
             timer = 1.6f;
             summonTimer = summonCooldown * 0.5f;
+            fullHeight = size.y;
             anim?.Play(animIdle);
+        }
+
+        /// <summary>Starts the tell of a belly slide / leaps at the player, right now (tests).</summary>
+        public void SlideNow() { slideTell = slideTellTime; windup = 0f; }
+        public void LeapNow(PlayerController p) => Leap(p);
+
+        void Leap(PlayerController p)
+        {
+            vel = new Vector2(Mathf.Clamp((p.pos.x - pos.x) * 1.1f, -6f, 6f), leapVelocity);
+            grounded = false;
+            leaping = true;
+            Sfx.Play("brute", pos, 1f, 1.2f);
+        }
+
+        void EndSlide()
+        {
+            sliding = false;
+            size = new Vector2(size.x, fullHeight);
         }
 
         public override void Tick(float dt)
@@ -64,6 +104,14 @@ namespace Gloomdelve
             if (HoldCounterPose(dt)) return;      // busy answering a stomp
             summonTimer -= dt;
             var p = Target;
+            if (!roared && Enraged && !Dead)
+            {
+                roared = true;
+                Tell();
+                Fx.Text(new Vector2(Center.x, pos.y + fullHeight + 0.9f), "RAAAH!", Ice, 1f);
+                Fx.Shake(0.5f);
+                Sfx.Play("brute", pos, 1f, 0.6f);
+            }
             if (grounded && !sliding && punchT <= 0f) vel.x = Mathf.MoveTowards(vel.x, 0f, 14f * dt);
             // A frozen player is an invitation: whatever he was about to do, he drops it, runs in and punches.
             // Once per freeze; a fur coat (no freeze) never invites it.
@@ -100,14 +148,20 @@ namespace Gloomdelve
             {
                 vel.x = facing * slideSpeed;
                 slideT -= dt;
+                anim?.Play(animSlide != null ? animSlide : animThrow);
                 if (grounded && slideT % 0.1f < dt) Fx.Dust(pos, 1);
-                if (slideT <= 0f) { sliding = false; timer = Rest(actionGap); }
+                if (slideT <= 0f) { EndSlide(); timer = Rest(actionGap); }
             }
             else if (slideTell > 0f)
             {
                 slideTell -= dt;
-                anim?.Play(animThrow);
-                if (slideTell <= 0f) { sliding = true; slideT = 3.5f; Sfx.Play("brute", pos, 1f, 1.1f); }
+                anim?.Play(animCrouch != null ? animCrouch : animThrow);
+                if (slideTell <= 0f)
+                {
+                    sliding = true; slideT = 3.5f; rebounded = false;
+                    size = new Vector2(size.x, slideHeight);       // flat on his belly: low enough to jump
+                    Sfx.Play("brute", pos, 1f, 1.1f);
+                }
             }
             else if (icicleTell > 0f)
             {
@@ -143,27 +197,37 @@ namespace Gloomdelve
                 timer -= dt;
                 if (timer <= 0f && p != null)
                 {
-                    timer = Rest(actionGap);
+                    timer = Rest(actionGap) * (Enraged ? enragedGap : 1f);
                     // his moves, in random order: snowballs, belly slide, snow boulder, penguin (or snowballs), leap, icicles
                     int kind = NextMove(0, 1, 2, 3, 4, 5);
                     if (kind == 1) { slideTell = slideTellTime; Tell(); Sfx.Play("toad", pos, 1f, 0.5f); }
                     else if (kind == 2) { boulderT = boulderTell; Tell(); Sfx.Play("toad", pos, 1f, 0.7f); timer = Rest(actionGap * 1.3f); }
                     else if (kind == 5) { icicleTell = icicleTellTime; icicleX = Mathf.FloorToInt(p.pos.x); Tell(); Sfx.Play("brute", pos, 1f, 0.5f); }
                     else if (kind == 3 && summonTimer <= 0f && CountAlive<Penguin>() < maxPenguins) { Summon(p); summonTimer = summonCooldown; }
-                    else if (kind == 4)
-                    {
-                        vel = new Vector2(Mathf.Clamp((p.pos.x - pos.x) * 1.1f, -6f, 6f), leapVelocity);
-                        grounded = false;
-                        Sfx.Play("brute", pos, 1f, 1.2f);
-                    }
+                    else if (kind == 4) Leap(p);
                     else { windup = windupTime; aim = p.Center; anim?.Play(animThrow); }
                 }
             }
             var b = StepPhysics(dt, gravity);
-            if (b.landed) { Fx.Shake(0.3f); Fx.Dust(pos, 6); Sfx.Play("thud", pos); }
-            if (sliding && (b.hitLeft || b.hitRight))
+            if (b.landed)
             {
-                sliding = false;
+                Fx.Shake(0.3f); Fx.Dust(pos, 6); Sfx.Play("thud", pos);
+                // the landing of a leap sends a wave of ice along the floor to either side
+                if (leaping) { leaping = false; Stomps++; Shockwave(shockSpeed, Ice); }
+            }
+            if (sliding && (b.hitLeft || b.hitRight) && Enraged && !rebounded)
+            {
+                // enraged: he comes back off the first wall
+                rebounded = true; Rebounds++;
+                facing = -facing;
+                slideT = 3.5f;
+                Fx.Shake(0.35f);
+                Fx.Debris(new Vector2(pos.x - facing * 0.8f, pos.y + 0.6f), Ice, 8);
+                Sfx.Play("thud", pos, 1f, 0.9f);
+            }
+            else if (sliding && (b.hitLeft || b.hitRight))
+            {
+                EndSlide();
                 daze = slideDaze;
                 timer = Rest(actionGap * 0.5f);
                 vel.x = -facing * 2f;
@@ -190,8 +254,10 @@ namespace Gloomdelve
         {
             Vector2 from = new Vector2(pos.x + facing * 0.6f, pos.y + size.y + 0.1f);
             float t = Mathf.Clamp(Mathf.Abs(aim.x - from.x) / 8f, 0.6f, 1.1f);
-            for (int i = -1; i <= 1; i++)
+            int n = Enraged ? enragedBalls : 3;
+            for (int k = 0; k < n; k++)
             {
+                int i = k - (n - 1) / 2;
                 var e = World.SpawnById(projectileId, from);
                 if (e == null) continue;
                 e.vel = Lob(from, aim + new Vector2(i * 2.2f, 0f), ballGravity, t + i * 0.08f);

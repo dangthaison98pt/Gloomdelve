@@ -47,7 +47,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.Foreman
   displayName: Foreman
   size: {x: 1.9, y: 2}
-  maxHealth: 16
+  maxHealth: 30
   flipWithFacing: 1
   artFacesLeft: 0
   contactDamage: 2
@@ -90,7 +90,20 @@ MonoBehaviour:
   presses: 5
   pressSpacing: 2.3
   pressInterval: 0.28
-  rewindTime: 2.2
+  rewindTime: 1.6
+  spinBehindTime: 0.35
+  spinTell: 0.4
+  spinTime: 0.35
+  spinReach: 2.7
+  spinDamage: 2
+  spinCooldown: 3
+  maceSpeed: 12
+  maceReach: 10
+  maceSize: 0.8
+  maceDamage: 1
+  enragedWalk: 1.6
+  enragedSaws: 3
+  chainMaterial: {fileID: 2100000, guid: 71f4b9bdde8354942977b450a30471f2, type: 2}
   animWalk: {fileID: 11400000, guid: 4cd8020df98e25b47aa28fb5ade208fb, type: 2}
   animCharge: {fileID: 11400000, guid: 7e0b36e2392fd274e96b494c1b6e7855, type: 2}
   animDazed: {fileID: 11400000, guid: f336092e79cc9e541a2359d359a6e4e6, type: 2}

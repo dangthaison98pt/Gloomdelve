@@ -153,7 +153,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.YetiKing
   displayName: Yeti King
   size: {x: 1.9, y: 2.3}
-  maxHealth: 16
+  maxHealth: 30
   flipWithFacing: 1
   artFacesLeft: 0
   contactDamage: 2
@@ -199,5 +199,11 @@ MonoBehaviour:
   punchDamage: 2
   boulderId: snowboulder
   boulderTell: 0.55
+  shockSpeed: 8
+  enragedGap: 0.75
+  enragedBalls: 5
+  slideHeight: 1.25
   animIdle: {fileID: 11400000, guid: bd2d25c0de2456d44862cfe70075a7d9, type: 2}
   animThrow: {fileID: 11400000, guid: 971cb61e4c13f814489227dd21dfaff3, type: 2}
+  animCrouch: {fileID: 11400000, guid: 5dfc29ad1fd2db44194806d854c7baa3, type: 2}
+  animSlide: {fileID: 11400000, guid: 9a642cb305603f646b333acb9f8b2ee1, type: 2}

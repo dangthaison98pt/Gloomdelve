@@ -224,6 +224,55 @@ namespace Gloomdelve.EditorTools
                 p.Line(33, 54, 37, 52, ol); p.Line(39, 52, 43, 54, ol);
                 Save(p, $"Sprites/Bosses/yetiking_{f}", FramedPivot(62, 68, 31, 1));
             }
+            {
+                // 2: down on his knuckles, head low and forward - about to throw himself on his belly
+                Color32 am = C(216, 232, 248);
+                var p = Framed(62, 68);
+                Bar(p, 14, 30, 9, 12, 4, d); p.Disc(9f, 7f, 6f, skinD);
+                p.Rect(15, 4, 11, 8, d); p.Rect(33, 4, 11, 8, d);
+                p.Rect(13, 1, 15, 4, skin); p.Rect(31, 1, 16, 4, skin); p.Rect(13, 1, 15, 1, skinD); p.Rect(31, 1, 16, 1, skinD);
+                p.Ellipse(30f, 19f, 20f, 15f, m); p.Ellipse(33f, 30f, 22f, 12f, m);
+                p.Ellipse(42f, 38f, 12f, 11f, m);
+                Shade(p, m, d, l, 5, 3, 2);
+                p.Ellipse(47f, 37f, 8f, 7f, skin);
+                p.Rect(44, 31, 9, 3, skinD);
+                p.Rect(45, 32, 2, 4, tusk); p.Rect(50, 32, 2, 4, tusk);
+                Bar(p, 33, 45, 29, 51, 1, ice); p.Set(28, 53, iceL); p.Set(29, 52, iceL);
+                Bar(p, 52, 46, 57, 51, 1, ice); p.Set(58, 53, iceL); p.Set(58, 52, iceL);
+                p.Rect(36, 48, 14, 3, gold); p.Rect(36, 48, 14, 1, goldD);
+                p.Rect(36, 51, 2, 3, gold); p.Rect(42, 51, 2, 4, gold); p.Rect(48, 51, 2, 3, gold);
+                p.Rect(42, 49, 2, 1, gem);
+                Bar(p, 46, 30, 52, 13, 4, am); Shade(p, am, d, l, 3, 2, 2);
+                p.Disc(53f, 7f, 6f, skin); p.Rect(57, 3, 3, 2, skinD); p.Rect(58, 7, 3, 2, skinD);
+                p.Outline(ol);
+                p.Rect(45, 38, 2, 2, iceL); p.Rect(50, 38, 2, 2, iceL);
+                p.Line(43, 42, 47, 40, ol); p.Line(49, 40, 53, 42, ol);
+                Save(p, "Sprites/Bosses/yetiking_2", FramedPivot(62, 68, 31, 1));
+            }
+            {
+                // 3: on his belly, sliding: arm out in front, feet up behind, snow thrown up under him
+                Color32 am = C(216, 232, 248);
+                var p = Framed(62, 68);
+                Bar(p, 13, 15, 5, 14, 3, d); p.Rect(0, 10, 5, 8, skin); p.Rect(0, 10, 1, 8, skinD);
+                p.Ellipse(26f, 13f, 22f, 12f, m);
+                p.Ellipse(46f, 17f, 11f, 10f, m);
+                Shade(p, m, d, l, 4, 3, 2);
+                p.Ellipse(51f, 16f, 7f, 6f, skin);
+                p.Rect(50, 10, 7, 3, skinD);
+                p.Rect(51, 11, 2, 3, tusk); p.Rect(55, 11, 2, 3, tusk);
+                Bar(p, 38, 24, 34, 29, 1, ice); p.Set(33, 31, iceL); p.Set(34, 30, iceL);
+                Bar(p, 54, 24, 58, 29, 1, ice); p.Set(59, 31, iceL); p.Set(59, 30, iceL);
+                p.Rect(40, 26, 13, 3, gold); p.Rect(40, 26, 13, 1, goldD);
+                p.Rect(40, 29, 2, 3, gold); p.Rect(46, 29, 2, 4, gold); p.Rect(51, 29, 2, 3, gold);
+                p.Rect(46, 27, 2, 1, gem);
+                Bar(p, 36, 7, 54, 5, 3, am); Shade(p, am, d, l, 2, 0, 2);
+                p.Disc(58f, 5f, 4.5f, skin);
+                p.Rect(2, 2, 3, 2, l); p.Rect(8, 4, 2, 2, l); p.Rect(-2, 5, 2, 2, l);
+                p.Outline(ol);
+                p.Rect(49, 18, 2, 2, iceL); p.Rect(54, 18, 2, 2, iceL);
+                p.Line(47, 22, 51, 20, ol); p.Line(53, 20, 57, 22, ol);
+                Save(p, "Sprites/Bosses/yetiking_3", FramedPivot(62, 68, 31, 1));
+            }
         }
 
         /// <summary>
