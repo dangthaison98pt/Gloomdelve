@@ -1719,6 +1719,15 @@ namespace Gloomdelve
                 var room = c.Spawn<VillageInterior>("interior", 24, 1, 1);
                 yield return c.Frames(4);
                 c.Expect(front != null && front.Open && locked != null && !locked.Open, "a freed keeper's house is open, a lost one's is locked");
+                // the windows of a room show the hour of the street outside: a picture of its own for dawn, day and dusk
+                if (room != null)
+                {
+                    var hourPics = new HashSet<Sprite>();
+                    foreach (VillageClock.Part part in System.Enum.GetValues(typeof(VillageClock.Part))) { var pic = room.RoomPicture(1, part); if (pic != null) hourPics.Add(pic); }
+                    var nowPart = VillageClock.PartOf(VillageClock.Hour);
+                    c.Expect(hourPics.Count == 4 && room.Picture == room.RoomPicture(1, nowPart) && room.RoomPicture(1, VillageClock.Part.Night) == room.rooms[1],
+                        $"a room has a picture for each hour of the village clock ({hourPics.Count} of 4) and wears the one for now ({nowPart})");
+                }
                 if (locked != null) locked.Interact(c.p);
                 yield return c.Frames(4);
                 c.Expect(locked != null && locked.GetPrompt(c.p).Contains("Look") && c.dir.hud.NoteUp, "the locked door offers a look, and says it is locked when looked at");
@@ -3826,8 +3835,30 @@ namespace Gloomdelve
             yield return new WaitForSecondsRealtime(0.5f);       // (the lines have slid in)
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "hud_item_feed.png"));
             yield return c.Frames(3);
+            // what a save remembers survives leaving the game: written to its file and read back
+            {
+                string keep = SaveSystem.DirOverride;
+                string scratch = System.IO.Path.Combine(OutDir, "save_roundtrip");
+                System.IO.Directory.CreateDirectory(scratch);
+                foreach (var f in System.IO.Directory.GetFiles(scratch)) System.IO.File.Delete(f);
+                SaveSystem.DirOverride = scratch;
+                SaveSystem.Reload();
+                var rec = SaveSystem.Records;
+                rec.seenItems.Add("bomb bag"); rec.seenItems.Add("ware:compass");
+                rec.killCounts.Add(new KillCount { name = "snake", count = 3 });
+                rec.quests.Add(new QuestState { id = "elder_word", step = 1, done = false });
+                rec.tutorialDone = true;
+                SaveSystem.SaveRecords();
+                SaveSystem.Reload();
+                rec = SaveSystem.Records;
+                c.Expect(rec.seenItems.Count == 2 && rec.seenItems.Contains("bomb bag") && rec.killCounts.Count == 1 && rec.killCounts[0].count == 3
+                         && rec.quests.Count == 1 && rec.quests[0].step == 1 && rec.tutorialDone,
+                    $"the things picked up, the kills, the quests and the tutorial are all in the save file after a restart (seen {rec.seenItems.Count}, kills {rec.killCounts.Count}, quests {rec.quests.Count}, tutorial {rec.tutorialDone})");
+                SaveSystem.DirOverride = keep;
+                SaveSystem.Reload();
+            }
             // the chest by the gate of an area that asks for gear: opened, it hands that gear over
-            c.run.gear.Remove("glider");
+            c.run.gear.Remove("glider"); ItemLog.Forget("gear:glider");
             var gc = Chest.SpawnGearChest(c.world, "glider", new Vector2(8.5f, 1f));
             yield return c.Frames(3);
             c.Expect(gc != null && gc.gearId == "glider" && Mathf.Abs(gc.pos.x - 8.5f) <= 4f && !c.run.gear.Contains("glider"), "a gear chest stands beside the gate, and the gear is not yet the player's");
@@ -3836,7 +3867,7 @@ namespace Gloomdelve
                 c.Teleport(gc.pos.x, 1f);
                 c.Bot(Seq((2, F()), (1, F(act: true)), (60, F())));
                 yield return c.Frames(20);
-                c.Expect(gc.Opened && c.run.gear.Contains("glider") && hud.CardUp, "opened with the button, it hands the glider over, on a card");
+                c.Expect(gc.Opened && c.run.gear.Contains("glider") && hud.CardUp, "opened with the button, it hands the glider over, on a card the first time");
                 ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "gear_chest.png"));
                 yield return c.Frames(3);
                 gc.Despawn();

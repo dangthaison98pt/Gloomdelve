@@ -1656,6 +1656,8 @@ namespace Gloomdelve.EditorTools
                 Reg("elder", Make<Elder>("Elder", "Level", "elder", new Vector2(1f, 1.3f), ArtGenerator.S("Sprites/NPC/villager_6"), null, 3, (e, g, s) => { e.flipWithFacing = false; }));
                 // the street: every house front, with a lantern by the door and light spilling from the windows
                 var dark = new Sprite[8]; var lit = new Sprite[8]; var rooms = new Sprite[8];
+                var roomsByHour = new Sprite[24];           // dawn, day, dusk (the eight rooms of each, in that order)
+                for (int i = 0; i < 24; i++) roomsByHour[i] = ArtGenerator.S($"Sprites/Village/room_{i % 8}_{new[] { "dawn", "day", "dusk" }[i / 8]}");
                 for (int i = 0; i < 8; i++)
                 {
                     dark[i] = ArtGenerator.S($"Sprites/Village/front_{i}_0"); lit[i] = ArtGenerator.S($"Sprites/Village/front_{i}_1");
@@ -1739,7 +1741,7 @@ namespace Gloomdelve.EditorTools
                 }));
                 Reg("interior", Make<VillageInterior>("VillageInterior", "Level", "door", new Vector2(1.2f, 1.7f), rooms[0], null, 2, (e, g, s) =>
                 {
-                    e.flipWithFacing = false; e.rooms = rooms;
+                    e.flipWithFacing = false; e.rooms = rooms; e.roomsByHour = roomsByHour;
                     s.transform.localPosition = new Vector3(5.5f, 6.5f, 0f);      // the picture is the whole house, both storeys; the entity stands at its door
                     s.sharedMaterial = unlitMat;                                  // its light and shadow are painted in (ArtGenerator.Village, Room): the lamps here light only who is in it
                     Lamp(g, "RoomLight", new Vector2(5.5f, 3.2f), 10f, 0.5f, 0.06f);

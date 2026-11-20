@@ -29,6 +29,10 @@ namespace Gloomdelve.EditorTools
                 Save(Front(k, false), d + "front_" + k + "_0", new Vector2(0.5f, 0f));
                 Save(Front(k, true), d + "front_" + k + "_1", new Vector2(0.5f, 0f));
                 Save(Room(k), d + "room_" + k, PCenter);
+                // the same room at the other hours of the village clock: what the windows show, and the light they let in
+                Save(Room(k, 1), d + "room_" + k + "_dawn", PCenter);
+                Save(Room(k, 2), d + "room_" + k + "_day", PCenter);
+                Save(Room(k, 3), d + "room_" + k + "_dusk", PCenter);
             }
             StreetArt(d);
             {
@@ -582,7 +586,8 @@ namespace Gloomdelve.EditorTools
         /// <summary>Where the ladder stands, in floor-space pixels (the fourth cell).</summary>
         const int LadderX = 48;
 
-        static Px Room(int kind)
+        /// <summary>light: the hour outside, as VillageClock.Part counts it - 0 night (the room as first painted), 1 dawn, 2 day, 3 dusk.</summary>
+        static Px Room(int kind, int light = 0)
         {
             var p = new Px(RoomPxW, RoomPxH);
             p.Rect(0, 0, RoomPxW, RoomPxH, C(5, 5, 10));
@@ -594,6 +599,7 @@ namespace Gloomdelve.EditorTools
             Color32[] cloths = { C(96, 100, 120), C(84, 130, 104), C(176, 70, 78), C(214, 200, 160), C(150, 90, 150), C(210, 170, 80), C(150, 54, 58), C(96, 116, 160) };
             Color32 cloth = cloths[kind];
             var lights = new List<Vector4>();                   // x, y (picture pixels), reach, strength
+            var panes = new List<RectInt>();                    // the glass of every window (picture pixels): what it shows depends on the hour
             int ix = RX + 16, iy = RY + 16;                                   // bottom-left of the ground floor's floor space
             int oy = 0;                                                       // 0 while drawing the ground floor, UpperY for upstairs
 
@@ -637,7 +643,7 @@ namespace Gloomdelve.EditorTools
                 for (int yy = -3; yy < h + 3; yy++) { int cw = 4 + (yy < 2 ? 1 : 0) + ((yy + 3) % 6 == 0 ? 1 : 0); R(x - 8, y + yy, cw, 1, yy % 3 == 0 ? Mul(cloth, 0.8f) : cloth); R(x + w + 8 - cw, y + yy, cw, 1, yy % 3 == 0 ? Mul(cloth, 0.8f) : cloth); }
                 Pane(x, y, w, h);
             }
-            void Pane(int x, int y, int w, int h) { R(x - 2, y - 2, w + 4, h + 4, VBeam); R(x, y, w, h, C(30, 40, 84)); R(x + w / 2, y, 1, h, VBeam); R(x, y + h / 2, w, 1, VBeam); Dot(x + 3, y + h - 4, VSnow); Dot(x + w - 4, y + 3, VSnow); Dot(x + 6, y + 5, VSnowD); R(x - 2, y - 2, w + 4, 1, VSnow); }
+            void Pane(int x, int y, int w, int h) { panes.Add(new RectInt(ix + x, iy + oy + y, w, h)); if (light != 0) lights.Add(new Vector4(ix + x + w * 0.5f, iy + oy + y + h * 0.4f, 84f, light == 2 ? 0.42f : 0.3f)); R(x - 2, y - 2, w + 4, h + 4, VBeam); R(x, y, w, h, C(30, 40, 84)); R(x + w / 2, y, 1, h, VBeam); R(x, y + h / 2, w, 1, VBeam); Dot(x + 3, y + h - 4, VSnow); Dot(x + w - 4, y + 3, VSnow); Dot(x + 6, y + 5, VSnowD); R(x - 2, y - 2, w + 4, 1, VSnow); }
             void Counter(int x, int w) { R(x, 0, w, 14, wood); R(x, 14, w, 2, woodL); R(x, 0, w, 1, woodD); for (int i = 6; i < w; i += 10) R(x + i, 2, 1, 11, woodD); }
             // the hearth: stone, with logs in it - the flames are a moving picture laid over it in the game
             void Fireplace(int x)
@@ -666,6 +672,7 @@ namespace Gloomdelve.EditorTools
             // the door back to the street (second cell from the left)
             R(14, 0, 20, 34, VBeam); R(16, 0, 16, 31, C(98, 62, 40)); for (int x = 19; x < 32; x += 4) R(x, 0, 1, 31, C(72, 46, 30));
             R(20, 18, 8, 8, VBeam); R(21, 19, 6, 6, C(30, 40, 84)); Dot(29, 14, C(236, 200, 110));
+            panes.Add(new RectInt(ix + 21, iy + oy + 19, 6, 6));              // (the glass in the door shows the hour too)
             Rug(12, 24, C(120, 60, 60));
 
             switch (kind)
@@ -796,12 +803,44 @@ namespace Gloomdelve.EditorTools
                         float f = Mathf.Clamp01(1f - Mathf.Sqrt(dx * dx + dy * dy) / l.z);
                         lit = Mathf.Max(lit, f * f * (3f - 2f * f) * l.w);
                     }
-                    lit = Mathf.Clamp01(0.32f + lit);
+                    lit = Mathf.Clamp01((light == 0 ? 0.32f : 0.26f) + lit);
                     float r = c.r * k, g = c.g * k, b = c.b * k;
                     float dr = r * 0.34f, dg = g * 0.4f, db = b * 0.58f + 6f;                    // unlit: dim and blue
+                    // by day the corners are not dark: the room stands in plain daylight, a little cool; at dawn and at dusk
+                    // it is dim still, but the dimness has the colour of the sky outside
+                    if (light == 2) { dr = r * 0.8f; dg = g * 0.83f; db = b * 0.88f + 3f; }
+                    else if (light == 1) { dr = r * 0.56f; dg = g * 0.5f; db = b * 0.56f + 4f; }
+                    else if (light == 3) { dr = r * 0.6f; dg = g * 0.48f; db = b * 0.46f + 3f; }
                     float wr = r * 1.1f + 6f, wg = g * 1.0f + 2f, wb = b * 0.84f;                 // lit: warm
                     p.Set(x, y, new Color32((byte)Mathf.Clamp(Mathf.Lerp(dr, wr, lit), 0, 255), (byte)Mathf.Clamp(Mathf.Lerp(dg, wg, lit), 0, 255), (byte)Mathf.Clamp(Mathf.Lerp(db, wb, lit), 0, 255), c.a));
                 }
+            // What the windows show at this hour (the night's glass is the dark blue painted above). Laid in after the
+            // light of the room: the sky is not lit by the lamps. Sky above, the snow of the roofs across the street
+            // below it, then the glazing bars and the snow on the sill again.
+            if (light != 0)
+            {
+                Color32 skyTop = light == 2 ? C(120, 176, 232) : light == 1 ? C(150, 150, 204) : C(214, 120, 96);
+                Color32 skyLow = light == 2 ? C(196, 224, 246) : light == 1 ? C(244, 190, 176) : C(250, 190, 110);
+                Color32 snow = light == 2 ? C(240, 246, 252) : light == 1 ? C(226, 206, 214) : C(232, 196, 170);
+                Color32 snowD = Mul(snow, 0.86f), bar = Lerp(VBeam, skyTop, 0.25f);
+                foreach (var w in panes)
+                {
+                    bool small = w.height < 10; int roofs = small ? 2 : Mathf.Max(3, w.height / 4);
+                    for (int yy = 0; yy < w.height; yy++)
+                        for (int xx = 0; xx < w.width; xx++)
+                        {
+                            Color32 c;
+                            int rise = roofs + ((xx * 5 / Mathf.Max(1, w.width)) % 2 == 0 ? 0 : small ? 1 : 2) - (!small && xx % 7 == 3 ? 1 : 0);      // two roof heights across the street
+                            if (yy < rise) c = yy == rise - 1 ? snow : snowD;
+                            else c = Lerp(skyLow, skyTop, Mathf.Clamp01((yy - rise) / (float)Mathf.Max(1, w.height - rise - 1)));
+                            p.Set(w.x + xx, w.y + yy, c);
+                        }
+                    if (small) continue;
+                    p.Rect(w.x + w.width / 2, w.y, 1, w.height, bar); p.Rect(w.x, w.y + w.height / 2, w.width, 1, bar);
+                    p.Set(w.x + 3, w.y + w.height - 4, C(255, 255, 255));                                    // a glint on the glass
+                    p.Set(w.x + 4, w.y + w.height - 5, C(255, 255, 255));
+                }
+            }
             return p;
         }
 

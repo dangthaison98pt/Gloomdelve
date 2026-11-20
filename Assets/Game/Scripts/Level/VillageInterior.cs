@@ -15,6 +15,7 @@ namespace Gloomdelve
         public const int RoomW = 14, RoomH = 13;        // two storeys of six cells with the floor between them
 
         [Tooltip("Rooms by building number.")] public Sprite[] rooms;
+        [Tooltip("The same rooms at the other hours of the village clock: all at dawn, then all by day, then all at dusk ('rooms' is the night).")] public Sprite[] roomsByHour;
         [Tooltip("The fire (a child object with its flames and light): put in the hearth of the rooms that have one.")] public Transform fire;
 
         /// <summary>Where the fire burns in each room, in floor-space pixels of the picture (-1 = no fire): the forge's
@@ -106,10 +107,24 @@ namespace Gloomdelve
         /// than the view, so the camera stands still on it instead of sliding after the player.</summary>
         Rect Frame => new Rect(RoomLeft + RoomW * 0.5f - 0.05f, pos.y + RoomH * 0.5f - 0.05f, 0.1f, 0.1f);
 
+        /// <summary>
+        /// The picture of a room at an hour of the village clock: its windows show the sky of the street outside, and
+        /// the room is lit by it (the night picture where there is none for that hour).
+        /// </summary>
+        public Sprite Picture => sr != null ? sr.sprite : null;
+
+        public Sprite RoomPicture(int index, VillageClock.Part part)
+        {
+            if (rooms == null || index < 0 || index >= rooms.Length) return null;
+            int at = part == VillageClock.Part.Night ? -1 : ((int)part - 1) * rooms.Length + index;
+            if (at >= 0 && roomsByHour != null && at < roomsByHour.Length && roomsByHour[at] != null) return roomsByHour[at];
+            return rooms[index];
+        }
+
         public override void OnSpawn()
         {
             base.OnSpawn();
-            if (sr != null && rooms != null && Index >= 0 && Index < rooms.Length && rooms[Index] != null) sr.sprite = rooms[Index];
+            if (sr != null) { var room = RoomPicture(Index, VillageClock.PartOf(VillageClock.Hour)); if (room != null) sr.sprite = room; }
             if (fire != null)
             {
                 bool lit = Index >= 0 && Index < FireX.Length && FireX[Index] >= 0;

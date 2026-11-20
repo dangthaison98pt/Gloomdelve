@@ -306,6 +306,31 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 3afb0c1a8e684d04ca7faa83445f03fd, type: 3}
   - {fileID: 21300000, guid: 1ab453b947989bc418170d0274204f25, type: 3}
   - {fileID: 21300000, guid: 175c227d9c80f7c4db3e1e57a6793140, type: 3}
+  roomsByHour:
+  - {fileID: 21300000, guid: e1633c3bc6aad4146bcbbc702d9b038b, type: 3}
+  - {fileID: 21300000, guid: fdd3e7d180fe3cf4b92539482740d2a0, type: 3}
+  - {fileID: 21300000, guid: 92f32e957f8c56347859db26497a000b, type: 3}
+  - {fileID: 21300000, guid: a2dd151548e68f24d9f625b1a0d6f7f5, type: 3}
+  - {fileID: 21300000, guid: 4f12383fcf1ebf6499dc0542ff87baaf, type: 3}
+  - {fileID: 21300000, guid: d6a88f04b09ba014f8c681102dd93814, type: 3}
+  - {fileID: 21300000, guid: 1cf0e002d72b7854196709145098f846, type: 3}
+  - {fileID: 21300000, guid: fef9e6c733de2c54baee46b4f7af0425, type: 3}
+  - {fileID: 21300000, guid: 586000423e434274ea761c0ca3e3b0d9, type: 3}
+  - {fileID: 21300000, guid: 36a42df3f1a1c1341bab2c4de2758d67, type: 3}
+  - {fileID: 21300000, guid: cca46fde8ba18f544b49d6b1bd75256d, type: 3}
+  - {fileID: 21300000, guid: 30f490f6393c6374c88c9c2308084ec0, type: 3}
+  - {fileID: 21300000, guid: 0f6a3662ba80890479a6bb023870de0d, type: 3}
+  - {fileID: 21300000, guid: ffba55d635274e643ab649302fce4057, type: 3}
+  - {fileID: 21300000, guid: cf1358bab8f3a6e439fbe2deb7d4d6e5, type: 3}
+  - {fileID: 21300000, guid: b455368f45ae38a41aa19718ccd90b72, type: 3}
+  - {fileID: 21300000, guid: 78ec04c7627888d419c3b3d3d3a0c25a, type: 3}
+  - {fileID: 21300000, guid: a62a5d2043f8a1b47b1f11d87f049b95, type: 3}
+  - {fileID: 21300000, guid: cfe77e25ef4e72a4b9f879c05e583428, type: 3}
+  - {fileID: 21300000, guid: 40e8638794410d348b4f3f7d0711497f, type: 3}
+  - {fileID: 21300000, guid: ad0d8cd87a831974c83da8127a71177b, type: 3}
+  - {fileID: 21300000, guid: c1fb7fb91861a2949a492bd49f0ccc30, type: 3}
+  - {fileID: 21300000, guid: c12e2dcb65985c94f867438c5ae9be36, type: 3}
+  - {fileID: 21300000, guid: 70985a161422920429d4fe3ef4487624, type: 3}
   fire: {fileID: 1719453307735123857}
 --- !u!1 &8667170172346978849
 GameObject:

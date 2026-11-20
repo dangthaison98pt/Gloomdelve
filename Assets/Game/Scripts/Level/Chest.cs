@@ -76,8 +76,9 @@ namespace Gloomdelve
                 var dir = GameDirector.Instance;
                 if (gear != null)
                 {
-                    // always on a card, however often it has been found before: the area cannot be crossed without it
-                    if (dir != null && dir.hud != null) dir.hud.Gain("gear:" + gearId, gear.displayName, gear.icon, 1, $"Hold [gear] to equip it.  {gear.description}", true);
+                    // on a card the first time in this save; after that it is known, and is a line at the left like
+                    // anything picked up again (every climb finds this chest anew: the card every time was too much)
+                    if (dir != null && dir.hud != null) dir.hud.Gain("gear:" + gearId, gear.displayName, gear.icon, 1, $"Hold [gear] to equip it.  {gear.description}");
                 }
                 return;
             }
