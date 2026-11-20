@@ -143,6 +143,7 @@ MonoBehaviour:
   maxHealth: 1
   flipWithFacing: 0
   artFacesLeft: 0
+  itemId: heart_pickup
   resource: health
   value: 1
   label: HP

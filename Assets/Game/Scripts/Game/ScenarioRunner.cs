@@ -3860,7 +3860,7 @@ namespace Gloomdelve
             if (sign != null) sign.Despawn();
             // an item picked up: a card the first time, a line at the left edge after that - one line each, two of a kind included;
             // gold is no item: it only ever gets a line
-            ItemLog.Forget("bomb bag"); ItemLog.Forget("gold nugget");
+            ItemLog.Forget("bombs"); ItemLog.Forget("gold_small");
             c.Spawn<Pickup>("bombbag", 6, 1);
             yield return c.Frames(20);
             c.Teleport(6.5f, 1f);
@@ -3871,7 +3871,7 @@ namespace Gloomdelve
             yield return c.Frames(3);
             int gold0 = c.run.gold;
             c.Teleport(3.5f, 1f);
-            ItemLog.FirstTime("rope pile");       // (seen before: it goes to the list)
+            ItemLog.FirstTime("ropes");       // (seen before: it goes to the list)
             c.Spawn<Pickup>("ropepile", 6, 1); c.Spawn<Pickup>("ropepile", 6, 1);
             c.Spawn<Pickup>("gold_small", 7, 1); c.Spawn<Pickup>("gold_big", 7, 1);
             yield return c.Frames(20);
@@ -3879,8 +3879,22 @@ namespace Gloomdelve
             yield return c.Frames(14);
             c.Teleport(7.5f, 1f);
             yield return c.Frames(14);
-            c.Expect(c.run.gold == gold0 + 40 && hud.FeedCount == 4 && hud.FeedLines("rope pile") == 2 && hud.FeedAmount("rope pile") == 6 && hud.FeedAmount("gold nugget") == 10 && hud.FeedAmount("gold chunk") == 30 && hud.CardName == "Bomb Bag",
-                $"picked up again an item is a line at the left edge, each with a line of its own - two rope piles two lines, a nugget +10, a chunk +30 - and gold never a card (lines {hud.FeedCount}, rope lines {hud.FeedLines("rope pile")}, nugget +{hud.FeedAmount("gold nugget")}, chunk +{hud.FeedAmount("gold chunk")})");
+            c.Expect(c.run.gold == gold0 + 40 && hud.FeedCount == 4 && hud.FeedLines("ropes") == 2 && hud.FeedAmount("ropes") == 6 && hud.FeedAmount("gold_small") == 10 && hud.FeedAmount("gold_big") == 30 && hud.CardName == "Bomb Bag",
+                $"picked up again an item is a line at the left edge, each with a line of its own - two rope piles two lines, a nugget +10, a chunk +30 - and gold never a card (lines {hud.FeedCount}, rope lines {hud.FeedLines("ropes")}, nugget +{hud.FeedAmount("gold_small")}, chunk +{hud.FeedAmount("gold_big")})");
+            // one id for a thing, however it is come by: the bomb bag found on the ground has had its card, so the
+            // Bomb Bag a shop sells afterwards (the same id, "bombs") is only a line - and a save from before the ids
+            // were one, which knows the glider as "gear:glider", is still believed
+            var bagPrefab = c.world.config.prefabs.Get("bombbag") as Pickup;
+            ShopOffer bagOffer = null;
+            foreach (var o in c.world.config.shop.offers) if (o.resource == Res.Bombs) bagOffer = o;
+            c.Expect(bagPrefab != null && bagOffer != null && bagPrefab.ItemId == bagOffer.id, $"the bomb bag on the ground and the one on the shelf have one id ({(bagPrefab != null ? bagPrefab.ItemId : "?")} / {(bagOffer != null ? bagOffer.id : "?")})");
+            if (bagOffer != null) hud.Gain(bagOffer.id, bagOffer.displayName, bagOffer.icon, 3, bagOffer.description);
+            ItemLog.Forget("glider"); ItemLog.Forget("ropes");
+            ItemLog.FirstTime("gear:glider"); ItemLog.FirstTime("rope pile");
+            bool oldSave = ItemLog.Seen("glider") && ItemLog.Seen("ropes");
+            ItemLog.Forget("glider");
+            c.Expect(bagOffer != null && hud.FeedLines(bagOffer.id) == 1 && hud.CardName == "Bomb Bag" && oldSave,
+                $"a bomb bag bought after one was found is a line, not a second card; what an old save wrote down still counts (lines {(bagOffer != null ? hud.FeedLines(bagOffer.id) : -1)}, old save {oldSave})");
             yield return new WaitForSecondsRealtime(0.5f);       // (the lines have slid in)
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "hud_item_feed.png"));
             yield return c.Frames(3);
@@ -3907,7 +3921,7 @@ namespace Gloomdelve
                 SaveSystem.Reload();
             }
             // the chest by the gate of an area that asks for gear: opened, it hands that gear over
-            c.run.gear.Remove("glider"); ItemLog.Forget("gear:glider");
+            c.run.gear.Remove("glider"); ItemLog.Forget("glider");
             var gc = Chest.SpawnGearChest(c.world, "glider", new Vector2(8.5f, 1f));
             yield return c.Frames(3);
             c.Expect(gc != null && gc.gearId == "glider" && Mathf.Abs(gc.pos.x - 8.5f) <= 4f && !c.run.gear.Contains("glider"), "a gear chest stands beside the gate, and the gear is not yet the player's");

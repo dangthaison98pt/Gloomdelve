@@ -141,6 +141,7 @@ MonoBehaviour:
   maxHealth: 1
   flipWithFacing: 0
   artFacesLeft: 0
+  itemId: heartvessel
   resource: maxhealth
   value: 1
   label: MAX HEALTH

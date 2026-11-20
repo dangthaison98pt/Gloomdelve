@@ -63,7 +63,7 @@ namespace Gloomdelve
                 if (s0 != null && charm != null)
                 {
                     if (!s0.gear.Contains("recall")) s0.gear.Add("recall");
-                    if (d0 != null && d0.hud != null) d0.hud.Gain("gear:recall", charm.displayName, charm.icon, 1, $"Hold [gear] to take it in hand.  {charm.description}", true);
+                    if (d0 != null && d0.hud != null) d0.hud.Gain("recall", charm.displayName, charm.icon, 1, $"Hold [gear] to take it in hand.  {charm.description}", true);
                 }
                 return;
             }
@@ -78,7 +78,7 @@ namespace Gloomdelve
                 {
                     // on a card the first time in this save; after that it is known, and is a line at the left like
                     // anything picked up again (every climb finds this chest anew: the card every time was too much)
-                    if (dir != null && dir.hud != null) dir.hud.Gain("gear:" + gearId, gear.displayName, gear.icon, 1, $"Hold [gear] to equip it.  {gear.description}");
+                    if (dir != null && dir.hud != null) dir.hud.Gain(gearId, gear.displayName, gear.icon, 1, $"Hold [gear] to equip it.  {gear.description}");
                 }
                 return;
             }

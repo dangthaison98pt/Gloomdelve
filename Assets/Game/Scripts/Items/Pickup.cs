@@ -9,6 +9,10 @@ namespace Gloomdelve
     public class Pickup : Entity
     {
         [Header("Pickup")]
+        [Tooltip("The id of the thing this is (item card, list of things gained, quests): the same id as the shop offer where the thing is also sold - a bomb bag is 'bombs' on the ground and on the shelf. Empty = its name.")]
+        public string itemId = "";
+        /// <summary>The id this thing goes by everywhere (ItemLog, HUD.Gain, quests).</summary>
+        public string ItemId => !string.IsNullOrEmpty(itemId) ? itemId : displayName;
         [Tooltip("Resource id: gold / health / bombs / ropes, or a custom counter id.")]
         public string resource = Res.Gold;
         public int value = 25;
@@ -61,8 +65,8 @@ namespace Gloomdelve
             string res = string.IsNullOrEmpty(resource) ? Res.Gold : resource;
             if (dir == null || dir.hud == null) return;
             // gold is not an item: it never gets a card, only its line in the list at the left edge
-if (res == Res.Gold) { dir.hud.Gain(displayName, ItemLog.Title(displayName), sr != null ? sr.sprite : null, amount, null); return; }      // (each piece its own line: what that piece was worth)
-            dir.hud.Gain(displayName, ItemLog.Title(displayName), sr != null ? sr.sprite : null, amount, ItemLog.Describe(res, value));
+if (res == Res.Gold) { dir.hud.Gain(ItemId, ItemLog.Title(displayName), sr != null ? sr.sprite : null, amount, null); return; }      // (each piece its own line: what that piece was worth)
+            dir.hud.Gain(ItemId, ItemLog.Title(displayName), sr != null ? sr.sprite : null, amount, ItemLog.Describe(res, value));
         }
 
         public override void OnExplosion(Vector2 center, float radius, Entity source, int generation, int damage)

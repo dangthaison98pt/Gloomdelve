@@ -1586,22 +1586,25 @@ namespace Gloomdelve.EditorTools
                 (e, g, s) => { e.heavy = true; e.isHeartstone = true; e.glow = new Color(1f, 0.82f, 0.4f); e.flipWithFacing = false; }));
 
             // pickups
-            Reg("gold_small", Make<Pickup>("GoldNugget", "Items", "gold nugget", new Vector2(0.3f, 0.25f), ArtGenerator.S(I("gold_small")), null, 11, (e, g, s) => { e.value = 10; e.flipWithFacing = false; }));
-            Reg("gold_big", Make<Pickup>("GoldChunk", "Items", "gold chunk", new Vector2(0.5f, 0.35f), ArtGenerator.S(I("gold_big")), null, 11, (e, g, s) => { e.value = 30; e.flipWithFacing = false; }));
-            Reg("gem", Make<Pickup>("Gem", "Items", "emerald", new Vector2(0.4f, 0.4f), ArtGenerator.S(I("gem")), null, 11, (e, g, s) => { e.value = 100; e.sfx = "gem"; e.textColor = new Color(0.5f, 1f, 0.7f); e.flipWithFacing = false; }));
+            // Pickups: 'itemId' is the id of the thing itself, the same wherever it turns up. A thing that is also
+            // sold carries the shop offer's id (ShopConfig): a bomb bag is "bombs", a rope pile "ropes". A heart on the
+            // ground is not the Heart Tonic of the shelf (offer "heart"), so it has an id of its own.
+            Reg("gold_small", Make<Pickup>("GoldNugget", "Items", "gold nugget", new Vector2(0.3f, 0.25f), ArtGenerator.S(I("gold_small")), null, 11, (e, g, s) => { e.itemId = "gold_small"; e.value = 10; e.flipWithFacing = false; }));
+            Reg("gold_big", Make<Pickup>("GoldChunk", "Items", "gold chunk", new Vector2(0.5f, 0.35f), ArtGenerator.S(I("gold_big")), null, 11, (e, g, s) => { e.itemId = "gold_big"; e.value = 30; e.flipWithFacing = false; }));
+            Reg("gem", Make<Pickup>("Gem", "Items", "emerald", new Vector2(0.4f, 0.4f), ArtGenerator.S(I("gem")), null, 11, (e, g, s) => { e.itemId = "gem"; e.value = 100; e.sfx = "gem"; e.textColor = new Color(0.5f, 1f, 0.7f); e.flipWithFacing = false; }));
             Reg("ember", Make<Pickup>("Ember", "Items", "ember", new Vector2(0.4f, 0.4f), ArtGenerator.S("Sprites/Items/ember"), null, 11, (e, g, s) =>
-            {
+            { e.itemId = "ember";
                 e.resource = "ember"; e.value = 1; e.sfx = "gem"; e.textColor = new Color(1f, 0.62f, 0.3f); e.flipWithFacing = false;
                 s.sharedMaterial = unlitMat;                                    // it burns: seen in the dark
                 var gl = g.AddComponent<GlowLight>();
                 gl.color = new Color(1f, 0.6f, 0.3f); gl.radius = 2.4f; gl.intensity = 0.7f; gl.flicker = 0.3f;
             }));
-            Reg("bombbag", Make<Pickup>("BombBag", "Items", "bomb bag", new Vector2(0.6f, 0.55f), ArtGenerator.S(I("bombbag")), null, 11, (e, g, s) => { e.resource = Res.Bombs; e.label = "BOMBS"; e.value = 3; e.sfx = "pickup"; e.textColor = Color.white; e.flipWithFacing = false; }));
-            Reg("ropepile", Make<Pickup>("RopePile", "Items", "rope pile", new Vector2(0.6f, 0.45f), ArtGenerator.S(I("ropepile")), null, 11, (e, g, s) => { e.resource = Res.Ropes; e.label = "ROPES"; e.value = 3; e.sfx = "pickup"; e.textColor = Color.white; e.flipWithFacing = false; }));
+            Reg("bombbag", Make<Pickup>("BombBag", "Items", "bomb bag", new Vector2(0.6f, 0.55f), ArtGenerator.S(I("bombbag")), null, 11, (e, g, s) => { e.itemId = "bombs"; e.resource = Res.Bombs; e.label = "BOMBS"; e.value = 3; e.sfx = "pickup"; e.textColor = Color.white; e.flipWithFacing = false; }));
+            Reg("ropepile", Make<Pickup>("RopePile", "Items", "rope pile", new Vector2(0.6f, 0.45f), ArtGenerator.S(I("ropepile")), null, 11, (e, g, s) => { e.itemId = "ropes"; e.resource = Res.Ropes; e.label = "ROPES"; e.value = 3; e.sfx = "pickup"; e.textColor = Color.white; e.flipWithFacing = false; }));
             Reg("heart", Make<Pickup>("Heart", "Items", "heart", new Vector2(0.5f, 0.45f), ArtGenerator.S(I("heart")), null, 11,
-                (e, g, s) => { e.resource = Res.Health; e.label = "HP"; e.value = 1; e.sfx = "buy"; e.textColor = new Color(1f, 0.45f, 0.5f); e.flipWithFacing = false; }));
+                (e, g, s) => { e.itemId = "heart_pickup"; e.resource = Res.Health; e.label = "HP"; e.value = 1; e.sfx = "buy"; e.textColor = new Color(1f, 0.45f, 0.5f); e.flipWithFacing = false; }));
             Reg("heartvessel", Make<Pickup>("HeartVessel", "Items", "heart vessel", new Vector2(0.6f, 0.55f), ArtGenerator.S(I("heartvessel")), null, 11,
-                (e, g, s) => { e.resource = Res.MaxHealth; e.label = "MAX HEALTH"; e.value = 1; e.sfx = "idol"; e.textColor = new Color(1f, 0.85f, 0.35f); e.flipWithFacing = false; }));
+                (e, g, s) => { e.itemId = "heartvessel"; e.resource = Res.MaxHealth; e.label = "MAX HEALTH"; e.value = 1; e.sfx = "idol"; e.textColor = new Color(1f, 0.85f, 0.35f); e.flipWithFacing = false; }));
             Reg("rope", Make<RopeProjectile>("Rope", "Items", "rope", new Vector2(0.4f, 0.4f), ArtGenerator.S("Center/rope_hook"), null, 5,
                 (e, g, s) =>
                 {

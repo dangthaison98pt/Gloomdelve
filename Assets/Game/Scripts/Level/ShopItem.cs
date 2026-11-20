@@ -164,7 +164,7 @@ namespace Gloomdelve
             Fx.Sparks(Center, new Color(1f, 0.9f, 0.4f), 10, 4f);
             // bought or taken: a card the first time (what it is), a line at the left edge after that
             var gd = GameDirector.Instance;
-            if (gd != null && gd.hud != null) gd.hud.Gain("ware:" + offer.id, offer.displayName, offer.icon, 1, offer.description);
+            if (gd != null && gd.hud != null) gd.hud.Gain(offer.id, offer.displayName, offer.icon, 1, offer.description);
             if (gd != null && offer.isUpgrade && !run.IsWorn(offer.id))
                 gd.ShowMessage($"{offer.displayName} is in your bag ({InventoryScreen.SlotLabel(offer.slot).ToLowerInvariant()} slot is taken). Press [inventory] to wear it.");
             Despawn();

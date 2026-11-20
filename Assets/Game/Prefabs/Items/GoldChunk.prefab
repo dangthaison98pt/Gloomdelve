@@ -142,6 +142,7 @@ MonoBehaviour:
   maxHealth: 1
   flipWithFacing: 0
   artFacesLeft: 0
+  itemId: gold_big
   resource: gold
   value: 30
   label: 

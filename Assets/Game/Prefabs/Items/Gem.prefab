@@ -143,6 +143,7 @@ MonoBehaviour:
   maxHealth: 1
   flipWithFacing: 0
   artFacesLeft: 0
+  itemId: gem
   resource: gold
   value: 100
   label: 
