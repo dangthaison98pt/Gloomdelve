@@ -16,8 +16,310 @@ namespace Gloomdelve
         public TMPro.TMP_Text timeText;
         public TMPro.TMP_Text totalTimeText;
         public TMPro.TMP_Text upgradesText;
-        public GameObject promptPanel;
-        public TMPro.TMP_Text promptText;
+        [Header("What the thing in front of the player offers, says or reads")]
+        [Tooltip("A small tag at the right edge of the screen: the button and what it does.")] public RectTransform tagRoot;
+        public TMPro.TMP_Text tagText, tagSub;
+        [Tooltip("Somebody speaking: their name on a plate, their words under it.")] public RectTransform talkRoot;
+        public RectTransform talkPlate;
+        public TMPro.TMP_Text talkName, talkText;
+        [Tooltip("The button shown in the corner of the box once a sentence is all there: press it for the next.")] public GameObject talkMore;
+        [Tooltip("Letters a second while somebody's words are written out.")] public float talkSpeed = 42f;
+        [Tooltip("A sign being read: a pale card, dark writing.")] public RectTransform noteRoot;
+        public TMPro.TMP_Text noteText;
+        [Header("A thing picked up for the first time: a card with its picture and what it is")]
+        public RectTransform cardRoot;
+        public Image cardIcon;
+        public TMPro.TMP_Text cardName, cardCount, cardText;
+        [Tooltip("\"press to go on\" at the foot of the card (shown while the game waits for it).")] public GameObject cardHint;
+        bool cardWaits;
+        float cardShownAt, cardSavedScale = 1f;
+
+        /// <summary>A card is up and the game stands still until it is put away (GameDirector reads the button).</summary>
+        public bool CardModal => card != null && cardWaits;
+
+        /// <summary>Puts the card away and lets the game go on (not in its first half second: a button already held must not skip it).</summary>
+        public void DismissCard()
+        {
+            if (!CardModal || Time.unscaledTime - cardShownAt < 0.5f) return;
+            card = null; cardWaits = false;
+            Time.timeScale = cardSavedScale;
+            Sfx.PlayUI("menu_select", 0.7f);
+        }
+        [Header("Things picked up again: a list at the left edge of the screen")]
+        public RectTransform[] feedRows;
+        public Image[] feedIcons;
+        public TMPro.TMP_Text[] feedNames, feedAmounts;
+        public float feedTime = 3.2f;
+
+        class Gained { public string id, name, text; public Sprite icon; public int amount; public float t, age, y = float.NaN, bump; }
+        readonly System.Collections.Generic.List<Gained> feed = new System.Collections.Generic.List<Gained>();
+        readonly System.Collections.Generic.Queue<Gained> cards = new System.Collections.Generic.Queue<Gained>();
+        Gained card;
+        float cardA;
+
+        /// <summary>A card is up (or waiting) / lines in the list at the left (tests).</summary>
+        public bool CardUp => card != null || cards.Count > 0;
+        public string CardName => card != null ? card.name : null;
+        public int FeedCount => feed.Count;
+        /// <summary>All that the lines for this thing add up to / how many lines it has (tests).</summary>
+        public int FeedAmount(string id) { int n = 0; foreach (var f in feed) if (f.id == id) n += f.amount; return n; }
+        public int FeedLines(string id) { int n = 0; foreach (var f in feed) if (f.id == id) n++; return n; }
+
+        /// <summary>
+        /// The player has got something. The first time in this save (ItemLog) - and whenever 'always' says so - it
+        /// is shown on a card: its picture, its name, how many, what it is. After that it is a line in the list at
+        /// the left edge - one line for every thing picked up, two of a kind included.
+        /// </summary>
+        public void Gain(string id, string name, Sprite icon, int amount, string description, bool always = false)
+        {
+            if (string.IsNullOrEmpty(name)) return;
+            bool first = !string.IsNullOrEmpty(description) && (ItemLog.FirstTime(id) || always);
+            if (first) { cards.Enqueue(new Gained { id = id, name = name, text = description, icon = icon, amount = amount }); return; }
+            // every thing picked up has a line of its own, even two of a kind: each shows what that one was worth
+            feed.Add(new Gained { id = id, name = name, icon = icon, amount = amount, t = feedTime });
+            int max = feedRows != null ? feedRows.Length : 0;
+            while (max > 0 && feed.Count > max) feed.RemoveAt(0);
+        }
+
+        [Tooltip("Where on its sheet each picture is drawn (made by the project builder).")] public IconFrames iconFrames;
+        readonly System.Collections.Generic.Dictionary<Image, Vector2> iconHome = new System.Collections.Generic.Dictionary<Image, Vector2>();
+
+        /// <summary>
+        /// Shows a thing's picture in a square of 'box' pixels: at its own pixels times 'scale', what is drawn of it
+        /// (not the empty margin of its sheet) set in the middle of the square.
+        /// </summary>
+        void FitIcon(Image img, Sprite s, float box, float scale)
+        {
+            if (img == null) return;
+            var rt = img.rectTransform;
+            if (!iconHome.TryGetValue(img, out var home)) { home = rt.anchoredPosition; iconHome[img] = home; }
+            img.sprite = s;
+            img.preserveAspect = false;
+            if (s == null) return;
+            float ppu = s.pixelsPerUnit;
+            Vector2 sheet = s.rect.size / ppu, min = -s.pivot / ppu, max = min + sheet;       // the whole sheet, about the pivot
+            if (iconFrames != null && iconFrames.Find(s, out var fr))
+            {
+                Vector2 corner = -s.pivot / ppu;
+                min = corner + new Vector2(fr.xMin * sheet.x, fr.yMin * sheet.y);
+                max = corner + new Vector2(fr.xMax * sheet.x, fr.yMax * sheet.y);
+            }
+            Vector2 drawn = max - min, mid = (min + max) * 0.5f;
+            // Every picture at the same scale - 'scale' screen pixels to one of its own - so a small thing stays small
+            // and a big one big, as they are in the world; only one too big for the square is brought down to fit.
+            float k = Mathf.Min(scale * ppu, box / Mathf.Max(0.0001f, Mathf.Max(drawn.x, drawn.y)));               // screen pixels to a unit
+            Vector2 sheetMid = -s.pivot / ppu + sheet * 0.5f;
+            rt.sizeDelta = sheet * k;
+            rt.anchoredPosition = home - (mid - sheetMid) * k;
+        }
+
+        void GainedUpdate(float dt, bool covered)
+        {
+            // the card: one at a time, long enough to read
+            // (it waits for the place's name and for a banner to leave the screen: they are written where it goes)
+            if (card == null && cards.Count > 0 && !covered && introT < 0f && bannerT <= 0f)
+            {
+                card = cards.Dequeue();
+                card.t = ReadTime(card.text) + 0.5f;
+                // A new thing is worth reading, and there is no reading in the middle of a fight: the game stands
+                // still until the card is put away with a button. (The test bots press nothing: for them it passes.)
+                cardWaits = !ScenarioRunner.Active && !AutoTest.Active;
+                if (cardWaits)
+                {
+                    cardShownAt = Time.unscaledTime;
+                    cardSavedScale = Time.timeScale > 0f ? Time.timeScale : 1f;
+                    Time.timeScale = 0f;
+                }
+                if (cardHint != null) cardHint.SetActive(cardWaits);
+                if (cardRoot != null)
+                {
+                    cardName.text = card.name;
+                    cardText.text = card.text;
+                    cardCount.text = "\u00D7" + Mathf.Max(1, card.amount);
+                    cardIcon.enabled = card.icon != null;
+                    FitIcon(cardIcon, card.icon, 120f, 7f);
+                    // name, count and words as one block, in the middle of the card's height (level with the picture)
+                    float words = Mathf.Min(cardText.GetPreferredValues(card.text, cardText.rectTransform.rect.width, 0f).y, 260f), top = (52f + 44f + words) * 0.5f;      // (asked for at its own width: before it is laid out it would answer for one line)
+                    // the card is as tall as what is written on it needs (three lines used to run over its lower rule)
+                    cardText.rectTransform.sizeDelta = new Vector2(cardText.rectTransform.sizeDelta.x, words + 8f);
+                    cardRoot.sizeDelta = new Vector2(cardRoot.sizeDelta.x, Mathf.Max(210f, 52f + 44f + words + 88f));
+                    cardName.rectTransform.anchoredPosition = new Vector2(cardName.rectTransform.anchoredPosition.x, top);
+                    cardCount.transform.parent.GetComponent<RectTransform>().anchoredPosition = new Vector2(cardName.rectTransform.anchoredPosition.x + 2f, top - 54f);
+                    cardText.rectTransform.anchoredPosition = new Vector2(cardName.rectTransform.anchoredPosition.x, top - 96f);
+                }
+            }
+            if (card != null && !cardWaits) { card.t -= dt; if (card.t <= 0f) card = null; }
+            if (cardRoot != null) Fade(cardRoot, card != null && !covered, ref cardA, Mathf.Max(dt, Time.deltaTime));
+            // The list: the newest line lowest, each for a few seconds. Nothing in it jumps: a line slides in from
+            // the edge as it fades in, slides back out as it fades, the lines under one that has gone glide up into
+            // its place, and a number that has just grown swells for a moment.
+            const float step = 52f, outTime = 0.35f, inTime = 0.22f;
+            for (int i = feed.Count - 1; i >= 0; i--)
+            {
+                var f = feed[i];
+                f.t -= dt; f.age += dt; f.bump = Mathf.MoveTowards(f.bump, 0f, dt / 0.28f);
+                if (f.t <= -outTime) feed.RemoveAt(i);
+            }
+            if (feedRows == null) return;
+            for (int i = 0; i < feedRows.Length; i++)
+            {
+                bool on = i < feed.Count && !covered;
+                if (feedRows[i].gameObject.activeSelf != on) feedRows[i].gameObject.SetActive(on);
+                if (!on) continue;
+                var f = feed[i];
+                float slot = 90f - i * step;
+                f.y = float.IsNaN(f.y) ? slot : Mathf.Lerp(f.y, slot, 1f - Mathf.Exp(-14f * dt));
+                float into = Mathf.Clamp01(f.age / inTime), outOf = f.t < 0f ? Mathf.Clamp01(-f.t / outTime) : 0f;
+                float ease = 1f - (1f - into) * (1f - into);                         // out of the edge, slowing as it arrives
+                feedRows[i].anchoredPosition = new Vector2(18f - 70f * (1f - ease) - 40f * outOf * outOf, f.y);
+                var cg = feedRows[i].GetComponent<CanvasGroup>();
+                if (cg != null) cg.alpha = ease * (1f - outOf);
+                if (feedNames[i].text != f.name) feedNames[i].text = f.name;
+                string amt = "+" + f.amount;
+                if (feedAmounts[i].text != amt) feedAmounts[i].text = amt;
+                feedAmounts[i].rectTransform.localScale = Vector3.one * (1f + 0.35f * Mathf.Sin(f.bump * Mathf.PI));
+                feedIcons[i].enabled = f.icon != null;
+                if (feedIcons[i].sprite != f.icon) FitIcon(feedIcons[i], f.icon, 40f, 3f);
+            }
+        }
+
+        string shownPrompt;
+        float promptPop, tagA, talkA, noteA;
+
+        /// <summary>
+        /// Brings one of the prompt's places in or takes it out, softly: it fades in quickly and out a little more
+        /// slowly, still showing what it showed - so walking past a sign, in and out of its reach, does not make
+        /// a card flash on and off.
+        /// </summary>
+        static void Fade(RectTransform root, bool on, ref float a, float dt)
+        {
+            a = Mathf.MoveTowards(a, on ? 1f : 0f, dt / (on ? 0.14f : 0.3f));
+            var cg = root.GetComponent<CanvasGroup>();
+            if (cg == null) { cg = root.gameObject.AddComponent<CanvasGroup>(); cg.blocksRaycasts = false; cg.interactable = false; }
+            cg.alpha = a;
+            bool show = a > 0.001f;
+            if (root.gameObject.activeSelf != show) root.gameObject.SetActive(show);
+        }
+        string heldNote, heldSpeaker, heldSpeech;
+        float heldNoteT, heldTalkT;
+        Vector2 heldAt;
+
+        /// <summary>Something read at the press of a button (a letter, a shelf): the same card a sign shows, for a while
+        /// or until the player walks away.</summary>
+        public void ShowNote(string text, float seconds)
+        {
+            heldNote = text; heldNoteT = seconds; heldTalkT = 0f;
+            if (dir != null && dir.Player != null) heldAt = dir.Player.pos;
+            promptPop = 0f;
+        }
+
+        /// <summary>
+        /// Somebody answers when spoken to: their name, and their words written out a sentence at a time. The
+        /// button (AdvanceTalk) finishes the sentence being written, then brings the next, then closes the box;
+        /// walking away closes it too. ('seconds' is not used any more: words wait to be read.)
+        /// </summary>
+        public void ShowTalk(string speaker, string text, float seconds = 0f)
+        {
+            heldSpeaker = speaker; heldTalkT = 1f; heldNoteT = 0f;
+            talkPages.Clear();
+            talkPages.AddRange(Sentences(text));
+            if (talkPages.Count == 0) talkPages.Add(text ?? "");
+            talkPage = 0; talkShown = 0f;
+            heldSpeech = talkPages[0];
+            if (dir != null && dir.Player != null) heldAt = dir.Player.pos;
+            promptPop = 0f;
+        }
+
+        readonly System.Collections.Generic.List<string> talkPages = new System.Collections.Generic.List<string>();
+        int talkPage;
+        float talkShown;
+        string hiddenSign;
+
+        /// <summary>The sentence on show is still being written out.</summary>
+        public bool TalkTyping => heldTalkT > 0f && heldSpeech != null && talkShown < heldSpeech.Length;
+        public int TalkPage => talkPage;
+        public int TalkPages => talkPages.Count;
+
+        /// <summary>The button while somebody speaks: all of this sentence at once; or the next one; or, after the last, the end of it.</summary>
+        public void AdvanceTalk()
+        {
+            if (heldTalkT <= 0f) return;
+            if (TalkTyping) { talkShown = heldSpeech.Length; return; }
+            if (talkPage + 1 < talkPages.Count) { talkPage++; heldSpeech = talkPages[talkPage]; talkShown = 0f; Sfx.PlayUI("menu_select", 0.5f); return; }
+            heldTalkT = 0f;
+        }
+
+        /// <summary>Cuts what somebody says into sentences (the box shows one at a time).</summary>
+        public static System.Collections.Generic.List<string> Sentences(string text)
+        {
+            var list = new System.Collections.Generic.List<string>();
+            if (string.IsNullOrEmpty(text)) return list;
+            int from = 0;
+            for (int i = 0; i < text.Length; i++)
+            {
+                char ch = text[i];
+                bool end = (ch == '.' || ch == '!' || ch == '?') && (i + 1 >= text.Length || text[i + 1] == ' ') && !(i + 1 < text.Length - 1 && text[i + 1] == '.');
+                if (!end) continue;
+                string part = text.Substring(from, i + 1 - from).Trim();
+                if (part.Length > 0) list.Add(part);
+                from = i + 1;
+            }
+            string rest = text.Substring(from).Trim();
+            if (rest.Length > 0) list.Add(rest);
+            return list;
+        }
+
+        /// <summary>A sign's card is put away (the button, at the sign) until the player comes back to it - or taken out again.</summary>
+        public void ToggleSign(string prompt) { hiddenSign = hiddenSign == prompt ? null : prompt; promptPop = 0f; }
+        /// <summary>A sign's card is on the screen.</summary>
+        public bool SignUp { get; private set; }
+        public void HideSign() { if (SignUp) hiddenSign = shownPrompt; }
+
+        /// <summary>How long words stay up: long enough to read them.</summary>
+        public static float ReadTime(string text) => Mathf.Clamp(2.5f + (text != null ? text.Length : 0) * 0.05f, 3.5f, 11f);
+
+        /// <summary>A note or somebody's words are up (tests).</summary>
+        /// <summary>Puts down what is being read or heard (the same button again, or the pause button).</summary>
+        public void DismissHeld() { heldNoteT = 0f; heldTalkT = 0f; }
+        public bool HeldUp => heldNoteT > 0f || heldTalkT > 0f;
+        public bool NoteUp => heldNoteT > 0f;
+        public bool TalkUp => heldTalkT > 0f;
+
+        /// <summary>
+        /// Takes a prompt apart. The things of the world still hand over one line - "[enter]  open the chest",
+        /// "Elder Aldous:  \"...\"", "[enter]  free Tam      Tam:  \"...\"", "[enter]  buy rope for $20  -  what it does" -
+        /// and the screen shows each part where it belongs: what to press as a tag at the right edge ('action', with
+        /// a smaller second line 'sub'), spoken words in a box with the speaker's name, the writing on a sign as a card.
+        /// </summary>
+        public static void SplitPrompt(string prompt, bool sign, out string action, out string sub, out string speaker, out string speech, out string note)
+        {
+            action = sub = speaker = speech = note = null;
+            if (string.IsNullOrEmpty(prompt)) return;
+            if (sign) { note = prompt.Trim(); return; }
+            int q0 = prompt.IndexOf('"'), q1 = prompt.LastIndexOf('"');
+            if (q0 >= 0 && q1 > q0)
+            {
+                speech = prompt.Substring(q0 + 1, q1 - q0 - 1).Trim();
+                string pre = prompt.Substring(0, q0).Trim();
+                if (pre.EndsWith(":"))
+                {
+                    pre = pre.Substring(0, pre.Length - 1);
+                    int gap = pre.LastIndexOf("    ");
+                    if (gap >= 0) { speaker = pre.Substring(gap).Trim(); pre = pre.Substring(0, gap).Trim(); }
+                    else { speaker = pre.Trim(); pre = ""; }
+                }
+                if (pre.Length > 0) action = pre;
+                return;
+            }
+            if (prompt.IndexOf('[') >= 0)
+            {
+                action = prompt.Trim();
+                int dash = action.IndexOf("  -  ");
+                if (dash >= 0) { sub = action.Substring(dash + 5).Trim(); action = action.Substring(0, dash).Trim(); }
+                return;
+            }
+            speech = prompt.Trim();      // told, not spoken by anyone: a locked door, a dark house
+        }
         public CanvasGroup bannerGroup;
         public TMPro.TMP_Text bannerTitle;
         public TMPro.TMP_Text bannerSub;
@@ -189,6 +491,7 @@ namespace Gloomdelve
             bool covered = dir.Paused || dir.Ended || results
                 || (dir.gearWheel != null && dir.gearWheel.IsOpen)
                 || (dir.inventory != null && dir.inventory.IsOpen)
+                || (dir.codex != null && dir.codex.IsOpen)
                 || (dir.transition != null && dir.transition.root != null && dir.transition.root.activeSelf);
             // in the village only health and gold are shown: no gear to use there and no clock running
             if (corners != null)
@@ -216,8 +519,64 @@ namespace Gloomdelve
             var p = dir.Player;
             string prompt = p != null && !p.IsDead && !dir.Ended ? p.Prompt : null;
             if (covered) prompt = null;
-            promptPanel.SetActive(!string.IsNullOrEmpty(prompt));
-            if (!string.IsNullOrEmpty(prompt)) promptText.text = prompt;
+            GainedUpdate(dt, covered);
+            SplitPrompt(prompt, p != null && p.PromptIsSign, out string act, out string sub, out string who, out string said, out string note);
+            // what was read or said at the press of a button stays up for a while - unless the player walks off
+            heldNoteT -= dt; heldTalkT -= dt;
+            if (covered || p == null || (p.pos - heldAt).sqrMagnitude > 9f) { heldNoteT = 0f; heldTalkT = 0f; }
+            heldTalkT = heldTalkT > 0f ? 1f : 0f;      // (somebody's words wait to be read: only the button or walking off ends them)
+            if (hiddenSign != null && hiddenSign != prompt) hiddenSign = null;       // left the sign: next time it shows again
+            SignUp = note != null && hiddenSign == null;
+            if (note != null && hiddenSign != null) note = null;
+            bool written = false;
+            if (heldNoteT > 0f) { note = heldNote; said = null; who = null; }
+            else if (heldTalkT > 0f) { said = heldSpeech; who = heldSpeaker; note = null; written = true; talkShown += dt * talkSpeed; }
+            if (prompt != shownPrompt) { shownPrompt = prompt; promptPop = 0f; }
+            promptPop += dt;
+            if (tagRoot != null)
+            {
+                bool on = !string.IsNullOrEmpty(act);
+                Fade(tagRoot, on, ref tagA, Mathf.Max(dt, Time.deltaTime));
+                if (on)
+                {
+                    bool two = !string.IsNullOrEmpty(sub);
+                    if (tagText.text != act) tagText.text = act;
+                    if (tagSub.gameObject.activeSelf != two) tagSub.gameObject.SetActive(two);
+                    if (two && tagSub.text != sub) tagSub.text = sub;
+                    float w = Mathf.Max(tagText.preferredWidth, two ? tagSub.preferredWidth : 0f);
+                    tagRoot.sizeDelta = new Vector2(Mathf.Clamp(w + 110f, 260f, 1100f), two ? 92f : 58f);
+                }
+            }
+            if (talkRoot != null)
+            {
+                bool on = !string.IsNullOrEmpty(said);
+                Fade(talkRoot, on, ref talkA, Mathf.Max(dt, Time.deltaTime));
+                if (on)
+                {
+                    bool named = !string.IsNullOrEmpty(who);
+                    if (talkPlate.gameObject.activeSelf != named) talkPlate.gameObject.SetActive(named);
+                    if (named)
+                    {
+                        if (talkName.text != who) talkName.text = who;
+                        talkPlate.sizeDelta = new Vector2(talkName.preferredWidth + 44f, talkPlate.sizeDelta.y);
+                    }
+                    if (talkText.text != said) talkText.text = said;
+                    talkText.maxVisibleCharacters = written ? Mathf.FloorToInt(talkShown) : 99999;
+                    if (talkMore != null) { bool more = written && !TalkTyping; if (talkMore.activeSelf != more) talkMore.SetActive(more); }
+                    talkRoot.sizeDelta = new Vector2(talkRoot.sizeDelta.x, Mathf.Clamp(talkText.preferredHeight + (named ? 78f : 56f), 110f, 360f));
+                    talkText.rectTransform.anchoredPosition = new Vector2(44f, named ? -46f : -28f);
+                }
+            }
+            if (noteRoot != null)
+            {
+                bool on = !string.IsNullOrEmpty(note);
+                Fade(noteRoot, on, ref noteA, Mathf.Max(dt, Time.deltaTime));
+                if (on)
+                {
+                    if (noteText.text != note) noteText.text = note;
+                    noteRoot.sizeDelta = new Vector2(noteRoot.sizeDelta.x, Mathf.Clamp(noteText.preferredHeight + 56f, 96f, 360f));
+                }
+            }
 
             if (introGroup != null)
             {

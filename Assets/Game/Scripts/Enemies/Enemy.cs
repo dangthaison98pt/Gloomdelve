@@ -112,7 +112,10 @@ namespace Gloomdelve
             Fx.Blood(Center, bloodColor, 14);
             Sfx.Play("enemy_die", pos);
             if (RunSession.Current != null && (d.source is PlayerController || (d.source is Item it && it.thrower is PlayerController) || d.source is Bomb))
+            {
                 RunSession.Current.kills++;
+                Codex.CountKill(displayName);       // its page in the Field Guide
+            }
             var w = World;
             Vector2 at = Center;
             if (summoned) { Despawn(); return; }

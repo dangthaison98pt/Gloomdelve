@@ -83,6 +83,19 @@ namespace Gloomdelve
                     return;
                 }
 
+            // "-tutorialTest": straight into the tutorial, as a new game begins (for looking at it)
+            for (int i = 0; i < args.Length; i++)
+                if (args[i] == "-tutorialTest" && !tutorialArgUsed) { tutorialArgUsed = true; StartTutorial(); return; }
+            // "-villageTest H": straight into the village street as it is at hour H (0-23), for looking at its light
+            for (int i = 0; i + 1 < args.Length; i++)
+                if (args[i] == "-villageTest" && VillageClock.testHour < 0 && int.TryParse(args[i + 1], out int vh) && vh >= 0)
+                {
+                    VillageClock.testHour = vh % 24;
+                    for (int k = 0; k + 1 < args.Length; k++) if (args[k] == "-villageX" && float.TryParse(args[k + 1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float vx)) VillageClock.testX = vx;
+                    RunSession.NewRun(12345, false, config.player);
+                    SceneManager.LoadScene(GameConst.SceneGame);
+                    return;
+                }
             if (ScenarioRunner.Active) { StartCoroutine(ScenarioStart()); return; }
             if (LoadingScreen.ShotDir != null && !loadingShotUsed) { loadingShotUsed = true; Invoke(SaveSystem.SavedRun != null ? nameof(ContinueRun) : nameof(StartRun), 0.8f); return; }
             if (AutoTest.Active)
@@ -328,6 +341,9 @@ namespace Gloomdelve
         void StartRun()
         {
             if (LoadingScreen.Busy) return;
+            // a new game begins with the tutorial (it can be skipped from its pause screen); after that, the village
+            if (!SaveSystem.TutorialDone) { StartTutorial(); return; }
+            Codex.Give();       // (a save older than the Field Guide gets the book it would have found)
             RunSession.NewRun(RunSession.RandomSeed(), false, config.player);
             // the first level is built behind the loading screen
             var run = RunSession.Current;
@@ -337,7 +353,7 @@ namespace Gloomdelve
             LoadingScreen.Load(GameConst.SceneGame);
         }
 
-        static bool bossTestArgUsed, loadingShotUsed;
+        static bool bossTestArgUsed, loadingShotUsed, tutorialArgUsed;
 
         /// <summary>"01:00.2  [flawless]" for a boss that was beaten in Challenge, "" otherwise.</summary>
         public static string BossBest(string boss, string never)

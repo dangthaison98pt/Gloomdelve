@@ -22,6 +22,7 @@ namespace Gloomdelve
         public TransitionScreen transition;
         public EquipmentWheel gearWheel;
         public InventoryScreen inventory;
+        [Tooltip("The Field Guide, open (read from the bag's KEY ITEMS).")] public CodexScreen codex;
         public SkyBackdrop sky;
         public CaveBackdrop caveBackdrop;
 
@@ -77,6 +78,7 @@ namespace Gloomdelve
             RunPlan.Ensure(run, config);
             int at = Mathf.Clamp(run.stageIndex, 0, run.stageOrder.Length - 1);
             Stage = run.inVillage ? config.village : run.isTutorial ? config.tutorial : config.stages[Mathf.Clamp(run.stageOrder[at], 0, config.stages.Length - 1)].Named(run.stageNames[at]);
+            if (run.inVillage) Stage = VillageClock.For(Stage, VillageClock.Hour);      // day or night there, by the player's own clock
             run.levelTime = 0f;
             run.goldAtLevelStart = run.gold;
             run.reachedStageName = Stage.displayName;
@@ -105,16 +107,26 @@ namespace Gloomdelve
             if (LevelLighting.Instance != null) LevelLighting.Instance.Setup(Level, Stage.area);
             if (Ambience.Instance != null) Ambience.Instance.Setup(Stage.area);
             bool grantedGear = false;
+            string chestGear = null;       // gear this area asks for and the run has not got: it waits in a chest by the gate
             if (Stage.area != null && !string.IsNullOrEmpty(Stage.area.grantGear) && !run.gear.Contains(Stage.area.grantGear) && config.FindGear(Stage.area.grantGear) != null)
             {
-                run.gear.Add(Stage.area.grantGear);
-                grantedGear = true;
+                // (the test bots cannot open a chest: they are handed it, as everybody used to be)
+                if (ScenarioRunner.Active || AutoTest.Active) { run.gear.Add(Stage.area.grantGear); grantedGear = true; }
+                else chestGear = Stage.area.grantGear;
             }
             // a saved game that goes on in an arena whose boss has already fallen: the arena is empty, the gate open
             if (Stage.kind == LevelKind.Boss && run.bossDownStage == run.stageIndex && !run.bossPractice)
                 Level.spawns.RemoveAll(sp => config.prefabs.Get(sp.id) is Boss);
             SaveSystem.Checkpoint(run, Stage.displayName);      // the game is saved at the start of every level
             LevelFactory.SpawnAll(world, Level, config.prefabs);
+            if (run.inVillage)
+            {
+                // people in the street, children at play: a full street by day, a few at dawn and dusk, and at night
+                // only a couple of grown-ups still about (the children are in bed)
+                var part = VillageClock.PartOf(VillageClock.Hour);
+                Townsfolk.Populate(world, part == VillageClock.Part.Day ? 8 : part == VillageClock.Part.Night ? 2 : 5,
+                                          part == VillageClock.Part.Day ? 4 : part == VillageClock.Part.Night ? 0 : 2);
+            }
             // the level after this one is built in the background while this one is played
             // (in the village that is the first level of the run)
             int aheadAt = run.inVillage ? at : at + 1;
@@ -122,7 +134,8 @@ namespace Gloomdelve
                 LevelFactory.Pregenerate(config, config.stages[Mathf.Clamp(run.stageOrder[aheadAt], 0, config.stages.Length - 1)].Named(run.stageNames[aheadAt]), run.seed, run.inVillage ? run.stageIndex : run.stageIndex + 1);
             int spawnCount = world.EntityCount;
             var spawnAt = new Vector2(Level.entrance.x + 0.5f, Level.entrance.y);
-            if (run.inVillage && !run.wakeInBed)
+            if (run.inVillage && VillageClock.testHour >= 0 && VillageClock.Street(world.Grid, out var street)) spawnAt = street;      // (looking at the village from the command line)
+            else if (run.inVillage && !run.wakeInBed)
             {
                 // from the menu the player stands downstairs at home, a few steps from the door (the level's own
                 // entrance is the bed upstairs: that is where one wakes after a night that ended badly)
@@ -130,6 +143,7 @@ namespace Gloomdelve
                     if (sp.id == "interior" && sp.param == VillageBuilding.HomeOfPlayer) { spawnAt = new Vector2(sp.cell.x + 4.5f, sp.cell.y); break; }
             }
             Player = world.Spawn(config.prefabs.player, spawnAt);
+            if (chestGear != null && Chest.SpawnGearChest(world, chestGear, spawnAt) == null) { run.gear.Add(chestGear); grantedGear = true; chestGear = null; }      // (no room for a chest: handed over)
             world.Player = Player;
             Player.input = input;
             Player.godMode = debugGodMode || (EditorPlaytest.Active && EditorPlaytest.GodMode);
@@ -160,6 +174,11 @@ namespace Gloomdelve
             if (gateGear != null && !ScenarioRunner.Active && !AutoTest.Active) SupplyCache(gateGear, run);
             if (Level.grip < 1f && Stage.levelNumber == 1 && !grantedGear)
                 hud.ShowMessage("The ground is frozen: you slide before you stop. Slow down before a ledge - hold [walk] to walk.", 7f);
+            if (run.isTutorial) { tutorialChestOpened = false; tutorialBookRead = false; }
+            if (run.isTutorial && !ScenarioRunner.Active && !AutoTest.Active)
+                hud.ShowMessage("The signs along the way say what every button does.  Know it already?  [pause], then SKIP TUTORIAL.", 9f);
+            if (chestGear != null)
+                hud.ShowMessage("A chest stands by the gate. This place asks for what is in it: open it before you go on.", 7f);
             if (grantedGear)
             {
                 var g = config.FindGear(Stage.area.grantGear);
@@ -300,6 +319,18 @@ namespace Gloomdelve
         {
             DebugShots();
             if (linkPending && world.Frame > 0) { LevelFactory.LinkShops(world, Level); linkPending = false; }
+            // a new item's card is up: the game waits, and any of the usual buttons puts it away
+            if (hud != null && hud.CardModal)
+            {
+                if (input != null && (input.ConfirmPressed || input.PausePressed || input.BackPressed)) { hud.DismissCard(); if (!hud.CardModal) input.ClearLatches(); }
+                return;
+            }
+            // the Field Guide: Pause, the bag's button or a gamepad's back button shuts it
+            if (codex != null && codex.IsOpen)
+            {
+                if (Ended || input == null || input.InventoryPressed || input.PausePressed || input.BackPressed) codex.Close();
+                return;
+            }
             // the bag: its own button opens it; the same button, Pause, or a gamepad's back button closes it
             if (inventory != null && !Paused)
             {
@@ -315,7 +346,12 @@ namespace Gloomdelve
                     return;
                 }
             }
-            if (!Ended && !AutoTest.Active && input != null && input.PausePressed && (gearWheel == null || !gearWheel.IsOpen))
+            // (the pause button first puts down a note or words that are up, as "back" would)
+            if (!Ended && !AutoTest.Active && input != null && input.PausePressed && hud != null && (hud.HeldUp || hud.SignUp))
+            {
+                if (hud.TalkUp) hud.AdvanceTalk(); else if (hud.NoteUp) hud.DismissHeld(); else hud.HideSign();
+            }
+            else if (!Ended && !AutoTest.Active && input != null && input.PausePressed && (gearWheel == null || !gearWheel.IsOpen))
             {
                 if (Paused) { if (!pauseMenu.HandleBack()) SetPaused(false); }
                 else SetPaused(true);
@@ -491,6 +527,15 @@ namespace Gloomdelve
         {
             if (Ended || p.IsDead) return;
             var run = Run;
+            if (run.isTutorial && !ScenarioRunner.Active && !AutoTest.Active && !(tutorialChestOpened && tutorialBookRead))
+            {
+                // the last lesson is not done yet
+                hud.ShowMessage(!tutorialChestOpened
+                    ? "The gate stays shut.  Open the chest first: [enter]."
+                    : "One thing more.  Open your bag with [inventory], go to KEY ITEMS and read the Field Guide.  Then the gate opens.", 6f);
+                Sfx.Play("error", p.pos);
+                return;
+            }
             if (run.inVillage && Villagers.Enabled && !Villagers.HasKey(Villagers.KeyPouch))
             {
                 // the very first time: the elder has something for the player before they go
@@ -551,6 +596,8 @@ namespace Gloomdelve
             if (run.isTutorial)
             {
                 run.finished = true;
+                SaveSystem.MarkTutorialDone();      // the next "Start" of this save goes to the village
+                Codex.Give();                        // (walked past the chest: the book comes along all the same)
                 results.ShowTutorialComplete(run);
                 return;
             }
@@ -682,6 +729,29 @@ namespace Gloomdelve
             if (ScenarioRunner.Active || AutoTest.Active) { SceneManager.LoadScene(GameConst.SceneGame); return; }
             // the screen goes dark slowly, and it is morning in Brindlemoor when it clears
             ScreenFade.Through(() => SceneManager.LoadScene(GameConst.SceneGame), 0.7f, 0.45f, 1.1f);
+        }
+
+        /// <summary>The tutorial's last lesson: its gate stays shut until the chest has been opened and the Field Guide read from the bag.</summary>
+        public static bool tutorialChestOpened, tutorialBookRead;
+
+        /// <summary>Out of the bag and into the Field Guide.</summary>
+        public void OpenCodex()
+        {
+            if (codex == null || !Codex.Owned) return;
+            if (inventory != null) inventory.Close();
+            codex.Open();
+            tutorialBookRead = true;
+        }
+
+        /// <summary>The tutorial's pause screen: enough of this - on to the village. The book is handed over as if it had been found.</summary>
+        public void SkipTutorial()
+        {
+            if (Run == null || !Run.isTutorial || LoadingScreen.Busy) return;
+            SaveSystem.MarkTutorialDone();
+            Codex.Give();
+            Time.timeScale = 1f;
+            RunSession.NewRun(RunSession.RandomSeed(), false, config.player);
+            LoadingScreen.Load(GameConst.SceneGame);
         }
 
         /// <summary>A run on the mountain can be given up from the pause screen: not the village, the tutorial or a Challenge fight.</summary>

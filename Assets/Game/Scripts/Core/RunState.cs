@@ -234,6 +234,8 @@ namespace Gloomdelve
             if (cfg != null && cfg.startingGear != null) Current.gear.AddRange(cfg.startingGear);
             else { Current.gear.Add("bomb"); Current.gear.Add("rope"); }
             if (tutorial) { Current.bombs = 3; Current.ropes = 3; }
+            // (the Recall Charm is found in the tutorial's chest, not carried into it - except by the test bots, whose room is a tutorial too)
+            if (tutorial && !ScenarioRunner.Active && !AutoTest.Active) Current.gear.Remove("recall");
             Current.inVillage = !tutorial && Villagers.Enabled;       // a real run starts in the village
             return Current;
         }

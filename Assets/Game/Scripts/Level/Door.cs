@@ -13,8 +13,6 @@ namespace Gloomdelve
         /// <summary>Prompt shown while locked (set by whoever locks it).</summary>
         [System.NonSerialized] public string lockedPrompt;
 
-        public bool UpTriggers => isExit;
-
         public override void OnSpawn()
         {
             base.OnSpawn();
@@ -44,7 +42,7 @@ namespace Gloomdelve
         {
             if (!isExit) return null;
             if (locked) return string.IsNullOrEmpty(lockedPrompt) ? "The gate is sealed. Bring the Sunstone here!" : lockedPrompt;
-            return "[up] / [enter]  enter the exit";
+            return "[enter]  Enter";
         }
 
         public void Interact(PlayerController p)

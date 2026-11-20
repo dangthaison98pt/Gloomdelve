@@ -50,7 +50,16 @@ namespace Gloomdelve.EditorTools
             p.Save(Path.Combine(Directory.GetCurrentDirectory(), path));
             ArtImport.Pending[path] = new ArtImport.Settings { pivot = pivot, border = border };
             written.Add(path);
+            // the part of the sheet that is drawn on (see IconFrames)
+            int x0 = p.w, y0 = p.h, x1 = -1, y1 = -1;
+            for (int y = 0; y < p.h; y++)
+                for (int x = 0; x < p.w; x++)
+                    if (p.c[y * p.w + x].a > 0) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+            if (x1 >= x0) Drawn[rel] = new Rect(x0 / (float)p.w, y0 / (float)p.h, (x1 - x0 + 1) / (float)p.w, (y1 - y0 + 1) / (float)p.h);
         }
+
+        /// <summary>Picture (as given to S) -> the part of its sheet that is drawn on, 0..1. Filled as the pictures are made.</summary>
+        public static readonly Dictionary<string, Rect> Drawn = new Dictionary<string, Rect>();
 
         static void SaveSmooth(Px p, string rel)
         {
@@ -815,8 +824,9 @@ namespace Gloomdelve.EditorTools
         {
             const string d = "Sky/";
             var g = new Px(4, 96);
-            // sunset bands from the horizon up; quantised so the sky reads as pixel art, not a smooth ramp
-            Color32[] stops = { C(255, 206, 132), C(250, 160, 120), C(214, 124, 148), C(150, 110, 176), C(92, 92, 168), C(52, 68, 140), C(34, 46, 104) };
+            // a winter's day from the horizon up: pale and a little grey low down, a clear cold blue overhead;
+            // quantised so the sky reads as pixel art, not a smooth ramp (dusk, dawn and night are tints laid over it)
+            Color32[] stops = { C(222, 228, 232), C(202, 214, 226), C(176, 196, 216), C(150, 176, 206), C(124, 154, 192), C(102, 134, 176), C(86, 118, 162) };
             float[] at = { 0f, 0.14f, 0.3f, 0.48f, 0.66f, 0.84f, 1f };
             for (int y = 0; y < 96; y++)
             {
@@ -833,15 +843,16 @@ namespace Gloomdelve.EditorTools
                 for (int x = 0; x < 48; x++)
                 {
                     float dx = x - 23.5f, dy = y - 23.5f, dd = Mathf.Sqrt(dx * dx + dy * dy);
-                    if (dd < 9f) sun.Set(x, y, C(255, 250, 214));
-                    else if (dd < 11f) sun.Set(x, y, C(255, 232, 160));
-                    else if (dd < 16f) sun.Set(x, y, C(255, 220, 150, 110));
-                    else if (dd < 23f) sun.Set(x, y, C(255, 210, 150, 46));
+                    // (a pale winter sun)
+                    if (dd < 9f) sun.Set(x, y, C(255, 253, 240));
+                    else if (dd < 11f) sun.Set(x, y, C(250, 246, 226));
+                    else if (dd < 16f) sun.Set(x, y, C(246, 244, 232, 90));
+                    else if (dd < 23f) sun.Set(x, y, C(240, 242, 240, 40));
                 }
             Save(sun, d + "sun", PCenter);
 
             var range = new Px(128, 40);
-            Color32 rg = C(168, 128, 172), rgL = C(206, 160, 184);
+            Color32 rg = C(158, 176, 198), rgL = C(192, 206, 222);
             for (int x = 0; x < 128; x++)
             {
                 float hgt = 14f + 12f * Mathf.Abs(Mathf.Sin(x * 0.0736f + 0.6f)) + 6f * Mathf.Abs(Mathf.Sin(x * 0.196f + 2.1f));
@@ -851,7 +862,7 @@ namespace Gloomdelve.EditorTools
             Save(range, d + "range", PCenter);
 
             var far = new Px(128, 44);
-            Color32 m = C(124, 110, 164), mL = C(170, 156, 200), snow = C(236, 226, 240);
+            Color32 m = C(118, 138, 168), mL = C(158, 176, 200), snow = C(240, 244, 248);
             for (int x = 0; x < 128; x++)
             {
                 float hgt = 16f + 10f * Mathf.Abs(Mathf.Sin(x * 0.049f * Mathf.PI)) + 7f * Mathf.Abs(Mathf.Sin(x * 0.11f + 1.3f)) + 2f * N(x, 1, 3);
@@ -874,7 +885,7 @@ namespace Gloomdelve.EditorTools
             for (int k = 0; k < 2; k++)
             {
                 var cl = new Px(k == 0 ? 64 : 40, k == 0 ? 22 : 14);
-                Color32 c = C(255, 240, 232, 225), cs = C(240, 190, 190, 225), hl = C(255, 252, 244, 235);
+                Color32 c = C(232, 236, 242, 225), cs = C(188, 200, 216, 225), hl = C(248, 250, 254, 235);
                 if (k == 0) { cl.Ellipse(16, 8, 12, 6, c); cl.Ellipse(34, 11, 15, 8, c); cl.Ellipse(50, 7, 10, 5, c); cl.Ellipse(30, 15, 9, 5, hl); }
                 else { cl.Ellipse(12, 6, 9, 5, c); cl.Ellipse(26, 7, 11, 6, c); cl.Ellipse(22, 10, 6, 3, hl); }
                 for (int x = 0; x < cl.w; x++) for (int y = 0; y < 4; y++) if (cl.Get(x, y).a > 0) cl.Set(x, y, cs);
@@ -2306,6 +2317,47 @@ namespace Gloomdelve.EditorTools
             };
             for (int i = 0; i < looks.Length; i++)
                 Save(Humanoid(new Pose(), looks[i]), d + "villager_" + i, new Vector2(0.5f, 1f / 20f));
+            {
+                // the people in the street: nobody in particular, in winter coats
+                var folk = new[]
+                {
+                    Make(C(150, 96, 60), C(110, 70, 50), C(70, 46, 30), C(200, 180, 120), false, false, false),
+                    Make(C(84, 104, 140), C(190, 190, 200), C(150, 100, 60), C(190, 70, 70), false, true, false),
+                    Make(C(130, 70, 100), C(90, 50, 80), C(40, 30, 30), C(220, 210, 190), false, false, true),
+                    Make(C(90, 120, 90), C(70, 90, 70), C(200, 196, 190), C(160, 110, 60), true, true, false),
+                };
+                int[] la = { -2, 0, 2, 0 }, lb = { 2, 0, -2, 0 }, liftA = { 0, 1, 0, 0 }, liftB = { 0, 0, 0, 1 }, bob = { 0, 1, 0, 1 };
+                for (int i = 0; i < folk.Length; i++)
+                {
+                    Save(Humanoid(new Pose(), folk[i]), d + $"folk_{i}_0", new Vector2(0.5f, 1f / 20f));
+                    for (int f = 0; f < 4; f++)
+                        Save(Humanoid(new Pose { legA = la[f], legB = lb[f], liftA = liftA[f], liftB = liftB[f], bob = bob[f], arm = f % 2 == 0 ? 0 : 7, scarf = f % 2 }, folk[i]), d + $"folk_{i}_{f + 1}", new Vector2(0.5f, 1f / 20f));
+                }
+                // children: small, a bobble hat, a coat too big for them (0 standing, 1 / 2 running)
+                Color32[] coats = { C(214, 70, 70), C(70, 130, 200), C(230, 180, 60) }, hats = { C(240, 236, 226), C(230, 120, 60), C(110, 180, 120) };
+                Color32 skin = C(238, 186, 144), ol = C(22, 14, 20), boot = C(70, 46, 30), eye = C(28, 20, 24);
+                for (int i = 0; i < coats.Length; i++)
+                    for (int f = 0; f < 3; f++)
+                    {
+                        var p = new Px(14, 18);      // (room above the hat for its bobble and the outline)
+                        int by = f == 2 ? 1 : 0;      // a bounce in the run
+                        // legs and boots
+                        if (f == 0) { p.Rect(4, 1, 2, 3, boot); p.Rect(8, 1, 2, 3, boot); }
+                        else if (f == 1) { p.Rect(3, 1, 2, 3, boot); p.Rect(9, 2, 2, 2, boot); }
+                        else { p.Rect(5, 2, 2, 2, boot); p.Rect(7, 1, 2, 3, boot); }
+                        // coat, arms, scarf
+                        p.Rect(3, 4 + by, 8, 5, coats[i]); p.Rect(3, 4 + by, 8, 1, Mul(coats[i], 0.65f)); p.Rect(3, 4 + by, 2, 5, Mul(coats[i], 0.8f));
+                        if (f == 0) { p.Rect(2, 5, 1, 3, coats[i]); p.Rect(11, 5, 1, 3, coats[i]); }
+                        else { p.Rect(1, 6 + by, 2, 2, coats[i]); p.Rect(11, 7 + by, 2, 2, coats[i]); }
+                        p.Rect(3, 9 + by, 8, 1, hats[i]);
+                        // head and hat
+                        p.Rect(4, 10 + by, 6, 3, skin); p.Set(8, 11 + by, eye);
+                        p.Rect(3, 13 + by, 8, 2, hats[i]); p.Rect(3, 13 + by, 8, 1, Mul(hats[i], 0.75f));
+                        p.Rect(6, 15 + by, 2, 1, hats[i]);
+                        p.Outline(ol);
+                        Save(p, d + $"kid_{i}_{f}", new Vector2(0.5f, 1f / 18f));
+                    }
+            }
 
             {
                 // the cage: iron bars with a rail top and bottom
@@ -2351,11 +2403,13 @@ namespace Gloomdelve.EditorTools
             {
                 var p = new Px(16, 16);
                 Color32 s = C(150, 122, 92), sd = C(104, 82, 60), sl = C(190, 162, 130);
-                for (int y = 0; y < 15; y++)
+                // (it comes down to a point - one pixel, a row clear of the sheet's edge so that the outline closes under it)
+                for (int y = 2; y < 15; y++)
                 {
-                    int half = (int)((y / 14f) * 4.2f);
+                    int half = (int)(((y - 2) / 12f) * 4.2f);
                     for (int x = 8 - half - 1; x <= 7 + half + 1; x++) if (x >= 7 - half && x <= 8 + half) p.Set(x, y, x <= 7 ? sl : (x == 8 + half ? sd : s));
                 }
+                p.Set(7, 1, sl);
                 p.Outline(C(50, 38, 28));
                 Save(p, d + "stalactite", new Vector2(0.5f, 0f));
             }
@@ -2537,6 +2591,27 @@ namespace Gloomdelve.EditorTools
         {
             WaypointArt();
             const string d = "UI/";
+            {
+                // the Field Guide: a bound book, a mountain stamped on its cover, a ribbon
+                var p = new Px(16, 16);
+                Color32 cover = C(126, 54, 50), coverD = C(84, 34, 36), coverL = C(170, 84, 70), page = C(238, 228, 200), pageD = C(196, 182, 150), gold = C(240, 200, 90), ol = C(30, 14, 16);
+                p.Rect(3, 2, 10, 12, cover); p.Rect(3, 2, 2, 12, coverD); p.Rect(11, 3, 2, 10, coverL);
+                p.Rect(5, 1, 8, 1, page); p.Rect(13, 3, 1, 10, page); p.Rect(5, 1, 8, 1, pageD);
+                p.Set(8, 9, gold); p.Rect(7, 8, 3, 1, gold); p.Rect(6, 7, 5, 1, gold); p.Rect(6, 11, 5, 1, gold);
+                p.Rect(9, 0, 1, 3, C(214, 60, 70));
+                p.Outline(ol);
+                Save(p, d + "icon_book", PCenter);
+            }
+            {
+                // the strip behind a prompt tag: solid, then fading out to the right
+                var p = new Px(64, 4);
+                for (int x = 0; x < 64; x++)
+                {
+                    byte a = (byte)(x < 34 ? 255 : Mathf.RoundToInt(255f * Mathf.Pow(1f - (x - 34) / 30f, 1.5f)));
+                    for (int y = 0; y < 4; y++) p.Set(x, y, new Color32(255, 255, 255, a));
+                }
+                Save(p, d + "tag_fade", PCenter);
+            }
             { var p = new Px(12, 10); HeartShape(p, 1, 1, C(220, 40, 60), C(255, 150, 160), C(140, 20, 40)); p.Outline(C(30, 10, 14)); Save(p, d + "icon_heart", PCenter); }
             { var p = new Px(12, 12); p.Disc(5.5f, 5f, 4f, C(40, 40, 54)); p.Set(4, 7, C(130, 130, 150)); p.Set(3, 6, C(130, 130, 150)); p.Set(8, 9, C(140, 100, 60)); p.Set(9, 10, C(255, 200, 60)); p.Outline(C(10, 10, 16)); Save(p, d + "icon_bomb", PCenter); }
             { var p = new Px(12, 12); Color32 r = C(200, 160, 96), rd = C(130, 96, 50); p.Ellipse(6, 5, 4.5f, 3.5f, r); p.Ellipse(6, 5, 2.6f, 1.8f, rd); p.Ellipse(6, 5, 1.2f, 0.8f, r); p.Line(9, 8, 10, 10, r); p.Outline(C(40, 26, 12)); Save(p, d + "icon_rope", PCenter); }

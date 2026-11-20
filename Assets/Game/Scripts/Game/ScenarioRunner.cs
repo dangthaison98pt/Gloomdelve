@@ -247,6 +247,12 @@ namespace Gloomdelve
             new Scenario { name = "recall charm: use it to return to where the level began; it needs a rest between uses", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => RecallCase(c) },
 
+            new Scenario { name = "hud: what to press shows as a tag at the right edge, spoken words in a box with a name, a sign as a card", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => PromptPlacesCase(c) },
+            new Scenario { name = "village: people walk the street, children play tag, and a thing looked at is read like a sign", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => VillageLifeCase(c) },
+            new Scenario { name = "field guide: the chest at the end of the tutorial hands it over, the bag opens it, and every page has its picture", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => CodexCase(c) },
             new Scenario { name = "villagers: a caged villager is freed with Enter, goes home for good, and helps every later run", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => VillagerCase(c) },
 
@@ -1600,7 +1606,7 @@ namespace Gloomdelve
             c.Expect(Villagers.AddEmbers(2) == 0 && Villagers.Embers == 0, "without the elder's pouch an ember cannot be kept");
             var elder = c.Spawn<Elder>("elder", 26, 1);
             yield return c.Frames(3);
-            c.Expect(elder != null && elder.GetPrompt(c.p) != null && elder.GetPrompt(c.p).Contains("talk"), "the elder has something to say");
+            c.Expect(elder != null && elder.GetPrompt(c.p) != null && elder.GetPrompt(c.p).StartsWith("[enter]") && elder.GetPrompt(c.p).Contains(Elder.ElderName), "the elder has something to say");
             if (elder != null) elder.Interact(c.p);
             c.Expect(Villagers.HasKey(Villagers.KeyPouch), "talking to the elder gives the Ember Pouch");
             c.Expect(Villagers.PouchCapacity == Villagers.PouchStartCapacity && Villagers.PouchStartCapacity == 5, "it holds 5 embers when he hands it over");
@@ -1644,7 +1650,7 @@ namespace Gloomdelve
                 $"the Healer is home: her place is lit and her wares are out ({(home != null ? home.WareCount : -1)})");
             ShopItem ware = null;
             foreach (var e in c.world.Entities) if (e is ShopItem si && !si.Dead) ware = si;
-            c.Expect(ware != null && ware.GetPrompt(c.p) != null && ware.GetPrompt(c.p).Contains("buy"), "a ware in the village is for sale, not free");
+            c.Expect(ware != null && ware.GetPrompt(c.p) != null && ware.GetPrompt(c.p).Contains("Buy"), "a ware in the village is for sale, not free");
             if (ware != null)
             {
                 int hp = run.maxHealth, gold0 = run.gold, e0 = Villagers.Embers;
@@ -1669,7 +1675,10 @@ namespace Gloomdelve
                 var room = c.Spawn<VillageInterior>("interior", 24, 1, 1);
                 yield return c.Frames(4);
                 c.Expect(front != null && front.Open && locked != null && !locked.Open, "a freed keeper's house is open, a lost one's is locked");
-                c.Expect(locked != null && locked.GetPrompt(c.p).Contains("locked"), "the locked door says so");
+                if (locked != null) locked.Interact(c.p);
+                yield return c.Frames(4);
+                c.Expect(locked != null && locked.GetPrompt(c.p).Contains("Look") && c.dir.hud.NoteUp, "the locked door offers a look, and says it is locked when looked at");
+                c.dir.hud.DismissHeld();
                 c.Teleport(6.5f, 1f);
                 yield return c.Frames(4);
                 if (locked != null) locked.Interact(c.p);
@@ -1685,7 +1694,7 @@ namespace Gloomdelve
                 int curios = 0; Curio near = null;
                 foreach (var e in c.world.Entities) if (e is Curio cu && !cu.Dead) { curios++; if (near == null || Mathf.Abs(cu.pos.x - c.p.pos.x) < Mathf.Abs(near.pos.x - c.p.pos.x)) near = cu; }
                 c.Expect(curios >= 3, $"the room has things to look at ({curios})");
-                c.Expect(near != null && near.GetPrompt(c.p).Contains("look at") && !string.IsNullOrEmpty(near.text), "each offers a closer look and has something to say");
+                c.Expect(near != null && near.GetPrompt(c.p).Contains("Look") && !string.IsNullOrEmpty(near.text), "each offers a closer look and has something to say");
                 if (near != null) near.Interact(c.p);
                 yield return c.Frames(20);
                 ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "village_room.png"));
@@ -3440,6 +3449,280 @@ namespace Gloomdelve
                 c.Expect(egg.Dead && c.Count<Spider>() == sp0, "cut in time, nothing hatches");
             }
             c.p.godMode = true;
+        }
+
+        static IEnumerator VillageLifeCase(Ctx c)
+        {
+            c.Bot(Seq((3000, F())));
+            c.Teleport(4.5f, 1f);
+            int n = Townsfolk.Populate(c.world);
+            yield return c.Frames(2);       // (what is spawned joins the world at its next step)
+            var folk = new List<Townsfolk>();
+            foreach (var e in c.world.Entities) if (!e.Dead && e is Townsfolk t) folk.Add(t);
+            int kids = 0; foreach (var t in folk) if (t.IsKid) kids++;
+            c.Expect(n == 10 && folk.Count == 10 && kids == 4, $"six grown-ups and four children are out in the street ({folk.Count}, {kids} children)");
+            var x0 = new List<float>(); foreach (var t in folk) x0.Add(t.pos.x);
+            int hp = c.run.health, chasers0 = 0, swaps = 0;
+            foreach (var t in folk) if (t.Chasing) chasers0++;
+            var was = new List<bool>(); foreach (var t in folk) was.Add(t.Chasing);
+            for (int i = 0; i < 900; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                for (int k = 0; k < folk.Count; k++) if (folk[k].Chasing != was[k]) { was[k] = folk[k].Chasing; swaps++; }
+                if (i == 200) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "village_life.png"));
+            }
+            int moved = 0; for (int k = 0; k < folk.Count; k++) if (Mathf.Abs(folk[k].pos.x - x0[k]) > 0.5f) moved++;
+            c.Expect(moved >= 7, $"they walk about ({moved} of {folk.Count} are somewhere else after a while)");
+            c.Expect(chasers0 == 2 && swaps >= 2, $"the children play tag: one of each pair chases, and a touch swaps them ({swaps} swaps)");
+            c.Expect(c.run.health == hp, "they are scenery: walking among them costs nothing");
+            foreach (var t in folk) t.Despawn();
+            // a thing looked at is read the way a sign is: a card, at the press of the button, gone when one walks off
+            var hud = c.dir.hud;
+            var cur = c.Spawn<Curio>("curio", 8, 1, 0, "the letter|A letter nobody sent.");
+            c.Expect(cur != null, "a curio spawned");
+            if (cur == null) yield break;
+            c.Teleport(8.5f, 1f);
+            yield return c.Frames(36);
+            c.Expect(!hud.NoteUp && !hud.noteRoot.gameObject.activeSelf && hud.tagRoot.gameObject.activeSelf, "standing by it only offers a look");
+            cur.Interact(c.p);
+            yield return c.Frames(36);
+            c.Expect(hud.NoteUp && hud.noteRoot.gameObject.activeSelf && hud.noteText.text.Contains("nobody sent"), "looked at, it is read on a sign's card");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "hud_curio_note.png"));
+            yield return c.Frames(3);
+            // the same button again puts it down, and does not start it over
+            c.Bot(Seq((2, F()), (1, F(act: true)), (60, F())));
+            yield return c.Frames(36);
+            c.Expect(!hud.NoteUp && !hud.noteRoot.gameObject.activeSelf, "the button again puts the card down");
+            c.Bot(Seq((2, F()), (1, F(act: true)), (60, F())));
+            yield return c.Frames(36);
+            c.Expect(hud.NoteUp, "and once more reads it again");
+            c.Bot(Seq((3000, F())));
+            c.Teleport(14.5f, 1f);
+            yield return c.Frames(36);
+            c.Expect(!hud.NoteUp && !hud.noteRoot.gameObject.activeSelf, "walking away puts it down");
+            cur.Despawn();
+        }
+
+        static IEnumerator CodexCase(Ctx c)
+        {
+            c.Bot(Seq((3000, F())));
+            Codex.Forget();
+            c.Expect(!Codex.Owned, "no book to begin with");
+            // the book itself: a page for every place, creature and boss, each creature with a picture
+            string missing = "";
+            int places = 0;
+            foreach (var pg in Codex.Pages)
+            {
+                if (pg.place) places++;
+                if (string.IsNullOrEmpty(pg.text) || pg.text.Length < 40) missing += " (no text: " + pg.name + ")";
+                if (!string.IsNullOrEmpty(pg.prefab))
+                {
+                    var pf = c.world.config.prefabs.Get(pg.prefab);
+                    var r = pf != null ? pf.GetComponentInChildren<SpriteRenderer>(true) : null;
+                    if (r == null || r.sprite == null) missing += " " + pg.prefab;
+                }
+            }
+            int traps = 0; foreach (var pg in Codex.Pages) if (pg.info && !pg.place) traps++;
+            c.Expect(Codex.Pages.Count >= 58 && places == 10 && traps >= 17 && missing == "", $"the book has {Codex.Pages.Count} pages over {places} places, {traps} of them on traps and the like, every creature with its picture{missing}");
+            // the chest
+            var ch = c.Spawn<Chest>("codexchest", 8, 1, 0, Codex.Key);
+            c.Expect(ch != null && ch.gearId == Codex.Key, "the chest that holds it spawned");
+            if (ch == null) yield break;
+            c.Teleport(8.5f, 1f);
+            c.Bot(Seq((2, F()), (1, F(act: true)), (60, F())));
+            yield return c.Frames(20);
+            c.Expect(ch.Opened && Codex.Owned && c.dir.hud.CardUp && c.run.gear.Contains("recall") && GameDirector.tutorialChestOpened, "opened, it hands over the Field Guide and the Recall Charm, each on a card");
+            c.Bot(Seq((3000, F())));
+            // read from the bag
+            var inv = c.dir.inventory;
+            var book = c.dir.codex;
+            c.Expect(book != null, "the game has a Field Guide screen");
+            if (book == null) yield break;
+            float scale = Time.timeScale;
+            inv.Open();
+            inv.SetTab(InventoryScreen.TabKeys);
+            yield return new WaitForSecondsRealtime(0.1f);
+            c.Expect(inv.IsOpen && inv.EntryCount >= 1, $"the bag lists it under KEY ITEMS ({inv.EntryCount} there)");
+            inv.MoveRow(1);       // (down from the tabs onto the first thing there)
+            inv.Toggle();
+            yield return new WaitForSecondsRealtime(0.15f);
+            // no page is without a picture: creatures and traps show themselves, places a view of their own stone
+            string blank = "";
+            for (int i = 0; i < Codex.Pages.Count; i++)
+            {
+                if (i > 0) book.Move(1);
+                if (!book.PictureShown) blank += " " + Codex.Pages[i].name;
+                if (Codex.Pages[i].info && !Codex.Pages[i].place) { yield return new WaitForSecondsRealtime(0.12f); ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "codex_info_" + i + ".png")); yield return new WaitForSecondsRealtime(0.12f); }
+            }
+            book.Move(-Codex.Pages.Count);
+            // the mouse: a click on a line of the list opens that page
+            book.Click(2);
+            c.Expect(book.Selected == 2 && book.SelectedName == Codex.Pages[2].name, $"a click on the third line of the list opens the third page ({book.SelectedName})");
+            book.Move(-Codex.Pages.Count);
+            int arrow = Codex.Pages.FindIndex(pg => pg.name == "Arrow Trap");
+            book.Move(arrow);
+            yield return new WaitForSecondsRealtime(0.2f);
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "codex_trap.png"));
+            yield return new WaitForSecondsRealtime(0.2f);
+            book.Move(-Codex.Pages.Count);
+            int frost = Codex.Pages.FindIndex(pg => pg.name == "Frostdeep Hollows");
+            book.Move(frost);
+            yield return new WaitForSecondsRealtime(0.2f);
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "codex_place.png"));
+            yield return new WaitForSecondsRealtime(0.2f);
+            book.Move(1);
+            yield return new WaitForSecondsRealtime(0.2f);
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "codex_ice.png"));
+            yield return new WaitForSecondsRealtime(0.2f);
+            book.Move(-Codex.Pages.Count);
+            c.Expect(blank == "", "every page of the book shows a picture" + (blank != "" ? " - none on:" + blank : ""));
+            c.Expect(book.IsOpen && !inv.IsOpen && Time.timeScale == 0f && book.SelectedName == Codex.Pages[0].name, $"confirm on it shuts the bag and opens the book at its first page; the game stands still (book {book.IsOpen}, bag {inv.IsOpen}, scale {Time.timeScale}, page {book.SelectedName})");
+            c.Expect(GameDirector.tutorialBookRead, "the tutorial's gate knows the book has been opened");
+            book.Jump(1);
+            string place = book.SelectedName;
+            book.Move(1);
+            c.Expect(place == "Mossroot Caverns" && book.SelectedName == "Stalactite" && book.SelectedKnown, $"right jumps to the next place; a trap's page can be read from the start ({place} -> {book.SelectedName})");
+            // a creature's page is blank until one has been killed; then it is written, and counts them
+            Codex.ForgetKills();
+            book.Move(3);
+            yield return new WaitForSecondsRealtime(0.1f);
+            c.Expect(book.SelectedName == "Snake" && !book.SelectedKnown && book.ShownName == "? ? ?" && book.killsText.text.EndsWith(" 0"), $"a creature nobody has killed: no name, nothing written ({book.ShownName}, {book.killsText.text})");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "codex_unknown.png"));
+            yield return new WaitForSecondsRealtime(0.2f);
+            book.Close();
+            yield return new WaitForSecondsRealtime(0.1f);
+            c.p.godMode = true;
+            for (int k = 0; k < 2; k++)
+            {
+                var sn = c.Spawn<Enemy>("snake", 12, 1);
+                yield return c.Frames(4);
+                if (sn != null) sn.TakeDamage(new DamageInfo(9, DamageType.Whip, c.p, Vector2.zero, "test"));
+                yield return c.Frames(4);
+            }
+            c.Expect(Codex.Kills("snake") == 2, $"two snakes killed by the player are counted ({Codex.Kills("snake")})");
+            c.dir.OpenCodex();
+            yield return new WaitForSecondsRealtime(0.15f);
+            c.Expect(book.IsOpen && book.SelectedName == "Snake" && book.SelectedKnown && book.ShownName == "Snake" && book.killsText.text.EndsWith(" 2"), $"now its page is written, and says how many ({book.ShownName}, {book.killsText.text})");
+            book.Move(3);
+            yield return new WaitForSecondsRealtime(0.2f);
+            c.Expect(book.SelectedName == "Broodmother" && !book.SelectedKnown, "the boss of the place is still unknown");
+            book.Move(-3);
+            yield return new WaitForSecondsRealtime(0.1f);
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "codex.png"));
+            yield return new WaitForSecondsRealtime(0.2f);
+            var over = UIOverlap.Find();
+            c.Expect(over.Count == 0, "the book is laid out cleanly" + (over.Count > 0 ? " (" + over[0] + ")" : ""));
+            book.Close();
+            yield return new WaitForSecondsRealtime(0.1f);
+            c.Expect(!book.IsOpen && Time.timeScale == scale, $"shut, the game goes on (book {book.IsOpen}, scale {Time.timeScale}, was {scale})");
+            ch.Despawn();
+        }
+
+        static IEnumerator PromptPlacesCase(Ctx c)
+        {
+            var hud = c.dir.hud;
+            c.Bot(Seq((2000, F())));
+            // the line a thing hands over is taken apart
+            HUD.SplitPrompt("[enter]  open the chest", false, out var act, out var sub, out var who, out var said, out var note);
+            c.Expect(act == "[enter]  open the chest" && sub == null && who == null && said == null && note == null, "a thing to do is an action only");
+            HUD.SplitPrompt("Elder Aldous:  \"Everyone is home.\"", false, out act, out sub, out who, out said, out note);
+            c.Expect(act == null && who == "Elder Aldous" && said == "Everyone is home.", $"somebody speaking: a name and their words ({who} / {said})");
+            HUD.SplitPrompt("[enter]  free Tam the baker      Tam:  \"Get me out!\"", false, out act, out sub, out who, out said, out note);
+            c.Expect(act == "[enter]  free Tam the baker" && who == "Tam" && said == "Get me out!", $"a caged villager: what to press, and what they say ({act} / {who} / {said})");
+            HUD.SplitPrompt("[enter]  buy rope for $20  -  A rope to climb.", false, out act, out sub, out who, out said, out note);
+            c.Expect(act == "[enter]  buy rope for $20" && sub == "A rope to climb.", $"a ware: its price, and under it what it does ({act} / {sub})");
+            HUD.SplitPrompt("The gate is sealed.", false, out act, out sub, out who, out said, out note);
+            c.Expect(act == null && who == null && said == "The gate is sealed.", "told by nobody: words without a name");
+            // on the screen
+            var chest = c.Spawn<Entity>("chest", 8, 1);
+            c.Teleport(8.5f, 1f);
+            yield return c.Frames(30);
+            c.Expect(hud.tagRoot != null && hud.tagRoot.gameObject.activeSelf && !hud.talkRoot.gameObject.activeSelf && !hud.noteRoot.gameObject.activeSelf, "at a chest: only the tag at the right edge");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "hud_prompt_tag.png"));
+            yield return c.Frames(3);
+            var sign = c.Spawn<Sign>("sign", 14, 1, 0, "Hold [walk] near a ledge to walk slowly, and press [jump] to jump. A sign can say a good deal more than fits on one line, so it wraps.");
+            c.Teleport(14.5f, 1f);
+            yield return c.Frames(30);
+            c.Expect(hud.noteRoot.gameObject.activeSelf && !hud.tagRoot.gameObject.activeSelf && !hud.talkRoot.gameObject.activeSelf, "at a sign: only the card");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "hud_prompt_note.png"));
+            yield return c.Frames(3);
+            // the button puts a sign's card away; it is back when the player comes back to the sign
+            c.Bot(Seq((2, F()), (1, F(act: true)), (60, F())));
+            yield return c.Frames(36);
+            c.Expect(!hud.noteRoot.gameObject.activeSelf && !hud.SignUp, "the button puts the sign's card away");
+            c.Teleport(4.5f, 1f);
+            yield return c.Frames(36);
+            c.Teleport(14.5f, 1f);
+            yield return c.Frames(36);
+            c.Expect(hud.noteRoot.gameObject.activeSelf && hud.SignUp, "back at the sign, the card is there again");
+            c.Bot(Seq((3000, F())));
+            // somebody's words are written out a sentence at a time; the button finishes a sentence, brings the next, ends it
+            hud.ShowTalk("Tam the Ropemaker", "A rope is a promise. Mind the frayed ones! Come back when you need more.");
+            yield return c.Frames(30);      // (the sign's card fades out under it)
+            c.Expect(hud.TalkUp && hud.TalkPages == 3 && hud.TalkPage == 0 && hud.TalkTyping && hud.talkRoot.gameObject.activeSelf && !hud.noteRoot.gameObject.activeSelf,
+                $"spoken to: the first of three sentences is being written out ({hud.TalkPages} sentences)");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "hud_talk_typing.png"));
+            yield return c.Frames(3);
+            hud.AdvanceTalk();
+            yield return c.Frames(3);
+            c.Expect(hud.TalkPage == 0 && !hud.TalkTyping && hud.talkMore.activeSelf, "the button while it is written: the whole sentence at once");
+            hud.AdvanceTalk();
+            yield return c.Frames(3);
+            c.Expect(hud.TalkPage == 1 && hud.TalkTyping, "the button on a finished sentence: the next one");
+            for (int i = 0; i < 400 && hud.TalkTyping; i++) yield return new WaitForFixedUpdate();
+            c.Expect(!hud.TalkTyping && hud.TalkUp, "left alone, a sentence writes itself out and waits");
+            hud.AdvanceTalk();
+            yield return c.Frames(2);
+            hud.AdvanceTalk(); hud.AdvanceTalk();
+            yield return c.Frames(36);
+            c.Expect(!hud.TalkUp && !hud.talkRoot.gameObject.activeSelf, "after the last sentence the button closes the box");
+            c.Teleport(4.5f, 1f);
+            yield return c.Frames(36);
+            c.Expect(!hud.noteRoot.gameObject.activeSelf && !hud.tagRoot.gameObject.activeSelf && !hud.talkRoot.gameObject.activeSelf, "away from everything: nothing shown");
+            if (chest != null) chest.Despawn();
+            if (sign != null) sign.Despawn();
+            // an item picked up: a card the first time, a line at the left edge after that - one line each, two of a kind included;
+            // gold is no item: it only ever gets a line
+            ItemLog.Forget("bomb bag"); ItemLog.Forget("gold nugget");
+            c.Spawn<Pickup>("bombbag", 6, 1);
+            yield return c.Frames(20);
+            c.Teleport(6.5f, 1f);
+            for (int i = 0; i < 1500 && !hud.cardRoot.gameObject.activeSelf; i++) yield return new WaitForFixedUpdate();      // (it waits for the level's title to go)
+            yield return c.Frames(6);
+            c.Expect(hud.CardUp && hud.CardName == "Bomb Bag" && hud.FeedCount == 0 && hud.cardRoot.gameObject.activeSelf, $"the first bomb bag of a save is shown on a card ({hud.CardName})");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "hud_item_card.png"));
+            yield return c.Frames(3);
+            int gold0 = c.run.gold;
+            c.Teleport(3.5f, 1f);
+            ItemLog.FirstTime("rope pile");       // (seen before: it goes to the list)
+            c.Spawn<Pickup>("ropepile", 6, 1); c.Spawn<Pickup>("ropepile", 6, 1);
+            c.Spawn<Pickup>("gold_small", 7, 1); c.Spawn<Pickup>("gold_big", 7, 1);
+            yield return c.Frames(20);
+            c.Teleport(6.5f, 1f);
+            yield return c.Frames(14);
+            c.Teleport(7.5f, 1f);
+            yield return c.Frames(14);
+            c.Expect(c.run.gold == gold0 + 40 && hud.FeedCount == 4 && hud.FeedLines("rope pile") == 2 && hud.FeedAmount("rope pile") == 6 && hud.FeedAmount("gold nugget") == 10 && hud.FeedAmount("gold chunk") == 30 && hud.CardName == "Bomb Bag",
+                $"picked up again an item is a line at the left edge, each with a line of its own - two rope piles two lines, a nugget +10, a chunk +30 - and gold never a card (lines {hud.FeedCount}, rope lines {hud.FeedLines("rope pile")}, nugget +{hud.FeedAmount("gold nugget")}, chunk +{hud.FeedAmount("gold chunk")})");
+            yield return new WaitForSecondsRealtime(0.5f);       // (the lines have slid in)
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "hud_item_feed.png"));
+            yield return c.Frames(3);
+            // the chest by the gate of an area that asks for gear: opened, it hands that gear over
+            c.run.gear.Remove("glider");
+            var gc = Chest.SpawnGearChest(c.world, "glider", new Vector2(8.5f, 1f));
+            yield return c.Frames(3);
+            c.Expect(gc != null && gc.gearId == "glider" && Mathf.Abs(gc.pos.x - 8.5f) <= 4f && !c.run.gear.Contains("glider"), "a gear chest stands beside the gate, and the gear is not yet the player's");
+            if (gc != null)
+            {
+                c.Teleport(gc.pos.x, 1f);
+                c.Bot(Seq((2, F()), (1, F(act: true)), (60, F())));
+                yield return c.Frames(20);
+                c.Expect(gc.Opened && c.run.gear.Contains("glider") && hud.CardUp, "opened with the button, it hands the glider over, on a card");
+                ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "gear_chest.png"));
+                yield return c.Frames(3);
+                gc.Despawn();
+            }
+            c.Bot(Seq((3000, F())));
         }
 
         static IEnumerator GearWyrmCase(Ctx c)

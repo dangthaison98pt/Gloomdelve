@@ -6,10 +6,8 @@ namespace Gloomdelve
 {
     public interface IInteractable
     {
-        /// <summary>Text shown at the bottom of the screen while overlapping; null for none.</summary>
+        /// <summary>What the screen shows while the player stands at it (see HUD.SplitPrompt); null for none.</summary>
         string GetPrompt(PlayerController p);
-        /// <summary>Whether pressing Up (not only the Interact key) triggers it.</summary>
-        bool UpTriggers { get; }
         void Interact(PlayerController p);
     }
 
@@ -49,6 +47,8 @@ namespace Gloomdelve
         public string DeathCause { get; private set; }
         public float LookOffset { get; private set; }
         public string Prompt { get; private set; }
+        /// <summary>The prompt is the writing on a sign (the screen shows it as a notice, not as something to do).</summary>
+        public bool PromptIsSign { get; private set; }
         public float InvulnTime => invuln;
         public bool IsStunned => stunTimer > 0f;
         /// <summary>Encased in ice (snowball without a fur coat): cannot act until it wears off.</summary>
@@ -462,6 +462,7 @@ namespace Gloomdelve
         void Interactions(FrameInput fi)
         {
             Prompt = null;
+            PromptIsSign = false;
             interactable = false;
             var r = Bounds;
             World.Query(r, tmp, e => e is IInteractable);
@@ -476,18 +477,26 @@ namespace Gloomdelve
             {
                 interactable = true;
                 Prompt = best.GetPrompt(this);
-                bool upOk = best.UpTriggers && fi.upPressed && motor.mode == MotorMode.Normal && grounded;
-                if ((fi.interactPressed || upOk) && !IsStunned) best.Interact(this);
+                PromptIsSign = best is Sign;
+                if (fi.interactPressed && !IsStunned)
+                {
+                    // something is being read or heard: the same button puts it down (it does not start it over)
+                    var hud = GameDirector.Instance != null ? GameDirector.Instance.hud : null;
+                    if (hud != null && hud.TalkUp) hud.AdvanceTalk();            // the rest of the sentence, the next one, the end
+                    else if (hud != null && hud.NoteUp) hud.DismissHeld();
+                    else if (best is Sign && hud != null) hud.ToggleSign(Prompt);    // a sign's card can be put away, and taken out again
+                    else best.Interact(this);
+                }
                 return;
             }
             if (held == null && grounded)
             {
                 World.Query(r, tmp, e => e is Item it && it.CanPickUp);
-                if (tmp.Count > 0) Prompt = $"[down] + [whip]  pick up {tmp[0].displayName}";
+                if (tmp.Count > 0) Prompt = "[down] + [whip]  Pick up";
             }
             else if (held != null)
             {
-                Prompt = held.heavy ? $"Carrying {held.displayName}  ([whip] throw,  [down] + [whip] put down)" : null;
+                Prompt = held.heavy ? "[whip]  Throw  -  [down] + [whip]  Put down" : null;
             }
         }
 

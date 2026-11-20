@@ -148,6 +148,10 @@ MonoBehaviour:
     prefab: {fileID: 514392490230669108, guid: 425020e92eee46643b279d0d54adc3f3, type: 3}
   - id: chest
     prefab: {fileID: 8579868136437712267, guid: 25883a24c04f43d459b04156c7a984b5, type: 3}
+  - id: codexchest
+    prefab: {fileID: 1112100235056901730, guid: 91cfd3b09974d0d40900be970addca2b, type: 3}
+  - id: gearchest
+    prefab: {fileID: 6494134240556196489, guid: 49d61bbdf9867c74f9cdea6c4610ad9d, type: 3}
   - id: hawk
     prefab: {fileID: 282029270680871591, guid: 864923d5074fbb4498626ef3dcbdef4b, type: 3}
   - id: tree
@@ -204,6 +208,8 @@ MonoBehaviour:
     prefab: {fileID: 4656649184836530832, guid: 4ad6844a1eb610740adf2ba364ef809a, type: 3}
   - id: villagerhome
     prefab: {fileID: 7173396336095795480, guid: 6d525f7d09c9d294e91b50a6f7292659, type: 3}
+  - id: townsfolk
+    prefab: {fileID: 4202459641633659986, guid: d94d02c6879101446add73b29d6cfd50, type: 3}
   - id: elder
     prefab: {fileID: 1698245938835841561, guid: 3c882343ca9668b46b321990329fc284, type: 3}
   - id: building
@@ -222,8 +228,18 @@ MonoBehaviour:
     prefab: {fileID: 1337490128990730388, guid: b40aade2e2dde1f449d3567ee672b993, type: 3}
   - id: cratestack
     prefab: {fileID: 8472298207610921976, guid: 0af41a6d0e151484f9977fa9af844bfe, type: 3}
+  - id: firsmall
+    prefab: {fileID: 3925949243797587163, guid: 675c5a0a99723db4892f9e8a1da42fe4, type: 3}
+  - id: baretree
+    prefab: {fileID: 3949844585963758219, guid: ba94372f8cdf2e0489cd19a91945f80a, type: 3}
+  - id: snowbush
+    prefab: {fileID: 5501357495447290696, guid: 265fc5497507d2f4c816ca7aa258311b, type: 3}
   - id: curio
     prefab: {fileID: 3648075486702423137, guid: 2f1469a50f66e50438f65d0f57a6be0e, type: 3}
+  - id: kennel
+    prefab: {fileID: 8452434925105755567, guid: 810f38a2aa4846e498e7a94596343cd0, type: 3}
+  - id: villagedog
+    prefab: {fileID: 4054281624694805782, guid: 1631dae9a48d3ce4583264b85dcf7e39, type: 3}
   - id: pavement
     prefab: {fileID: 5763537643693690132, guid: d94c870365b41dc4f970706d499209dc, type: 3}
   - id: interior

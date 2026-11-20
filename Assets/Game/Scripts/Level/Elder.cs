@@ -10,22 +10,31 @@ namespace Gloomdelve
     {
         public const string ElderName = "Elder Aldous";
 
-        public bool UpTriggers => false;
-
         public string GetPrompt(PlayerController p)
         {
             if (!Villagers.Enabled) return null;
-            if (!Villagers.HasKey(Villagers.KeyPouch)) return $"[enter]  talk to {ElderName}";
+            return $"[enter]  {ElderName}";
+        }
+
+        /// <summary>What he has to say once the pouch is handed over (he says it when spoken to).</summary>
+        public static string Line()
+        {
             int lost = 0;
             foreach (var v in Villagers.All) if (!Villagers.IsRescued(v.id)) lost++;
             return lost > 0
-                ? $"{ElderName}:  \"{lost} of ours went up the mountain and did not come back. Look for them off the beaten path.\""
-                : $"{ElderName}:  \"Everyone is home. Brindlemoor has not been this full in years.\"";
+                ? $"{lost} of ours went up the mountain and did not come back. Look for them off the beaten path."
+                : "Everyone is home. Brindlemoor has not been this full in years.";
         }
 
         public void Interact(PlayerController p)
         {
-            if (!Villagers.Enabled || Villagers.HasKey(Villagers.KeyPouch)) return;
+            if (!Villagers.Enabled) return;
+            if (Villagers.HasKey(Villagers.KeyPouch))
+            {
+                var d0 = GameDirector.Instance;
+                if (d0 != null && d0.hud != null) { string line = Line(); d0.hud.ShowTalk(ElderName, line, HUD.ReadTime(line)); Sfx.PlayUI("menu_select", 0.8f); }
+                return;
+            }
             Villagers.GiveKey(Villagers.KeyPouch);
             Sfx.PlayUI("buy");
             Fx.Sparks(Center, new Color(1f, 0.9f, 0.4f), 12, 4f);

@@ -45,6 +45,12 @@ namespace Gloomdelve
         public System.Collections.Generic.List<string> rescued = new System.Collections.Generic.List<string>();
         [Tooltip("Key items: the few things that are not lost when a run ends (\"pouch\" = the elder's Ember Pouch).")]
         public System.Collections.Generic.List<string> keyItems = new System.Collections.Generic.List<string>();
+        [Tooltip("The tutorial has been finished or skipped in this save: a new game starts with it, later ones go straight to the village.")]
+        public bool tutorialDone;
+        [Tooltip("Creatures killed, by kind (the Field Guide opens a creature's page with the first, and counts them).")]
+        public System.Collections.Generic.List<KillCount> killCounts = new System.Collections.Generic.List<KillCount>();
+        [Tooltip("Things picked up at least once in this save (see ItemLog): the first time gets a card, later times a line.")]
+        public System.Collections.Generic.List<string> seenItems = new System.Collections.Generic.List<string>();
         [Tooltip("Embers in the Ember Pouch (the money of the village: only bosses drop it).")] public int embers;
         [Tooltip("How many embers the pouch holds (0 = what it held when the elder gave it).")] public int pouchCapacity;
     }
@@ -226,6 +232,26 @@ namespace Gloomdelve
 
         public static void SaveSettings() => Write(SettingsPath, Settings);
         public static void SaveRecords() => Write(RecordsPath, Records);
+
+        /// <summary>
+        /// This save is past the tutorial: it was finished or skipped - or the save is older than the tutorial's
+        /// place at the start of a new game and already has something to show (a key item, a freed villager, a boss beaten).
+        /// </summary>
+        public static bool TutorialDone
+        {
+            get
+            {
+                var r = Records;
+                return r.tutorialDone || (r.keyItems != null && r.keyItems.Count > 0) || (r.rescued != null && r.rescued.Count > 0) || (r.bosses != null && r.bosses.Count > 0);
+            }
+        }
+
+        public static void MarkTutorialDone()
+        {
+            if (ScenarioRunner.Active || AutoTest.Active || Records.tutorialDone) return;
+            Records.tutorialDone = true;
+            SaveRecords();
+        }
 
         /// <summary>Returns a short "new record" summary. givenUp: the player ended the run from the pause screen - a run, but not a death.</summary>
         public static string RecordRunEnd(RunState run, int stageReached, bool givenUp = false)

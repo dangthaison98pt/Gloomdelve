@@ -15,7 +15,6 @@ namespace Gloomdelve
         VillagerDef who;
         bool home;
 
-        public bool UpTriggers => false;
         public bool Home => home;
         public VillagerDef Who => who;
         public int WareCount { get; private set; }
@@ -58,12 +57,17 @@ namespace Gloomdelve
         public string GetPrompt(PlayerController p)
         {
             if (who == null) return null;
-            return home
-                ? $"{who.name} {who.role}:  \"{who.homeLine}\""
-                : "Dark and shut. Whoever keeps this place is lost on the mountain.";
+            return home ? $"[enter]  {who.name}" : null;
         }
 
-        public void Interact(PlayerController p) { }
+        /// <summary>They speak when spoken to, not at whoever walks past.</summary>
+        public void Interact(PlayerController p)
+        {
+            var dir = GameDirector.Instance;
+            if (who == null || !home || dir == null || dir.hud == null) return;
+            dir.hud.ShowTalk($"{who.name} {who.role}", who.homeLine, HUD.ReadTime(who.homeLine));
+            Sfx.PlayUI("menu_select", 0.8f);
+        }
         public override void OnExplosion(Vector2 center, float radius, Entity source, int generation, int damage) { }
         public override void OnWhipped(PlayerController p, int damage, int dir) { }
     }

@@ -31,6 +31,7 @@ namespace Gloomdelve
         [Tooltip("The three tab headings, in order: wear, items, key items.")] public TMPro.TMP_Text[] tabLabels;
         public Image[] tabFrames;
         [Tooltip("Picture of the Ember Pouch (KEY ITEMS tab).")] public Sprite pouchIcon;
+        [Tooltip("Picture of the Field Guide (KEY ITEMS tab): confirm opens it.")] public Sprite bookIcon;
         public PlayerInputReader input;
         public GameDirector director;
         public int columns = 7;
@@ -231,6 +232,13 @@ namespace Gloomdelve
             }
             else
             {
+                if (Codex.Owned)
+                    entries.Add(new Entry
+                    {
+                        icon = bookIcon, under = "read", marked = false,
+                        name = "FIELD GUIDE", desc = Codex.About, act = "read",
+                        run = () => { if (director != null) director.OpenCodex(); },
+                    });
                 if (Villagers.HasKey(Villagers.KeyPouch))
                     entries.Add(new Entry
                     {

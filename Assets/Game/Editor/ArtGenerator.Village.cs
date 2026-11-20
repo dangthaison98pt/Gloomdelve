@@ -340,7 +340,7 @@ namespace Gloomdelve.EditorTools
             {
                 // The street itself: cobbles under a kerb, laid over the ground tiles for the whole width of the
                 // village (1088 px = 68 tiles; 48 px deep). Snow has drifted onto the kerb and settled between the stones.
-                const int PW = 1088, PH = 48;
+                const int PW = 1616, PH = 48;      // (as wide as the village: 101 cells)
                 var p = new Px(PW, PH);
                 Color32 mortar = C(34, 36, 54), s1 = C(92, 94, 118), s2 = C(78, 80, 104), s3 = C(104, 100, 116), kerb = C(116, 116, 136), kerbD = C(70, 72, 94);
                 p.Rect(0, 0, PW, PH, mortar);
@@ -389,11 +389,11 @@ namespace Gloomdelve.EditorTools
             }
             {
                 // lights on a wire, sagging between two posts; the bulbs are the brightest thing in the street
-                var p = new Px(112, 32);
+                var p = new Px(176, 32);      // (from one lamp post to the next: eleven cells)
                 Color32[] bulbs = { C(255, 214, 130), C(240, 120, 110), C(255, 214, 130), C(130, 210, 150), C(255, 214, 130), C(130, 170, 240) };
-                for (int x = 0; x < 112; x++)
+                for (int x = 0; x < 176; x++)
                 {
-                    int y = 30 - Mathf.RoundToInt(Mathf.Sin(x / 111f * Mathf.PI) * 16f);
+                    int y = 30 - Mathf.RoundToInt(Mathf.Sin(x / 175f * Mathf.PI) * 18f);
                     p.Set(x, y, C(30, 30, 44));
                     if (x % 8 == 4)
                     {
@@ -428,6 +428,116 @@ namespace Gloomdelve.EditorTools
                 }
                 p.Rect(19, 56, 3, 3, C(255, 220, 120)); p.Set(20, 59, C(255, 244, 190)); p.Set(18, 57, C(255, 220, 120)); p.Set(22, 57, C(255, 220, 120));
                 Save(p, d + "fir_tree", new Vector2(0.5f, 0f));
+            }
+            {
+                // a young fir nobody has dressed: snow on its boughs
+                var p = new Px(26, 38);
+                p.Rect(12, 0, 3, 6, C(84, 54, 34)); p.Rect(8, 0, 11, 1, VSnow);
+                for (int tier = 0; tier < 3; tier++)
+                {
+                    int y0 = 5 + tier * 10, half0 = 11 - tier * 3;
+                    for (int y = 0; y < 13; y++)
+                    {
+                        int half = Mathf.Max(1, half0 * (13 - y) / 13);
+                        p.Rect(13 - half, y0 + y, half * 2, 1, (y + tier) % 3 == 0 ? firD : fir);
+                        if (y == 0) { p.Rect(13 - half, y0, 4, 1, VSnow); p.Rect(13 + half - 5, y0, 5, 1, VSnow); }
+                        if (y == 5) p.Rect(13 - half + 1, y0 + y, 3, 1, VSnowD);
+                    }
+                }
+                p.Rect(12, 36, 2, 2, VSnow);
+                Save(p, d + "fir_small", new Vector2(0.5f, 0f));
+            }
+            {
+                // a tree that has lost its leaves: bare boughs, snow lying along them
+                var p = new Px(46, 66);
+                Color32 bark = C(86, 62, 50), barkD = C(58, 40, 34);
+                p.Rect(21, 0, 5, 30, bark); p.Rect(21, 0, 2, 30, barkD); p.Rect(17, 0, 13, 2, VSnow);
+                int[,] boughs = { { 23, 22, 8, 40 }, { 23, 26, 38, 42 }, { 23, 30, 14, 56 }, { 24, 32, 33, 58 }, { 23, 28, 23, 64 },
+                                  { 13, 34, 4, 46 }, { 32, 36, 42, 50 }, { 17, 46, 9, 60 }, { 29, 48, 37, 62 }, { 23, 46, 19, 60 }, { 24, 50, 29, 62 } };
+                for (int i = 0; i < boughs.GetLength(0); i++)
+                {
+                    int ax = boughs[i, 0], ay = boughs[i, 1], bx = boughs[i, 2], by = boughs[i, 3];
+                    p.Line(ax, ay, bx, by, bark);
+                    if (i < 5) p.Line(ax + 1, ay, bx + 1, by, i % 2 == 0 ? bark : barkD);
+                }
+                // snow on whatever lies open to the sky
+                for (int x = 0; x < 46; x++)
+                    for (int y = 64; y > 20; y--)
+                        if (p.Opaque(x, y) && !p.Opaque(x, y + 1) && (x * 7 + y * 3) % 5 != 0) p.Set(x, y + 1, VSnow);
+                Save(p, d + "bare_tree", new Vector2(0.5f, 0f));
+            }
+            {
+                // a bush under the snow
+                var p = new Px(24, 13);
+                p.Ellipse(8f, 5f, 7f, 5f, firD); p.Ellipse(16f, 5f, 7f, 6f, fir); p.Ellipse(12f, 4f, 6f, 4f, firD);
+                for (int x = 0; x < 24; x++)
+                    for (int y = 12; y > 4; y--)
+                        if (p.Opaque(x, y) && !p.Opaque(x, y + 1)) { p.Set(x, y, VSnow); if (x % 3 != 0) p.Set(x, y - 1, VSnowD); break; }
+                p.Rect(2, 0, 20, 1, VSnow);
+                Save(p, d + "bush", new Vector2(0.5f, 0f));
+            }
+            {
+                // the soft shadow a thing throws on the snow where it stands (stretched to the thing's width)
+                var p = new Px(24, 6);
+                for (int y = 0; y < 6; y++)
+                    for (int x = 0; x < 24; x++)
+                    {
+                        float nx = (x - 11.5f) / 12f, ny = (y - 2.5f) / 3f, dd = nx * nx + ny * ny;
+                        if (dd <= 1f) p.Set(x, y, new Color32(10, 14, 30, (byte)(dd < 0.5f ? 120 : 70)));
+                    }
+                Save(p, d + "shadow", PCenter);
+            }
+            {
+                // the kennel: a little house of boards, snow on its roof, a bowl by the door
+                var p = new Px(34, 28);
+                Color32 wd = C(150, 104, 66), wdD = C(104, 70, 46), wdL = C(186, 136, 90), roof = C(120, 60, 54), roofD = C(84, 40, 40), dark = C(26, 18, 22);
+                p.Rect(4, 0, 24, 16, wd); p.Rect(4, 0, 3, 16, wdD); p.Rect(25, 0, 3, 16, wdL);
+                for (int y = 4; y < 16; y += 4) p.Rect(4, y, 24, 1, wdD);
+                for (int i = 0; i < 9; i++) { p.Rect(2 + i, 16 + i, 28 - i * 2, 1, i % 3 == 2 ? roofD : roof); }
+                p.Rect(2, 16, 28, 1, roofD);
+                p.Rect(11, 0, 10, 9, dark); p.Rect(12, 9, 8, 2, dark); p.Rect(13, 11, 6, 1, dark);        // the way in
+                p.Rect(3, 17, 10, 1, VSnow); p.Rect(6, 20, 14, 1, VSnow); p.Rect(9, 23, 10, 1, VSnow); p.Rect(12, 25, 6, 1, VSnow); p.Rect(18, 18, 9, 1, VSnowD);
+                p.Rect(29, 0, 5, 2, C(150, 150, 165)); p.Rect(30, 2, 3, 1, C(196, 160, 110));               // its bowl
+                p.Rect(0, 0, 5, 1, VSnow);
+                Save(p, d + "kennel", new Vector2(0.5f, 0f));
+            }
+            {
+                // the dog: 0 standing, 1 / 2 running, 3 sitting, 4 asleep (it faces right)
+                Color32 fur = C(176, 124, 72), furD = C(124, 82, 48), white = C(238, 232, 220), ear = C(84, 54, 36), ol = C(26, 18, 22), eye = C(20, 14, 16);
+                for (int f = 0; f < 5; f++)
+                {
+                    var p = new Px(22, 16);
+                    if (f == 0)
+                    {
+                        p.Rect(5, 2, 2, 4, furD); p.Rect(13, 2, 2, 4, fur); p.Rect(7, 2, 2, 4, fur); p.Rect(11, 2, 2, 4, furD);
+                        p.Rect(4, 6, 12, 5, fur); p.Rect(4, 6, 12, 1, furD); p.Rect(12, 6, 4, 2, white);
+                        p.Rect(14, 9, 5, 5, fur); p.Rect(18, 9, 2, 2, white); p.Set(19, 10, eye); p.Set(17, 12, eye); p.Rect(14, 13, 2, 2, ear);
+                        p.Rect(2, 9, 2, 4, fur); p.Set(2, 13, white);
+                    }
+                    else if (f == 1 || f == 2)
+                    {
+                        if (f == 1) { p.Rect(2, 3, 3, 2, furD); p.Rect(16, 3, 3, 2, fur); p.Rect(5, 4, 2, 2, fur); p.Rect(14, 4, 2, 2, furD); }
+                        else { p.Rect(7, 1, 2, 4, furD); p.Rect(9, 2, 2, 3, fur); p.Rect(11, 1, 2, 4, fur); }
+                        int by = f == 1 ? 1 : 0;
+                        p.Rect(4, 5 + by, 12, 5, fur); p.Rect(4, 5 + by, 12, 1, furD); p.Rect(12, 5 + by, 4, 2, white);
+                        p.Rect(14, 8 + by, 5, 5, fur); p.Rect(18, 8 + by, 2, 2, white); p.Set(19, 9 + by, eye); p.Set(17, 11 + by, eye); p.Rect(13, 12 + by, 2, 2, ear);
+                        p.Rect(1, 9 + by, 3, 2, fur); p.Set(1, 11 + by, white);
+                    }
+                    else if (f == 3)
+                    {
+                        p.Rect(6, 1, 8, 3, furD); p.Rect(7, 1, 7, 9, fur); p.Rect(11, 3, 3, 6, white); p.Rect(12, 1, 2, 5, fur);
+                        p.Rect(10, 9, 6, 5, fur); p.Rect(15, 9, 2, 2, white); p.Set(16, 10, eye); p.Set(14, 12, eye); p.Rect(10, 13, 2, 2, ear);
+                        p.Rect(3, 1, 4, 2, fur); p.Set(3, 3, white);
+                    }
+                    else
+                    {
+                        p.Ellipse(10f, 3.5f, 8f, 3.4f, fur); p.Rect(4, 1, 12, 1, furD);
+                        p.Rect(13, 1, 6, 4, fur); p.Rect(18, 1, 2, 2, white); p.Rect(15, 3, 2, 1, eye); p.Rect(13, 5, 2, 1, ear);
+                        p.Rect(2, 1, 4, 2, furD);
+                    }
+                    p.Outline(ol);
+                    Save(p, d + "dog_" + f, new Vector2(0.5f, 1f / 16f));
+                }
             }
             {
                 var p = new Px(18, 26);     // a snowman some child built, wearing a scarf like the player's

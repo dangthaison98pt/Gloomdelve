@@ -1203,6 +1203,8 @@ namespace Gloomdelve.EditorTools
             ["Arrow"] = (new Color(1f, 1f, 1f, 0.55f), false, true),
             ["Bomb"] = (new Color(1f, 0.6f, 0.4f, 0.65f), false, true),
             ["Idol"] = (new Color(1f, 0.85f, 0.3f, 0.7f), false, true),
+            ["GearChest"] = (new Color(1f, 0.85f, 0.3f, 0.8f), false, true),
+            ["CodexChest"] = (new Color(1f, 0.85f, 0.3f, 0.8f), false, true),       // the chest by an area's gate: it must not be walked past
             ["Heartstone"] = (new Color(1f, 0.82f, 0.35f, 0.85f), false, true),        // the Sunstone (the prefab keeps its old name)
             ["GoldNugget"] = (new Color(1f, 0.85f, 0.3f, 0.85f), true, false),
             ["GoldChunk"] = (new Color(1f, 0.85f, 0.3f, 0.9f), true, false),
@@ -1266,6 +1268,17 @@ namespace Gloomdelve.EditorTools
                 glow.pulse = gl.pulse; glow.startOn = gl.on; glow.offset = gl.offset;
             }
             return SavePrefab<T>(root, folder);
+        }
+
+        /// <summary>A soft shadow on the ground under a thing ('width' in tiles): what makes it stand on the snow and not float in front of it.</summary>
+        static void GroundShadow(GameObject root, Vector2 at, float width, int order)
+        {
+            var go = new GameObject("Shadow");
+            go.transform.SetParent(root.transform, false);
+            go.transform.localPosition = new Vector3(at.x, at.y + 1f / 16f, 0f);
+            go.transform.localScale = new Vector3(width / 1.5f, 1f, 1f);
+            var r = go.AddComponent<SpriteRenderer>();
+            r.sprite = ArtGenerator.S("Sprites/Village/shadow"); r.sharedMaterial = spriteMat; r.sortingOrder = order;
         }
 
         static void CreatePrefabs(GameConfig cfg, PixelFont font)
@@ -1477,6 +1490,12 @@ namespace Gloomdelve.EditorTools
                 (e, g, s) => { e.flipWithFacing = false; }));
             Reg("chest", Make<Chest>("Chest", "Level", "chest", new Vector2(1.0f, 0.8f), ArtGenerator.S("Sprites/Props/chest_0"), null, 4,
                 (e, g, s) => { e.flipWithFacing = false; e.openSprite = ArtGenerator.S("Sprites/Props/chest_1"); }));
+            // the chest at the end of the tutorial: the Field Guide
+            Reg("codexchest", Make<Chest>("CodexChest", "Level", "chest", new Vector2(1.0f, 0.8f), ArtGenerator.S("Sprites/Props/chest_0"), null, 4,
+                (e, g, s) => { e.flipWithFacing = false; e.openSprite = ArtGenerator.S("Sprites/Props/chest_1"); e.gearId = Codex.Key; e.bookIcon = ArtGenerator.S("UI/icon_book"); }));
+            // the chest by the gate of an area that asks for a piece of gear (it glows and is pointed at)
+            Reg("gearchest", Make<Chest>("GearChest", "Level", "chest", new Vector2(1.0f, 0.8f), ArtGenerator.S("Sprites/Props/chest_0"), null, 4,
+                (e, g, s) => { e.flipWithFacing = false; e.openSprite = ArtGenerator.S("Sprites/Props/chest_1"); }));
             Reg("hawk", Make<Hawk>("Hawk", "Enemies", "hawk", new Vector2(0.6f, 0.5f), ArtGenerator.S("Sprites/Enemies/hawk_0"), anims["hawk_fly"], 14,
                 (e, go, sr) => { e.contactDamage = 2; e.goldDrop = 100; e.animFly = anims["hawk_fly"]; e.animDive = anims["hawk_dive"]; e.bloodColor = new Color(0.6f, 0.2f, 0.15f); }));
             Reg("tree", Make<Scenery>("Tree", "Level", "tree", new Vector2(1f, 2.5f), ArtGenerator.S("Sprites/Props/tree_0"), null, -6,
@@ -1574,6 +1593,14 @@ namespace Gloomdelve.EditorTools
                 }));
                 // the keeper inside their shop, and the elder inside the hall
                 Reg("villagerhome", Make<VillagerHome>("VillagerHome", "Level", "keeper", new Vector2(1f, 1.3f), looks[0], null, 3, (e, g, s) => { e.flipWithFacing = false; e.looks = looks; }));
+                Reg("townsfolk", Make<Townsfolk>("Townsfolk", "Level", "villager", new Vector2(0.6f, 0.9f), ArtGenerator.S("Sprites/NPC/folk_0_0"), null, 5, (e, g, s) =>
+                {
+                    GroundShadow(g, Vector2.zero, 0.8f, 2);
+                    var idle = new List<Sprite>(); var walk = new List<Sprite>(); var kidIdle = new List<Sprite>(); var kidRun = new List<Sprite>();
+                    for (int i = 0; i < 4; i++) { idle.Add(ArtGenerator.S($"Sprites/NPC/folk_{i}_0")); for (int f = 1; f <= 4; f++) walk.Add(ArtGenerator.S($"Sprites/NPC/folk_{i}_{f}")); }
+                    for (int i = 0; i < 3; i++) { kidIdle.Add(ArtGenerator.S($"Sprites/NPC/kid_{i}_0")); kidRun.Add(ArtGenerator.S($"Sprites/NPC/kid_{i}_1")); kidRun.Add(ArtGenerator.S($"Sprites/NPC/kid_{i}_2")); }
+                    e.idle = idle.ToArray(); e.walk = walk.ToArray(); e.kidIdle = kidIdle.ToArray(); e.kidRun = kidRun.ToArray();
+                }));
                 Reg("elder", Make<Elder>("Elder", "Level", "elder", new Vector2(1f, 1.3f), ArtGenerator.S("Sprites/NPC/villager_6"), null, 3, (e, g, s) => { e.flipWithFacing = false; }));
                 // the street: every house front, with a lantern by the door and light spilling from the windows
                 var dark = new Sprite[8]; var lit = new Sprite[8]; var rooms = new Sprite[8];
@@ -1612,19 +1639,27 @@ namespace Gloomdelve.EditorTools
                     Reg(withString ? "streetlamp" : "streetlamp_end", Make<Prop>(withString ? "StreetLamp" : "StreetLampEnd", "Level", "street lamp", new Vector2(0.4f, 1f), ArtGenerator.S("Sprites/Village/lamp_post"), null, 2, (e, g, s) =>
                     {
                         e.flipWithFacing = false;
-                        s.transform.localPosition = new Vector3(-0.5f, 0f, 0f);       // the post stands on the line between two cells
-                        Lamp(g, "Light", new Vector2(-0.5f, 4.2f), 3.8f, 0.42f, 0.12f);
+                        // The lamps stand at the near edge of the walk: their feet a few pixels lower than the houses',
+                        // drawn in front of whoever passes, a shadow under them. That is what tells the eye they are
+                        // in front of the houses and not stuck on their walls.
+                        const float near = -5f / 16f;
+                        s.transform.localPosition = new Vector3(-0.5f, near, 0f);       // the post stands on the line between two cells
+                        s.sortingOrder = 24;
+                        GroundShadow(g, new Vector2(-0.5f, near), 1.1f, 23);
+                        Lamp(g, "Light", new Vector2(-0.5f, 4.2f + near), 3.8f, 0.42f, 0.12f);
                         if (!withString) return;
                         var wire = new GameObject("StringLights");
                         wire.transform.SetParent(g.transform, false);
-                        wire.transform.localPosition = new Vector3(-0.5f, 4.55f, 0f);
+                        wire.transform.localPosition = new Vector3(-0.5f, 4.55f + near, 0f);
                         var wsr = wire.AddComponent<SpriteRenderer>();
-                        wsr.sprite = ArtGenerator.S("Sprites/Village/string_lights"); wsr.sharedMaterial = unlitMat; wsr.sortingOrder = 2;
+                        wsr.sprite = ArtGenerator.S("Sprites/Village/string_lights"); wsr.sharedMaterial = unlitMat; wsr.sortingOrder = 24;
                     }));
-                foreach (var (pid, pname, sprite) in new[] { ("bench", "Bench", "bench"), ("firtree", "FirTree", "fir_tree"), ("snowman", "Snowman", "snowman"), ("woodpile", "WoodPile", "wood_pile"), ("cratestack", "CrateStack", "crates") })
-                    Reg(pid, Make<Prop>(pname, "Level", pid, new Vector2(1f, 1f), ArtGenerator.S("Sprites/Village/" + sprite), null, 2, (e, g, s) =>
+                foreach (var (pid, pname, sprite) in new[] { ("bench", "Bench", "bench"), ("firtree", "FirTree", "fir_tree"), ("snowman", "Snowman", "snowman"), ("woodpile", "WoodPile", "wood_pile"), ("cratestack", "CrateStack", "crates"),
+                    ("firsmall", "FirSmall", "fir_small"), ("baretree", "BareTree", "bare_tree"), ("snowbush", "SnowBush", "bush") })
+                    Reg(pid, Make<Prop>(pname, "Level", pid, new Vector2(1f, 1f), ArtGenerator.S("Sprites/Village/" + sprite), null, 3, (e, g, s) =>
                     {
                         e.flipWithFacing = false;
+                        GroundShadow(g, Vector2.zero, s.sprite != null ? s.sprite.rect.width / 16f * 0.9f : 1f, 2);       // it stands on the snow: a shadow under it
                         if (pid == "firtree") Lamp(g, "Candles", new Vector2(0f, 1.8f), 3.2f, 0.4f, 0.25f);
                     }));
                 Reg("curio", Make<Curio>("Curio", "Level", "something to look at", new Vector2(1.1f, 1.5f), ArtGenerator.S("Sprites/Village/glint"), null, 4, (e, g, s) =>
@@ -1633,7 +1668,19 @@ namespace Gloomdelve.EditorTools
                     s.sharedMaterial = unlitMat;
                     s.transform.localPosition = new Vector3(0f, 1.75f, 0f);       // the glint floats just above head height
                 }));
-                Reg("pavement", Make<Prop>("Pavement", "Level", "street", new Vector2(1f, 0.2f), ArtGenerator.S("Sprites/Village/street_ground"), null, 2, (e, g, s) =>
+                Reg("kennel", Make<Kennel>("Kennel", "Level", "kennel", new Vector2(1f, 1f), ArtGenerator.S("Sprites/Village/kennel"), null, 3, (e, g, s) =>
+                {
+                    e.flipWithFacing = false;
+                    GroundShadow(g, Vector2.zero, 2f, 2);
+                }));
+                Reg("villagedog", Make<VillageDog>("VillageDog", "Level", "dog", new Vector2(0.8f, 0.6f), ArtGenerator.S("Sprites/Village/dog_0"), null, 5, (e, g, s) =>
+                {
+                    var fr = new Sprite[5];
+                    for (int i = 0; i < 5; i++) fr[i] = ArtGenerator.S("Sprites/Village/dog_" + i);
+                    e.frames = fr;
+                    GroundShadow(g, Vector2.zero, 1f, 2);
+                }));
+                Reg("pavement", Make<Prop>("Pavement", "Level", "street", new Vector2(1f, 0.2f), ArtGenerator.S("Sprites/Village/street_ground"), null, 1, (e, g, s) =>
                 {
                     e.flipWithFacing = false;
                     s.transform.localPosition = new Vector3(-1.5f, 0f, 0f);       // placed in the second cell of the street: the picture starts at the level's left edge
@@ -1657,7 +1704,8 @@ namespace Gloomdelve.EditorTools
                     e.fire = fireGo.transform;
                 }));
             }
-            Reg("sign", Make<Sign>("Sign", "Level", "sign", new Vector2(0.9f, 1f), ArtGenerator.S("Sprites/Props/sign"), null, 3, (e, g, s) => { e.flipWithFacing = false; }));
+            Reg("sign", Make<Sign>("Sign", "Level", "sign", new Vector2(2.6f, 1f),      // (read from a step or two to either side, not only standing right on it)
+                 ArtGenerator.S("Sprites/Props/sign"), null, 3, (e, g, s) => { e.flipWithFacing = false; }));
             Reg("altar", Make<Prop>("Altar", "Level", "altar", new Vector2(1f, 0.4f), ArtGenerator.S("Sprites/Props/altar"), null, 4, (e, g, s) => { e.flipWithFacing = false; }));
             Reg("shopsign", Make<Prop>("ShopSign", "Level", "shop sign", new Vector2(1f, 1f), ArtGenerator.S("Sprites/Props/shopsign"), null, 3, (e, g, s) => { e.flipWithFacing = false; }));
             Reg("shopitem", Make<ShopItem>("ShopItem", "Level", "shop item", new Vector2(0.8f, 0.8f), null, null, 12,
@@ -1871,12 +1919,13 @@ namespace Gloomdelve.EditorTools
                 var b = UIBuilder.TextButton(mt, name, label, new Vector2(0.5f, 1f), new Vector2(0, -20 - row * 66), bs, 42, out var tx);
                 return b;
             }
+            // (no "Tutorial" here any more: a new game begins with it, and its pause screen can skip it)
             menu.startButton = Entry("Start", "Start", 0);
-            menu.tutorialButton = Entry("Tutorial", "Tutorial", 1);
-            menu.bossButton = Entry("BossTest", "Challenge", 2);
-            menu.settingsButton = Entry("Settings", "Settings", 3);
-            menu.recordsButton = Entry("Records", "Records", 4);
-            menu.quitButton = Entry("Quit", "Quit", 5);
+            menu.tutorialButton = null;
+            menu.bossButton = Entry("BossTest", "Challenge", 1);
+            menu.settingsButton = Entry("Settings", "Settings", 2);
+            menu.recordsButton = Entry("Records", "Records", 3);
+            menu.quitButton = Entry("Quit", "Quit", 4);
             var ptrImg = UIBuilder.Img(t, "Pointer", ArtGenerator.S("UI/menu_pointer"), Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(42, 33));
             var ptr = menu.gameObject.AddComponent<MenuPointer>();
             ptr.pointer = ptrImg.rectTransform; ptr.scope = main.transform;
@@ -2095,6 +2144,23 @@ namespace Gloomdelve.EditorTools
             var hudGo = UIBuilder.Node(t, "HUD");
             UIBuilder.Stretch(UIBuilder.Rect(hudGo));
             var hud = hudGo.AddComponent<HUD>();
+            {
+                // where on its sheet each picture is drawn: for showing things large and centred (HUD.FitIcon)
+                var frames = LoadOrCreate<IconFrames>(G + "Data/IconFrames.asset");
+                if (ArtGenerator.Drawn.Count > 0)
+                {
+                    frames.sprites.Clear(); frames.frames.Clear();
+                    foreach (var kv in ArtGenerator.Drawn)
+                    {
+                        if (!(kv.Key.StartsWith("Sprites/Items/") || kv.Key.StartsWith("UI/") || kv.Key.StartsWith("Sprites/NPC/ware") || kv.Key.StartsWith("Sprites/Props/"))) continue;
+                        var sp = AssetDatabase.LoadAssetAtPath<Sprite>(G + "Art/" + kv.Key + ".png");
+                        if (sp == null) continue;
+                        frames.sprites.Add(sp); frames.frames.Add(kv.Value);
+                    }
+                    EditorUtility.SetDirty(frames);
+                }
+                hud.iconFrames = frames;
+            }
             var vig = UIBuilder.Img(hudGo.transform, "DamageVignette", ArtGenerator.S("UI/vignette"), new Color(0.8f, 0f, 0f, 0f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
             UIBuilder.Stretch(vig.rectTransform);
             hud.damageVignette = vig;
@@ -2196,9 +2262,103 @@ namespace Gloomdelve.EditorTools
             hud.compassText = UIBuilder.Label(mk.transform, "Dist", "", 22, Color.white, TextAnchor.MiddleCenter, c0, new Vector2(0, -68), new Vector2(160, 28), true, FontStyle.Bold);
             hud.compassRoot = comp;
 
-            var prompt = UIBuilder.Panel(hudGo.transform, "Prompt", new Vector2(0.5f, 0f), new Vector2(0, 40), new Vector2(1500, 80));
-            hud.promptPanel = prompt.gameObject;
-            hud.promptText = UIBuilder.Label(prompt.transform, "Text", "", 28, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1440, 76));
+            // What the thing in front of the player offers, says or reads - three places, so none of it is lost in
+            // one grey line at the bottom (HUD.SplitPrompt takes the prompt apart):
+            // 1. what to press: a small tag at the right edge of the screen
+            {
+                var tag = UIBuilder.Node(hudGo.transform, "PromptTag");
+                var trt = UIBuilder.Rect(tag);
+                UIBuilder.Place(trt, new Vector2(1f, 0.36f), new Vector2(-18, 0), new Vector2(420, 58), new Vector2(1f, 0.5f));
+                var back = UIBuilder.Img(tag.transform, "Back", ArtGenerator.S("UI/tag_fade"), new Color(0.05f, 0.06f, 0.11f, 0.94f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+                UIBuilder.Stretch(back.rectTransform);
+                var edge = UIBuilder.Img(tag.transform, "Edge", ArtGenerator.S("Center/pixel"), gold, new Vector2(0f, 0.5f), Vector2.zero, new Vector2(5, 0));
+                edge.rectTransform.anchorMin = new Vector2(0f, 0f); edge.rectTransform.anchorMax = new Vector2(0f, 1f); edge.rectTransform.pivot = new Vector2(0f, 0.5f);
+                edge.rectTransform.sizeDelta = new Vector2(5, 0);
+                // (its box is as tall as a one-line tag and the words sit in the middle of it: level with the strip, not low in it)
+                hud.tagText = UIBuilder.Label(tag.transform, "Text", "", 27, Color.white, TextAnchor.MiddleLeft, new Vector2(0f, 1f), new Vector2(24, 0), new Vector2(1200, 58), true, FontStyle.Bold);
+                hud.tagText.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
+                hud.tagSub = UIBuilder.Label(tag.transform, "Sub", "", 21, new Color(1f, 0.92f, 0.7f, 0.9f), TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(24, -56), new Vector2(1200, 30));
+                hud.tagSub.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
+                hud.tagRoot = trt;
+                tag.SetActive(false);
+            }
+            // 2. somebody speaking: a box with their name on a plate
+            {
+                var talk = UIBuilder.Panel(hudGo.transform, "Talk", new Vector2(0.5f, 0f), new Vector2(0, 54), new Vector2(1180, 150));
+                var plate = UIBuilder.Img(talk.transform, "NamePlate", ArtGenerator.S("Center/pixel"), new Color(0.72f, 0.5f, 0.16f), new Vector2(0f, 1f), new Vector2(34, 0), new Vector2(300, 46));
+                plate.rectTransform.pivot = new Vector2(0f, 0.5f);
+                var inner = UIBuilder.Img(plate.transform, "Inner", ArtGenerator.S("Center/pixel"), new Color(0.09f, 0.08f, 0.15f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+                UIBuilder.Stretch(inner.rectTransform, 3f);
+                hud.talkName = UIBuilder.Label(plate.transform, "Name", "", 27, gold, TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(22, 0), new Vector2(900, 40), true, FontStyle.Bold);
+                hud.talkName.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
+                hud.talkText = UIBuilder.Label(talk.transform, "Text", "", 31, Color.white, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(44, -46), new Vector2(1092, 260));
+                var more = UIBuilder.Label(talk.transform, "More", "[enter]", 24, gold, TextAnchor.MiddleRight, new Vector2(1f, 0f), new Vector2(-26, 14), new Vector2(160, 36));
+                more.rectTransform.pivot = new Vector2(1f, 0f);
+                hud.talkMore = more.gameObject;
+                more.gameObject.SetActive(false);
+                hud.talkPlate = plate.rectTransform;
+                hud.talkRoot = talk.rectTransform;
+                talk.gameObject.SetActive(false);
+            }
+            // 3. a sign being read: a pale card with dark writing - nothing else on the screen looks like it
+            {
+                var note = UIBuilder.Img(hudGo.transform, "Note", ArtGenerator.S("Center/pixel"), new Color(0.36f, 0.23f, 0.1f), new Vector2(0.5f, 0f), new Vector2(0, 54), new Vector2(1120, 120));
+                var paper = UIBuilder.Img(note.transform, "Paper", ArtGenerator.S("Center/pixel"), new Color(0.97f, 0.91f, 0.74f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+                UIBuilder.Stretch(paper.rectTransform, 5f);
+                var noteRule = UIBuilder.Img(note.transform, "Rule", ArtGenerator.S("Center/pixel"), new Color(0.72f, 0.5f, 0.16f), new Vector2(0.5f, 1f), new Vector2(0, -5), new Vector2(0, 6));
+                noteRule.rectTransform.anchorMin = new Vector2(0f, 1f); noteRule.rectTransform.anchorMax = new Vector2(1f, 1f); noteRule.rectTransform.sizeDelta = new Vector2(-10, 6);
+                hud.noteText = UIBuilder.Label(note.transform, "Text", "", 29, new Color(0.2f, 0.13f, 0.08f), TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), new Vector2(0, -3), new Vector2(1040, 300), false);
+                hud.noteRoot = note.rectTransform;
+                note.gameObject.SetActive(false);
+            }
+            // A thing picked up for the first time: a card across the upper part of the screen - its picture, its name,
+            // how many, what it is. (Not on top of the player, who stays free to move while it is up.)
+            {
+                var itemCard = UIBuilder.Img(hudGo.transform, "ItemCard", ArtGenerator.S("Center/pixel"), new Color(0.03f, 0.04f, 0.07f, 0.84f), new Vector2(0.5f, 0.7f), Vector2.zero, new Vector2(980, 210));      // (above the middle of the screen: the player stands in the middle and must not be hidden)
+                foreach (float cardEdge in new[] { 0f, 1f })
+                {
+                    var cardLine = UIBuilder.Img(itemCard.transform, cardEdge > 0f ? "Top" : "Bottom", ArtGenerator.S("Center/pixel"), new Color(1f, 1f, 1f, 0.3f), new Vector2(0.5f, cardEdge), new Vector2(0, cardEdge > 0f ? -8 : 8), new Vector2(0, 2));
+                    cardLine.rectTransform.anchorMin = new Vector2(0f, cardEdge); cardLine.rectTransform.anchorMax = new Vector2(1f, cardEdge); cardLine.rectTransform.sizeDelta = new Vector2(-28, 2);
+                }
+                hud.cardIcon = UIBuilder.Img(itemCard.transform, "Icon", null, Color.white, new Vector2(0f, 0.5f), new Vector2(112, 0), new Vector2(128, 128));
+                hud.cardIcon.rectTransform.pivot = new Vector2(0.5f, 0.5f); hud.cardIcon.preserveAspect = true;
+                hud.cardName = UIBuilder.Label(itemCard.transform, "Name", "", 38, Color.white, TextAnchor.UpperLeft, new Vector2(0f, 0.5f), new Vector2(220, 70), new Vector2(720, 48), true, FontStyle.BoldAndItalic);
+                hud.cardName.rectTransform.pivot = new Vector2(0f, 1f);
+                hud.cardName.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
+                var countChip = UIBuilder.Img(itemCard.transform, "Count", ArtGenerator.S("Center/pixel"), new Color(0f, 0f, 0f, 0.6f), new Vector2(0f, 0.5f), new Vector2(222, 16), new Vector2(64, 32));
+                countChip.rectTransform.pivot = new Vector2(0f, 1f);
+                hud.cardCount = UIBuilder.Label(countChip.transform, "Text", "", 24, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(64, 32), false, FontStyle.Bold);
+                hud.cardText = UIBuilder.Label(itemCard.transform, "Text", "", 25, new Color(1f, 1f, 1f, 0.93f), TextAnchor.UpperLeft, new Vector2(0f, 0.5f), new Vector2(220, -26), new Vector2(720, 120), true, FontStyle.Italic);
+                hud.cardText.rectTransform.pivot = new Vector2(0f, 1f);
+                var cardGo = UIBuilder.Label(itemCard.transform, "Go", "[jump]  continue", 22, new Color(1f, 1f, 1f, 0.8f), TextAnchor.MiddleRight, new Vector2(1f, 0f), new Vector2(-30, 18), new Vector2(360, 34));
+                cardGo.rectTransform.pivot = new Vector2(1f, 0f);
+                hud.cardHint = cardGo.gameObject;
+                cardGo.gameObject.SetActive(false);
+                hud.cardRoot = itemCard.rectTransform;
+                itemCard.gameObject.SetActive(false);
+            }
+            // Things picked up again: a short list at the left cardEdge - picture, name, how many - each cardLine for a few seconds
+            {
+                const int rows = 7;
+                hud.feedRows = new RectTransform[rows]; hud.feedIcons = new Image[rows];
+                hud.feedNames = new TMPro.TMP_Text[rows]; hud.feedAmounts = new TMPro.TMP_Text[rows];
+                for (int i = 0; i < rows; i++)
+                {
+                    var gainRow = UIBuilder.Img(hudGo.transform, "Gained" + i, ArtGenerator.S("UI/tag_fade"), new Color(0.05f, 0.06f, 0.11f, 0.86f), new Vector2(0f, 0.5f), new Vector2(18, 90 - i * 52), new Vector2(420, 46));
+                    gainRow.rectTransform.pivot = new Vector2(0f, 0.5f);
+                    gainRow.gameObject.AddComponent<CanvasGroup>();
+                    var gainLine = UIBuilder.Img(gainRow.transform, "Line", ArtGenerator.S("UI/tag_fade"), new Color(1f, 1f, 1f, 0.35f), new Vector2(0f, 0f), Vector2.zero, new Vector2(360, 2));
+                    gainLine.rectTransform.pivot = new Vector2(0f, 0f);
+                    hud.feedIcons[i] = UIBuilder.Img(gainRow.transform, "Icon", null, Color.white, new Vector2(0f, 0.5f), new Vector2(30, 0), new Vector2(36, 36));
+                    hud.feedIcons[i].rectTransform.pivot = new Vector2(0.5f, 0.5f); hud.feedIcons[i].preserveAspect = true;
+                    hud.feedNames[i] = UIBuilder.Label(gainRow.transform, "Name", "", 24, Color.white, TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(60, 0), new Vector2(220, 40));
+                    hud.feedNames[i].textWrappingMode = TMPro.TextWrappingModes.NoWrap; hud.feedNames[i].overflowMode = TMPro.TextOverflowModes.Ellipsis;
+                    hud.feedAmounts[i] = UIBuilder.Label(gainRow.transform, "Amount", "", 24, new Color(0.75f, 1f, 0.6f), TextAnchor.MiddleRight, new Vector2(0f, 0.5f), new Vector2(350, 0), new Vector2(90, 40), true, FontStyle.Bold);
+                    hud.feedAmounts[i].rectTransform.pivot = new Vector2(1f, 0.5f);
+                    hud.feedRows[i] = gainRow.rectTransform;
+                    gainRow.gameObject.SetActive(false);
+                }
+            }
 
             var banner = UIBuilder.Node(hudGo.transform, "Banner");
             UIBuilder.Place(UIBuilder.Rect(banner), new Vector2(0.5f, 1f), new Vector2(0, -230), new Vector2(1600, 160));
@@ -2282,6 +2442,7 @@ namespace Gloomdelve.EditorTools
             inv.slotRow = (RectTransform)islots.transform;
             inv.bagLabel = UIBuilder.Label(ipanel.transform, "BagLabel", "IN THE BAG", 20, new Color(1f, 1f, 1f, 0.5f), TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -324), new Vector2(600, 28), false);
             inv.pouchIcon = ArtGenerator.S("UI/icon_ember");
+            inv.bookIcon = ArtGenerator.S("UI/icon_book");
             var igrid = UIBuilder.Node(ipanel.transform, "Grid");
             UIBuilder.Place(UIBuilder.Rect(igrid), new Vector2(0.5f, 1f), new Vector2(0, -412), new Vector2(900, 10), new Vector2(0.5f, 0.5f));
             inv.grid = (RectTransform)igrid.transform;
@@ -2297,6 +2458,78 @@ namespace Gloomdelve.EditorTools
             inv.input = reader;
             inv.director = dir;
             dir.inventory = inv;
+
+            // the Field Guide (read from the bag's KEY ITEMS): the list of pages on the left, the page on the right
+            {
+                var cxGo = UIBuilder.Node(t, "Codex");
+                UIBuilder.Stretch(UIBuilder.Rect(cxGo));
+                var cx = cxGo.AddComponent<CodexScreen>();
+                var cxRoot = UIBuilder.Img(cxGo.transform, "Root", null, new Color(0f, 0f, 0f, 0.6f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+                UIBuilder.Stretch(cxRoot.rectTransform);
+                cx.root = cxRoot.gameObject;
+                var cxPanel = UIBuilder.Panel(cxRoot.transform, "Panel", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1560, 900));
+                UIBuilder.Label(cxPanel.transform, "Title", "FIELD GUIDE", 50, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -58), new Vector2(900, 70), true, FontStyle.Bold);
+                var listBack = UIBuilder.Img(cxPanel.transform, "List", ArtGenerator.S("Center/pixel"), new Color(0f, 0f, 0f, 0.28f), new Vector2(0f, 1f), new Vector2(48, -120), new Vector2(470, 690));
+                listBack.rectTransform.pivot = new Vector2(0f, 1f);
+                var mark = UIBuilder.Img(listBack.transform, "Marker", ArtGenerator.S("UI/tag_fade"), new Color(0.72f, 0.5f, 0.16f, 0.75f), new Vector2(0f, 1f), new Vector2(0, -26), new Vector2(470, 44));
+                mark.rectTransform.pivot = new Vector2(0f, 0.5f);
+                cx.marker = mark.rectTransform;
+                const int lines = 15;
+                cx.rows = new TMPro.TMP_Text[lines];
+                for (int i = 0; i < lines; i++)
+                {
+                    cx.rows[i] = UIBuilder.Label(listBack.transform, "Row" + i, "", 25, Color.white, TextAnchor.MiddleLeft, new Vector2(0f, 1f), new Vector2(20, -26 - i * 45), new Vector2(440, 40));
+                    cx.rows[i].rectTransform.pivot = new Vector2(0f, 0.5f);
+                    cx.rows[i].textWrappingMode = TMPro.TextWrappingModes.NoWrap; cx.rows[i].overflowMode = TMPro.TextOverflowModes.Ellipsis;
+                }
+                var frame = UIBuilder.Img(cxPanel.transform, "PictureFrame", ArtGenerator.S("Center/pixel"), new Color(0f, 0f, 0f, 0.35f), new Vector2(0f, 1f), new Vector2(560, -120), new Vector2(230, 230));
+                frame.rectTransform.pivot = new Vector2(0f, 1f);
+                cx.picture = UIBuilder.Img(frame.transform, "Picture", null, Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(160, 160));
+                cx.pictureBox = 200f;
+                cx.sky = UIBuilder.Img(frame.transform, "Sky", ArtGenerator.S("Sky/gradient"), Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(230, 230));
+                cx.sky.transform.SetAsFirstSibling();
+                {
+                    // a place has no creature to show: a little view of it instead, four tiles by three, of its own stone
+                    const int sceneCols = 4, sceneRows = 4; const float sceneCell = 57.5f;      // (the whole frame: every page stands in front of its place's wall)
+                    cx.sceneColumns = sceneCols;
+                    cx.sceneCells = new Image[sceneCols * sceneRows];
+                    for (int i = 0; i < sceneCols * sceneRows; i++)
+                    {
+                        var c = UIBuilder.Img(frame.transform, "Scene" + i, null, Color.white, new Vector2(0.5f, 0.5f),
+                            new Vector2((i % sceneCols - (sceneCols - 1) * 0.5f) * sceneCell, ((sceneRows - 1) * 0.5f - i / sceneCols) * sceneCell), new Vector2(sceneCell, sceneCell));
+                        c.enabled = false;
+                        cx.sceneCells[i] = c;
+                    }
+                    cx.picture.transform.SetAsLastSibling();
+                    cx.overlay = UIBuilder.Img(frame.transform, "Overlay", null, Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(64, 64));
+                    cx.overlay.enabled = false;
+                    var keys = new List<string>(); var pics = new List<Sprite>();
+                    void Pic(string key) { if (keys.Contains(key)) return; var sp = AssetDatabase.LoadAssetAtPath<Sprite>(G + "Art/" + key + ".png"); if (sp != null) { keys.Add(key); pics.Add(sp); } }
+                    foreach (var setName in new HashSet<string>(Codex.TileSets.Values))
+                    {
+                        for (int b = 0; b < 4; b++) Pic("Tiles/" + setName + "/bg_" + b);
+                        Pic("Tiles/" + setName + "/dirt_01_0");
+                    }
+                    foreach (var pg in Codex.Pages) if (!string.IsNullOrEmpty(pg.art) && !pg.art.StartsWith("scene:")) foreach (var part in pg.art.Split('+')) Pic(part);
+                    cx.artKeys = keys.ToArray(); cx.artSprites = pics.ToArray();
+                }
+                cx.sectionText = UIBuilder.Label(cxPanel.transform, "Section", "", 24, gold, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(826, -132), new Vector2(680, 34), true, FontStyle.Bold);
+                cx.sectionText.rectTransform.pivot = new Vector2(0f, 1f);
+                cx.nameText = UIBuilder.Label(cxPanel.transform, "Name", "", 50, Color.white, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(826, -170), new Vector2(680, 70), true, FontStyle.Bold);
+                cx.nameText.rectTransform.pivot = new Vector2(0f, 1f);
+                cx.nameText.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
+                cx.killsText = UIBuilder.Label(cxPanel.transform, "Kills", "", 26, new Color(0.75f, 1f, 0.6f), TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(826, -248), new Vector2(680, 36), true, FontStyle.Bold);
+                cx.killsText.rectTransform.pivot = new Vector2(0f, 1f);
+                cx.bodyText = UIBuilder.Label(cxPanel.transform, "Body", "", 28, new Color(1f, 1f, 1f, 0.92f), TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(560, -384), new Vector2(950, 430));
+                cx.bodyText.rectTransform.pivot = new Vector2(0f, 1f);
+                cx.countText = UIBuilder.Label(cxPanel.transform, "Count", "", 22, new Color(1f, 1f, 1f, 0.6f), TextAnchor.MiddleRight, new Vector2(1f, 1f), new Vector2(-52, -62), new Vector2(360, 30));
+                UIBuilder.Label(cxPanel.transform, "Hint", "[up] [down] turn the pages   ·   [left] [right] next place   ·   [pause] close", 22, new Color(1f, 1f, 1f, 0.75f), TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0, 36), new Vector2(1400, 34));
+                cx.closeLabel = UIBuilder.Label(cxPanel.transform, "Close", "CLOSE", 24, new Color(1f, 1f, 1f, 0.8f), TextAnchor.MiddleLeft, new Vector2(0f, 1f), new Vector2(52, -62), new Vector2(140, 36), true, FontStyle.Bold);
+                cx.closeLabel.rectTransform.pivot = new Vector2(0f, 0.5f);
+                cx.input = reader; cx.director = dir;
+                dir.codex = cx;
+                cxRoot.gameObject.SetActive(false);
+            }
 
             // transition
             var trGo = UIBuilder.Node(t, "Transition");
@@ -2324,6 +2557,7 @@ namespace Gloomdelve.EditorTools
             pm.menuButton = UIBuilder.Button(pmain.transform, "Menu", "MAIN MENU", new Vector2(0.5f, 1f), new Vector2(0, -328), pb);
             // buttons that belong to one place only (PauseMenu.Layout shows them, puts every button in its row and fits the panel)
             pm.giveUpButton = UIBuilder.Button(pmain.transform, "GiveUp", "GIVE UP", new Vector2(0.5f, 1f), new Vector2(0, -406), pb);
+            pm.skipTutorialButton = UIBuilder.Button(pmain.transform, "SkipTutorial", "SKIP TUTORIAL", new Vector2(0.5f, 1f), new Vector2(0, -406), pb);
             pm.fightAgainButton = UIBuilder.Button(pmain.transform, "FightAgain", "FIGHT AGAIN", new Vector2(0.5f, 1f), new Vector2(0, -406), pb);
             pm.bossListButton = UIBuilder.Button(pmain.transform, "BossList", "BOSS LIST", new Vector2(0.5f, 1f), new Vector2(0, -484), pb);
             // "give up this run?"

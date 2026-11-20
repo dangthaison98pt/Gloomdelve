@@ -16,8 +16,6 @@ namespace Gloomdelve
         float t;
         Color baseTint = Color.white;
 
-        public bool UpTriggers => false;
-
         public override void Configure(SpawnPoint sp)
         {
             base.Configure(sp);
@@ -41,13 +39,13 @@ namespace Gloomdelve
             if (sr != null) sr.color = new Color(baseTint.r, baseTint.g, baseTint.b, 0.35f + 0.5f * Mathf.Abs(Mathf.Sin(t * 1.6f)));
         }
 
-        public string GetPrompt(PlayerController p) => $"[enter]  look at {label}";
+        public string GetPrompt(PlayerController p) => "[enter]  Look";
 
         public void Interact(PlayerController p)
         {
             var dir = GameDirector.Instance;
             if (dir == null || dir.hud == null) return;
-            dir.hud.ShowMessage(text, Mathf.Clamp(3f + text.Length * 0.045f, 4f, 10f));
+            dir.hud.ShowNote(text, HUD.ReadTime(text));      // read the way a sign is read
             Sfx.PlayUI("menu_select", 0.8f);
         }
 

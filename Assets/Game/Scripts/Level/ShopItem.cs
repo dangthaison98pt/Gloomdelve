@@ -14,7 +14,6 @@ namespace Gloomdelve
         int slot;
         bool shownFree, shelfChecked;
 
-        public bool UpTriggers => true;
         bool villageWare;
         int priceOverride;
         bool Free => !villageWare && (keeper == null || keeper.Dead || keeper.angry);
@@ -120,8 +119,9 @@ namespace Gloomdelve
         public string GetPrompt(PlayerController p)
         {
             if (offer == null) return null;
-            string d = string.IsNullOrEmpty(offer.description) ? "" : "  -  " + offer.description;
-            return Free ? $"[enter] / [up]  take {offer.displayName} (free!){d}" : (villageWare ? $"[enter] / [up]  buy {offer.displayName} for {Price} ember{(Price == 1 ? "" : "s")}{d}" : $"[enter] / [up]  buy {offer.displayName} for ${Price}{d}");
+            // the tag says what the button does; under it, smaller: what it is, what it costs, what it is for
+            string d = string.IsNullOrEmpty(offer.description) ? "" : "   " + offer.description;
+            return Free ? $"[enter]  Take  -  {offer.displayName} (free){d}" : (villageWare ? $"[enter]  Buy  -  {offer.displayName}, {Price} ember{(Price == 1 ? "" : "s")}{d}" : $"[enter]  Buy  -  {offer.displayName}, ${Price}{d}");
         }
 
         public void Interact(PlayerController p)
@@ -161,11 +161,11 @@ namespace Gloomdelve
             run.purchases.Add(offer.id);
             Sfx.Play("buy", pos);
             Fx.Sparks(Center, new Color(1f, 0.9f, 0.4f), 10, 4f);
-            Fx.Text(Center + Vector2.up * 0.8f, offer.displayName.ToUpperInvariant(), new Color(0.6f, 1f, 0.6f), 1.4f);
-            if (GameDirector.Instance != null && offer.isUpgrade)
-                GameDirector.Instance.ShowMessage(run.IsWorn(offer.id)
-                    ? $"{offer.displayName}: {offer.description}"
-                    : $"{offer.displayName} is in your bag ({InventoryScreen.SlotLabel(offer.slot).ToLowerInvariant()} slot is taken). Press [inventory] to wear it.");
+            // bought or taken: a card the first time (what it is), a line at the left edge after that
+            var gd = GameDirector.Instance;
+            if (gd != null && gd.hud != null) gd.hud.Gain("ware:" + offer.id, offer.displayName, offer.icon, 1, offer.description);
+            if (gd != null && offer.isUpgrade && !run.IsWorn(offer.id))
+                gd.ShowMessage($"{offer.displayName} is in your bag ({InventoryScreen.SlotLabel(offer.slot).ToLowerInvariant()} slot is taken). Press [inventory] to wear it.");
             Despawn();
         }
 

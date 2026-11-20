@@ -93,8 +93,6 @@ namespace Gloomdelve
         public int Index { get; private set; }
         bool cameraHere;
 
-        public bool UpTriggers => true;
-
         public override void Configure(SpawnPoint sp)
         {
             base.Configure(sp);
@@ -145,7 +143,7 @@ namespace Gloomdelve
             }
         }
 
-        public string GetPrompt(PlayerController p) => "[up] / [enter]  go outside";
+        public string GetPrompt(PlayerController p) => "[enter]  Leave";
 
         public void Interact(PlayerController p)
         {

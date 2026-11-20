@@ -19,6 +19,7 @@ namespace Gloomdelve
         [Tooltip("Settings > Keys: the controls list, where keyboard keys can be changed.")] public KeyBindPanel keysPanel;
         public Button resumeButton, settingsButton, menuButton;
         [Tooltip("On the mountain only: end the run and go home (asks first).")] public Button giveUpButton;
+        [Tooltip("In the tutorial only: enough of it, on to the village.")] public Button skipTutorialButton;
         [Tooltip("In a Challenge fight only: the same boss from the start / the list of bosses (opens inside the pause screen).")] public Button fightAgainButton, bossListButton;
         [Header("Boss list (Challenge)")]
         public GameObject bossPanel;
@@ -43,6 +44,7 @@ namespace Gloomdelve
             UIUtil.Wire(menuButton, () => GameDirector.Instance.QuitToMenu());
             UIUtil.Wire(giveUpButton, () => Open(confirmPanel, confirmNoButton));      // "keep going" is in focus: a second press by mistake changes nothing
             UIUtil.Wire(confirmNoButton, ShowMain);
+            UIUtil.Wire(skipTutorialButton, () => GameDirector.Instance.SkipTutorial());
             UIUtil.Wire(confirmYesButton, () => GameDirector.Instance.GiveUp());
             UIUtil.Wire(fightAgainButton, () => GameDirector.Instance.RestartRun(false));
             UIUtil.Wire(bossListButton, OpenBossList);
@@ -66,19 +68,22 @@ namespace Gloomdelve
             if (infoText != null && run != null)
                 infoText.text = $"Run seed {run.seed}   ·   {dir.Stage.displayName}   ·   level seed {dir.Level.seed}\n" +
                                 $"Time {UIUtil.FormatTime(run.levelTime)}  (total {UIUtil.FormatTime(run.totalTime)})   ·   Gold ${run.gold}   ·   Kills {run.kills}";
+            inTutorial = run != null && run.isTutorial && !ScenarioRunner.Active;
             Layout(run != null && run.bossPractice, dir != null && dir.CanGiveUp);
             ShowMain();
         }
 
+        bool inTutorial;
+
         /// <summary>Shows the buttons that belong here, one under the other, and fits the panel to them.</summary>
         void Layout(bool challenge, bool mountain)
         {
-            var order = new[] { resumeButton, fightAgainButton, bossListButton, settingsButton, giveUpButton, menuButton };
+            var order = new[] { resumeButton, skipTutorialButton, fightAgainButton, bossListButton, settingsButton, giveUpButton, menuButton };
             int n = 0;
             foreach (var b in order)
             {
                 if (b == null) continue;
-                bool on = b == fightAgainButton || b == bossListButton ? challenge : b != giveUpButton || mountain;
+                bool on = b == skipTutorialButton ? inTutorial : b == fightAgainButton || b == bossListButton ? challenge : b != giveUpButton || mountain;
                 b.gameObject.SetActive(on);
                 if (!on) continue;
                 var rt = (RectTransform)b.transform;

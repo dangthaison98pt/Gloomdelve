@@ -23,6 +23,7 @@ namespace Gloomdelve
         public TMPro.TMP_Text newRunLabel;
 
         bool tutorialMode;
+        string runLabel;       // what the first button says when it is not the tutorial's
         float shownAt;
         public bool Showing => root != null && root.activeSelf;
 
@@ -162,7 +163,9 @@ namespace Gloomdelve
             reached.text = "";
             seedText.text = "";
             statsRoot.SetActive(false);
-            body.text = "You know the basics: run, jump, hang, climb, slash, throw, bomb and rope.\n\nFour areas, each with a boss, lie between you and the Sunstone.";
+            body.text = "You know the way of it now: run, jump, hang, climb, slash, dash, throw, bomb and rope.\n\nThe Field Guide is in your bag, under KEY ITEMS.  Brindlemoor is a short walk from here - and the mountain is behind it.";
+            var go = newRunButton != null ? newRunButton.GetComponentInChildren<TMPro.TMP_Text>() : null;
+            if (go != null) { runLabel = runLabel ?? go.text; go.text = "TO THE VILLAGE"; }
             records.text = "";
             news.text = $"Time {UIUtil.FormatTime(run.totalTime)}";
             retrySeedButton.gameObject.SetActive(false);

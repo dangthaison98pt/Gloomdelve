@@ -41,18 +41,28 @@ namespace Gloomdelve
                 // not part of the run at all: it goes into the Ember Pouch, for good (see Villagers)
                 int got = Villagers.AddEmbers(value);
                 string say = got > 0 ? "+" + got + " EMBER" : Villagers.HasKey(Villagers.KeyPouch) ? "THE POUCH IS FULL" : "NOTHING TO CARRY IT IN";
-                Fx.Text(Center + Vector2.up * 0.4f, say, textColor, 1.2f);
+                if (got > 0) Show(got); else Fx.Text(Center + Vector2.up * 0.4f, say, textColor, 1.2f);
                 Fx.Sparks(Center, textColor, 8, 3.5f);
                 Sfx.Play(sfx, pos);
                 Despawn();
                 return;
             }
             run.AddResource(string.IsNullOrEmpty(resource) ? Res.Gold : resource, value);
-            if (string.IsNullOrEmpty(label)) Fx.Text(Center + Vector2.up * 0.4f, "+" + value, textColor, 0.8f);
-            else Fx.Text(Center + Vector2.up * 0.4f, "+" + value + " " + label, textColor);
+            Show(value);
             Fx.Sparks(Center, textColor, 4, 2.5f);
             Sfx.Play(sfx, pos);
             Despawn();
+        }
+
+        /// <summary>Tells the screen what was picked up: a card the first time, a line at the left edge after that (HUD.Gain).</summary>
+        void Show(int amount)
+        {
+            var dir = GameDirector.Instance;
+            string res = string.IsNullOrEmpty(resource) ? Res.Gold : resource;
+            if (dir == null || dir.hud == null) return;
+            // gold is not an item: it never gets a card, only its line in the list at the left edge
+if (res == Res.Gold) { dir.hud.Gain(displayName, ItemLog.Title(displayName), sr != null ? sr.sprite : null, amount, null); return; }      // (each piece its own line: what that piece was worth)
+            dir.hud.Gain(displayName, ItemLog.Title(displayName), sr != null ? sr.sprite : null, amount, ItemLog.Describe(res, value));
         }
 
         public override void OnExplosion(Vector2 center, float radius, Entity source, int generation, int damage)

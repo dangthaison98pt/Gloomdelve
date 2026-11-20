@@ -7,8 +7,6 @@ namespace Gloomdelve
     {
         [TextArea] public string message;
 
-        public bool UpTriggers => false;
-
         public override void Configure(SpawnPoint sp)
         {
             base.Configure(sp);

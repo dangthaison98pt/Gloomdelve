@@ -16,7 +16,6 @@ namespace Gloomdelve
         bool freed;
         float leaveTimer;
 
-        public bool UpTriggers => false;
         public VillagerDef Who => who;
         public bool Freed => freed;
 
@@ -35,7 +34,7 @@ namespace Gloomdelve
         public string GetPrompt(PlayerController p)
         {
             if (who == null || freed) return null;
-            return $"[enter]  free {who.name} {who.role}      \"{who.cagedLine}\"";
+            return $"[enter]  Free      {who.name} {who.role}:  \"{who.cagedLine}\"";
         }
 
         public void Interact(PlayerController p)

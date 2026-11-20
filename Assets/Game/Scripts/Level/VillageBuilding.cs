@@ -32,8 +32,6 @@ namespace Gloomdelve
         public int Index { get; private set; }
         public bool Open { get; private set; }
 
-        public bool UpTriggers => true;
-
         public override void Configure(SpawnPoint sp)
         {
             base.Configure(sp);
@@ -58,13 +56,21 @@ namespace Gloomdelve
 
         public string GetPrompt(PlayerController p)
         {
-            if (!Open) return $"{char.ToUpper(Place[0]) + Place.Substring(1)} is dark and locked. Its keeper is lost on the mountain.";
-            return $"[up] / [enter]  go into {Place}";
+            if (!Open) return "[enter]  Look";
+            return "[enter]  Enter";
         }
 
         public void Interact(PlayerController p)
         {
-            if (!Open) { Sfx.Play("error", pos); return; }
+            if (!Open)
+            {
+                // dark and shut: it says so when it is looked at
+                string words = $"{char.ToUpper(Place[0]) + Place.Substring(1)} is dark and locked. Its keeper is lost on the mountain.";
+                var d = GameDirector.Instance;
+                if (d != null && d.hud != null) d.hud.ShowNote(words, HUD.ReadTime(words));
+                Sfx.Play("error", pos);
+                return;
+            }
             if (ScreenFade.Busy) return;
             foreach (var e in World.Entities)
                 if (e is VillageInterior room && !room.Dead && room.Index == Index)
