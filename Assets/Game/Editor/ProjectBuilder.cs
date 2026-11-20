@@ -82,7 +82,7 @@ namespace Gloomdelve.EditorTools
                     GE("whip", "Q", GS("pad_blue"), "X", false, "\u25A1", psSquare, null, "Y"), GE("use", "W", pill, "RT", false, "R2", null, pill, "ZR"),
                     GE("enter", "E", GS("pad_red"), "B", false, "\u25CB", psCircle, null, "A"),
                     GE("gear", "Tab", pill, "R1", false, "R1", null, pill, "R"), GE("walk", "S", pill, "L1", false, "L1", null, pill, "L"), GE("dash", "Shift", GS("pad_red"), "B", false, "\u25CB", psCircle, null, "A"),
-                    GE("pause", "Esc", pill, "Start", false, "Options", null, pill, "+"), GE("inventory", "I", pill, "Select", false, "Share", null, pill, "\u2212"),
+                    GE("pause", "Esc", pill, "Select", false, "Share", null, pill, "\u2212"), GE("inventory", "I", pill, "Start", false, "Options", null, pill, "+"),
                     GE("up", "\u25B2", darkBtn, "\u25B2"), GE("down", "\u25BC", darkBtn, "\u25BC"),
                     GE("left", "\u25C4", darkBtn, "\u25C4"), GE("right", "\u25BA", darkBtn, "\u25BA"),
                     GE("move", "\u25C4 \u25B2 \u25BC \u25BA", darkBtn, "L"),
@@ -286,8 +286,8 @@ namespace Gloomdelve.EditorTools
                 B("Interact", "<Keyboard>/e"), B("Interact", "<Gamepad>/buttonEast"),
                 B("Dash", "<Keyboard>/leftShift"), B("Dash", "<Gamepad>/buttonEast"),
                 B("Walk", "<Keyboard>/s"), B("Walk", "<Gamepad>/leftShoulder"),
-                B("Pause", "<Keyboard>/escape"), B("Pause", "<Keyboard>/p"), B("Pause", "<Gamepad>/start"),
-                B("Inventory", "<Keyboard>/i"), B("Inventory", "<Gamepad>/select"),
+                B("Pause", "<Keyboard>/escape"), B("Pause", "<Keyboard>/p"), B("Pause", "<Gamepad>/select"),
+                B("Inventory", "<Keyboard>/i"), B("Inventory", "<Gamepad>/start"),
             };
             string json = "{\n\"name\":\"GameInput\",\n\"maps\":[{\"name\":\"Player\",\"id\":\"" + Guid.NewGuid() + "\",\"actions\":[" +
                           string.Join(",", actions) + "],\"bindings\":[" + string.Join(",", bindings) + "]}],\n\"controlSchemes\":[]\n}";
@@ -953,6 +953,7 @@ namespace Gloomdelve.EditorTools
             CustomMarker("l", "Glowing mushroom", "glowshroom", 1f, MarkerPlacement.OnFloor, TileType.Empty, new Color(0.3f, 0.8f, 0.7f));
             CustomMarker("c", "Crumbling platform", "crumble", 1f, MarkerPlacement.Anywhere, TileType.Platform, new Color(0.7f, 0.5f, 0.3f));
             cfg.player = player;
+            cfg.quests = BuildQuests();       // every quest asset in Data/Quests
             cfg.shop = shop;
             cfg.sfx = sfx;
             var gBomb = LoadOrCreate<EquipmentDef>(G + "Data/Gear_Bomb.asset", out bool newBomb);
@@ -1268,6 +1269,57 @@ namespace Gloomdelve.EditorTools
                 glow.pulse = gl.pulse; glow.startOn = gl.on; glow.offset = gl.offset;
             }
             return SavePrefab<T>(root, folder);
+        }
+
+        /// <summary>
+        /// The quests. Every QuestDef asset in Data/Quests is part of the game: this gathers them into the catalogue.
+        /// The ones the game ships with are written here the first time only - once an asset exists it is left as
+        /// it is, so a quest is changed (or a new one added) in its asset, not here.
+        /// </summary>
+        static QuestCatalog BuildQuests()
+        {
+            string folder = G + "Data/Quests";
+            if (!AssetDatabase.IsValidFolder(folder)) AssetDatabase.CreateFolder(G + "Data", "Quests");
+            var first = LoadOrCreate<QuestDef>(folder + "/Quest_ElderWord.asset", out bool fresh);
+            if (fresh || string.IsNullOrEmpty(first.id))       // (new, or left blank by a build that broke off)
+            {
+                first.id = "elder_word";
+                first.title = "A Word with the Elder";
+                first.summary = "Elder Aldous wants to see you before you go up the mountain.";
+                first.autoStart = true;
+                first.doneIfKeyItem = Villagers.KeyPouch;
+                first.holdsVillageGate = true;
+                first.gateMessage = "Elder Aldous wants a word before you go. He is in the Village Hall.";
+                first.steps = new[]
+                {
+                    new QuestStep { text = "Go to the Village Hall", trigger = QuestTrigger.Enter, target = "hall", waypoint = "hall" },
+                    new QuestStep
+                    {
+                        text = "Speak with Elder Aldous", trigger = QuestTrigger.Talk, target = "elder", waypoint = "elder;hall",
+                        lines = "So you mean to go up. Good. Somebody must. The cold came the winter the Sunstone was taken from us, and it sits deeper every year. " +
+                                "Some of ours went up after it and did not come back. Look for them off the beaten path. " +
+                                "Take this pouch. The great beasts of the mountain carry embers, and embers are what Brindlemoor trades in.",
+                    },
+                };
+                first.rewards = new[]
+                {
+                    new QuestReward
+                    {
+                        kind = RewardKind.KeyItem, id = Villagers.KeyPouch, amount = 1, displayName = "Ember Pouch", icon = ArtGenerator.S("UI/icon_ember"),
+                        description = "The great beasts of the mountain carry embers. The pouch holds them; they are what Brindlemoor trades in. It is never lost: find it in your bag ([inventory]).",
+                    },
+                };
+                EditorUtility.SetDirty(first);
+            }
+            var cat = LoadOrCreate<QuestCatalog>(G + "Data/QuestCatalog.asset");
+            cat.quests.Clear();
+            foreach (var guid in AssetDatabase.FindAssets("t:QuestDef", new[] { folder }))
+            {
+                var q = AssetDatabase.LoadAssetAtPath<QuestDef>(AssetDatabase.GUIDToAssetPath(guid));
+                if (q != null) cat.quests.Add(q);
+            }
+            EditorUtility.SetDirty(cat);
+            return cat;
         }
 
         /// <summary>A soft shadow on the ground under a thing ('width' in tiles): what makes it stand on the snow and not float in front of it.</summary>
@@ -2145,6 +2197,19 @@ namespace Gloomdelve.EditorTools
             UIBuilder.Stretch(UIBuilder.Rect(hudGo));
             var hud = hudGo.AddComponent<HUD>();
             {
+                // the quest in hand: its name and what to do next, under the clock (in the village, in the clock's place)
+                var qp = UIBuilder.Panel(hudGo.transform, "Quest", new Vector2(1f, 1f), new Vector2(-16, -178), new Vector2(460, 104));
+                var qmark = UIBuilder.Img(qp.transform, "Mark", ArtGenerator.S("UI/wp_goal"), Color.white, new Vector2(0f, 1f), new Vector2(34, -30), new Vector2(30, 30));
+                qmark.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+                hud.questTitle = UIBuilder.Label(qp.transform, "Name", "", 24, gold, TextAnchor.MiddleLeft, new Vector2(0f, 1f), new Vector2(58, -30), new Vector2(390, 48), true, FontStyle.Bold);      // (the box taller than the line: cut to fit, a line taller than its box shows nothing at all)
+                hud.questTitle.rectTransform.pivot = new Vector2(0f, 0.5f);
+                hud.questTitle.textWrappingMode = TMPro.TextWrappingModes.NoWrap; hud.questTitle.overflowMode = TMPro.TextOverflowModes.Ellipsis;
+                hud.questStep = UIBuilder.Label(qp.transform, "Step", "", 22, Color.white, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(22, -52), new Vector2(420, 48));
+                hud.questStep.rectTransform.pivot = new Vector2(0f, 1f);
+                hud.questRoot = qp.rectTransform;
+                qp.gameObject.SetActive(false);
+            }
+            {
                 // where on its sheet each picture is drawn: for showing things large and centred (HUD.FitIcon)
                 var frames = LoadOrCreate<IconFrames>(G + "Data/IconFrames.asset");
                 if (ArtGenerator.Drawn.Count > 0)
@@ -2308,6 +2373,9 @@ namespace Gloomdelve.EditorTools
                 var noteRule = UIBuilder.Img(note.transform, "Rule", ArtGenerator.S("Center/pixel"), new Color(0.72f, 0.5f, 0.16f), new Vector2(0.5f, 1f), new Vector2(0, -5), new Vector2(0, 6));
                 noteRule.rectTransform.anchorMin = new Vector2(0f, 1f); noteRule.rectTransform.anchorMax = new Vector2(1f, 1f); noteRule.rectTransform.sizeDelta = new Vector2(-10, 6);
                 hud.noteText = UIBuilder.Label(note.transform, "Text", "", 29, new Color(0.2f, 0.13f, 0.08f), TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), new Vector2(0, -3), new Vector2(1040, 300), false);
+                // (which button puts the card away: the one that opened it)
+                var noteHint = UIBuilder.Label(note.transform, "Close", "[enter]", 20, new Color(0.2f, 0.13f, 0.08f, 0.85f), TextAnchor.MiddleRight, new Vector2(1f, 0f), new Vector2(-14, 10), new Vector2(120, 30), false);
+                noteHint.rectTransform.pivot = new Vector2(1f, 0f);
                 hud.noteRoot = note.rectTransform;
                 note.gameObject.SetActive(false);
             }

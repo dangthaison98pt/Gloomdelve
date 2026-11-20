@@ -3,12 +3,15 @@ using UnityEngine;
 namespace Gloomdelve
 {
     /// <summary>
-    /// The elder of Brindlemoor, outside the village hall. The first time the player talks to him he hands over the
-    /// Ember Pouch (a key item: see Villagers); after that he tells how many of the villagers are still lost.
+    /// The elder of Brindlemoor, in the village hall. He has no business of his own in the code: when an open quest
+    /// wants him spoken to (QuestLog.TalkStep) he says what that quest has him say, and the quest moves on when
+    /// he has been heard out - the first of them ends with the Ember Pouch. Otherwise he tells how many of the
+    /// villagers are still lost.
     /// </summary>
-    public class Elder : Entity, IInteractable
+    public class Elder : Entity, IInteractable, IQuestTarget
     {
         public const string ElderName = "Elder Aldous";
+        public string QuestId => "elder";
 
         public string GetPrompt(PlayerController p)
         {
@@ -29,19 +32,17 @@ namespace Gloomdelve
         public void Interact(PlayerController p)
         {
             if (!Villagers.Enabled) return;
-            if (Villagers.HasKey(Villagers.KeyPouch))
+            var dir = GameDirector.Instance;
+            var hud = dir != null ? dir.hud : null;
+            Sfx.PlayUI("menu_select", 0.8f);
+            // a quest has something for him to say: it is done with this step once he has been heard to the end
+            if (QuestLog.TalkStep(QuestId, out var step))
             {
-                var d0 = GameDirector.Instance;
-                if (d0 != null && d0.hud != null) { string line = Line(); d0.hud.ShowTalk(ElderName, line, HUD.ReadTime(line)); Sfx.PlayUI("menu_select", 0.8f); }
+                if (hud != null) hud.ShowTalk(ElderName, step.lines, 0f, () => QuestLog.Notify(QuestTrigger.Talk, QuestId));
+                else QuestLog.Notify(QuestTrigger.Talk, QuestId);
                 return;
             }
-            Villagers.GiveKey(Villagers.KeyPouch);
-            Sfx.PlayUI("buy");
-            Fx.Sparks(Center, new Color(1f, 0.9f, 0.4f), 12, 4f);
-            Fx.Text(new Vector2(pos.x, pos.y + size.y + 0.4f), "EMBER POUCH", new Color(1f, 0.7f, 0.4f), 1.6f);
-            var dir = GameDirector.Instance;
-            if (dir != null && dir.hud != null)
-                dir.hud.ShowBanner("Ember Pouch", $"The great beasts of the mountain carry embers. The pouch holds {Villagers.PouchCapacity}; they are what we trade in here.", 7f);
+            if (hud != null) hud.ShowTalk(ElderName, Line());
         }
 
         public override void OnExplosion(Vector2 center, float radius, Entity source, int generation, int damage) { }

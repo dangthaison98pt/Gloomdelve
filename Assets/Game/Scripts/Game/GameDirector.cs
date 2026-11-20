@@ -119,6 +119,7 @@ namespace Gloomdelve
                 Level.spawns.RemoveAll(sp => config.prefabs.Get(sp.id) is Boss);
             SaveSystem.Checkpoint(run, Stage.displayName);      // the game is saved at the start of every level
             LevelFactory.SpawnAll(world, Level, config.prefabs);
+            QuestLog.Use(config.quests, !run.isTutorial && !run.bossPractice);      // (quests begin once the tutorial is behind; a Challenge fight is not part of the story)
             if (run.inVillage)
             {
                 // people in the street, children at play: a full street by day, a few at dawn and dusk, and at night
@@ -536,10 +537,10 @@ namespace Gloomdelve
                 Sfx.Play("error", p.pos);
                 return;
             }
-            if (run.inVillage && Villagers.Enabled && !Villagers.HasKey(Villagers.KeyPouch))
+            if (run.inVillage && Villagers.Enabled && QuestLog.GateHeld(out string held))
             {
-                // the very first time: the elder has something for the player before they go
-                hud.ShowMessage("Elder Aldous wants a word before you go. He is in the Village Hall.");
+                // an open quest keeps the gate shut (the very first one: the elder wants a word)
+                hud.ShowMessage(held);
                 Sfx.Play("error", p.pos);
                 return;
             }

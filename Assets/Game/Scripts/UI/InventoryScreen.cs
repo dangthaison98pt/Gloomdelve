@@ -6,14 +6,14 @@ using UnityEngine.UI;
 namespace Gloomdelve
 {
     /// <summary>
-    /// The bag (Tab / Select). The game freezes while it is open. Three tabs:
+    /// The bag (I / Start). The game freezes while it is open. Three tabs:
     ///  - WEAR: the slots of the body across the top (feet, body, hand, two charms) showing what is worn in each,
     ///    and under them everything wearable the run owns; confirm wears an item or takes it off. Only what is worn
     ///    has an effect, so two pairs of boots are a choice, not a stack.
     ///  - ITEMS: the things used with the "use" button (bombs, ropes, ...) and how many are left; confirm takes one
     ///    in hand.
     ///  - KEY ITEMS: the few things that are never lost (the elder's Ember Pouch).
-    /// Up from the first row reaches the tabs, left / right there changes tab. The bag's own button, Pause, or the
+    /// The arrows / stick only move between the things of the tab; L1 / R1 (Walk / gear button) change tab. The bag's own button, Pause, or the
     /// "back" button of a gamepad closes it. The mouse works too: a click on a tab shows it, the pointer over a
     /// thing chooses it, a click wears it / takes it in hand, and a click on a filled body slot takes that off.
     /// </summary>
@@ -70,7 +70,7 @@ namespace Gloomdelve
                 {
                     if (tabFrames[i] == null) continue;
                     int t = i;
-                    PointerRelay.On(tabFrames[i].gameObject, null, () => { if (!open) return; onTabs = true; if (tab == t) Refresh(); else SetTab(t); });
+                    PointerRelay.On(tabFrames[i].gameObject, null, () => { if (open) SetTab(t); });
                 }
         }
 
@@ -121,6 +121,8 @@ namespace Gloomdelve
             lastX = input != null ? input.MoveX : 0;
             lastY = input != null ? input.MoveY : 0;
             root.SetActive(true);
+            tab = TabWear;          // always opens on the WEAR tab, not where it was last closed
+            sel = 0;
             onTabs = false;
             Refresh();
             Sfx.PlayUI("menu_select");
@@ -141,9 +143,11 @@ namespace Gloomdelve
             var run = RunSession.Current;
             if (run == null || input == null) { Close(); return; }
             int dx = input.MoveX, dy = input.MoveY;
-            if (dx != 0 && dx != lastX) { if (onTabs) SetTab(tab + dx); else Move(dx); }
+            if (dx != 0 && dx != lastX) Move(dx);
             if (dy != 0 && dy != lastY) MoveRow(-dy);
             lastX = dx; lastY = dy;
+            if (input.TabLeftPressed) SetTab(tab - 1);
+            if (input.TabRightPressed) SetTab(tab + 1);
             if (input.ConfirmPressed) Toggle();
         }
 
@@ -168,17 +172,10 @@ namespace Gloomdelve
             Sfx.PlayUI("menu_select", 0.7f);
         }
 
-        /// <summary>One row down (+1) or up (-1); up from the first row reaches the tabs.</summary>
+        /// <summary>One row down (+1) or up (-1), staying among the things (the tabs change with L1 / R1 only).</summary>
         public void MoveRow(int d)
         {
-            int cols = Mathf.Max(1, columns);
-            if (onTabs)
-            {
-                if (d > 0 && entries.Count > 0) { onTabs = false; Refresh(); Sfx.PlayUI("menu_select", 0.7f); }
-                return;
-            }
-            if (d < 0 && sel < cols) { onTabs = true; Refresh(); Sfx.PlayUI("menu_select", 0.7f); return; }
-            Move(d * cols);
+            Move(d * Mathf.Max(1, columns));
         }
 
         /// <summary>Confirm on the chosen thing: wear / take off, or take the item in hand.</summary>
@@ -273,7 +270,7 @@ namespace Gloomdelve
             BuildEntries(run);
             int n = entries.Count;
             sel = Mathf.Clamp(sel, 0, Mathf.Max(0, n - 1));
-            if (n == 0) onTabs = true;
+            onTabs = n == 0;        // an empty tab: nothing to choose
             var cur = !onTabs && n > 0 ? entries[sel] : null;
 
             // the tabs
@@ -284,8 +281,8 @@ namespace Gloomdelve
                     if (tabLabels[i] != null) tabLabels[i].color = on ? new Color(1f, 0.9f, 0.6f) : new Color(1f, 1f, 1f, 0.55f);
                     if (tabFrames != null && i < tabFrames.Length && tabFrames[i] != null)
                     {
-                        tabFrames[i].color = on ? (onTabs ? new Color(1f, 0.86f, 0.4f) : new Color(0.8f, 0.62f, 0.26f)) : new Color(0.45f, 0.42f, 0.5f, 0.55f);
-                        tabFrames[i].rectTransform.localScale = Vector3.one * (on && onTabs ? 1.08f : 1f);
+                        tabFrames[i].color = on ? new Color(1f, 0.86f, 0.4f) : new Color(0.45f, 0.42f, 0.5f, 0.55f);
+                        tabFrames[i].rectTransform.localScale = Vector3.one * (on ? 1.08f : 1f);
                     }
                 }
 
@@ -353,8 +350,8 @@ namespace Gloomdelve
             }
             nameText.text = cur != null ? cur.name : "";
             descText.text = cur != null ? cur.desc : "";
-            hintText.text = onTabs ? "[move]  change tab          [inventory]  close"
-                          : "[move]  choose          " + (cur != null && cur.act != null ? "[jump]  " + cur.act + "          " : "") + "[inventory]  close";
+            hintText.text = onTabs ? "[walk] [gear]  tab          [inventory]  close"
+                          : "[move]  choose          " + (cur != null && cur.act != null ? "[jump]  " + cur.act + "          " : "") + "[walk] [gear]  tab          [inventory]  close";
         }
     }
 }

@@ -43,6 +43,7 @@ namespace Gloomdelve
             freed = true;
             leaveTimer = 1.6f;
             Villagers.Rescue(who.id);
+            QuestLog.Notify(QuestTrigger.Free, who.id);
             var session = RunSession.Current;
             if (session != null) { session.villagerFreed = true; SaveSystem.CheckpointFlags(session); }      // one villager a run, even if the level is entered again
             if (cage != null) cage.enabled = false;

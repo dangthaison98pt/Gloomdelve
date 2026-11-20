@@ -209,18 +209,11 @@ namespace Gloomdelve
             {
                 // Spikes wound instead of killing outright: lose spikeDamage health and get thrown back up and
                 // away, with the usual moment of invulnerability to get clear.
-                // ...except the thorn chasms of glider gates (LevelData.lethalSpikes), which still kill.
-                bool lethal = false;
-                var lvl = World.Level;
-                if (lvl != null && lvl.lethalSpikes.Count > 0)
-                {
-                    int row = Mathf.FloorToInt(pos.y + 0.05f);
-                    int x0 = Mathf.FloorToInt(pos.x - size.x * 0.5f + 0.1f), x1 = Mathf.FloorToInt(pos.x + size.x * 0.5f - 0.1f);
-                    for (int sx = x0; sx <= x1; sx++) if (lvl.lethalSpikes.Contains(new Vector2Int(sx, row))) lethal = true;
-                }
+                // All spikes, everywhere: the thorn chasms under a glider's crossing used to kill outright, with
+                // nothing to tell them from the others. Now they are spikes like any - whoever would rather pay
+                // in hearts and walk may.
                 int away = motor.vel.x > 0.5f ? -1 : motor.vel.x < -0.5f ? 1 : -facing;
-                if (lethal) TakeDamage(new DamageInfo(99, DamageType.Spikes, null, Vector2.zero, "spikes"));
-                else TakeDamage(new DamageInfo(Mathf.Max(1, cfg.spikeDamage), DamageType.Spikes, null,
+                TakeDamage(new DamageInfo(Mathf.Max(1, cfg.spikeDamage), DamageType.Spikes, null,
                     new Vector2(away * 3f, cfg.spikeBounce), "spikes"));
             }
         }

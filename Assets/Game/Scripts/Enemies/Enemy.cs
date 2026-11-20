@@ -115,6 +115,7 @@ namespace Gloomdelve
             {
                 RunSession.Current.kills++;
                 Codex.CountKill(displayName);       // its page in the Field Guide
+                QuestLog.Notify(QuestTrigger.Kill, displayName);
             }
             var w = World;
             Vector2 at = Center;

@@ -8,9 +8,12 @@ namespace Gloomdelve
     /// order of Villagers.All and stay dark and locked until their keeper has been freed; 6 is the village hall,
     /// 7 the player's own house.
     /// </summary>
-    public class VillageBuilding : Entity, IInteractable
+    public class VillageBuilding : Entity, IInteractable, IQuestTarget
     {
         public const int Hall = 6, HomeOfPlayer = 7;
+        /// <summary>What quests know each house by (QuestStep.target / waypoint), by building number.</summary>
+        public static readonly string[] PlaceIds = { "forge", "ropewalk", "apothecary", "maproom", "oddments", "lamphouse", "hall", "home" };
+        public string QuestId => Index >= 0 && Index < PlaceIds.Length ? PlaceIds[Index] : "house";
         public static readonly string[] PlaceNames = { "the Forge", "the Ropewalk", "the Apothecary", "the Map Room", "Pip's Oddments", "the Lamp House", "the Village Hall", "your house" };
 
         [Tooltip("Fronts by building number, dark and shut.")] public Sprite[] darkFronts;
@@ -76,7 +79,7 @@ namespace Gloomdelve
                 if (e is VillageInterior room && !room.Dead && room.Index == Index)
                 {
                     Sfx.Play("land", pos);
-                    ScreenFade.Through(() => { if (room != null && !room.Dead && p != null) room.Enter(p); });
+                    ScreenFade.Through(() => { if (room != null && !room.Dead && p != null) { room.Enter(p); QuestLog.Notify(QuestTrigger.Enter, QuestId); } });
                     return;
                 }
         }

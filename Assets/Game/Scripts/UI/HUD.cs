@@ -74,6 +74,7 @@ namespace Gloomdelve
         {
             if (string.IsNullOrEmpty(name)) return;
             bool first = !string.IsNullOrEmpty(description) && (ItemLog.FirstTime(id) || always);
+            QuestLog.Notify(QuestTrigger.Obtain, id, amount);
             if (first) { cards.Enqueue(new Gained { id = id, name = name, text = description, icon = icon, amount = amount }); return; }
             // every thing picked up has a line of its own, even two of a kind: each shows what that one was worth
             feed.Add(new Gained { id = id, name = name, icon = icon, amount = amount, t = feedTime });
@@ -183,6 +184,32 @@ namespace Gloomdelve
             }
         }
 
+        [Header("The quest in hand: its name and what to do next (top right)")]
+        public RectTransform questRoot;
+        public TMPro.TMP_Text questTitle, questStep;
+        float questA;
+
+        /// <summary>The quest the screen is showing, and what it says to do (tests).</summary>
+        public string QuestShown => questRoot != null && questRoot.gameObject.activeSelf && questTitle != null ? questTitle.text : null;
+        public string QuestStepShown => questRoot != null && questRoot.gameObject.activeSelf && questStep != null ? questStep.text : null;
+
+        void QuestUpdate(bool covered)
+        {
+            if (questRoot == null) return;
+            var q = QuestLog.Tracked;
+            bool on = q != null && !covered;
+            if (on)
+            {
+                string step = QuestLog.StepText(q);
+                if (questTitle.text != q.title) questTitle.text = q.title;
+                if (questStep.text != step) questStep.text = step;
+                // in the village the clock's corner is put away: the quest moves up into its place
+                var run = RunSession.Current;
+                questRoot.anchoredPosition = new Vector2(questRoot.anchoredPosition.x, run != null && run.inVillage ? -16f : -178f);
+            }
+            Fade(questRoot, on, ref questA, Mathf.Max(Time.unscaledDeltaTime, Time.deltaTime));
+        }
+
         string shownPrompt;
         float promptPop, tagA, talkA, noteA;
 
@@ -218,9 +245,10 @@ namespace Gloomdelve
         /// button (AdvanceTalk) finishes the sentence being written, then brings the next, then closes the box;
         /// walking away closes it too. ('seconds' is not used any more: words wait to be read.)
         /// </summary>
-        public void ShowTalk(string speaker, string text, float seconds = 0f)
+        public void ShowTalk(string speaker, string text, float seconds = 0f, System.Action heardOut = null)
         {
             heldSpeaker = speaker; heldTalkT = 1f; heldNoteT = 0f;
+            talkHeardOut = heardOut;       // (called when the last sentence is put away - not when the player walks off)
             talkPages.Clear();
             talkPages.AddRange(Sentences(text));
             if (talkPages.Count == 0) talkPages.Add(text ?? "");
@@ -233,6 +261,7 @@ namespace Gloomdelve
         readonly System.Collections.Generic.List<string> talkPages = new System.Collections.Generic.List<string>();
         int talkPage;
         float talkShown;
+        System.Action talkHeardOut;
         string hiddenSign;
 
         /// <summary>The sentence on show is still being written out.</summary>
@@ -247,6 +276,8 @@ namespace Gloomdelve
             if (TalkTyping) { talkShown = heldSpeech.Length; return; }
             if (talkPage + 1 < talkPages.Count) { talkPage++; heldSpeech = talkPages[talkPage]; talkShown = 0f; Sfx.PlayUI("menu_select", 0.5f); return; }
             heldTalkT = 0f;
+            var done = talkHeardOut; talkHeardOut = null;
+            done?.Invoke();
         }
 
         /// <summary>Cuts what somebody says into sentences (the box shows one at a time).</summary>
@@ -523,7 +554,8 @@ namespace Gloomdelve
             SplitPrompt(prompt, p != null && p.PromptIsSign, out string act, out string sub, out string who, out string said, out string note);
             // what was read or said at the press of a button stays up for a while - unless the player walks off
             heldNoteT -= dt; heldTalkT -= dt;
-            if (covered || p == null || (p.pos - heldAt).sqrMagnitude > 9f) { heldNoteT = 0f; heldTalkT = 0f; }
+            if (covered || p == null || (p.pos - heldAt).sqrMagnitude > 9f) { heldNoteT = 0f; heldTalkT = 0f; talkHeardOut = null; }
+            QuestUpdate(covered);
             heldTalkT = heldTalkT > 0f ? 1f : 0f;      // (somebody's words wait to be read: only the button or walking off ends them)
             if (hiddenSign != null && hiddenSign != prompt) hiddenSign = null;       // left the sign: next time it shows again
             SignUp = note != null && hiddenSign == null;
@@ -626,7 +658,10 @@ namespace Gloomdelve
         // screen edge with a chevron pointing towards it. Distance in tiles ("m").
         void UpdateWaypoint(RunState run, PlayerController p, float dt)
         {
-            bool show = run.HasActive(UpgradeIds.Compass) && p != null && !p.IsDead && dir.Level != null && dir.cam != null && wpMarker != null;
+            // the quest in hand comes first: its step may point at something in this level (QuestLog.Waypoint)
+            Vector2 questAt = default;
+            bool quest = p != null && !p.IsDead && dir.cam != null && wpMarker != null && QuestLog.Waypoint(World.Instance, p.Center, out questAt);
+            bool show = quest || (run.HasActive(UpgradeIds.Compass) && p != null && !p.IsDead && dir.Level != null && dir.cam != null && wpMarker != null);
             WaypointVisible = show;
             compassRoot.SetActive(show);
             if (!show) { wpSnapped = false; return; }
@@ -635,6 +670,7 @@ namespace Gloomdelve
             Vector2Int cell = goal ? dir.Level.goal.Value : dir.Level.exit;
             Vector2 world = new Vector2(cell.x + 0.5f, cell.y + 1.35f);   // top of the door / altar
             float dist = Vector2.Distance(new Vector2(cell.x + 0.5f, cell.y + 0.5f), p.Center);
+            if (quest) { world = questAt; dist = Vector2.Distance(questAt, p.Center); goal = true; }
 
             var root = (RectTransform)compassRoot.transform;
             Vector2 screen = dir.cam.WorldToScreenPoint(world);

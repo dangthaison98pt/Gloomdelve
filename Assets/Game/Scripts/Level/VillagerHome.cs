@@ -7,7 +7,7 @@ namespace Gloomdelve
     /// counter with their wares set out beside them (bought with the gold the player carries; see Villagers).
     /// Only there once the player has freed them. Which villager it is comes from the number of the building.
     /// </summary>
-    public class VillagerHome : Entity, IInteractable
+    public class VillagerHome : Entity, IInteractable, IQuestTarget
     {
         [Tooltip("One picture per villager, in the order of Villagers.All.")] public Sprite[] looks;
 
@@ -16,6 +16,7 @@ namespace Gloomdelve
         bool home;
 
         public bool Home => home;
+        public string QuestId => who != null ? who.id : "";
         public VillagerDef Who => who;
         public int WareCount { get; private set; }
 
@@ -65,7 +66,9 @@ namespace Gloomdelve
         {
             var dir = GameDirector.Instance;
             if (who == null || !home || dir == null || dir.hud == null) return;
-            dir.hud.ShowTalk($"{who.name} {who.role}", who.homeLine, HUD.ReadTime(who.homeLine));
+            // (a quest may have something for them to say instead of their usual line)
+            if (QuestLog.TalkStep(QuestId, out var step)) dir.hud.ShowTalk($"{who.name} {who.role}", step.lines, 0f, () => QuestLog.Notify(QuestTrigger.Talk, QuestId));
+            else dir.hud.ShowTalk($"{who.name} {who.role}", who.homeLine, 0f, () => QuestLog.Notify(QuestTrigger.Talk, QuestId));
             Sfx.PlayUI("menu_select", 0.8f);
         }
         public override void OnExplosion(Vector2 center, float radius, Entity source, int generation, int damage) { }

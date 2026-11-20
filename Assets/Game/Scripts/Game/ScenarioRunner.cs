@@ -192,7 +192,7 @@ namespace Gloomdelve
             new Scenario { name = "glider: gliding crosses a 6-wide thorn chasm", map = ChasmMap,
                 run = c => GlideCase(c, true) },
 
-            new Scenario { name = "glider gate: without the glider the chasm is deadly", map = ChasmMap,
+            new Scenario { name = "glider gate: without the glider the thorns cost hearts like any spikes, never the whole run", map = ChasmMap,
                 run = c => GlideCase(c, false) },
 
             new Scenario { name = "gliding down from high up causes no fall damage", map = m => { Set(m, 3, 1, 'S'); },
@@ -253,6 +253,8 @@ namespace Gloomdelve
                 run = c => VillageLifeCase(c) },
             new Scenario { name = "field guide: the chest at the end of the tutorial hands it over, the bag opens it, and every page has its picture", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => CodexCase(c) },
+            new Scenario { name = "quests: the elder's quest leads to his hall, he speaks before he gives, and the pouch comes on a card", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => QuestCase(c) },
             new Scenario { name = "villagers: a caged villager is freed with Enter, goes home for good, and helps every later run", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => VillagerCase(c) },
 
@@ -586,6 +588,14 @@ namespace Gloomdelve
                 c.Expect(Mathf.Abs(SaveSystem.Settings.musicVolume - 0.25f) < 0.001f, "music volume saved");
                 c.dir.pauseMenu.settingsPanel.music.value = before;
 
+                // a mouse click on empty space clears the selection: the menu takes back the entry it had, so a pad still has one
+                var es = UnityEngine.EventSystems.EventSystem.current;
+                var focus = es != null ? es.currentSelectedGameObject : null;
+                if (es != null) es.SetSelectedGameObject(null);
+                yield return null;
+                yield return null;
+                c.Expect(focus != null && es.currentSelectedGameObject == focus, $"after the selection is cleared (a stray click) the menu chooses its entry again ({(focus != null ? focus.name : "none")} -> {(es != null && es.currentSelectedGameObject != null ? es.currentSelectedGameObject.name : "none")})");
+
                 // a gamepad's back button (real presses on a virtual pad): out of the open panel, then out of the pause
                 var pm = c.dir.pauseMenu;
                 var prevBg = InputSystem.settings.backgroundBehavior;
@@ -616,6 +626,10 @@ namespace Gloomdelve
                 yield return Send(pad, east, 0.15f);
                 yield return Send(pad, none, 0.15f);
                 c.Expect(!c.dir.Paused && !pm.root.activeSelf, "and on the pause screen itself it goes back into the game");
+                yield return Send(pad, new GamepadState().WithButton(GamepadButton.Select), 0.15f);
+                yield return Send(pad, none, 0.15f);
+                c.Expect(c.dir.Paused && pm.root.activeSelf && (c.dir.inventory == null || !c.dir.inventory.IsOpen), "the pad's Select button opens the pause screen (not the bag)");
+                c.dir.SetPaused(false);
                 InputSystem.RemoveDevice(pad);
                 InputSystem.settings.backgroundBehavior = prevBg;
             }
@@ -778,14 +792,14 @@ namespace Gloomdelve
 
         static IEnumerator GlideCase(Ctx c, bool glider)
         {
-            for (int x = 7; x <= 12; x++) c.world.Level.lethalSpikes.Add(new Vector2Int(x, 1));   // a gate chasm, as the generator marks it
+            int h0 = c.run.health;
             if (!c.run.gear.Contains("glider")) c.run.gear.Add("glider");
             c.run.Equip(glider ? "glider" : "bomb");
             var seq = Seq((6, F(x: 1)), (1, F(x: 1, jp: true, jh: true)), (140, F(x: 1, jh: true)), (40, F()));
             c.Bot(seq);
             yield return c.Frames(seq.Count + 5);
             if (glider) c.Expect(!c.p.IsDead && c.p.pos.x > 13f && Mathf.Abs(c.p.pos.y - 2f) < 0.01f, $"crossed (pos {c.p.pos}, dead {c.p.IsDead})");
-            else c.Expect(c.p.IsDead || c.p.pos.x < 7f, $"could not cross (pos {c.p.pos}, dead {c.p.IsDead})");
+            else c.Expect(!c.p.IsDead && c.run.health < h0 && (h0 - c.run.health) % c.p.cfg.spikeDamage == 0, $"the thorns wound and do not kill (health {h0} -> {c.run.health}, dead {c.p.IsDead})");
         }
 
         static IEnumerator GlideFallCase(Ctx c)
@@ -905,13 +919,13 @@ namespace Gloomdelve
                 yield return new WaitForSecondsRealtime(0.2f);
                 ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "inventory_worn.png"));
                 yield return new WaitForSecondsRealtime(0.2f);
-                // up from the first row reaches the tabs; the second tab is what is used, the third what is kept for good
+                // up from the first row stays on the things (tabs change with L1 / R1 only); the second tab is what is
+                // used, the third what is kept for good
                 inv.Move(-inv.Selected);
                 inv.MoveRow(-1);
-                c.Expect(inv.OnTabs, "up from the first row reaches the tabs");
+                c.Expect(!inv.OnTabs && inv.Selected == 0 && inv.Tab == InventoryScreen.TabWear, "up from the first row stays on the first thing, same tab");
                 inv.SetTab(InventoryScreen.TabItems);
                 c.Expect(inv.EntryCount == run.gear.Count && run.gear.Count >= 2, $"the items tab lists what is used ({inv.EntryCount} of {run.gear.Count})");
-                inv.MoveRow(1);
                 run.Equip(run.gear[0]);
                 inv.Move(1 - inv.Selected);
                 inv.Toggle();
@@ -921,16 +935,45 @@ namespace Gloomdelve
                 yield return new WaitForSecondsRealtime(0.2f);
                 var keptRescued = Villagers.testRescued; Villagers.testRescued = new HashSet<string>(); Villagers.ResetTestState();
                 Villagers.GiveKey(Villagers.KeyPouch);
-                inv.MoveRow(-1); inv.MoveRow(-1);
                 inv.SetTab(InventoryScreen.TabKeys);
                 c.Expect(inv.EntryCount == 1, $"the key items tab shows the Ember Pouch ({inv.EntryCount})");
-                inv.MoveRow(1);
                 yield return new WaitForSecondsRealtime(0.2f);
                 ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "inventory_keys.png"));
                 yield return new WaitForSecondsRealtime(0.2f);
                 Villagers.ResetTestState(); Villagers.testRescued = keptRescued;
                 inv.Close();
                 c.Expect(!inv.IsOpen && Mathf.Approximately(Time.timeScale, scale), "closed + resumed");
+
+                // a gamepad (real presses on a virtual pad): Start opens the bag on the WEAR tab even though it was shut on
+                // KEY ITEMS, R1 / L1 change tab, Select (the pause button) shuts it
+                var prevBg = InputSystem.settings.backgroundBehavior;
+                InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+                var pad = InputSystem.AddDevice<Gamepad>("ScenarioBagPad");
+                var none = new GamepadState();
+                yield return Send(pad, none, 0.1f);
+                yield return Send(pad, new GamepadState().WithButton(GamepadButton.Start), 0.15f);
+                yield return Send(pad, none, 0.15f);
+                c.Expect(inv.IsOpen && !c.dir.Paused && inv.Tab == InventoryScreen.TabWear, $"Start opens the bag, on the WEAR tab (open {inv.IsOpen}, paused {c.dir.Paused}, tab {inv.Tab})");
+                foreach (var b in new[] { GamepadButton.DpadUp, GamepadButton.DpadLeft })
+                {
+                    yield return Send(pad, new GamepadState().WithButton(b), 0.15f);
+                    yield return Send(pad, none, 0.15f);
+                }
+                c.Expect(inv.IsOpen && inv.Tab == InventoryScreen.TabWear && !inv.OnTabs, $"up / left on the first thing do not reach or change the tabs (tab {inv.Tab}, on tabs {inv.OnTabs})");
+                yield return Send(pad, new GamepadState().WithButton(GamepadButton.RightShoulder), 0.15f);
+                yield return Send(pad, none, 0.15f);
+                c.Expect(inv.IsOpen && inv.Tab == InventoryScreen.TabItems, $"R1 goes one tab right (tab {inv.Tab})");
+                yield return Send(pad, new GamepadState().WithButton(GamepadButton.RightShoulder), 0.15f);
+                yield return Send(pad, none, 0.15f);
+                yield return Send(pad, new GamepadState().WithButton(GamepadButton.LeftShoulder), 0.15f);
+                yield return Send(pad, none, 0.15f);
+                c.Expect(inv.IsOpen && inv.Tab == InventoryScreen.TabItems, $"R1 then L1: one right, one left (tab {inv.Tab})");
+                yield return Send(pad, new GamepadState().WithButton(GamepadButton.Select), 0.15f);
+                yield return Send(pad, none, 0.15f);
+                c.Expect(!inv.IsOpen && !c.dir.Paused && c.dir.gearWheel != null && !c.dir.gearWheel.IsOpen, $"Select shuts the bag, and does not pause too (open {inv.IsOpen}, paused {c.dir.Paused})");
+                InputSystem.RemoveDevice(pad);
+                InputSystem.settings.backgroundBehavior = prevBg;
+                if (c.dir.Paused) c.dir.SetPaused(false);
             }
             foreach (var id in new[] { "springboots", "iceboots", "warmcoat" }) run.RemoveUpgrade(id);
         }
@@ -1607,8 +1650,9 @@ namespace Gloomdelve
             var elder = c.Spawn<Elder>("elder", 26, 1);
             yield return c.Frames(3);
             c.Expect(elder != null && elder.GetPrompt(c.p) != null && elder.GetPrompt(c.p).StartsWith("[enter]") && elder.GetPrompt(c.p).Contains(Elder.ElderName), "the elder has something to say");
-            if (elder != null) elder.Interact(c.p);
-            c.Expect(Villagers.HasKey(Villagers.KeyPouch), "talking to the elder gives the Ember Pouch");
+            // (what he gives comes of his quest - see "quests:" - here it is handed over as that quest's end does)
+            Villagers.GiveKey(Villagers.KeyPouch);
+            c.Expect(Villagers.HasKey(Villagers.KeyPouch), "the Ember Pouch is a key item");
             c.Expect(Villagers.PouchCapacity == Villagers.PouchStartCapacity && Villagers.PouchStartCapacity == 5, "it holds 5 embers when he hands it over");
             int went = Villagers.AddEmbers(8);
             c.Expect(went == 5 && Villagers.Embers == 5, $"the pouch takes embers until it is full ({went} of 8 went in)");
@@ -3543,7 +3587,6 @@ namespace Gloomdelve
             inv.SetTab(InventoryScreen.TabKeys);
             yield return new WaitForSecondsRealtime(0.1f);
             c.Expect(inv.IsOpen && inv.EntryCount >= 1, $"the bag lists it under KEY ITEMS ({inv.EntryCount} there)");
-            inv.MoveRow(1);       // (down from the tabs onto the first thing there)
             inv.Toggle();
             yield return new WaitForSecondsRealtime(0.15f);
             // no page is without a picture: creatures and traps show themselves, places a view of their own stone
@@ -3616,6 +3659,74 @@ namespace Gloomdelve
             yield return new WaitForSecondsRealtime(0.1f);
             c.Expect(!book.IsOpen && Time.timeScale == scale, $"shut, the game goes on (book {book.IsOpen}, scale {Time.timeScale}, was {scale})");
             ch.Despawn();
+        }
+
+        static IEnumerator QuestCase(Ctx c)
+        {
+            c.Bot(Seq((6000, F())));
+            var hud = c.dir.hud;
+            var cat = c.dir.config.quests;
+            var q = cat != null ? cat.Find("elder_word") : null;
+            c.Expect(cat != null && q != null && q.steps.Length == 2 && q.rewards.Length == 1, "the catalogue has the elder's quest: two steps, one reward");
+            if (q == null) yield break;
+            Villagers.testRescued = new HashSet<string>();
+            Villagers.ResetTestState();
+            QuestLog.ResetForTests();
+            QuestLog.Use(cat, false);
+            c.Expect(QuestLog.Tracked == null && !QuestLog.GateHeld(out _), "nothing is open to begin with");
+            QuestLog.Refresh();
+            yield return c.Frames(40);
+            c.Expect(QuestLog.IsActive("elder_word") && QuestLog.Tracked == q && hud.QuestShown == q.title && hud.QuestStepShown == q.steps[0].text,
+                $"it starts by itself and the screen shows it and its first step ({hud.QuestShown} / {hud.QuestStepShown})");
+            c.Expect(QuestLog.GateHeld(out string why) && why == q.gateMessage, "while it is open the village gate is held shut, and says why");
+            // the marker points at the hall's door
+            var hall = c.Spawn<VillageBuilding>("building", 14, 1, VillageBuilding.Hall);
+            var other = c.Spawn<VillageBuilding>("building", 8, 1, 2);
+            yield return c.Frames(6);
+            bool pointed = QuestLog.Waypoint(c.world, c.p.Center, out Vector2 at);
+            c.Expect(hall != null && hall.QuestId == "hall" && pointed && Mathf.Abs(at.x - hall.pos.x) < 0.1f && hud.WaypointVisible, $"the marker points at the Village Hall, not at the nearer house (x {at.x:0.0})");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "quest_tracker.png"));
+            yield return c.Frames(3);
+            // something else happening does not move it on; going into the hall does
+            QuestLog.Notify(QuestTrigger.Enter, "forge");
+            c.Expect(QuestLog.StateOf("elder_word").step == 0, "going into another house is not the step");
+            QuestLog.Notify(QuestTrigger.Enter, "hall");
+            yield return c.Frames(36);
+            c.Expect(QuestLog.StateOf("elder_word").step == 1 && hud.QuestStepShown == q.steps[1].text, $"going into the hall is: now it says to speak with him ({hud.QuestStepShown})");
+            // the elder: he speaks first, and only when he has been heard out does the pouch change hands
+            var elder = c.Spawn<Elder>("elder", 10, 1);
+            yield return c.Frames(4);
+            c.Teleport(10.5f, 1f);
+            yield return c.Frames(6);
+            pointed = QuestLog.Waypoint(c.world, c.p.Center, out at);
+            c.Expect(pointed && Mathf.Abs(at.x - elder.pos.x) < 0.1f, "now the marker points at the elder himself");
+            elder.Interact(c.p);
+            yield return c.Frames(4);
+            c.Expect(hud.TalkUp && hud.TalkPages >= 4 && !Villagers.HasKey(Villagers.KeyPouch) && QuestLog.IsActive("elder_word"), $"spoken to, he talks ({hud.TalkPages} sentences) - and has given nothing yet");
+            for (int i = 0; i < 40 && hud.TalkUp; i++) { hud.AdvanceTalk(); yield return c.Frames(2); }
+            yield return c.Frames(6);
+            c.Expect(!hud.TalkUp && Villagers.HasKey(Villagers.KeyPouch) && QuestLog.IsDone("elder_word") && hud.CardUp, "heard out, he hands over the Ember Pouch - on an item card - and the quest is done");
+            c.Expect(!QuestLog.GateHeld(out _) && QuestLog.Tracked == null, "the gate is free again and nothing more is asked");
+            yield return c.Frames(36);
+            c.Expect(hud.QuestShown == null, "the quest leaves the screen");
+            // after that he has his usual word, and nothing to give
+            for (int i = 0; i < 600 && hud.CardUp; i++) yield return new WaitForFixedUpdate();
+            elder.Interact(c.p);
+            yield return c.Frames(4);
+            c.Expect(hud.TalkUp, "spoken to again, he says how the village stands");
+            for (int i = 0; i < 20 && hud.TalkUp; i++) { hud.AdvanceTalk(); yield return c.Frames(2); }
+            // a save that had the pouch before there were quests: the quest counts as done
+            QuestLog.ResetForTests();
+            QuestLog.Refresh();
+            c.Expect(QuestLog.IsDone("elder_word") && QuestLog.Tracked == null, "a save that already has the pouch is not asked to fetch it again");
+            QuestLog.ResetForTests();
+            Villagers.ResetTestState();
+            Villagers.testRescued = null;
+            if (hall != null) hall.Despawn();
+            if (other != null) other.Despawn();
+            if (elder != null) elder.Despawn();
+            hud.DismissHeld();
+            yield return c.Frames(45);       // (his words have faded from the screen)
         }
 
         static IEnumerator PromptPlacesCase(Ctx c)

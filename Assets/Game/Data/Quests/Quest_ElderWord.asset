@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dcec9b0b5c2761741b3859a31b36a5bc, type: 3}
+  m_Name: Quest_ElderWord
+  m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.QuestDef
+  id: elder_word
+  title: A Word with the Elder
+  summary: Elder Aldous wants to see you before you go up the mountain.
+  autoStart: 1
+  requires: []
+  doneIfKeyItem: pouch
+  holdsVillageGate: 1
+  gateMessage: Elder Aldous wants a word before you go. He is in the Village Hall.
+  steps:
+  - text: Go to the Village Hall
+    trigger: enter
+    target: hall
+    count: 1
+    waypoint: hall
+    lines: 
+  - text: Speak with Elder Aldous
+    trigger: talk
+    target: elder
+    count: 1
+    waypoint: elder;hall
+    lines: So you mean to go up. Good. Somebody must. The cold came the winter the
+      Sunstone was taken from us, and it sits deeper every year. Some of ours went
+      up after it and did not come back. Look for them off the beaten path. Take
+      this pouch. The great beasts of the mountain carry embers, and embers are what
+      Brindlemoor trades in.
+  rewards:
+  - kind: 0
+    id: pouch
+    amount: 1
+    displayName: Ember Pouch
+    description: 'The great beasts of the mountain carry embers. The pouch holds
+      them; they are what Brindlemoor trades in. It is never lost: find it in your
+      bag ([inventory]).'
+    icon: {fileID: 21300000, guid: 86b17ca765e469242b17519fa3d84e41, type: 3}

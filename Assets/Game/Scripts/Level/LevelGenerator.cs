@@ -536,7 +536,6 @@ namespace Gloomdelve
             foreach (var c in thornPits)
             {
                 if (c.y - 1 > 0) g.SetRaw(c.x, c.y - 1, TileType.Bedrock);
-                data.lethalSpikes.Add(c);   // the chasm kills: a gate cannot be paid for with two hearts
             }
 
             // ---------------------------------------------------------------- 5. veins
