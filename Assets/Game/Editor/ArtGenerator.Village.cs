@@ -28,11 +28,19 @@ namespace Gloomdelve.EditorTools
             {
                 Save(Front(k, false), d + "front_" + k + "_0", new Vector2(0.5f, 0f));
                 Save(Front(k, true), d + "front_" + k + "_1", new Vector2(0.5f, 0f));
-                Save(Room(k), d + "room_" + k, PCenter);
+                // (only the house itself is kept of each picture: the dark round it is one plain sprite, room_dark,
+                //  stretched behind the room - 32 pictures of 544 x 304 were 15 MB of the build, most of it black)
+                Save(House(Room(k)), d + "room_" + k, PCenter);
                 // the same room at the other hours of the village clock: what the windows show, and the light they let in
-                Save(Room(k, 1), d + "room_" + k + "_dawn", PCenter);
-                Save(Room(k, 2), d + "room_" + k + "_day", PCenter);
-                Save(Room(k, 3), d + "room_" + k + "_dusk", PCenter);
+                Save(House(Room(k, 1)), d + "room_" + k + "_dawn", PCenter);
+                Save(House(Room(k, 2)), d + "room_" + k + "_day", PCenter);
+                Save(House(Room(k, 3)), d + "room_" + k + "_dusk", PCenter);
+            }
+            {
+                // the dark that surrounds a room, hiding the rock the house is cut into: stretched to RoomPxW x RoomPxH
+                var p = new Px(4, 4);
+                p.Fill(C(5, 5, 10));
+                Save(p, d + "room_dark", PCenter);
             }
             StreetArt(d);
             {
@@ -585,6 +593,15 @@ namespace Gloomdelve.EditorTools
         const int RoomPxW = 544, RoomPxH = 304, RX = 144, RY = 32, UpperY = 112;
         /// <summary>Where the ladder stands, in floor-space pixels (the fourth cell).</summary>
         const int LadderX = 48;
+
+        /// <summary>The house out of a room picture, without its dark surround (the house stands in the middle, so the centre stays the centre).</summary>
+        static Px House(Px room)
+        {
+            var q = new Px(256, 240);
+            for (int y = 0; y < 240; y++)
+                for (int x = 0; x < 256; x++) q.Set(x, y, room.Get(RX + x, RY + y));
+            return q;
+        }
 
         /// <summary>light: the hour outside, as VillageClock.Part counts it - 0 night (the room as first painted), 1 dawn, 2 day, 3 dusk.</summary>
         static Px Room(int kind, int light = 0)

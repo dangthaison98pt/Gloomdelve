@@ -41,7 +41,7 @@ namespace Gloomdelve
             var kb = Keyboard.current;
             bool key = kb != null && t > 0.5f && (KeyBindings.Pressed("jump") || kb.spaceKey.wasPressedThisFrame || kb.enterKey.wasPressedThisFrame);
             var gp = Gamepad.current;
-            if (gp != null && t > 0.5f && gp.buttonSouth.wasPressedThisFrame) key = true;
+            if (t > 0.5f && InputDeviceTracker.PadConfirmPressed) key = true;
             // The hint shows the jump button: whatever jump is on this device has to work (on a pad that is not
             // the bottom face button any more), and so does the interact button.
             var gd = GameDirector.Instance;

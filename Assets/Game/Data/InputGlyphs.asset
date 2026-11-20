@@ -37,7 +37,7 @@ MonoBehaviour:
     playstationLabel: "\xD7"
     playstationInk: {r: 0.55, g: 0.75, b: 1, a: 1}
     nintendo: {fileID: 21300000, guid: b6b5f86d61c1b87479c41a507069a8f5, type: 3}
-    nintendoLabel: B
+    nintendoLabel: A
     nintendoInk: {r: 0.97, g: 0.96, b: 0.93, a: 1}
   - token: whip
     keyboard: {fileID: 21300000, guid: ac30c036278fcb6499565013b3b95aa4, type: 3}

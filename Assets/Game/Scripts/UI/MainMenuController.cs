@@ -267,7 +267,7 @@ namespace Gloomdelve
             // Esc, or a gamepad's back button (the right-hand face button), leaves the panel that is open
             var kb = Keyboard.current;
             var gp = Gamepad.current;
-            bool back = (kb != null && kb.escapeKey.wasPressedThisFrame) || (gp != null && gp.buttonEast.wasPressedThisFrame);
+            bool back = (kb != null && kb.escapeKey.wasPressedThisFrame) || InputDeviceTracker.PadBackPressed;
             if (!back || mainPanel.activeSelf || KeyBindings.Busy) return;   // Busy: the press is cancelling a key change
             if (keysPanel != null && keysPanel.gameObject.activeSelf) keysPanel.onBack?.Invoke();                      // back to Settings
             else ShowMain();

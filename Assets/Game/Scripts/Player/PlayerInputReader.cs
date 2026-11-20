@@ -86,7 +86,7 @@ namespace Gloomdelve
         /// <summary>Tab to the right in a screen with tabs (the bag): the gear button (R1 / Tab). Works while the game is frozen.</summary>
         public bool TabRightPressed => !KeyBindings.Busy && swap != null && swap.WasPressedThisFrame();
         /// <summary>The "back" button of a gamepad (the right-hand face button): leaves a screen such as the bag.</summary>
-        public bool BackPressed => !KeyBindings.Busy && UnityEngine.InputSystem.Gamepad.current != null && UnityEngine.InputSystem.Gamepad.current.buttonEast.wasPressedThisFrame;
+        public bool BackPressed => !KeyBindings.Busy && InputDeviceTracker.PadBackPressed;      // (the right-hand face button; on a Nintendo pad the bottom one, B)
         /// <summary>Equipment screen button (I / Start). Works while the game is frozen.</summary>
         public bool InventoryPressed => !KeyBindings.Busy && inventory != null && inventory.WasPressedThisFrame();
         /// <summary>Jump or Interact pressed this frame (menu confirm), readable while frozen.</summary>

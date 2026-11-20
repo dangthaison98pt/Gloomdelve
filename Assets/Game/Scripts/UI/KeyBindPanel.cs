@@ -90,7 +90,7 @@ namespace Gloomdelve
                     break;
                 case State.Listen:
                     var gp = Gamepad.current;
-                    if (kb == null || kb.escapeKey.wasPressedThisFrame || (gp != null && gp.buttonEast.wasPressedThisFrame))
+                    if (kb == null || kb.escapeKey.wasPressedThisFrame || InputDeviceTracker.PadBackPressed)
                     {
                         Say(DefaultHint);
                         state = State.Settle;

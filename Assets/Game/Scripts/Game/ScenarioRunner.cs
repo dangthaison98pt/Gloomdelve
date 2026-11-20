@@ -630,7 +630,56 @@ namespace Gloomdelve
                 yield return Send(pad, none, 0.15f);
                 c.Expect(c.dir.Paused && pm.root.activeSelf && (c.dir.inventory == null || !c.dir.inventory.IsOpen), "the pad's Select button opens the pause screen (not the bag)");
                 c.dir.SetPaused(false);
+                // which face button says "yes": the bottom one on an ordinary pad ...
+                var south = new GamepadState().WithButton(GamepadButton.South);
+                c.dir.SetPaused(true);
+                yield return new WaitForSecondsRealtime(0.1f);
+                UIUtil.Select(pm.settingsButton);
+                yield return Send(pad, south, 0.15f);
+                yield return Send(pad, none, 0.15f);
+                c.Expect(pm.settingsPanel.gameObject.activeSelf, "an ordinary pad's bottom face button confirms the entry in focus");
                 InputSystem.RemoveDevice(pad);
+                // ... and on a Nintendo pad the right-hand one, A; its bottom one, B, goes back (real presses on a virtual Pro Controller)
+                var sw = InputSystem.AddDevice<UnityEngine.InputSystem.Switch.SwitchProControllerHID>("ScenarioSwitchPad");
+                IEnumerator Press(UnityEngine.InputSystem.Controls.ButtonControl button)
+                {
+                    using (UnityEngine.InputSystem.LowLevel.StateEvent.From(sw, out var down)) { button.WriteValueIntoEvent(1f, down); InputSystem.QueueEvent(down); }
+                    yield return new WaitForSecondsRealtime(0.15f);
+                    using (UnityEngine.InputSystem.LowLevel.StateEvent.From(sw, out var up)) { button.WriteValueIntoEvent(0f, up); InputSystem.QueueEvent(up); }
+                    yield return new WaitForSecondsRealtime(0.15f);
+                }
+                yield return Press(sw.buttonSouth);
+                c.Expect(pm.mainPanel.activeSelf && !pm.settingsPanel.gameObject.activeSelf && c.dir.Paused, "a Nintendo pad's B (the bottom button) goes back: out of Settings");
+                UIUtil.Select(pm.settingsButton);
+                yield return Press(sw.buttonSouth);
+                c.Expect(!pm.settingsPanel.gameObject.activeSelf, "its B does not confirm");
+                if (!c.dir.Paused) { c.dir.SetPaused(true); yield return new WaitForSecondsRealtime(0.1f); }
+                UIUtil.Select(pm.settingsButton);
+                yield return Press(sw.buttonEast);
+                c.Expect(pm.settingsPanel.gameObject.activeSelf && c.dir.Paused, "its A (the right-hand button) confirms: Settings opens");
+                yield return Press(sw.buttonSouth);
+                yield return Press(sw.buttonSouth);
+                c.Expect(!c.dir.Paused, "B, B: out of Settings and back into the game");
+                InputSystem.RemoveDevice(sw);
+                // a pad the Input System has no name for comes in as a plain joystick: it must play the game too
+                var joy = InputSystem.AddDevice<Joystick>("ScenarioPlainPad");
+                var jmap = c.dir.input.actions.FindActionMap("Player", true);
+                InputAction jMove = jmap.FindAction("Move"), jAttack = jmap.FindAction("Attack");
+                using (UnityEngine.InputSystem.LowLevel.StateEvent.From(joy, out var tilt)) { joy.stick.WriteValueIntoEvent(new Vector2(1f, 0f), tilt); joy.trigger.WriteValueIntoEvent(1f, tilt); InputSystem.QueueEvent(tilt); }
+                yield return new WaitForSecondsRealtime(0.15f);
+                c.Expect(jMove.ReadValue<Vector2>().x > 0.5f && jAttack.IsPressed(), $"a plain joystick moves the player and swings the blade (move {jMove.ReadValue<Vector2>().x:0.0}, blade {jAttack.IsPressed()})");
+                using (UnityEngine.InputSystem.LowLevel.StateEvent.From(joy, out var rest)) { joy.stick.WriteValueIntoEvent(Vector2.zero, rest); joy.trigger.WriteValueIntoEvent(0f, rest); InputSystem.QueueEvent(rest); }
+                yield return new WaitForSecondsRealtime(0.1f);
+                c.dir.SetPaused(true);
+                yield return new WaitForSecondsRealtime(0.1f);
+                UIUtil.Select(pm.settingsButton);
+                using (UnityEngine.InputSystem.LowLevel.StateEvent.From(joy, out var yes)) { joy.trigger.WriteValueIntoEvent(1f, yes); InputSystem.QueueEvent(yes); }
+                yield return new WaitForSecondsRealtime(0.15f);
+                using (UnityEngine.InputSystem.LowLevel.StateEvent.From(joy, out var off)) { joy.trigger.WriteValueIntoEvent(0f, off); InputSystem.QueueEvent(off); }
+                yield return new WaitForSecondsRealtime(0.1f);
+                c.Expect(pm.settingsPanel.gameObject.activeSelf, "and confirms the entry in focus in a menu");
+                c.dir.SetPaused(false);
+                InputSystem.RemoveDevice(joy);
                 InputSystem.settings.backgroundBehavior = prevBg;
             }
             else

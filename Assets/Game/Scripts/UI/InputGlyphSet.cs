@@ -71,6 +71,45 @@ namespace Gloomdelve
         public static bool Nintendo { get; private set; }
         /// <summary>0 keyboard, 1 gamepad (Xbox style), 2 PlayStation, 3 Nintendo Switch.</summary>
         public static int Kind => !UsingGamepad ? 0 : PlayStation ? 2 : Nintendo ? 3 : 1;
+
+        /// <summary>
+        /// The face button that says "yes" in a menu on this pad, and the one that says "back". On a Nintendo pad
+        /// they are the other way round from the rest: A, the right-hand button, confirms and B, the bottom one,
+        /// goes back - as on the console itself. Everywhere else the bottom button confirms and the right one goes back.
+        /// </summary>
+        public static UnityEngine.InputSystem.Controls.ButtonControl ConfirmButton(Gamepad g) => IsNintendo(g) ? g.buttonEast : g.buttonSouth;
+        public static UnityEngine.InputSystem.Controls.ButtonControl BackButton(Gamepad g) => IsNintendo(g) ? g.buttonSouth : g.buttonEast;
+
+        /// <summary>
+        /// The same two buttons on a pad the Input System only knows as a joystick with numbered buttons: button 2 is
+        /// the bottom face button and button 3 the right-hand one on most of them (see the joystick bindings in
+        /// ProjectBuilder.InputActions). A stick with a trigger and nothing else confirms with its trigger.
+        /// </summary>
+        public static UnityEngine.InputSystem.Controls.ButtonControl ConfirmButton(Joystick j)
+            => j.TryGetChildControl<UnityEngine.InputSystem.Controls.ButtonControl>("button2") ?? j.trigger;
+        public static UnityEngine.InputSystem.Controls.ButtonControl BackButton(Joystick j)
+            => j.TryGetChildControl<UnityEngine.InputSystem.Controls.ButtonControl>("button3");
+
+        /// <summary>Any pad's confirm button went down this frame (whatever kind of pad it is).</summary>
+        public static bool PadConfirmPressed
+        {
+            get
+            {
+                foreach (var g in Gamepad.all) if (ConfirmButton(g).wasPressedThisFrame) return true;
+                foreach (var j in Joystick.all) { var b = ConfirmButton(j); if (b != null && b.wasPressedThisFrame) return true; }
+                return false;
+            }
+        }
+        /// <summary>Any pad's back button went down this frame (whatever kind of pad it is).</summary>
+        public static bool PadBackPressed
+        {
+            get
+            {
+                foreach (var g in Gamepad.all) if (BackButton(g).wasPressedThisFrame) return true;
+                foreach (var j in Joystick.all) { var b = BackButton(j); if (b != null && b.wasPressedThisFrame) return true; }
+                return false;
+            }
+        }
         static int frame = -1;
         static System.IDisposable hook;
 

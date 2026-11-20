@@ -78,7 +78,7 @@ namespace Gloomdelve.EditorTools
                 };
                 glyphs.entries = new[]
                 {
-                    GE("jump", "Space", GS("pad_yellow"), "Y", true, "\u25B2", psTriangle, null, "X"), GE("confirm", "Enter", GS("pad_green"), "A", false, "\u00D7", psCross, null, "B"),
+                    GE("jump", "Space", GS("pad_yellow"), "Y", true, "\u25B2", psTriangle, null, "X"), GE("confirm", "Enter", GS("pad_green"), "A", false, "\u00D7", psCross, null, "A"),
                     GE("whip", "Q", GS("pad_blue"), "X", false, "\u25A1", psSquare, null, "Y"), GE("use", "W", pill, "RT", false, "R2", null, pill, "ZR"),
                     GE("enter", "E", GS("pad_red"), "B", false, "\u25CB", psCircle, null, "A"),
                     GE("gear", "Tab", pill, "R1", false, "R1", null, pill, "R"), GE("walk", "S", pill, "L1", false, "L1", null, pill, "L"), GE("dash", "Shift", GS("pad_red"), "B", false, "\u25CB", psCircle, null, "A"),
@@ -288,6 +288,16 @@ namespace Gloomdelve.EditorTools
                 B("Walk", "<Keyboard>/s"), B("Walk", "<Gamepad>/leftShoulder"),
                 B("Pause", "<Keyboard>/escape"), B("Pause", "<Keyboard>/p"), B("Pause", "<Gamepad>/select"),
                 B("Inventory", "<Keyboard>/i"), B("Inventory", "<Gamepad>/start"),
+                // Pads the Input System does not know by name (it has layouts for Xbox, PlayStation and Switch pads; any
+                // other USB pad comes in as a plain joystick with numbered buttons). The numbers follow the layout most
+                // of those pads share: 1 left face button, 2 bottom, 3 right, 4 top, 5 / 6 the shoulders, 7 / 8 the
+                // triggers, 9 select, 10 start - so every action sits where it does on a known pad.
+                B("Move", "<Joystick>/stick"), B("Move", "<Joystick>/hat"),
+                B("Jump", "<Joystick>/button4"), B("Attack", "<Joystick>/trigger"),
+                B("Use", "<Joystick>/button8"), B("Swap", "<Joystick>/button6"),
+                B("Interact", "<Joystick>/button3"), B("Dash", "<Joystick>/button3"),
+                B("Walk", "<Joystick>/button5"),
+                B("Pause", "<Joystick>/button9"), B("Inventory", "<Joystick>/button10"),
             };
             string json = "{\n\"name\":\"GameInput\",\n\"maps\":[{\"name\":\"Player\",\"id\":\"" + Guid.NewGuid() + "\",\"actions\":[" +
                           string.Join(",", actions) + "],\"bindings\":[" + string.Join(",", bindings) + "]}],\n\"controlSchemes\":[]\n}";
@@ -1744,6 +1754,15 @@ namespace Gloomdelve.EditorTools
                     e.flipWithFacing = false; e.rooms = rooms; e.roomsByHour = roomsByHour;
                     s.transform.localPosition = new Vector3(5.5f, 6.5f, 0f);      // the picture is the whole house, both storeys; the entity stands at its door
                     s.sharedMaterial = unlitMat;                                  // its light and shadow are painted in (ArtGenerator.Village, Room): the lamps here light only who is in it
+                    // the dark round the house (the room pictures are the house alone): one plain sprite stretched to the
+                    // 544 x 304 px the pictures used to be, just behind the room
+                    var darkGo = new GameObject("Surround");
+                    darkGo.transform.SetParent(g.transform, false);
+                    darkGo.transform.localPosition = new Vector3(5.5f, 6.5f, 1f);
+                    darkGo.transform.localScale = new Vector3(544f / 4f, 304f / 4f, 1f);
+                    var dsr = darkGo.AddComponent<SpriteRenderer>();
+                    dsr.sprite = ArtGenerator.S("Sprites/Village/room_dark"); dsr.sharedMaterial = unlitMat;
+                    dsr.sortingLayerID = s.sortingLayerID; dsr.sortingOrder = s.sortingOrder - 1;
                     Lamp(g, "RoomLight", new Vector2(5.5f, 3.2f), 10f, 0.5f, 0.06f);
                     Lamp(g, "UpstairsLight", new Vector2(5.5f, 10f), 10f, 0.42f, 0.06f);
                     // the fire: flames that move and a light that flickers (the room puts it in its hearth, or away)
@@ -2711,7 +2730,7 @@ namespace Gloomdelve.EditorTools
                 scenes = new[] { G + "Scenes/MainMenu.unity", G + "Scenes/Game.unity" },
                 locationPathName = Path.Combine(outDir, "Gloomdelve.exe"),
                 target = BuildTarget.StandaloneWindows64,
-                options = BuildOptions.None,
+                options = BuildOptions.CompressWithLz4HC,      // the data files are packed (about a third the size on disk; loading is as fast)
             };
             var report = UnityEditor.BuildPipeline.BuildPlayer(opts);
             Debug.Log($"[Build] Result: {report.summary.result}, size {report.summary.totalSize / (1024 * 1024)} MB, errors {report.summary.totalErrors}");
