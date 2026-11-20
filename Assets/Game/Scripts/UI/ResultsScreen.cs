@@ -163,7 +163,7 @@ namespace Gloomdelve
             reached.text = "";
             seedText.text = "";
             statsRoot.SetActive(false);
-            body.text = "You know the way of it now: run, jump, hang, climb, slash, dash, throw, bomb and rope.\n\nThe Field Guide is in your bag, under KEY ITEMS.  Brindlemoor is a short walk from here - and the mountain is behind it.";
+            body.text = "You know the way of it now: run, jump, hang, climb, slash, dash, throw, bomb and rope.\n\nThe Field Guide is in your bag, under Key items.  Brindlemoor is a short walk from here - and the mountain is behind it.";
             var go = newRunButton != null ? newRunButton.GetComponentInChildren<TMPro.TMP_Text>() : null;
             if (go != null) { runLabel = runLabel ?? go.text; go.text = "TO THE VILLAGE"; }
             records.text = "";

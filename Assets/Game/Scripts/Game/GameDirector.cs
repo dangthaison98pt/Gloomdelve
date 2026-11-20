@@ -533,7 +533,7 @@ namespace Gloomdelve
                 // the last lesson is not done yet
                 hud.ShowMessage(!tutorialChestOpened
                     ? "The gate stays shut.  Open the chest first: [enter]."
-                    : "One thing more.  Open your bag with [inventory], go to KEY ITEMS and read the Field Guide.  Then the gate opens.", 6f);
+                    : "One thing more.  Open your bag with [inventory], go to Key items and read the Field Guide.  Then the gate opens.", 6f);
                 Sfx.Play("error", p.pos);
                 return;
             }

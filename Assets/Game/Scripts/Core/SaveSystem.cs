@@ -186,6 +186,19 @@ namespace Gloomdelve
             SaveRecords();
         }
 
+        /// <summary>
+        /// In the village the run is written again the moment it changes - a ware bought, a reward taken. What is
+        /// paid there (embers) is saved at once, so what was paid for has to be too: a game left and taken up
+        /// again would otherwise go back to the run as it was on arrival, the embers gone and the ware with them.
+        /// (Not on the mountain: there the save is the start of the level, and stays so.)
+        /// </summary>
+        public static void CheckpointInVillage(RunState run)
+        {
+            if (run == null || !run.inVillage) return;
+            var dir = GameDirector.Instance;
+            Checkpoint(run, dir != null && dir.Stage != null ? dir.Stage.displayName : run.reachedStageName);
+        }
+
         /// <summary>Things that must not happen twice if the level is entered again - the villager freed, the boss
         /// beaten - are written into the saved run the moment they happen.</summary>
         public static void CheckpointFlags(RunState run)

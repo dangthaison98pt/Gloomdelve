@@ -103,11 +103,11 @@ namespace Gloomdelve
         {
             switch (slot)
             {
-                case "feet": return "FEET";
-                case "body": return "BODY";
-                case "hand": return "HAND";
-                case "charm": return "CHARM";
-                default: return "ALWAYS ON";
+                case "feet": return "Feet";
+                case "body": return "Body";
+                case "hand": return "Hand";
+                case "charm": return "Charm";
+                default: return "Always on";
             }
         }
 
@@ -202,9 +202,9 @@ namespace Gloomdelve
                     entries.Add(new Entry
                     {
                         icon = o.icon, under = SlotLabel(o.slot), marked = w, slot = o.slot,
-                        name = o.displayName.ToUpperInvariant() + (w ? "   -   WORN" : "   -   in the bag"),
+                        name = o.displayName + (w ? "   -   Worn" : "   -   In the bag"),
                         desc = o.description,
-                        act = fixedOn ? null : (w ? "take off" : "wear"),
+                        act = fixedOn ? null : (w ? "Take off" : "Wear"),
                         run = fixedOn ? (Action)null : () => { Sfx.PlayUI(run.ToggleWorn(uid) ? "pickup" : "error", 0.8f); },
                     });
                 }
@@ -220,9 +220,9 @@ namespace Gloomdelve
                     entries.Add(new Entry
                     {
                         icon = def.icon, under = ammo >= 0 ? "x" + ammo : "", marked = inHand,
-                        name = def.displayName.ToUpperInvariant() + (inHand ? "   -   IN HAND" : ""),
+                        name = def.displayName + (inHand ? "   -   In hand" : ""),
                         desc = def.description,
-                        act = inHand ? null : "take in hand",
+                        act = inHand ? null : "Take in hand",
                         run = inHand ? (Action)null : () => { run.SetEquipped(idx); Sfx.PlayUI("pickup", 0.8f); },
                     });
                 }
@@ -232,15 +232,15 @@ namespace Gloomdelve
                 if (Codex.Owned)
                     entries.Add(new Entry
                     {
-                        icon = bookIcon, under = "read", marked = false,
-                        name = "FIELD GUIDE", desc = Codex.About, act = "read",
+                        icon = bookIcon, under = "Read", marked = false,
+                        name = "Field Guide", desc = Codex.About, act = "Read",
                         run = () => { if (director != null) director.OpenCodex(); },
                     });
                 if (Villagers.HasKey(Villagers.KeyPouch))
                     entries.Add(new Entry
                     {
                         icon = pouchIcon, under = Villagers.Embers + " / " + Villagers.PouchCapacity, marked = false,
-                        name = "EMBER POUCH",
+                        name = "Ember Pouch",
                         desc = $"The Elder's gift. It holds {Villagers.Embers} of {Villagers.PouchCapacity} embers - what Brindlemoor trades in. It is never lost.",
                     });
             }
@@ -350,8 +350,8 @@ namespace Gloomdelve
             }
             nameText.text = cur != null ? cur.name : "";
             descText.text = cur != null ? cur.desc : "";
-            hintText.text = onTabs ? "[walk] [gear]  tab          [inventory]  close"
-                          : "[move]  choose          " + (cur != null && cur.act != null ? "[jump]  " + cur.act + "          " : "") + "[walk] [gear]  tab          [inventory]  close";
+            hintText.text = onTabs ? "[walk] [gear]  Tab          [inventory]  Close"
+                          : "[move]  Choose          " + (cur != null && cur.act != null ? "[jump]  " + cur.act + "          " : "") + "[walk] [gear]  Tab          [inventory]  Close";
         }
     }
 }

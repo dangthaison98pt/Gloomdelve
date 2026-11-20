@@ -17,7 +17,7 @@ namespace Gloomdelve
     {
         public const string Key = "codex";
         public const string Title = "Field Guide";
-        public const string About = "Everything known of the mountain: what each place asks of you, and how each creature in it fights. Read it from the bag, under KEY ITEMS.";
+        public const string About = "Everything known of the mountain: what each place asks of you, and how each creature in it fights. Read it from the bag, under Key items.";
 
         public class Page
         {

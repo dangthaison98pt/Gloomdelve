@@ -159,6 +159,7 @@ namespace Gloomdelve
             }
             Apply(run, offer);
             run.purchases.Add(offer.id);
+            SaveSystem.CheckpointInVillage(run);       // bought at home: saved at once, like the embers it cost
             Sfx.Play("buy", pos);
             Fx.Sparks(Center, new Color(1f, 0.9f, 0.4f), 10, 4f);
             // bought or taken: a card the first time (what it is), a line at the left edge after that

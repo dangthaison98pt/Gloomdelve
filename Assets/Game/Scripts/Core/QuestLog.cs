@@ -201,6 +201,7 @@ namespace Gloomdelve
                     case RewardKind.Gold: if (RunSession.Current != null) RunSession.Current.AddResource(Res.Gold, r.amount); break;
                     case RewardKind.Gear: if (RunSession.Current != null && !RunSession.Current.gear.Contains(r.id)) RunSession.Current.gear.Add(r.id); break;
                 }
+                if (r.kind == RewardKind.Gear || r.kind == RewardKind.Gold) SaveSystem.CheckpointInVillage(RunSession.Current);       // (what the run carries: saved with it)
                 // every reward is shown the way anything new is: its card (HUD.Gain)
                 if (hud != null && !string.IsNullOrEmpty(r.displayName))
                     hud.Gain("reward:" + q.id + ":" + r.id, r.displayName, r.icon, Mathf.Max(1, r.amount), r.description, true);

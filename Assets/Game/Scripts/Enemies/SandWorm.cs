@@ -61,6 +61,7 @@ namespace Gloomdelve
             timer -= dt;
             var p = Player;
             vel.x = 0f;
+            if (vel.y > 0f) vel.y = 0f;       // (nothing lifts it out of the ground: not a blow, not a blast)
             switch (state)
             {
                 case State.Buried:
@@ -120,7 +121,9 @@ namespace Gloomdelve
         public override bool TakeDamage(in DamageInfo d)
         {
             if (Buried && d.type != DamageType.Explosion) return false;      // under the sand only a blast reaches it
-            return base.TakeDamage(d);
+            // It is rooted in the ground: a blow hurts it but cannot throw it. (A blow's knockback, taken as it
+            // comes, sent the whole worm sailing up out of its hole.)
+            return base.TakeDamage(new DamageInfo(d.amount, d.type, d.source, Vector2.zero, d.cause));
         }
 
         protected override void OnHurt(in DamageInfo d) { }     // it does not flinch: it finishes its turn above ground

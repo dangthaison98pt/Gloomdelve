@@ -3205,6 +3205,14 @@ namespace Gloomdelve
             }
             c.Expect(rose && aimed && worm.Shots >= 1 && c.run.health == hp - 1, $"within sight it comes up, aims and spits: hit for 1 (shots {worm.Shots}, health {hp} -> {c.run.health})");
             c.p.godMode = true;
+            // struck while it is up, it is hurt where it stands: a blow does not throw it into the air
+            for (int i = 0; i < 400 && worm.Buried; i++) { yield return new WaitForFixedUpdate(); if (Mathf.Abs(c.p.pos.x - 15.5f) > 0.5f) c.Teleport(15.5f, 1f); }
+            float wy = worm.pos.y; int wh = worm.health;
+            bool struck = worm.TakeDamage(new DamageInfo(1, DamageType.Whip, c.p, new Vector2(5f, 9f), "test"));
+            float top = worm.pos.y;
+            for (int i = 0; i < 30; i++) { yield return new WaitForFixedUpdate(); top = Mathf.Max(top, worm.pos.y); }
+            c.Expect(struck && worm.health == wh - 1 && top - wy < 0.05f, $"cut while it is up it is hurt, and stays in its hole (rose {top - wy:0.00})");
+            worm.health = wh;
             int shotsBefore = worm.Shots;
             for (int i = 0; i < 360; i++) { yield return new WaitForFixedUpdate(); if (Mathf.Abs(c.p.pos.x - 15.5f) > 0.5f) c.Teleport(15.5f, 1f); }
             c.Expect(worm.Shots > shotsBefore, $"and it keeps at it while the player stays in reach ({shotsBefore} -> {worm.Shots} shots)");

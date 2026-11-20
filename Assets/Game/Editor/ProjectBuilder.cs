@@ -2497,7 +2497,7 @@ namespace Gloomdelve.EditorTools
             inv.root = iroot.gameObject;
             var ipanel = UIBuilder.Panel(iroot.transform, "Panel", new Vector2(0.5f, 0.5f), new Vector2(0, 0), new Vector2(1040, 880));
             // the tabs across the top: what is worn, what is used, what is kept for good
-            string[] tabNames = { "WEAR", "ITEMS", "KEY ITEMS" };
+            string[] tabNames = { "Wear", "Items", "Key items" };
             inv.tabLabels = new TMPro.TMP_Text[3]; inv.tabFrames = new Image[3];
             for (int i = 0; i < 3; i++)
             {
@@ -2508,7 +2508,7 @@ namespace Gloomdelve.EditorTools
             var islots = UIBuilder.Node(ipanel.transform, "Slots");
             UIBuilder.Place(UIBuilder.Rect(islots), new Vector2(0.5f, 1f), new Vector2(0, -212), new Vector2(900, 10), new Vector2(0.5f, 0.5f));
             inv.slotRow = (RectTransform)islots.transform;
-            inv.bagLabel = UIBuilder.Label(ipanel.transform, "BagLabel", "IN THE BAG", 20, new Color(1f, 1f, 1f, 0.5f), TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -324), new Vector2(600, 28), false);
+            inv.bagLabel = UIBuilder.Label(ipanel.transform, "BagLabel", "In the bag", 20, new Color(1f, 1f, 1f, 0.5f), TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -324), new Vector2(600, 28), false);
             inv.pouchIcon = ArtGenerator.S("UI/icon_ember");
             inv.bookIcon = ArtGenerator.S("UI/icon_book");
             var igrid = UIBuilder.Node(ipanel.transform, "Grid");
@@ -2516,7 +2516,7 @@ namespace Gloomdelve.EditorTools
             inv.grid = (RectTransform)igrid.transform;
             var cell = UIBuilder.Img(igrid.transform, "CellTemplate", UIBuilder.Slot, Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(104, 104), true);
             UIBuilder.Img(cell.transform, "Icon", ArtGenerator.S("Sprites/Items/springboots"), Color.white, new Vector2(0.5f, 0.5f), new Vector2(0, 2), new Vector2(76, 76));
-            UIBuilder.Label(cell.transform, "Slot", "FEET", 18, new Color(1f, 1f, 1f, 0.7f), TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0, -26), new Vector2(150, 24), false);
+            UIBuilder.Label(cell.transform, "Slot", "Feet", 18, new Color(1f, 1f, 1f, 0.7f), TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0, -26), new Vector2(150, 24), false);
             var wornMark = UIBuilder.Img(cell.transform, "Worn", UIBuilder.buttonSprite, new Color(1f, 0.82f, 0.3f), new Vector2(1f, 1f), new Vector2(-8, -8), new Vector2(22, 22), true);
             inv.cellTemplate = cell.gameObject;
             inv.emptyText = UIBuilder.Label(ipanel.transform, "Empty", "Nothing to wear yet. Shops sell boots, coats and charms.", 26, new Color(1f, 1f, 1f, 0.7f), TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), new Vector2(0, 60), new Vector2(900, 60));

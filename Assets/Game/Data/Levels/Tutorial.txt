@@ -7,7 +7,7 @@ sign5: [dash] dashes: straight through creatures and whatever they throw - try i
 sign6: [down] + [whip] picks a thing up, [whip] throws it ([up] + [whip] throws high).  Pots hold treasure - or snakes.  [enter] opens, reads, talks and enters; press it again to put a sign like this one away.
 sign7: Your GEAR is BOMBS (top left).  [use] throws one, [down] + [use] sets it down.  Bombs break dirt and rubble, never the dark bedrock.  Stand back!
 sign8: Hold [gear] for the GEAR WHEEL, pick the ROPE with [left] [right], let go.  Then [use] close to this wall: the rope hooks on - climb it with [up].  [inventory] opens your bag.
-sign9: Falling onto SPIKES costs 2 hearts.  An arrow trap shoots at the first thing that moves in front of it - throw a rock first!  Then the chest: [enter] opens it.  Read what is in it - [inventory] opens your bag, the book is under KEY ITEMS - and the gate will let you through.
+sign9: Falling onto SPIKES costs 2 hearts.  An arrow trap shoots at the first thing that moves in front of it - throw a rock first!  Then the chest: [enter] opens it.  Read what is in it - [inventory] opens your bag, the book is under Key items - and the gate will let you through.
 ---
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 X##############################################################################################X
