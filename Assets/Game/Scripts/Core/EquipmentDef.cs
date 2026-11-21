@@ -6,7 +6,7 @@ namespace Gloomdelve
     /// Data of one piece of equipment the player can carry and select in the gear wheel (hold R1 / D).
     /// What the gear DOES lives in a GearBehaviour registered under the same id (see Gear/GearBehaviour.cs).
     /// </summary>
-    [CreateAssetMenu(menuName = "Gloomdelve/Equipment", fileName = "Gear")]
+    [CreateAssetMenu(menuName = "Brindlemoor/Equipment", fileName = "Gear")]
     public class EquipmentDef : ScriptableObject
     {
         public string id = "bomb";

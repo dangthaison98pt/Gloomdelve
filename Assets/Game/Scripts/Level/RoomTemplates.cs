@@ -10,7 +10,7 @@ namespace Gloomdelve
     /// One 10x8 room layout parsed from Data/RoomTemplates.txt.
     /// Header:  [name] types=1,2 tags=start areas=1,2 weight=2
     /// Room types: 0 side, 1 left-right, 2 left-right-bottom, 3 left-right-top, 4 all four.
-    /// Edit rooms with the Room Template Editor (menu Gloomdelve > Room Template Editor) or by hand in the text file.
+    /// Edit rooms with the Room Template Editor (menu Brindlemoor > Room Template Editor) or by hand in the text file.
     /// </summary>
     public class RoomTemplate
     {

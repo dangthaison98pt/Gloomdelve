@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Gloomdelve
 {
-    [CreateAssetMenu(menuName = "Gloomdelve/Shop Config", fileName = "ShopConfig")]
+    [CreateAssetMenu(menuName = "Brindlemoor/Shop Config", fileName = "ShopConfig")]
     public class ShopConfig : ScriptableObject
     {
         public List<ShopOffer> offers = new List<ShopOffer>();

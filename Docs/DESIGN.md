@@ -1,6 +1,6 @@
 # Brindlemoor: The Sunstone Hunt – Thiết kế
 
-Platformer roguelike 2D pixel art. Brann rời làng Brindlemoor đang chìm trong mùa đông, leo qua núi hang sinh ngẫu nhiên để mang **Sunstone** từ đáy *The Sunken Vault* về. (Tên nội bộ: Gloomdelve; trong code viên đá vẫn là `heartstone`.)
+Platformer roguelike 2D pixel art. Brann rời làng Brindlemoor đang chìm trong mùa đông, leo qua núi hang sinh ngẫu nhiên để mang **Sunstone** từ đáy *The Sunken Vault* về. (Namespace trong code: Gloomdelve; trong code viên đá vẫn là `heartstone`.)
 
 ## 1. Cấu trúc lượt chơi
 `RunPlan.Build` dựng lượt từ danh mục `GameConfig.stages`: mỗi khu là một khối (3 màn sinh ngẫu nhiên + 1 đấu trường boss). Mỗi lượt bốc `areasPerRun` = **4 khu** theo seed, khu nào cũng có thể mở đầu (`firstAreaFixed` = 0). Tên chặng đánh số theo vị trí trong lượt (1-1 … 4-4), nên "3-2" là màn 2 của khu thứ ba được bốc.
@@ -156,4 +156,4 @@ Assets/Game/
   Editor            ArtGenerator*, AudioGenerator, ProjectBuilder, UIBuilder, RoomTemplateEditor, GameTests
   Data              GameConfig, PlayerConfig, Area*, Gear_*, ShopConfig, TileSet_*, InputGlyphs, RoomTemplates.txt, Levels/*.txt
 ```
-Chỉnh thông số: chọn asset trong `Assets/Game/Data` → Inspector. **Gloomdelve > Build Everything** sinh lại art/âm thanh/prefab/scene nhưng **giữ nguyên giá trị** của các config đã có.
+Chỉnh thông số: chọn asset trong `Assets/Game/Data` → Inspector. **Brindlemoor > Build Everything** sinh lại art/âm thanh/prefab/scene nhưng **giữ nguyên giá trị** của các config đã có.

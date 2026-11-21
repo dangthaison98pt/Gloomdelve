@@ -20,13 +20,14 @@ namespace Gloomdelve
         {
             if (Instance != null) return;
             var prefab = Resources.Load<GameServices>("GameServices");
-            if (prefab == null) { Debug.LogError("[GameServices] Resources/GameServices prefab missing. Run Gloomdelve > Build Everything."); return; }
+            if (prefab == null) { Debug.LogError("[GameServices] Resources/GameServices prefab missing. Run Brindlemoor > Build Everything."); return; }
             var inst = Instantiate(prefab);
             inst.name = "GameServices";
         }
 
-        // The window shows the full title "Brann: Gloomdelve". The product name itself stays "Gloomdelve": it names the
-        // save folder and the .exe, where a colon is not allowed, and changing it would orphan existing saves.
+        // The window shows the full title (GameConst.GameName). The product name is just "Brindlemoor": it names the
+        // save folder and the .exe, where a colon is not allowed. (Saves from when it was "Gloomdelve" are carried
+        // over by SaveSystem.CarryOverOldSaves.)
 #if UNITY_STANDALONE_WIN && !UNITY_EDITOR
         [DllImport("user32.dll")] static extern System.IntPtr GetActiveWindow();
         [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern bool SetWindowText(System.IntPtr hWnd, string text);

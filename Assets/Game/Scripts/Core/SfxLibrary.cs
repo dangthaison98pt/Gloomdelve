@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Gloomdelve
 {
-    [CreateAssetMenu(menuName = "Gloomdelve/Sfx Library", fileName = "SfxLibrary")]
+    [CreateAssetMenu(menuName = "Brindlemoor/Sfx Library", fileName = "SfxLibrary")]
     public class SfxLibrary : ScriptableObject
     {
         [Serializable]

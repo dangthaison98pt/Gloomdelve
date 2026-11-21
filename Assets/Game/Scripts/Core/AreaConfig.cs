@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Gloomdelve
 {
-    [CreateAssetMenu(menuName = "Gloomdelve/Area Config", fileName = "Area")]
+    [CreateAssetMenu(menuName = "Brindlemoor/Area Config", fileName = "Area")]
     public class AreaConfig : ScriptableObject
     {
         [Header("Identity")]

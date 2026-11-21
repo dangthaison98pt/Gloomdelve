@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Gloomdelve
 {
-    [CreateAssetMenu(menuName = "Gloomdelve/Player Config", fileName = "PlayerConfig")]
+    [CreateAssetMenu(menuName = "Brindlemoor/Player Config", fileName = "PlayerConfig")]
     public class PlayerConfig : ScriptableObject
     {
         public MotorStats motor = new MotorStats();

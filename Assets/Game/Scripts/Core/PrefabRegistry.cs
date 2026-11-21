@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Gloomdelve
 {
-    [CreateAssetMenu(menuName = "Gloomdelve/Prefab Registry", fileName = "PrefabRegistry")]
+    [CreateAssetMenu(menuName = "Brindlemoor/Prefab Registry", fileName = "PrefabRegistry")]
     public class PrefabRegistry : ScriptableObject
     {
         [Serializable]

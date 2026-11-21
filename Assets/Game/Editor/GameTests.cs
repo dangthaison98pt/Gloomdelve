@@ -9,7 +9,7 @@ using UnityEngine;
 namespace Gloomdelve.EditorTools
 {
     /// <summary>
-    /// Automated checks (menu Gloomdelve/Tests or batch -executeMethod):
+    /// Automated checks (menu Brindlemoor/Tests or batch -executeMethod):
     ///  * SeedSweep: generates every procedural level for N seeds, proves each one with LevelValidator,
     ///    checks entrance safety and spawn sanity, records retries and failure causes.
     ///  * LogicTests: movement rules (jump height, coyote time, jump buffer, ledge grab, ladders, crawl-hang,
@@ -29,10 +29,10 @@ namespace Gloomdelve.EditorTools
             return def;
         }
 
-        [MenuItem("Gloomdelve/Tests/Seed Sweep (120 seeds)")]
+        [MenuItem("Brindlemoor/Tests/Seed Sweep (120 seeds)")]
         public static void SeedSweepMenu() => SeedSweep(120, 1);
 
-        [MenuItem("Gloomdelve/Tests/Logic Tests")]
+        [MenuItem("Brindlemoor/Tests/Logic Tests")]
         public static void LogicTestsMenu() => LogicTests();
 
         public static void BatchLogic()
@@ -55,7 +55,7 @@ namespace Gloomdelve.EditorTools
             Directory.CreateDirectory(ResultsDir);
             var sb = new StringBuilder();
             var maps = new StringBuilder();
-            sb.AppendLine($"Gloomdelve seed sweep  {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+            sb.AppendLine($"Brindlemoor seed sweep  {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
             sb.AppendLine($"seeds {firstSeed}..{firstSeed + seeds - 1}, stages per seed: {cfg.stages.Count(s => s.kind == LevelKind.Area)} procedural + final");
             sb.AppendLine();
             int levels = 0, fails = 0, retries = 0, maxAttempts = 0, safetyIssues = 0, shops = 0, shopsExpected = 0, idols = 0, gated = 0, gates = 0, captives = 0, rooms = 0, cells = 0, dropsTrue = 0, dropsFalse = 0;

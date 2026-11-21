@@ -217,12 +217,43 @@ namespace Gloomdelve
         {
             if (loaded) return;
             loaded = true;
+            CarryOverOldSaves();
             Settings = Load<GameSettings>(SettingsPath) ?? new GameSettings();
             Slot = Mathf.Clamp(Settings.lastSlot, 0, SlotCount - 1);
             // a save from before there were slots becomes slot 1 (the old file is left where it is)
             try { if (File.Exists(LegacyRecordsPath) && !File.Exists(SlotPath(0))) File.Copy(LegacyRecordsPath, SlotPath(0)); }
             catch (Exception e) { Debug.LogWarning($"[Save] Could not move the old save into slot 1: {e.Message}"); }
             Records = Load<GameRecords>(RecordsPath) ?? new GameRecords();
+        }
+
+        /// <summary>
+        /// The game used to be named "Gloomdelve" (company "Gloomdelve Team"), and Unity names the save folder after
+        /// those: ...\LocalLow\Gloomdelve Team\Gloomdelve. The first time the renamed game starts with nothing saved
+        /// yet, everything there is copied across (the old folder is left as it was, as a backup).
+        /// </summary>
+        static void CarryOverOldSaves()
+        {
+            if (!string.IsNullOrEmpty(DirOverride) || !string.IsNullOrEmpty(ArgDir)) return;
+            try
+            {
+                string dir = Application.persistentDataPath;
+                var company = Directory.GetParent(dir);
+                if (company == null || company.Parent == null) return;
+                string old = Path.Combine(company.Parent.FullName, "Gloomdelve Team", "Gloomdelve");
+                if (!Directory.Exists(old) || string.Equals(Path.GetFullPath(old).TrimEnd('\\', '/'), Path.GetFullPath(dir).TrimEnd('\\', '/'), StringComparison.OrdinalIgnoreCase)) return;
+                if (File.Exists(Path.Combine(dir, "settings.json"))) return;
+                for (int i = 0; i < SlotCount; i++) if (File.Exists(Path.Combine(dir, $"slot{i + 1}.json"))) return;
+                Directory.CreateDirectory(dir);
+                foreach (var f in Directory.GetFiles(old, "*.json"))
+                    File.Copy(f, Path.Combine(dir, Path.GetFileName(f)), false);
+                foreach (var f in Directory.GetFiles(old, "*.txt"))
+                {
+                    string to = Path.Combine(dir, Path.GetFileName(f));
+                    if (!File.Exists(to)) File.Copy(f, to, false);
+                }
+                Debug.Log($"[Save] Carried the saves over from {old}");
+            }
+            catch (Exception e) { Debug.LogWarning($"[Save] Could not carry over the old saves: {e.Message}"); }
         }
 
         static T Load<T>(string path) where T : class

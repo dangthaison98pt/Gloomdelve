@@ -15,7 +15,7 @@ using Object = UnityEngine.Object;
 namespace Gloomdelve.EditorTools
 {
     /// <summary>
-    /// One-click project setup: Gloomdelve > Build Everything (or batch: -executeMethod Gloomdelve.EditorTools.ProjectBuilder.BatchBuildEverything).
+    /// One-click project setup: Brindlemoor > Build Everything (or batch: -executeMethod Gloomdelve.EditorTools.ProjectBuilder.BatchBuildEverything).
     /// Generates art + audio, URP + input settings, tiles, configs (ScriptableObjects, values kept if they exist),
     /// prefabs, the MainMenu and Game scenes and the build scene list.
     /// </summary>
@@ -26,21 +26,21 @@ namespace Gloomdelve.EditorTools
         static Material unlitMat;    // ignores lighting: sky, glows, sparks, world-space text
         static readonly Dictionary<string, SpriteAnim> anims = new Dictionary<string, SpriteAnim>();
 
-        [MenuItem("Gloomdelve/Build Everything", priority = 0)]
+        [MenuItem("Brindlemoor/Build Everything", priority = 0)]
         public static void BuildEverything()
         {
             try
             {
-                EditorUtility.DisplayProgressBar("Gloomdelve", "Settings", 0.05f);
+                EditorUtility.DisplayProgressBar("Brindlemoor", "Settings", 0.05f);
                 EnsureFolders();
                 SetupProjectSettings();
                 SetupURP();
-                EditorUtility.DisplayProgressBar("Gloomdelve", "Art", 0.15f);
+                EditorUtility.DisplayProgressBar("Brindlemoor", "Art", 0.15f);
                 ArtGenerator.GenerateAll();
                 ApplyAppIcon();
-                EditorUtility.DisplayProgressBar("Gloomdelve", "Audio", 0.35f);
+                EditorUtility.DisplayProgressBar("Brindlemoor", "Audio", 0.35f);
                 AudioGenerator.GenerateAll();
-                EditorUtility.DisplayProgressBar("Gloomdelve", "Assets", 0.5f);
+                EditorUtility.DisplayProgressBar("Brindlemoor", "Assets", 0.5f);
                 spriteMat = SpriteMaterial("SpriteLit", "Universal Render Pipeline/2D/Sprite-Lit-Default");
                 unlitMat = SpriteMaterial("SpriteUnlit", "Universal Render Pipeline/2D/Sprite-Unlit-Default");
                 var input = InputActions();
@@ -49,10 +49,10 @@ namespace Gloomdelve.EditorTools
                 var font = CreatePixelFont();
                 var sfx = CreateSfxLibrary();
                 var cfg = CreateConfigs(tileSets, sfx);
-                EditorUtility.DisplayProgressBar("Gloomdelve", "Prefabs", 0.65f);
+                EditorUtility.DisplayProgressBar("Brindlemoor", "Prefabs", 0.65f);
                 CreatePrefabs(cfg, font);
                 CreateServicesPrefab(cfg, sfx);
-                EditorUtility.DisplayProgressBar("Gloomdelve", "Scenes", 0.85f);
+                EditorUtility.DisplayProgressBar("Brindlemoor", "Scenes", 0.85f);
                 TmpFonts.Build();
                 UIBuilder.font = TmpFonts.font; UIBuilder.matPlain = TmpFonts.plain; UIBuilder.matShadow = TmpFonts.shadow; UIBuilder.matTitle = TmpFonts.title; UIBuilder.matMenu = TmpFonts.menu;
                 UIBuilder.panelSprite = ArtGenerator.S("UI/panel");
@@ -145,8 +145,8 @@ namespace Gloomdelve.EditorTools
 
         static void SetupProjectSettings()
         {
-            PlayerSettings.companyName = "Gloomdelve Team";
-            PlayerSettings.productName = "Gloomdelve";
+            PlayerSettings.companyName = "Brindlemoor Team";
+            PlayerSettings.productName = "Brindlemoor";
 
             PlayerSettings.defaultScreenWidth = 1280;
             PlayerSettings.defaultScreenHeight = 720;
@@ -2723,15 +2723,23 @@ namespace Gloomdelve.EditorTools
 
         // ------------------------------------------------------------------ build
 
-        [MenuItem("Gloomdelve/Build Windows (Builds/Windows)", priority = 20)]
+        [MenuItem("Brindlemoor/Build Windows (Builds/Windows)", priority = 20)]
         public static void BuildWindows()
         {
             string outDir = Path.Combine(Directory.GetCurrentDirectory(), "Builds/Windows");
             Directory.CreateDirectory(outDir);
+            // the game used to build as Gloomdelve.exe: that old copy goes, so only one game is left in the folder
+            try
+            {
+                File.Delete(Path.Combine(outDir, "Gloomdelve.exe"));
+                foreach (var old in new[] { "Gloomdelve_Data", "Gloomdelve_BurstDebugInformation_DoNotShip" })
+                    if (Directory.Exists(Path.Combine(outDir, old))) Directory.Delete(Path.Combine(outDir, old), true);
+            }
+            catch (Exception e) { Debug.LogWarning($"[Build] Could not remove the old Gloomdelve build: {e.Message}"); }
             var opts = new BuildPlayerOptions
             {
                 scenes = new[] { G + "Scenes/MainMenu.unity", G + "Scenes/Game.unity" },
-                locationPathName = Path.Combine(outDir, "Gloomdelve.exe"),
+                locationPathName = Path.Combine(outDir, "Brindlemoor.exe"),
                 target = BuildTarget.StandaloneWindows64,
                 options = BuildOptions.CompressWithLz4HC,      // the data files are packed (about a third the size on disk; loading is as fast)
             };
@@ -2740,10 +2748,10 @@ namespace Gloomdelve.EditorTools
             if (Application.isBatchMode) EditorApplication.Exit(report.summary.result == UnityEditor.Build.Reporting.BuildResult.Succeeded ? 0 : 1);
         }
 
-        [MenuItem("Gloomdelve/Open Main Menu Scene", priority = 40)]
+        [MenuItem("Brindlemoor/Open Main Menu Scene", priority = 40)]
         public static void OpenMenu() => EditorSceneManager.OpenScene(G + "Scenes/MainMenu.unity");
 
-        [MenuItem("Gloomdelve/Open Game Scene", priority = 41)]
+        [MenuItem("Brindlemoor/Open Game Scene", priority = 41)]
         public static void OpenGame() => EditorSceneManager.OpenScene(G + "Scenes/Game.unity");
     }
 }

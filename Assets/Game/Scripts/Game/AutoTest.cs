@@ -7,7 +7,7 @@ namespace Gloomdelve
 {
     /// <summary>
     /// In-game automated play test (Windows build / editor play mode):
-    ///   Gloomdelve.exe -autotest 5 [-autotestSeed 100] [-autotestOut path] [-autotestShots]
+    ///   Brindlemoor.exe -autotest 5 [-autotestSeed 100] [-autotestOut path] [-autotestShots]
     /// For each seed the bot replays the validator's route through the real PlayerController (god mode, no damage
     /// or knockback so the route is exact) for every stage including the final level, then writes a report and quits.
     /// </summary>
@@ -52,7 +52,7 @@ namespace Gloomdelve
             if (string.IsNullOrEmpty(OutDir)) OutDir = Path.Combine(Application.persistentDataPath, "autotest");
             Directory.CreateDirectory(OutDir);
             report.Clear();
-            report.AppendLine($"Gloomdelve autotest {DateTime.Now:yyyy-MM-dd HH:mm:ss}  seeds {FirstSeed}..{FirstSeed + SeedsTotal - 1}");
+            report.AppendLine($"Brindlemoor autotest {DateTime.Now:yyyy-MM-dd HH:mm:ss}  seeds {FirstSeed}..{FirstSeed + SeedsTotal - 1}");
             Debug.Log("[AutoTest] active, output " + OutDir);
         }
 

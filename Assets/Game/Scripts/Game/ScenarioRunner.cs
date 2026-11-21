@@ -12,7 +12,7 @@ namespace Gloomdelve
 {
     /// <summary>
     /// Scripted interaction tests that run inside the real game (Game scene, real prefabs, real physics):
-    ///   Gloomdelve.exe -scenarios [-autotestOut path] [-scenarioFilter "moth,lurecap"]
+    ///   Brindlemoor.exe -scenarios [-autotestOut path] [-scenarioFilter "moth,lurecap"]
     /// -scenarioFilter runs only the scenarios whose name contains one of the comma-separated words (quick check
     /// of one feature); without it everything runs (do that before a commit).
     /// Each scenario builds a small arena, scripts the player's inputs (or places things), then checks the outcome.
@@ -4382,7 +4382,7 @@ namespace Gloomdelve
             if (string.IsNullOrEmpty(outDir)) outDir = Path.Combine(Application.persistentDataPath, "autotest");
             Directory.CreateDirectory(outDir);
             report.Clear();
-            report.AppendLine($"Gloomdelve in-game scenario tests {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+            report.AppendLine($"Brindlemoor in-game scenario tests {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
         }
 
         public static string CurrentName => all[index].name;

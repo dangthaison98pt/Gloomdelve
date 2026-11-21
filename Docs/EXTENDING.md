@@ -4,11 +4,11 @@ Tài liệu này chỉ ra **phải đụng vào đâu** khi thêm nội dung m�
 
 - **Dữ liệu nằm trong asset** (`Assets/Game/Data`), hành vi nằm trong class nhỏ đăng ký theo **id chuỗi**. Thêm thứ mới = thêm asset + (nếu cần) một class, không sửa `PlayerController`, HUD hay bộ sinh màn.
 - **Mọi màn sinh ra đều được `LevelValidator` chứng minh là qua được**, nên nội dung mới sai chỉ khiến màn bị sinh lại chứ không tạo ra màn kẹt.
-- Sau khi sửa: **Gloomdelve > Tests > Logic Tests** và **Seed Sweep**; nếu đổi prefab/art/scene thì chạy **Gloomdelve > Build Everything** trước. Trong bản build, chỉ chạy các kịch bản liên quan: `Gloomdelve.exe -scenarios -scenarioFilter "từ1,từ2"` (ghi `scenario_report_partial.txt`).
+- Sau khi sửa: **Brindlemoor > Tests > Logic Tests** và **Seed Sweep**; nếu đổi prefab/art/scene thì chạy **Brindlemoor > Build Everything** trước. Trong bản build, chỉ chạy các kịch bản liên quan: `Brindlemoor.exe -scenarios -scenarioFilter "từ1,từ2"` (ghi `scenario_report_partial.txt`).
 
 | Muốn thêm | Cần code? | Làm ở đâu |
 |---|---|---|
-| Mẫu phòng mới | Không | Tool **Gloomdelve > Room Template Editor** |
+| Mẫu phòng mới | Không | Tool **Brindlemoor > Room Template Editor** |
 | Đặt một prefab bất kỳ vào mẫu phòng | Không | `GameConfig > Custom Markers` |
 | Nâng cấp chỉ cộng chỉ số | Không | `ShopConfig > Offers` |
 | Nâng cấp có hành vi riêng | Vài dòng | `ShopConfig` + `RunState.HasActive("id")` |
@@ -23,7 +23,7 @@ Tài liệu này chỉ ra **phải đụng vào đâu** khi thêm nội dung m�
 
 ## 1. Mẫu phòng – tool cho Game Designer
 
-Mở **Gloomdelve > Room Template Editor**. Tool đọc/ghi thẳng `Assets/Game/Data/RoomTemplates.txt` (file văn bản vẫn là nguồn duy nhất, sửa tay vẫn được).
+Mở **Brindlemoor > Room Template Editor**. Tool đọc/ghi thẳng `Assets/Game/Data/RoomTemplates.txt` (file văn bản vẫn là nguồn duy nhất, sửa tay vẫn được).
 
 ![Room Template Editor](Screenshots/room_editor.png)
 
@@ -104,7 +104,7 @@ Ví dụ thêm "cuốc" đào đất:
    }
    ```
 2. **Đăng ký** – thêm 1 dòng trong `GearRegistry` (`GearBehaviour.cs`): `Register("pickaxe", new PickaxeGear());`
-3. **Dữ liệu** – *Create > Gloomdelve > Equipment*, đặt `id = pickaxe`, tên, mô tả, icon; kéo vào `GameConfig > Equipment`.
+3. **Dữ liệu** – *Create > Brindlemoor > Equipment*, đặt `id = pickaxe`, tên, mô tả, icon; kéo vào `GameConfig > Equipment`.
 4. **Cho người chơi** – thêm id vào `PlayerConfig > Starting Gear` (hiện là bom, dây, Recall Charm), hoặc `AreaConfig > Grant Gear` để nhận khi vào khu.
 
 Vòng chọn đồ, tab ITEMS của túi đồ, HUD, số đạn tự hoạt động. Các hook khác của `GearBehaviour`:
@@ -141,7 +141,7 @@ Muốn một prefab tự phát sáng: thêm component **Glow Light** (màu, bán
 
 Một khu mới luôn đi trọn gói: **quái riêng + cơ chế riêng + ít nhất một bẫy mới + boss riêng có bộ chiêu khác hẳn**, kèm (không bắt buộc) 1–2 món đồ giúp khu đó dễ hơn. Xem Sandsunk Tombs và Shardlight Geode làm mẫu (`ArtGenerator.Sandsunk.cs`, `ArtGenerator.Geode.cs`).
 
-1. *Create > Gloomdelve > Area Config*: bộ tile, nhạc, ánh sáng, danh sách quái, mật độ bẫy, kiểu đường đi (`pathUp/Side/Down`, `pathAcross`), cơ chế (`groundGrip`, `conveyorChance`…), đồ bắt buộc, `shopFeatured`.
+1. *Create > Brindlemoor > Area Config*: bộ tile, nhạc, ánh sáng, danh sách quái, mật độ bẫy, kiểu đường đi (`pathUp/Side/Down`, `pathAcross`), cơ chế (`groundGrip`, `conveyorChance`…), đồ bắt buộc, `shopFeatured`.
 2. Thêm một khối vào `GameConfig > Stages`: 3 màn kiểu Area + 1 chặng kiểu Boss trỏ tới `Levels/Boss_<Khu>.txt` (dòng `boss: id`, ký hiệu `Z` là chỗ boss). Khối mới tự vào vòng bốc 4 khu mỗi lượt và tự có trong danh sách Challenge sau *Build Everything*.
 3. Boss: class kế thừa `Boss` (`Scripts/Bosses`), chiêu chọn bằng `Boss.NextMove`, báo trước bằng `Tell`, dùng chung `FireShot / FanAt / Shockwave`. Thanh máu, phần thưởng (vàng, ember, Heart Vessel), phản đòn khi bị giẫm liên tục đã có sẵn trong `Boss`.
 4. Trong tool mẫu phòng, tick khu mới cho các phòng riêng của khu (không tick khu nào = dùng chung).

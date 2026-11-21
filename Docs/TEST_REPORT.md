@@ -1,7 +1,7 @@
 # Báo cáo kiểm thử – Brindlemoor: The Sunstone Hunt (Gloomdelve) – cập nhật 19/11/2026
 
 ## Số liệu mới nhất
-Game hiện có 8 khu (bốc 4 mỗi lượt), 24 màn sinh ngẫu nhiên trong danh mục, 9 boss, làng Brindlemoor, 3 ô lưu. Mỗi dòng dưới đây là một lần chạy thật; file gốc trong `Docs/TestResults/` (kịch bản chạy lẻ ghi vào `%USERPROFILE%\AppData\LocalLow\Gloomdelve Team\Gloomdelve\autotest\`).
+Game hiện có 8 khu (bốc 4 mỗi lượt), 24 màn sinh ngẫu nhiên trong danh mục, 9 boss, làng Brindlemoor, 3 ô lưu. Mỗi dòng dưới đây là một lần chạy thật; file gốc trong `Docs/TestResults/` (kịch bản chạy lẻ ghi vào `%USERPROFILE%\AppData\LocalLow\Brindlemoor Team\Brindlemoor\autotest\`).
 
 | Kiểm tra | Kết quả | Ngày |
 |---|---|---|
@@ -29,8 +29,8 @@ Môi trường: Windows 11, Unity 6000.3.12f1, URP 17.3, Input System 1.19. Tấ
 | Kiểm tra | Kết quả |
 |---|---|
 | Biên dịch toàn bộ script (runtime + editor) ở batch mode | ✅ 0 lỗi |
-| `Gloomdelve > Build Everything` (art, âm thanh, asset, prefab, 2 scene) | ✅ 397 sprite, 42 SFX, 4 nhạc |
-| Build Windows x64 → `Builds/Windows/Gloomdelve.exe` | ✅ Succeeded, 94 MB, 0 lỗi |
+| `Brindlemoor > Build Everything` (art, âm thanh, asset, prefab, 2 scene) | ✅ 397 sprite, 42 SFX, 4 nhạc |
+| Build Windows x64 → `Builds/Windows/Brindlemoor.exe` | ✅ Succeeded, 94 MB, 0 lỗi |
 | Chạy bản build (cửa sổ 1280×720) | ✅ chạy được; 0 exception trong `player.log` của các lần chạy tự động |
 
 ## 2. Test logic (Editor) – `logic_tests.txt`: **34/34 PASS** (16/11)
@@ -54,7 +54,7 @@ Môi trường: Windows 11, Unity 6000.3.12f1, URP 17.3, Input System 1.19. Tấ
 **Seed lỗi và cách sửa:** các attempt bị loại được ghi đầy đủ (seed/màn/số attempt) trong `seed_sweep.txt`. Nguyên nhân chung là tổ hợp phòng tạo bức tường > 3 ô hoặc hố rơi quá cao; cơ chế sửa là validator loại và sinh lại (tất định theo seed), sau đó bot xác nhận lại trong game. Lần chạy đầu phát hiện 1 test logic sai (khối 1 ô quá hẹp nên nhân vật nhảy qua) — đã sửa test. Khi thêm chướng ngại, lần quét đầu có 1203 attempt bị loại vì đường giải không có phòng ngang để đặt chướng ngại (thời gian tối đa 516 ms) — đã sửa: bộ sinh đi lại đường giải trong cùng attempt.
 
 ## 4. Bot chơi trong bản build thật – `autotest_report.txt`
-`Gloomdelve.exe -autotest N -autotestSeed S`: bot phát lại input mà validator tìm được qua **PlayerController thật** (ở màn có chướng ngại, dây được móc sẵn đúng vị trí validator tính và đá vụn được phá trước — việc ném dây/đặt bom thật được kiểm tra riêng bằng kịch bản) (god mode để quái/bẫy không đẩy lệch đường), tự vào cửa, nhặt Heartstone ở màn cuối và mang ra cổng.
+`Brindlemoor.exe -autotest N -autotestSeed S`: bot phát lại input mà validator tìm được qua **PlayerController thật** (ở màn có chướng ngại, dây được móc sẵn đúng vị trí validator tính và đá vụn được phá trước — việc ném dây/đặt bom thật được kiểm tra riêng bằng kịch bản) (god mode để quái/bẫy không đẩy lệch đường), tự vào cửa, nhặt Heartstone ở màn cuối và mang ra cổng.
 | Lần chạy | Kết quả |
 |---|---|
 | Seed 101–103 (16/11, sau khi tái cấu trúc, đủ 3 khu + màn cuối) — file `autotest_report.txt` hiện lưu | 30/30 màn PASS, 3/3 lượt **thắng**, lượt mới sạch trạng thái, 0 rò rỉ |
@@ -62,7 +62,7 @@ Môi trường: Windows 11, Unity 6000.3.12f1, URP 17.3, Input System 1.19. Tấ
 | Các lần chạy trước khi có khu ngoài trời (7 màn/lượt): seed 1–2, 101–106, 7, 300–301 | 77/77 màn PASS, 11/11 lượt thắng — *file kết quả gốc đã bị ghi đè, không còn lưu* |
 
 ## 5. Kịch bản tương tác trong game – `scenario_report.txt`: **65/65 PASS** (chạy lại 17/11 trên bản build có khu Sporegloom)
-`Gloomdelve.exe -scenarios` dựng đấu trường nhỏ trong scene Game thật, điều khiển nhân vật bằng input kịch bản rồi kiểm tra kết quả:
+`Brindlemoor.exe -scenarios` dựng đấu trường nhỏ trong scene Game thật, điều khiển nhân vật bằng input kịch bản rồi kiểm tra kết quả:
 roi giết rắn đang lao tới · giẫm đầu rắn · nhặt đá ném chết rắn · bom phá đất nhưng không phá bedrock, người chơi chạy thoát · dây chuyền 37 bom kết thúc trong giới hạn · ném đá kích bẫy tên, mũi tên gây 2 sát thương · thạch nhũ rơi giết rắn · rơi vào chông chết (đúng nguyên nhân) · ném dây, leo, lên mép cao · móc dây bám đúng chỗ giữ: vắt qua mép vách, chốt đóng vào vách, móc lên trần (ảnh `Docs/Screenshots/rope_lip.png`, `rope_piton.png`) · dây ném vào khoảng không không móc được và rơi lại thành cuộn dây · dây móc biến mất khi hết thời gian · dây không biến mất khi đang leo · cửa sổ trang bị dừng game, chọn rồi thả thì trang bị đúng món, bấm nhanh đổi món · đổi trang bị bằng tay cầm ảo qua Input System (giữ R1 + gạt phải → dây; 1 lần bấm → về bom; bấm 0,3 s vẫn đổi; giữ lâu không chọn → giữ nguyên) · nút Dùng chỉ dùng món đang trang bị · vách 4 ô không qua được nếu không có dây · ném dây sát vách thì leo qua được · 1 quả bom phá tường đá vụn, bedrock còn nguyên, đi qua được · bám mép và trèo (controller thật) · leo thang · leo thang sát trần rồi nhảy nhiều lần vẫn ở trong bản đồ, không lọt vào khối nào · lượn qua vực gai rộng 6 ô · không có tàu lượn thì rơi vào vực · lượn từ trên cao xuống không mất máu · diều hâu bổ nhào trúng người chơi · trái tim hồi 1 máu · mua túi bom · chủ tiệm: 2 lần bị quất roi chỉ cảnh báo, không mất máu; lần 3 nổi giận, mất máu, đồ miễn phí · khối nghiền gây 3 · lỗ lửa đốt người chơi và châm nổ bom · roi đập vỡ bình · rơi cao mất máu + choáng · menu tạm dừng đóng băng mô phỏng · bảng cài đặt lưu âm lượng · màn kết quả sau khi chết · hồn ma áp lực thời gian xuất hiện và chạm là chết · mang tượng vàng ra cửa được +1200 · cửa ra kết thúc màn · waypoint: không có Compass thì ẩn, cửa ở xa thì bám mép phải + chevron, lại gần thì lơ lửng ngay trên cửa + mũi nhọn (ảnh `Docs/Screenshots/waypoint_edge.png`, `waypoint_onscreen.png`).
 
 ## 5b. Lỗi người chơi báo và đã sửa
@@ -86,10 +86,10 @@ roi giết rắn đang lao tới · giẫm đầu rắn · nhặt đá ném ch�
 ```
 Unity -batchmode -projectPath "<project>" -executeMethod Gloomdelve.EditorTools.GameTests.BatchAll -seeds 150 -logFile Logs/tests.log
 Unity -batchmode -projectPath "<project>" -executeMethod Gloomdelve.EditorTools.GameTests.BatchLogic -logFile Logs/tests_logic.log
-Builds/Windows/Gloomdelve.exe -scenarios -autotestOut <thư mục>
-Builds/Windows/Gloomdelve.exe -scenarios -scenarioFilter "từ1,từ2"      (chỉ các kịch bản có tên chứa các từ đó)
-Builds/Windows/Gloomdelve.exe -autotest 6 -autotestSeed 101 -autotestOut <thư mục> [-autotestShots]
-Builds/Windows/Gloomdelve.exe -bossTest N [-shotEvery N <thư mục>]      (vào thẳng boss thứ N của danh sách Challenge)
+Builds/Windows/Brindlemoor.exe -scenarios -autotestOut <thư mục>
+Builds/Windows/Brindlemoor.exe -scenarios -scenarioFilter "từ1,từ2"      (chỉ các kịch bản có tên chứa các từ đó)
+Builds/Windows/Brindlemoor.exe -autotest 6 -autotestSeed 101 -autotestOut <thư mục> [-autotestShots]
+Builds/Windows/Brindlemoor.exe -bossTest N [-shotEvery N <thư mục>]      (vào thẳng boss thứ N của danh sách Challenge)
 ```
 Chạy bản build để kiểm thử luôn ở cửa sổ nhỏ (`-screen-fullscreen 0 -screen-width 1280 -screen-height 720`; game tự ép cửa sổ khi có cờ kiểm thử).
-Hoặc trong Editor: menu **Gloomdelve > Tests**.
+Hoặc trong Editor: menu **Brindlemoor > Tests**.

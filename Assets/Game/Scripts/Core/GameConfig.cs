@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Gloomdelve
 {
-    [CreateAssetMenu(menuName = "Gloomdelve/Game Config", fileName = "GameConfig")]
+    [CreateAssetMenu(menuName = "Brindlemoor/Game Config", fileName = "GameConfig")]
     public class GameConfig : ScriptableObject
     {
         public PlayerConfig player;

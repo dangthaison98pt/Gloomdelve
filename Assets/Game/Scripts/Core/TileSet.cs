@@ -4,7 +4,7 @@ using UnityEngine.Tilemaps;
 namespace Gloomdelve
 {
     /// <summary>Visual tiles for one area. Autotile index = exposed-side mask (1=top,2=right,4=bottom,8=left).</summary>
-    [CreateAssetMenu(menuName = "Gloomdelve/Tile Set", fileName = "TileSet")]
+    [CreateAssetMenu(menuName = "Brindlemoor/Tile Set", fileName = "TileSet")]
     public class TileSet : ScriptableObject
     {
         [Tooltip("16 masks x 2 variants.")] public TileBase[] dirt = new TileBase[32];

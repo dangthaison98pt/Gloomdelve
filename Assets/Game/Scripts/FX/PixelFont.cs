@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Gloomdelve
 {
-    [CreateAssetMenu(menuName = "Gloomdelve/Pixel Font", fileName = "PixelFont")]
+    [CreateAssetMenu(menuName = "Brindlemoor/Pixel Font", fileName = "PixelFont")]
     public class PixelFont : ScriptableObject
     {
         public string characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$+-!?.:/";

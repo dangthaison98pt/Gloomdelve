@@ -1,6 +1,6 @@
 # Brindlemoor: The Sunstone Hunt
 
-Platformer roguelike 2D pixel art, cảm giác chơi lấy cảm hứng từ Spelunky 2: núi hang sinh ngẫu nhiên theo seed, kiếm/bom/dây, nhặt ném đồ vật, bẫy và chuỗi tương tác vật lý. Nội dung (tên, nhân vật, hình ảnh, âm thanh, màn chơi) hoàn toàn tự tạo bằng code. Tên nội bộ của project, file .exe và thư mục lưu vẫn là **Gloomdelve**.
+Platformer roguelike 2D pixel art, cảm giác chơi lấy cảm hứng từ Spelunky 2: núi hang sinh ngẫu nhiên theo seed, kiếm/bom/dây, nhặt ném đồ vật, bẫy và chuỗi tương tác vật lý. Nội dung (tên, nhân vật, hình ảnh, âm thanh, màn chơi) hoàn toàn tự tạo bằng code. File .exe và thư mục lưu dùng tên **Brindlemoor**; namespace trong code vẫn là `Gloomdelve`.
 
 **Cốt truyện:** mùa đông không chịu rời làng Brindlemoor. Brann lên núi tìm **Sunstone** (đá mặt trời) mang về sưởi ấm làng.
 
@@ -9,13 +9,13 @@ Platformer roguelike 2D pixel art, cảm giác chơi lấy cảm hứng từ Spe
 Chi tiết thiết kế: **`Docs/DESIGN.md`**.
 
 ## Chơi ngay
-`Builds/Windows/Gloomdelve.exe` (Windows 64-bit). Cửa sổ 1280×720, F11 (hoặc F4) bật/tắt toàn màn hình. Có 3 ô lưu; lượt đang chơi được lưu ở đầu mỗi màn.
+`Builds/Windows/Brindlemoor.exe` (Windows 64-bit). Cửa sổ 1280×720, F11 (hoặc F4) bật/tắt toàn màn hình. Có 3 ô lưu; lượt đang chơi được lưu ở đầu mỗi màn.
 
 ## Phiên bản & mở project
 - **Unity 6000.3.12f1** (cài tại `D:\Unity\6000.3.12f1`), URP 17.3 (2D Renderer), Input System 1.19, TextMesh Pro (font EB Garamond, SIL OFL, trong `Assets/Game/Fonts`).
 - Unity Hub → *Add project from disk* → chọn thư mục `E:\Spelunky 2`.
 - Scene khởi đầu: `Assets/Game/Scenes/MainMenu.unity`. Có thể mở thẳng `Assets/Game/Scenes/Game.unity` để chơi ngay (đối tượng **GameDirector** có mục *Debug*: seed cố định, màn bắt đầu, tutorial, god mode).
-- Menu **Gloomdelve** trên thanh menu Editor:
+- Menu **Brindlemoor** trên thanh menu Editor:
   - *Build Everything*: sinh lại art, âm thanh, tile, prefab, scene, cấu hình URP/Input. Giá trị đã chỉnh trong các config được giữ nguyên.
   - *Build Windows (Builds/Windows)*.
   - *Room Template Editor*: tool xếp mẫu phòng (vẽ lưới, kiểm tra quy tắc, thử trong bộ sinh màn, chơi thử).
@@ -43,11 +43,11 @@ Bám mép là tự động khi rơi sát mép; ↑ hoặc nhảy để trèo, �
 **Tay cầm** (cố định): cần trái / D-pad di chuyển · Y/△ nhảy · X/□ chém, nhặt, ném · B/○ vào cửa, mua (có thứ trong tầm thì ưu tiên, không thì lướt) · RT/R2 dùng đồ · RB/R1 đổi đồ (giữ: vòng chọn) · LB/L1 đi chậm · Select/Share túi đồ · Start/Options tạm dừng. Hình nút trong mọi chữ hướng dẫn tự đổi theo thiết bị đang dùng (bàn phím, Xbox, PlayStation, Switch).
 
 ## Build
-Editor: **Gloomdelve > Build Windows**. Hoặc dòng lệnh:
+Editor: **Brindlemoor > Build Windows**. Hoặc dòng lệnh:
 ```
 "D:\Unity\6000.3.12f1\Editor\Unity.exe" -batchmode -quit -projectPath "E:\Spelunky 2" -executeMethod Gloomdelve.EditorTools.ProjectBuilder.BuildWindows -logFile Logs\build.log
 ```
-Kết quả: `Builds/Windows/Gloomdelve.exe`. Đổi art/prefab/scene thì chạy *Build Everything* (`ProjectBuilder.BatchBuildEverything`) trước.
+Kết quả: `Builds/Windows/Brindlemoor.exe`. Đổi art/prefab/scene thì chạy *Build Everything* (`ProjectBuilder.BatchBuildEverything`) trước.
 
 ## Tinh chỉnh
 Tất cả nằm trong `Assets/Game/Data`:
@@ -59,7 +59,7 @@ Tất cả nằm trong `Assets/Game/Data`:
 - `RoomTemplates.txt`: 124 mẫu phòng (sửa bằng **Room Template Editor** hoặc sửa tay). `Levels/*.txt`: màn làm tay (Tutorial, Village, Camp, FinalVault, các đấu trường `Boss_*`).
 - Prefab trong `Assets/Game/Prefabs` (thông số từng quái/boss/bẫy/vật phẩm).
 
-Seed: mỗi lượt tự lấy seed ngẫu nhiên; seed hiện ở menu tạm dừng và màn kết quả, mọi seed được ghi vào `run_log.txt`. Thư mục lưu: `%USERPROFILE%\AppData\LocalLow\Gloomdelve Team\Gloomdelve` (`settings.json`, `slot1..3.json`, `records.json`, `run_log.txt`).
+Seed: mỗi lượt tự lấy seed ngẫu nhiên; seed hiện ở menu tạm dừng và màn kết quả, mọi seed được ghi vào `run_log.txt`. Thư mục lưu: `%USERPROFILE%\AppData\LocalLow\Brindlemoor Team\Brindlemoor` (`settings.json`, `slot1..3.json`, `records.json`, `run_log.txt`). Save cũ ở `LocalLow\Gloomdelve Team\Gloomdelve` được tự chép sang lần đầu mở bản mới (thư mục cũ giữ nguyên làm bản sao lưu).
 
 ## Mở rộng game
 Thêm mẫu phòng, nâng cấp, vật phẩm, đồ dùng, kẻ địch, boss, khu mới: xem **`Docs/EXTENDING.md`**.

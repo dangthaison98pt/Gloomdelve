@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Gloomdelve
 {
     /// <summary>Frame-based sprite animation clip (editable in the Inspector).</summary>
-    [CreateAssetMenu(menuName = "Gloomdelve/Sprite Anim", fileName = "Anim")]
+    [CreateAssetMenu(menuName = "Brindlemoor/Sprite Anim", fileName = "Anim")]
     public class SpriteAnim : ScriptableObject
     {
         public Sprite[] frames;

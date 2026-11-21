@@ -10,7 +10,7 @@ using UnityEngine;
 namespace Gloomdelve.EditorTools
 {
     /// <summary>
-    /// Designer tool for Data/RoomTemplates.txt (menu Gloomdelve > Room Template Editor):
+    /// Designer tool for Data/RoomTemplates.txt (menu Brindlemoor > Room Template Editor):
     /// browse / filter rooms, paint the 10x8 grid from a palette, edit the header (types, tags, areas, weight),
     /// see rule-check results live, run the room through the real generator + validator over many seeds,
     /// preview a generated level, and jump into play mode in a level that contains the room.
@@ -54,7 +54,7 @@ namespace Gloomdelve.EditorTools
 
         GUIStyle cellStyle, listStyle, listSelStyle, smallStyle;
 
-        [MenuItem("Gloomdelve/Room Template Editor", priority = 10)]
+        [MenuItem("Brindlemoor/Room Template Editor", priority = 10)]
         public static void Open()
         {
             var w = GetWindow<RoomTemplateEditor>();
@@ -191,7 +191,7 @@ namespace Gloomdelve.EditorTools
                 EditorGUILayout.HelpBox("Không đọc được RoomTemplates.txt:\n" + loadError + "\n\nSửa file bằng trình soạn văn bản rồi bấm Tải lại.", MessageType.Error);
                 return;
             }
-            if (cfg == null) EditorGUILayout.HelpBox("Không tìm thấy GameConfig.asset - chạy Gloomdelve > Build Everything trước.", MessageType.Warning);
+            if (cfg == null) EditorGUILayout.HelpBox("Không tìm thấy GameConfig.asset - chạy Brindlemoor > Build Everything trước.", MessageType.Warning);
             using (new EditorGUILayout.HorizontalScope())
             {
                 DrawList();

@@ -40,7 +40,7 @@ namespace Gloomdelve
     /// quest is a new asset, and the game picks it up from the catalogue (QuestCatalog) - nothing to write in code.
     /// QuestLog keeps what the player has done of each.
     /// </summary>
-    [CreateAssetMenu(menuName = "Gloomdelve/Quest", fileName = "Quest_New")]
+    [CreateAssetMenu(menuName = "Brindlemoor/Quest", fileName = "Quest_New")]
     public class QuestDef : ScriptableObject
     {
         [Tooltip("What the save knows it by. Never change it once players have it.")] public string id = "";
