@@ -105,7 +105,7 @@ namespace Gloomdelve
                 "Stay too long in one level and it comes. It drifts through walls straight at you, nothing can hurt it, and its touch is the end of the climb. " +
                 "When the clock turns red, find the door.");
             Info("Shopkeeper", "shopkeeper",
-                "He sells for gold and wants no trouble. Strike him or his wares and he warns you - twice. After that he is your enemy, his wares are free, " +
+                "He sells for gold, buys a golden idol for what it is worth, and wants no trouble. Strike him or his wares and he warns you - twice. After that he is your enemy, his wares are free, " +
                 "and his brothers remember you for the rest of the climb.");
             Info("Arrow Trap", "arrowtrap",
                 "A stone face in the wall. It looses one arrow at the first thing that moves in front of it - you, a creature, or a rock you threw to spend it.");
@@ -206,10 +206,11 @@ namespace Gloomdelve
                 "A cracked fist lies open: every blow on it is a blow on the Facet. Its light bends off the crystals like off mirrors.");
 
             Place("The Sunken Vault",
-                "The last hall, under all the others. The Sunstone lies here, and it cannot be lifted while its keeper stands.");
-            One("Hollow Warden", "warden",
-                "A robe with nothing in it. It drifts after you: fans of gloom orbs, a rain of them from above, a lunge, and a blink to your other side. " +
-                "Below half its health it is faster and throws rings of orbs.");
+                "The last hall, under all the others: bare stone, no traps, nothing alive but its keeper. The Sunstone is here - in his chest.");
+            One("Eclipse King", "eclipseking",
+                "First a shell: a beast of black stone with the Sunstone's light in its cracks. A swipe of its arm (jump it), a charge that leaves its horns in the wall (dash through it), a leap with a wall of light along the floor (dash through that too). " +
+                "Break the shell and the hall goes dark: what was inside rises - pure light, out of the blade's reach, with two hands of its own. A column of light walks the hall (it stops at a ledge - stand under one), a hand comes down on you, both sweep the floor until they meet (jump them), the stone bursts, and it vanishes to come back over your head. " +
+                "With its horns stuck, and each time the light sinks to the floor after a move, its chest is unguarded: every blow of yours counts double.");
             // pictures for the pages that have no creature or trap to show: every place a view of its own stone,
             // and the two things that are part of the floor
             foreach (var pg in l)

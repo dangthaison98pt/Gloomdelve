@@ -82,6 +82,21 @@ namespace Gloomdelve.EditorTools
                 Save(p, "UI/icon_recall", PCenter);
             }
             {
+                // the Ember Pouch (the elder's gift, and the bag that holds the embers): not the ember itself
+                var p = new Px(16, 16);
+                Color32 lea = C(150, 78, 50), leaD = C(104, 50, 36), leaL = C(190, 110, 70), cord = C(226, 186, 96), cordD = C(160, 120, 50);
+                Color32 hot = C(255, 244, 200), mid = C(255, 176, 70), rim = C(226, 96, 40), ol = C(30, 14, 16);
+                p.Ellipse(8f, 5.5f, 5.5f, 4.5f, lea);                                  // the belly of the pouch
+                p.Rect(3, 2, 10, 2, leaD); p.Rect(3, 4, 2, 4, leaD);                   // its shadow: underneath, and down the left
+                p.Rect(10, 6, 2, 3, leaL);                                             // light on its right shoulder
+                p.Rect(6, 10, 5, 1, lea); p.Rect(5, 11, 7, 1, cord); p.Set(5, 11, cordD); p.Set(12, 10, cord); p.Set(13, 9, cord);       // the neck and its drawstring, one end hanging
+                p.Rect(5, 12, 7, 2, lea); p.Rect(5, 12, 2, 2, leaD); p.Rect(4, 13, 1, 1, lea); p.Rect(12, 13, 1, 1, lea);              // the gathered mouth
+                p.Rect(7, 13, 3, 1, rim); p.Rect(7, 14, 2, 1, mid); p.Set(8, 14, hot);                                                    // an ember showing in it
+                p.Set(8, 7, rim); p.Rect(7, 6, 3, 1, mid); p.Set(8, 6, hot); p.Set(8, 5, rim);                                           // the ember's mark on the leather
+                p.Outline(ol);
+                Save(p, "UI/icon_pouch", PCenter);
+            }
+            {
                 // the moon over Brindlemoor: a crescent, the rest of the disc only just showing, a thin halo round it
                 var p = new Px(48, 48);
                 Color32 bright = C(238, 240, 250), mid = C(206, 212, 234), dim = C(74, 84, 130);

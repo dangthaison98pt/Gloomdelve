@@ -5,7 +5,7 @@ namespace Gloomdelve
 {
     /// <summary>
     /// Base of every boss. A boss registers itself with the GameDirector (health bar, sealed exit), shrugs off
-    /// knockback and stuns, takes at most maxHitDamage per hit from the player's own blows, only half a point from
+    /// knockback and stuns, takes at most maxHitDamage per hit from the player's own blows, one point from
     /// anything else - a bomb blast, a trap, spikes, a falling rock - and tells the director when it dies. Each boss only writes its own moves in Tick and asks NextMove() which one is next
     /// (random, never the same twice running).
     /// To add one: subclass, make a prefab, register it, and name it in a boss arena file ("boss: id").
@@ -15,14 +15,12 @@ namespace Gloomdelve
         [Header("Boss")]
         [Tooltip("Largest damage a single hit can do.")] public int maxHitDamage = 3;
         [Tooltip("Seconds before the same kind of trap can hurt it again (a flame or a saw touches every step).")] public float trapGuardTime = 0.5f;
-        float halfBank, trapGuard;
+        float trapGuard;
 
-        /// <summary>A boss no trap can hurt at all (the Hollow Warden: it is not flesh). Bombs still count their half point.</summary>
+        /// <summary>A boss no trap can hurt at all (the Hollow Warden: it is not flesh). A bomb still takes its point.</summary>
         protected virtual bool TrapProof => false;
         /// <summary>The player's own blows: blade, stomp, something thrown. Everything else is a bomb or a trap.</summary>
         static bool FromPlayer(DamageType t) => t == DamageType.Whip || t == DamageType.Stomp || t == DamageType.Thrown;
-        /// <summary>Half points of bomb and trap damage waiting to become a whole one (0 or 0.5).</summary>
-        public float HalfBank => halfBank;
         [Tooltip("Gold chunks dropped on death.")] public int goldChunks = 10;
         [Tooltip("Embers dropped on death (twice as many in the final level). Embers are the village's money: only bosses have them.")] public int emberDrop = 3;
         [Tooltip("Prefab id dropped on death along with the gold (the max-health item). Empty = nothing.")] public string rewardId = "heartvessel";
@@ -213,8 +211,8 @@ namespace Gloomdelve
 
         /// <summary>
         /// The player's own blows count in full (up to maxHitDamage). A bomb blast or a trap - spikes, fire, a
-        /// crusher, a saw, a falling rock, an arrow - is worth half a point however hard it would hit the player:
-        /// two of them make one point of damage. (An ordinary enemy takes traps the way the player does; a boss
+        /// crusher, a saw, a falling rock, an arrow - is worth one point however hard it would hit the player.
+        /// (An ordinary enemy takes traps the way the player does; a boss
         /// is not killed by the room it stands in.)
         /// </summary>
         public override bool TakeDamage(in DamageInfo d)
@@ -227,15 +225,6 @@ namespace Gloomdelve
                 if (TrapProof || trapGuard > 0f) return false;
                 trapGuard = trapGuardTime;
             }
-            halfBank += 0.5f;
-            if (halfBank < 1f)
-            {
-                // half a point: it is felt, but the bar does not move yet
-                Flash(0.1f);
-                Sfx.Play("hit", pos, 0.6f, 1.3f);
-                return true;
-            }
-            halfBank -= 1f;
             return base.TakeDamage(new DamageInfo(1, d.type, d.source, Vector2.zero, d.cause));
         }
 

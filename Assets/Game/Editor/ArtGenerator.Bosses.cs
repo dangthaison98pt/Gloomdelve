@@ -102,6 +102,171 @@ namespace Gloomdelve.EditorTools
             RotHeartArt();
             GearWyrmArt();
             WardenArt();
+            EclipseKingArt();
+        }
+
+        /// <summary>
+        /// The Eclipse King, drawn the way the Rot Heart is: small, seen from the front, a few round shapes in one
+        /// tone with a rim of shadow, a handful of large marks, and one thing that shines - the slit down its middle.
+        /// First a shell: a boulder of a beast with two shoulders, two fists, two feet, two horns, the Sunstone's
+        /// light in the slit of its chest (two sets of pictures: the slit narrow, and wide with two veins of light
+        /// once it is half broken). 0 standing, 1 fists raised, 2 head down in the charge, 3 / 4 the two steps of
+        /// its walk; and "open": the slit gaping (horns stuck, and coming apart).
+        /// Then the core: a small covered sun - a ball of light with a dark disc on it and a slit of white in that,
+        /// flares round it, threads of light under it (0 / 1 burning, "cast", "open") - and its two hands (open, fist).
+        /// Also what it throws: the stroke of its arm (three frames), the wall of light, the column of light, an ember.
+        /// </summary>
+        static void EclipseKingArt()
+        {
+            Color32 ol = C(22, 14, 34), m = C(98, 100, 150), d = C(62, 62, 108), l = C(156, 162, 212), dD = C(36, 32, 66);
+            Color32 mf = C(98, 100, 151), ma = C(98, 100, 152);      // feet, fists: the stone's tone, shapes of their own
+            Color32 horn = C(236, 226, 204), hot = C(255, 246, 206), mid = C(255, 196, 84), rim = C(240, 124, 40);
+            Color32 sun = C(255, 190, 70), sunD = C(232, 120, 40), sunL = C(255, 240, 190), dark = C(26, 18, 40);
+
+            // ---- the shell: frames 0..4, and 5 = "open"; twice (the slit narrow / wide)
+            for (int wide = 0; wide < 2; wide++)
+                for (int f = 0; f < 6; f++)
+                {
+                    bool open = f == 5;
+                    if (open && wide == 0) continue;
+                    var p = new Px(76, 72);
+                    int lean = f == 2 ? 7 : 0, sq = f == 2 ? -6 : open ? -4 : 0, cx = 38;
+                    int stepL = f == 3 ? 3 : f == 4 ? -1 : 0, stepR = f == 4 ? 3 : f == 3 ? -1 : 0;      // a foot lifted, turn about
+                    int fistY = f == 1 ? 52 : open ? 12 : 22;
+                    // two feet
+                    p.Ellipse(cx - 13, 5 + stepL, 9f, 5f, mf); p.Ellipse(cx + 13, 5 + stepR, 9f, 5f, mf);
+                    Shade(p, mf, d, l, 2, 2, 0);
+                    // two fists, hanging at its sides (raised for the swipe and the leap, on the floor when it is spent)
+                    p.Disc(cx - 28 + (f == 2 ? 4 : 0), fistY + (f == 3 ? 2 : 0), 8f, ma); p.Disc(cx + 28 + (f == 2 ? 4 : 0), fistY + (f == 4 ? 2 : 0), 8f, ma);
+                    Shade(p, ma, d, l, 3, 2, 2);
+                    // the body: one great boulder, two shoulders above it, a low head between them
+                    p.Ellipse(cx - 16 + lean, 44 + sq, 12f, 10f, m); p.Ellipse(cx + 16 + lean, 44 + sq, 12f, 10f, m);
+                    p.Ellipse(cx + lean, 51 + sq, 11f, 9f, m);
+                    p.Ellipse(cx + lean * 0.5f, 28 + sq, 24f, 21f, m);
+                    Shade(p, m, d, l, 5, 3, 2);
+                    // four pale stones in it
+                    int[,] studs = { { -22, 30 }, { 22, 30 }, { -15, 14 }, { 15, 14 } };
+                    for (int k = 0; k < 4; k++) p.Disc(cx + studs[k, 0] + lean * 0.5f + 0.5f, studs[k, 1] + sq + 0.5f, 2.6f, l);
+                    // two horns: up and out - both levelled forward in the charge
+                    if (f == 2) { Bar(p, cx + 6 + lean, 56 + sq, cx + 22 + lean, 60 + sq, 2, horn); Bar(p, cx - 6 + lean, 58 + sq, cx + 8 + lean, 66 + sq, 2, horn); }
+                    else
+                    {
+                        Bar(p, cx - 9 + lean, 57 + sq, cx - 16 + lean, 64 + sq, 2, horn); Bar(p, cx - 16 + lean, 64 + sq, cx - 15 + lean, 69 + sq, 1, horn);
+                        Bar(p, cx + 9 + lean, 57 + sq, cx + 16 + lean, 64 + sq, 2, horn); Bar(p, cx + 16 + lean, 64 + sq, cx + 15 + lean, 69 + sq, 1, horn);
+                    }
+                    // half broken: two broad veins of light to either side of the slit
+                    int sx = Mathf.RoundToInt(cx + lean * 0.5f), sy = 27 + sq;
+                    if (wide == 1 || open)
+                        for (int k = 0; k < 2; k++)
+                        {
+                            p.Line(sx - 5 + k, sy + 11, sx - 11 + k, sy + 5, mid); p.Line(sx - 11 + k, sy + 5, sx - 13 + k, sy - 7, mid); p.Line(sx - 13 + k, sy - 7, sx - 8 + k, sy - 14, mid);
+                            p.Line(sx + 5 + k, sy + 11, sx + 11 + k, sy + 5, mid); p.Line(sx + 11 + k, sy + 5, sx + 13 + k, sy - 7, mid); p.Line(sx + 13 + k, sy - 7, sx + 8 + k, sy - 14, mid);
+                        }
+                    // the slit down its middle: dark lips, the Sunstone's light inside (gaping when it is spent)
+                    float gap = open ? 4.2f : wide == 1 ? 2.2f : 1.4f;
+                    p.Ellipse(sx, sy, gap + 2f, 11f, dD); p.Ellipse(sx, sy, gap, 9f, mid); p.Ellipse(sx, sy, gap * 0.5f, 6.5f, hot);
+                    p.Outline(ol);
+                    // two lights for eyes, under a brow
+                    if (!open) { p.Rect(cx - 6 + lean, 51 + sq, 3, 2, hot); p.Rect(cx + 4 + lean, 51 + sq, 3, 2, hot); }
+                    p.Rect(cx - 7 + lean, 54 + sq, 5, 1, dD); p.Rect(cx + 3 + lean, 54 + sq, 5, 1, dD);
+                    Save(p, open ? "Sprites/Bosses/eclipseshell_open" : $"Sprites/Bosses/eclipseshell_{wide}_{f}", new Vector2(0.5f, 0f));
+                }
+
+            // ---- the core: 0 / 1 burning, 2 "cast" (its flares stand out), 3 "open" (the dark disc split wide, the stone bare)
+            for (int f = 0; f < 4; f++)
+            {
+                var p = new Px(64, 70);
+                int fl = f == 1 ? 1 : 0, cx = 32, cy = 38;
+                bool cast = f == 2, open = f == 3;
+                float big = cast ? 2f : 0f;
+                // threads of light hanging under it
+                p.Rect(cx - 12, 10 + fl, 2, 12, sunD); p.Rect(cx - 1, 6 - fl, 2, 14, sunD); p.Rect(cx + 10, 10 - fl + 1, 2, 12, sunD);
+                // the ball of light, five flares round it
+                p.Ellipse(cx - 18, cy + 9, 8f + big, 7f + big, sun); p.Ellipse(cx + 18, cy + 9, 8f + big, 7f + big, sun);
+                p.Ellipse(cx, cy + 20, 9f + big, 7f + big, sun);
+                p.Ellipse(cx - 15, cy - 14 - fl, 7f + big, 6f + big, sun); p.Ellipse(cx + 15, cy - 14 + fl, 7f + big, 6f + big, sun);
+                p.Ellipse(cx, cy, 21f, 20f, sun);
+                Shade(p, sun, sunD, sunL, 5, 3, 2);
+                // four sparks on it
+                int[,] sparks = { { -21, 10 }, { 21, 10 }, { -16, -13 }, { 16, -13 } };
+                for (int k = 0; k < 4; k++) p.Disc(cx + sparks[k, 0] + 0.5f, cy + sparks[k, 1] + 0.5f, 2.2f, sunL);
+                // the covered sun: a dark disc on it, a slit of white in that - split wide when its light has sunk
+                p.Disc(cx, cy, 12.5f, dark);
+                float gap = open ? 5f : cast ? 2.2f : 1.3f;
+                p.Ellipse(cx, cy, gap + 1.5f, 9.5f, sunD); p.Ellipse(cx, cy, gap, 8f, mid); p.Ellipse(cx, cy, gap * 0.55f, 6f, hot);
+                p.Outline(ol);
+                Save(p, f < 2 ? $"Sprites/Bosses/eclipsecore_{f}" : cast ? "Sprites/Bosses/eclipsecore_cast" : "Sprites/Bosses/eclipsecore_open", new Vector2(0.5f, 0f));
+            }
+            // ---- its hands: open (three round fingers), and a fist
+            for (int f = 0; f < 2; f++)
+            {
+                var p = new Px(26, 24);
+                if (f == 0) { p.Disc(6f, 17f, 3.5f, sun); p.Disc(13f, 19f, 3.5f, sun); p.Disc(20f, 17f, 3.5f, sun); }
+                p.Ellipse(13f, 9f, 10f, f == 0 ? 8f : 9f, sun);
+                Shade(p, sun, sunD, sunL, 3, 2, 2);
+                if (f == 1) { p.Rect(8, 12, 1, 4, sunD); p.Rect(13, 13, 1, 4, sunD); p.Rect(18, 12, 1, 4, sunD); }
+                else p.Disc(13f, 9f, 2.5f, sunL);
+                p.Outline(ol);
+                Save(p, f == 0 ? "Sprites/Bosses/sunhand_open" : "Sprites/Bosses/sunhand_fist", new Vector2(0.5f, 0f));
+            }
+            {
+                // the wave his landing throws along the floor: a wall of the stone's light as tall as he is, leaning the
+                // way it runs (drawn running right). Two frames: its tongues flicker.
+                for (int f = 0; f < 2; f++)
+                {
+                    var p = new Px(18, 66);
+                    for (int y = 0; y < 66; y++)
+                    {
+                        float u = y / 65f;
+                        float half = Mathf.Lerp(6.5f, 1.5f, u * u) + (((y / 5) + f) % 2 == 0 ? 0.8f : -0.4f) * u * 2f;
+                        float xc = 9f - 3f * u + ((y / 7 + f) % 2 == 0 ? 1f : -1f) * u * 1.5f;
+                        for (int x = 0; x < 18; x++)
+                        {
+                            float off = Mathf.Abs(x - xc);
+                            if (off > half) continue;
+                            p.Set(x, y, off < half * 0.35f ? hot : off < half * 0.7f ? mid : rim);
+                        }
+                    }
+                    Save(p, $"Sprites/Bosses/sunwave_{f}", new Vector2(0.5f, 0f));
+                }
+            }
+            // the stroke of the blade: a long low crescent, its bright edge leading (drawn running right)
+            for (int f = 0; f < 3; f++)
+            {
+                var p = new Px(108, 22);
+                int from = f == 2 ? 30 : 2, to = f == 0 ? 64 : 105;
+                for (int x = from; x <= to; x++)
+                {
+                    float u = (x - 2) / 103f;
+                    float thick = (2f + 7f * Mathf.Sin(u * Mathf.PI)) * (f == 2 ? 0.45f : 1f);
+                    float yc = 5f + 9f * u * u;                                     // it rises a little towards its tip
+                    for (int y = 0; y < 22; y++)
+                    {
+                        float dist = Mathf.Abs(y - yc);
+                        if (dist > thick) continue;
+                        p.Set(x, y, f == 2 ? rim : dist < thick * 0.4f ? hot : dist < thick * 0.75f ? mid : rim);
+                    }
+                }
+                Save(p, $"Sprites/Bosses/sunslash_{f}", PCenter);
+            }
+            {
+                // the column of light (stretched to the height of the hall): a white core, gold to either side, fading out
+                var p = new Px(16, 16);
+                for (int x = 0; x < 16; x++)
+                {
+                    float off = Mathf.Abs(x - 7.5f);
+                    Color32 c = off < 2.2f ? hot : off < 4.5f ? mid : off < 6.5f ? C(240, 124, 40, 170) : C(240, 124, 40, 70);
+                    p.Rect(x, 0, 1, 16, c);
+                }
+                Save(p, "Sprites/Bosses/sunbeam", PCenter);
+            }
+            {
+                // an ember off the stone, falling
+                var p = new Px(8, 11);
+                p.Rect(3, 6, 2, 4, rim); p.Set(3, 10, rim);
+                p.Disc(3.5f, 3.5f, 3.2f, rim); p.Disc(3.5f, 3.5f, 2.2f, mid); p.Disc(3.5f, 3.5f, 1f, hot);
+                Save(p, "Sprites/Bosses/sunember", PCenter);
+            }
         }
 
         /// <summary>

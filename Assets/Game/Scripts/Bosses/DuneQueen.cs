@@ -143,7 +143,7 @@ namespace Gloomdelve
             Headbutts++;
             Fx.Text(new Vector2(pos.x, floorY + size.y + 0.6f), "CRACK!", new Color(1f, 0.9f, 0.5f), 0.9f);
             Fx.Shake(0.6f);
-            // (a blow of its own kind: not a trap's half point, and it lands even though she has only just surfaced)
+            // (a blow of its own kind: not a trap's point, and it lands even though she has only just surfaced)
             hurtTimer = 0f;
             base.TakeDamage(new DamageInfo(headbuttDamage, DamageType.Thrown, null, Vector2.zero, "a block of stone"));
         }

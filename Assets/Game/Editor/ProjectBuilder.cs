@@ -381,6 +381,16 @@ namespace Gloomdelve.EditorTools
             Anim("yetiking_idle", F(bo + "yetiking_0"), 1); Anim("yetiking_throw", F(bo + "yetiking_1"), 1); Anim("yetiking_crouch", F(bo + "yetiking_2"), 1); Anim("yetiking_slide", F(bo + "yetiking_3"), 1);
             Anim("stormhawk_fly", F(bo + "stormhawk_0", bo + "stormhawk_1"), 6f); Anim("stormhawk_dive", F(bo + "stormhawk_2"), 1);
             Anim("warden_float", F(bo + "warden_0", bo + "warden_1"), 3f);
+            for (int ek = 0; ek < 2; ek++)
+            {
+                string es = bo + "eclipseshell_" + ek + "_", en = ek == 0 ? "" : "_cracked";
+                Anim("eclipseshell_idle" + en, F(es + "0"), 1); Anim("eclipseshell_windup" + en, F(es + "1"), 1); Anim("eclipseshell_charge" + en, F(es + "2"), 1);
+                Anim("eclipseshell_walk" + en, F(es + "3", es + "0", es + "4", es + "0"), 5f);
+            }
+            Anim("eclipseshell_open", F(bo + "eclipseshell_open"), 1);
+            Anim("eclipsecore", F(bo + "eclipsecore_0", bo + "eclipsecore_1"), 6f); Anim("eclipsecore_cast", F(bo + "eclipsecore_cast"), 1); Anim("eclipsecore_open", F(bo + "eclipsecore_open"), 1);
+            Anim("sunslash", F(bo + "sunslash_0", bo + "sunslash_1", bo + "sunslash_2"), 14f);
+            Anim("sunwave", F(bo + "sunwave_0", bo + "sunwave_1"), 12f);
             Anim("gearwyrm_idle", F(bo + "gearwyrm_0"), 1); Anim("gearwyrm_open", F(bo + "gearwyrm_1"), 1);
             Anim("facet_idle", F(bo + "facet_0"), 1); Anim("facet_strike", F(bo + "facet_1"), 1); Anim("facet_cracked", F(bo + "facet_2"), 1);
             Anim("dunequeen_idle", F(bo + "dunequeen_0"), 1); Anim("dunequeen_rear", F(bo + "dunequeen_1"), 1); Anim("dunequeen_mound", F(bo + "dunequeen_2"), 1);
@@ -970,6 +980,7 @@ namespace Gloomdelve.EditorTools
             CustomMarker("c", "Crumbling platform", "crumble", 1f, MarkerPlacement.Anywhere, TileType.Platform, new Color(0.7f, 0.5f, 0.3f));
             cfg.player = player;
             cfg.quests = BuildQuests();       // every quest asset in Data/Quests
+            cfg.emberPouchIcon = ArtGenerator.S("UI/icon_pouch");
             cfg.shop = shop;
             cfg.sfx = sfx;
             var gBomb = LoadOrCreate<EquipmentDef>(G + "Data/Gear_Bomb.asset", out bool newBomb);
@@ -1271,6 +1282,9 @@ namespace Gloomdelve.EditorTools
             ["EmberBat"] = (new Color(1f, 0.5f, 0.2f), 2.6f, 0.8f, 0.3f, false, true, new Vector2(0f, 0.3f)),
             ["Wraith"] = (new Color(1f, 0.25f, 0.2f), 5f, 1.2f, 0.2f, true, true, new Vector2(0f, 0.5f)),
             ["Warden"] = (new Color(0.75f, 0.5f, 1f), 6f, 1.3f, 0.2f, true, true, new Vector2(0f, 0.9f)),
+            ["EclipseKing"] = (new Color(1f, 0.8f, 0.4f), 4.5f, 0.4f, 0.2f, true, true, new Vector2(0.4f, 1.9f)),
+            ["SunEmber"] = (new Color(1f, 0.75f, 0.35f), 2.4f, 1f, 0.2f, false, true, new Vector2(0f, 0.2f)),
+            ["SunWave"] = (new Color(1f, 0.75f, 0.35f), 4.5f, 1.1f, 0.2f, false, true, new Vector2(0f, 1.8f)),
             ["GloomOrb"] = (new Color(0.75f, 0.5f, 1f), 2.4f, 1f, 0.2f, false, true, new Vector2(0f, 0.15f)),
             ["Shopkeeper"] = (new Color(1f, 0.8f, 0.5f), 7f, 0.9f, 0.08f, false, true, new Vector2(0f, 1.5f)),
             ["DoorExit"] = (new Color(0.6f, 0.9f, 1f), 3.6f, 0.8f, 0.15f, true, true, new Vector2(0f, 0.7f)),
@@ -1348,6 +1362,10 @@ namespace Gloomdelve.EditorTools
                 };
                 EditorUtility.SetDirty(first);
             }
+            // (the pouch got a picture of its own after this quest was first written: its reward shows that one)
+            if (first.rewards != null)
+                foreach (var rw in first.rewards)
+                    if (rw != null && rw.kind == RewardKind.KeyItem && rw.id == Villagers.KeyPouch) { rw.icon = ArtGenerator.S("UI/icon_pouch"); EditorUtility.SetDirty(first); }
             var cat = LoadOrCreate<QuestCatalog>(G + "Data/QuestCatalog.asset");
             cat.quests.Clear();
             foreach (var guid in AssetDatabase.FindAssets("t:QuestDef", new[] { folder }))
@@ -1487,7 +1505,7 @@ namespace Gloomdelve.EditorTools
             Reg("sandshot", Make<BossShot>("SandShot", "Enemies", "sand", new Vector2(0.35f, 0.35f), ArtGenerator.S("Sprites/Bosses/sandshot"), null, 32,
                 (e, go, sr) => { e.flipWithFacing = false; e.burstColor = new Color(0.95f, 0.8f, 0.5f); }));
             Reg("dunequeen", Make<DuneQueen>("DuneQueen", "Enemies", "Dune Queen", new Vector2(2.1f, 2.9f), ArtGenerator.S("Sprites/Bosses/dunequeen_0"), anims["dunequeen_idle"], 15,
-                (e, go, sr) => { e.maxHealth = 16; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animIdle = anims["dunequeen_idle"]; e.animRear = anims["dunequeen_rear"]; e.animMound = anims["dunequeen_mound"]; e.animCounter = anims["dunequeen_rear"]; e.counterFx = anims["cfx_buck"]; e.counterMotion = Boss.CounterMotion.Buck; e.counterFxScale = 1.6f; e.bloodColor = new Color(0.85f, 0.6f, 0.35f); }));
+                (e, go, sr) => { e.maxHealth = 28; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animIdle = anims["dunequeen_idle"]; e.animRear = anims["dunequeen_rear"]; e.animMound = anims["dunequeen_mound"]; e.animCounter = anims["dunequeen_rear"]; e.counterFx = anims["cfx_buck"]; e.counterMotion = Boss.CounterMotion.Buck; e.counterFxScale = 1.6f; e.bloodColor = new Color(0.85f, 0.6f, 0.35f); }));
             // Gearworks: its machines, their bolt, the conveyor belt
             Reg("sentry", Make<Sentry>("Sentry", "Enemies", "sentry", new Vector2(0.75f, 0.95f), ArtGenerator.S("Sprites/Enemies/sentry_0"), anims["sentry_walk"], 14,
                 (e, go, sr) => { e.maxHealth = 2; e.goldDrop = 100; e.animWalk = anims["sentry_walk"]; e.animJab = anims["sentry_jab"]; e.bloodColor = new Color(0.85f, 0.75f, 0.45f); }));
@@ -1523,7 +1541,7 @@ namespace Gloomdelve.EditorTools
                 (e, go, sr) => { e.goldDrop = 0; e.heartDropChance = 0f; e.animPulse = anims["eggsac_pulse"]; e.flipWithFacing = false; e.bloodColor = new Color(0.85f, 0.9f, 0.75f); }));
             // the Gearworks boss: only its head is a thing in the world; its body is drawn and judged by the head
             Reg("gearwyrm", Make<GearWyrm>("GearWyrm", "Enemies", "Cogwyrm", new Vector2(1.1f, 1.0f), BS2("gearwyrm_0"), anims["gearwyrm_idle"], 15,
-                (e, go, sr) => { e.maxHealth = 30; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.flipWithFacing = false; e.segmentSprite = BS2("gearwyrm_seg"); e.tailSprite = BS2("gearwyrm_tail"); e.animIdle = anims["gearwyrm_idle"]; e.animOpen = anims["gearwyrm_open"]; e.animCounter = anims["gearwyrm_open"]; e.counterFx = anims["cfx_buck"]; e.counterMotion = Boss.CounterMotion.Burst; e.counterFxScale = 1.5f; e.bloodColor = new Color(0.95f, 0.75f, 0.35f); }));
+                (e, go, sr) => { e.maxHealth = 36; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.flipWithFacing = false; e.segmentSprite = BS2("gearwyrm_seg"); e.tailSprite = BS2("gearwyrm_tail"); e.animIdle = anims["gearwyrm_idle"]; e.animOpen = anims["gearwyrm_open"]; e.animCounter = anims["gearwyrm_open"]; e.counterFx = anims["cfx_buck"]; e.counterMotion = Boss.CounterMotion.Burst; e.counterFxScale = 1.5f; e.bloodColor = new Color(0.95f, 0.75f, 0.35f); }));
             // Sporegloom: its creatures, the spore cloud and the plants
             Reg("puffshroom", Make<Puffshroom>("Puffshroom", "Enemies", "puffshroom", new Vector2(0.7f, 0.75f), ArtGenerator.S("Sprites/Enemies/puffshroom_0"), anims["puffshroom_walk"], 14,
                 (e, go, sr) => { e.animWalk = anims["puffshroom_walk"]; e.animSwell = anims["puffshroom_swell"]; e.animDeflated = anims["puffshroom_deflated"]; e.bloodColor = new Color(0.7f, 1f, 0.5f); }));
@@ -1540,15 +1558,15 @@ namespace Gloomdelve.EditorTools
             // bosses (one per area + the final guardian), their projectile, and the treasure chest
             Sprite BS(string n) => ArtGenerator.S("Sprites/Bosses/" + n);
             Reg("broodmother", Make<Broodmother>("Broodmother", "Enemies", "Broodmother", new Vector2(2.1f, 1.4f), BS("broodmother_0"), anims["broodmother_idle"], 15,
-                (e, go, sr) => { e.maxHealth = 14; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animIdle = anims["broodmother_idle"]; e.animWalk = anims["broodmother_walk"]; e.animJump = anims["broodmother_jump"]; e.animFall = anims["broodmother_fall"]; e.animCounter = anims["broodmother_jump"]; e.counterFx = anims["cfx_bite"]; e.counterMotion = Boss.CounterMotion.Lunge; e.counterFxScale = 1.2f; e.bloodColor = new Color(0.5f, 0.3f, 0.6f); }));
+                (e, go, sr) => { e.maxHealth = 24; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animIdle = anims["broodmother_idle"]; e.animWalk = anims["broodmother_walk"]; e.animJump = anims["broodmother_jump"]; e.animFall = anims["broodmother_fall"]; e.animCounter = anims["broodmother_jump"]; e.counterFx = anims["cfx_bite"]; e.counterMotion = Boss.CounterMotion.Lunge; e.counterFxScale = 1.2f; e.bloodColor = new Color(0.5f, 0.3f, 0.6f); }));
             Reg("forgebrute", Make<ForgeBrute>("ForgeBrute", "Enemies", "Forge Brute", new Vector2(2.0f, 1.8f), BS("forgebrute_0"), anims["forgebrute_walk"], 15,
-                (e, go, sr) => { e.maxHealth = 16; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animWalk = anims["forgebrute_walk"]; e.animCharge = anims["forgebrute_charge"]; e.animCounter = anims["forgebrute_charge"]; e.counterFx = anims["cfx_buck"]; e.counterMotion = Boss.CounterMotion.Buck; e.animDazed = anims["forgebrute_dazed"]; e.bloodColor = new Color(0.9f, 0.4f, 0.2f); }));
+                (e, go, sr) => { e.maxHealth = 28; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animWalk = anims["forgebrute_walk"]; e.animCharge = anims["forgebrute_charge"]; e.animCounter = anims["forgebrute_charge"]; e.counterFx = anims["cfx_buck"]; e.counterMotion = Boss.CounterMotion.Buck; e.animDazed = anims["forgebrute_dazed"]; e.bloodColor = new Color(0.9f, 0.4f, 0.2f); }));
             Reg("yetiking", Make<YetiKing>("YetiKing", "Enemies", "Yeti King", new Vector2(1.9f, 2.3f), BS("yetiking_0"), anims["yetiking_idle"], 15,
-                (e, go, sr) => { e.maxHealth = 30; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animIdle = anims["yetiking_idle"]; e.animThrow = anims["yetiking_throw"]; e.animCrouch = anims["yetiking_crouch"]; e.animSlide = anims["yetiking_slide"]; e.animCounter = anims["yetiking_throw"]; e.counterFx = anims["cfx_frost"]; e.counterMotion = Boss.CounterMotion.Burst; e.counterFxScale = 2.2f; e.counterFxOnBody = true; e.bloodColor = new Color(0.85f, 0.92f, 1f); }));
+                (e, go, sr) => { e.maxHealth = 36; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.animIdle = anims["yetiking_idle"]; e.animThrow = anims["yetiking_throw"]; e.animCrouch = anims["yetiking_crouch"]; e.animSlide = anims["yetiking_slide"]; e.animCounter = anims["yetiking_throw"]; e.counterFx = anims["cfx_frost"]; e.counterMotion = Boss.CounterMotion.Burst; e.counterFxScale = 2.2f; e.counterFxOnBody = true; e.bloodColor = new Color(0.85f, 0.92f, 1f); }));
             Reg("stormhawk", Make<StormHawk>("StormHawk", "Enemies", "Storm Hawk", new Vector2(1.7f, 1.0f), BS("stormhawk_0"), anims["stormhawk_fly"], 15,
-                (e, go, sr) => { e.maxHealth = 12; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.diveSpeed = 18.5f; e.sweepSpeed = 15f; e.animFly = anims["stormhawk_fly"]; e.animDive = anims["stormhawk_dive"]; e.animCounter = anims["stormhawk_fly"]; e.counterFx = anims["cfx_gust"]; e.counterMotion = Boss.CounterMotion.Flap; e.counterFxScale = 1.5f; e.bloodColor = new Color(0.5f, 0.6f, 0.9f); }));
+                (e, go, sr) => { e.maxHealth = 22; e.contactDamage = 2; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.diveSpeed = 18.5f; e.sweepSpeed = 15f; e.animFly = anims["stormhawk_fly"]; e.animDive = anims["stormhawk_dive"]; e.animCounter = anims["stormhawk_fly"]; e.counterFx = anims["cfx_gust"]; e.counterMotion = Boss.CounterMotion.Flap; e.counterFxScale = 1.5f; e.bloodColor = new Color(0.5f, 0.6f, 0.9f); }));
             Reg("sporeheart", Make<SporeHeart>("SporeHeart", "Enemies", "Rot Heart", new Vector2(2.0f, 1.9f), BS("sporeheart_0"), anims["sporeheart_beat"], 15,
-                (e, go, sr) => { e.maxHealth = 14; e.contactDamage = 0; e.stompable = false; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.flipWithFacing = false; e.animBeat = anims["sporeheart_beat"]; e.animSwell = anims["sporeheart_swell"]; e.bloodColor = new Color(0.62f, 1f, 0.5f); }));
+                (e, go, sr) => { e.maxHealth = 24; e.contactDamage = 0; e.stompable = false; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartvessel"; e.flipWithFacing = false; e.animBeat = anims["sporeheart_beat"]; e.animSwell = anims["sporeheart_swell"]; e.bloodColor = new Color(0.62f, 1f, 0.5f); }));
             // things the reworked bosses use: fire on the floor, the snow boulder, the tendril
             Reg("firepatch", Make<FirePatch>("FirePatch", "Traps", "fire", new Vector2(0.8f, 0.75f), null, null, 8,
                 (e, g, s) =>
@@ -1563,7 +1581,26 @@ namespace Gloomdelve.EditorTools
             Reg("tendril", Make<BossShot>("Tendril", "Enemies", "tendril", new Vector2(1.6f, 0.45f), BS("tendril"), null, 32,
                 (e, g, s) => { e.flipWithFacing = false; e.flipByVelocity = true; e.unbreakable = true; e.lifetime = 6f; e.burstColor = new Color(0.62f, 1f, 0.5f); }));
             Reg("warden", Make<Warden>("Warden", "Enemies", "Hollow Warden", new Vector2(1.7f, 2.2f), BS("warden_0"), anims["warden_float"], 31,
-                (e, go, sr) => { e.maxHealth = 24; e.contactDamage = 2; e.stompable = false; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = ""; e.animFloat = anims["warden_float"]; e.bloodColor = new Color(0.7f, 0.4f, 1f); }));
+                (e, go, sr) => { e.maxHealth = 32; e.contactDamage = 2; e.stompable = false; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = ""; e.animFloat = anims["warden_float"]; e.bloodColor = new Color(0.7f, 0.4f, 1f); }));
+            // the last boss: the Eclipse King, and the embers off the stone in his chest (which he drops when he falls)
+            Reg("sunember", Make<BossShot>("SunEmber", "Enemies", "ember", new Vector2(0.4f, 0.5f), BS("sunember"), null, 32,
+                (e, go, sr) => { e.flipWithFacing = false; e.burstColor = new Color(1f, 0.82f, 0.35f); }));
+            // (the wave off his landings: as tall as he is - no jump clears it, and the blade does nothing to it: dash through)
+            Reg("sunwave", Make<BossShot>("SunWave", "Enemies", "wave of light", new Vector2(0.8f, 4f), BS("sunwave_0"), anims["sunwave"], 32,
+                (e, go, sr) => { e.flipWithFacing = false; e.flipByVelocity = true; e.unbreakable = true; e.damage = 2; e.lifetime = 4f; e.burstColor = new Color(1f, 0.82f, 0.35f); }));
+            Reg("eclipseking", Make<EclipseKing>("EclipseKing", "Enemies", "Eclipse King", new Vector2(2.8f, 3.4f), BS("eclipseshell_0_0"), anims["eclipseshell_idle"], 15,
+                (e, go, sr) =>
+                {
+                    // (maxHealth is the shell's; the core has its own: coreHealth)
+                    e.maxHealth = 35; e.coreHealth = 40; e.coreSize = new Vector2(2.6f, 3.6f); e.handSize = new Vector2(1.5f, 1.3f); e.contactDamage = 2; e.stompable = false; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartstone";
+                    e.animIdle = anims["eclipseshell_idle"]; e.animWalk = anims["eclipseshell_walk"]; e.animWindup = anims["eclipseshell_windup"]; e.animLunge = anims["eclipseshell_charge"];
+                    e.animIdleCracked = anims["eclipseshell_idle_cracked"]; e.animWalkCracked = anims["eclipseshell_walk_cracked"]; e.animWindupCracked = anims["eclipseshell_windup_cracked"]; e.animLungeCracked = anims["eclipseshell_charge_cracked"];
+                    e.animOpen = anims["eclipseshell_open"];
+                    e.animCore = anims["eclipsecore"]; e.animCoreCast = anims["eclipsecore_cast"]; e.animCoreOpen = anims["eclipsecore_open"];
+                    e.handOpen = BS("sunhand_open"); e.handFist = BS("sunhand_fist");
+                    e.slashFx = anims["sunslash"]; e.beamSprite = BS("sunbeam");
+                    e.bloodColor = new Color(1f, 0.8f, 0.35f);
+                }));
             Reg("gloomorb", Make<BossShot>("GloomOrb", "Enemies", "gloom orb", new Vector2(0.35f, 0.35f), BS("orb"), null, 32,
                 (e, go, sr) => { e.flipWithFacing = false; }));
             Reg("venomshot", Make<BossShot>("VenomShot", "Enemies", "venom", new Vector2(0.4f, 0.4f), BS("venom_0"), anims["venom_fly"], 32,
@@ -2564,7 +2601,7 @@ namespace Gloomdelve.EditorTools
             UIBuilder.Place(UIBuilder.Rect(islots), new Vector2(0.5f, 1f), new Vector2(0, -212), new Vector2(900, 10), new Vector2(0.5f, 0.5f));
             inv.slotRow = (RectTransform)islots.transform;
             inv.bagLabel = UIBuilder.Label(ipanel.transform, "BagLabel", "In the bag", 20, new Color(1f, 1f, 1f, 0.5f), TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -324), new Vector2(600, 28), false);
-            inv.pouchIcon = ArtGenerator.S("UI/icon_ember");
+            inv.pouchIcon = ArtGenerator.S("UI/icon_pouch");
             inv.bookIcon = ArtGenerator.S("UI/icon_book");
             var igrid = UIBuilder.Node(ipanel.transform, "Grid");
             UIBuilder.Place(UIBuilder.Rect(igrid), new Vector2(0.5f, 1f), new Vector2(0, -412), new Vector2(900, 10), new Vector2(0.5f, 0.5f));

@@ -48,7 +48,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.Warden
   displayName: Hollow Warden
   size: {x: 1.7, y: 2.2}
-  maxHealth: 24
+  maxHealth: 32
   flipWithFacing: 1
   artFacesLeft: 0
   contactDamage: 2

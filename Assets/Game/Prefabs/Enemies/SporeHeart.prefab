@@ -48,7 +48,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SporeHeart
   displayName: Rot Heart
   size: {x: 2, y: 1.9}
-  maxHealth: 14
+  maxHealth: 24
   flipWithFacing: 0
   artFacesLeft: 0
   contactDamage: 0

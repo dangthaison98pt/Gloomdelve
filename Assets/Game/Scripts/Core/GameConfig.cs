@@ -10,6 +10,7 @@ namespace Gloomdelve
         public ShopConfig shop;
         public PrefabRegistry prefabs;
         [Tooltip("Every quest of the game (the assets in Data/Quests).")] public QuestCatalog quests;
+        [Tooltip("Picture of the Ember Pouch (the elder's \"Larger Ember Pouch\", the bag's key item).")] public Sprite emberPouchIcon;
         public SfxLibrary sfx;
         [Tooltip("Every equipment type in the game (selectable in the gear wheel when owned).")]
         public EquipmentDef[] equipment;

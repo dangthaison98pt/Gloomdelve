@@ -215,6 +215,13 @@ namespace Gloomdelve
             reason = "";
             o.grip = d.grip;
             var g = d.grid;
+            if (!d.goal.HasValue)
+            {
+                // a last level with no stone lying in it (its keeper carries it): the way is simply entrance -> gate
+                var straight = PlanToExit(d, o);
+                if (straight == null) reason = "exit unreachable; ";
+                return straight;
+            }
             var start = MotorState.At(new Vector2(d.entrance.x + 0.5f, d.entrance.y));
             var goal = d.goal.Value;
             var p1 = FindPath(g, start, o, s => IsAtCell(s, goal), out var atGoal);

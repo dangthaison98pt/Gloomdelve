@@ -78,7 +78,8 @@ namespace Gloomdelve
                     var like = cfg.shop.Find(kind == Bags.Bombs ? "bombs" : kind == Bags.Ropes ? "ropes" : "pebblepouch");
                     if (like != null) pic = like.icon;
                 }
-                if (kind == Bags.Embers && cfg != null && cfg.prefabs != null)
+                if (kind == Bags.Embers && cfg != null && cfg.emberPouchIcon != null) pic = cfg.emberPouchIcon;       // the pouch itself, not what goes in it
+                else if (kind == Bags.Embers && cfg != null && cfg.prefabs != null)
                 {
                     var ember = cfg.prefabs.Get("ember");
                     var esr = ember != null ? ember.GetComponentInChildren<SpriteRenderer>() : null;

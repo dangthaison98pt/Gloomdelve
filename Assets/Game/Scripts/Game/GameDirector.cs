@@ -148,12 +148,13 @@ namespace Gloomdelve
             if (chestGear != null && Chest.SpawnGearChest(world, chestGear, spawnAt) == null) { run.gear.Add(chestGear); grantedGear = true; chestGear = null; }      // (no room for a chest: handed over)
             world.Player = Player;
             Player.input = input;
-            Player.godMode = debugGodMode || (EditorPlaytest.Active && EditorPlaytest.GodMode);
+            Player.godMode = debugGodMode || Cheats.God || (EditorPlaytest.Active && EditorPlaytest.GodMode);
             cameraFollow.SetTarget(Player, new Rect(0f, 0f, Level.Width, Level.Height), config.cameraOrthoSize);
             if (cam != null && Stage.area != null) cam.backgroundColor = Stage.area.cameraBackground;
 
             foreach (var d in FindObjectsByType<Door>(FindObjectsSortMode.None)) if (d.isExit) exitDoor = d;
-            if (Stage.kind == LevelKind.Final && exitDoor != null) exitDoor.SetLocked(true);
+            // (the test bot walks a hall whose keeper is not there: nobody will drop the stone for it)
+            if (Stage.kind == LevelKind.Final && exitDoor != null && !(AutoTest.Active && !Level.goal.HasValue)) exitDoor.SetLocked(true);
             if (Stage.kind == LevelKind.Boss && BossAlive && exitDoor != null)
             {
                 exitDoor.lockedPrompt = "Sealed. It opens when the boss falls.";
@@ -320,6 +321,7 @@ namespace Gloomdelve
         void Update()
         {
             DebugShots();
+            Cheats.Tick(this);
             if (linkPending && world.Frame > 0) { LevelFactory.LinkShops(world, Level); linkPending = false; }
             // a new item's card is up: the game waits, and any of the usual buttons puts it away
             if (hud != null && hud.CardModal)
@@ -441,9 +443,21 @@ namespace Gloomdelve
 
         // ------------------------------------------------------------------ events
 
+        bool stoneLifted;
+
         public void OnHeartstoneLifted()
         {
-            if (collapsing) return;
+            if (collapsing || stoneLifted) return;
+            stoneLifted = true;
+            // A vault with the stone on an altar ('Y' in its map) comes down once the stone is lifted. In the Eclipse
+            // King's hall the stone was in his chest: the fight was the price, and the gate simply opens.
+            if (Level == null || !Level.goal.HasValue)
+            {
+                if (exitDoor != null) exitDoor.SetLocked(false);
+                hud.ShowBanner("THE SUNSTONE IS YOURS", "Carry it out through the Surface Gate.", 4.5f);
+                Sfx.PlayUI("idol");
+                return;
+            }
             collapsing = true;
             collapseTimer = 1.2f;
             if (exitDoor != null) exitDoor.SetLocked(false);
@@ -477,7 +491,7 @@ namespace Gloomdelve
                 StartCoroutine(EndPractice(2.2f));
                 return;
             }
-            hud.ShowBanner($"{b.displayName.ToUpperInvariant()} DEFEATED", final ? "The Sunstone is yours. Lift it and run!" : "The way on is open.", 4.5f);
+            hud.ShowBanner($"{b.displayName.ToUpperInvariant()} DEFEATED", final ? (Level != null && Level.goal.HasValue ? "The Sunstone is yours. Lift it and run!" : "The Sunstone lies where he fell. Lift it.") : "The way on is open.", 4.5f);
             Sfx.PlayUI("victory");
             if (AudioManager.Instance != null) AudioManager.Instance.SetMusicPitch(1f);
         }
@@ -575,7 +589,7 @@ namespace Gloomdelve
             }
             if (Stage.kind == LevelKind.Final)
             {
-                if (!(p.held is Treasure t && t.isHeartstone))
+                if (!(p.held is Treasure t && t.isHeartstone) && !(AutoTest.Active && !Level.goal.HasValue))
                 {
                     hud.ShowMessage("The Surface Gate only opens for the Sunstone!");
                     Sfx.Play("error", p.pos);
@@ -612,6 +626,27 @@ namespace Gloomdelve
             }
             run.levelsCompleted++;
             transition.Show(Stage, run, run.gold - run.goldAtLevelStart, AutoTest.Active ? 0.1f : 0f, ContinueToNextStage);
+        }
+
+        /// <summary>Hidden GD help (Cheats): this level counts as done - in the last hall, the run as won.</summary>
+        public void CheatSkipLevel()
+        {
+            if (Ended || Run == null || Stage == null || Player == null || Player.IsDead) return;
+            if (Run.inVillage || Run.bossPractice) { ShowMessage("GD: nothing to skip here."); return; }
+            if (skipping) return;
+            skipping = true;
+            if (Stage.kind == LevelKind.Final) Victory(); else LevelComplete();
+        }
+        bool skipping;
+
+        /// <summary>Hidden GD help (Cheats): the boss of this level falls.</summary>
+        public void CheatKillBoss()
+        {
+            if (!BossAlive) { ShowMessage("GD: no boss here."); return; }
+            var b = Boss;
+            b.health = 1;
+            b.TakeDamage(new DamageInfo(1, DamageType.Explosion, Player, Vector2.zero, "GD"));
+            if (!b.Dead) ShowMessage("GD: it slipped away - press again.");
         }
 
         void ContinueToNextStage()

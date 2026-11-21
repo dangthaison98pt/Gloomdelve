@@ -45,4 +45,4 @@ MonoBehaviour:
     description: 'The great beasts of the mountain carry embers. The pouch holds
       them; they are what Brindlemoor trades in. It is never lost: find it in your
       bag ([inventory]).'
-    icon: {fileID: 21300000, guid: 86b17ca765e469242b17519fa3d84e41, type: 3}
+    icon: {fileID: 21300000, guid: 106c5584ad59d184c8e1712592801768, type: 3}

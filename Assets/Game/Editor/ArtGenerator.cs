@@ -43,8 +43,54 @@ namespace Gloomdelve.EditorTools
             return p;
         }
 
+        /// <summary>
+        /// A thing drawn on the very bottom row of its sheet has no room for the outline under it: it shows with a
+        /// dark line round its sides and top and none below. Such a picture is moved up a row and the line closed
+        /// under it, in its own outline colour. (Only pictures that have an outline, and a free row at the top.)
+        /// </summary>
+        static Px CloseUnder(Px src)
+        {
+            int w = src.w, h = src.h;
+            for (int x = 0; x < w; x++) if (src.c[(h - 1) * w + x].a > 0) return src;       // no free row to move up into
+            // Its outline colour: what most of its edge is drawn in (the pixels with nothing beside or over them),
+            // the bottom row left out - that is the row in question.
+            var count = new Dictionary<int, int>();
+            bool Clear(int x, int y) => x < 0 || y < 0 || x >= w || y >= h || src.c[y * w + x].a < 128;
+            for (int y = 1; y < h; y++)
+                for (int x = 0; x < w; x++)
+                {
+                    var c = src.c[y * w + x];
+                    if (c.a < 128 || !(Clear(x - 1, y) || Clear(x + 1, y) || Clear(x, y + 1))) continue;
+                    int key = c.r << 16 | c.g << 8 | c.b;
+                    count[key] = count.TryGetValue(key, out int n) ? n + 1 : 1;
+                }
+            int most = 0, olKey = -1;
+            foreach (var kv in count) if (kv.Value > most) { most = kv.Value; olKey = kv.Key; }
+            if (olKey < 0) return src;
+            var ol = new Color32((byte)(olKey >> 16), (byte)(olKey >> 8 & 255), (byte)(olKey & 255), 255);
+            // the bottom row: is there drawing on it that is not outline, and clearly lighter than the outline?
+            int body = 0, sum = 0;
+            for (int x = 0; x < w; x++)
+            {
+                var c = src.c[x];
+                if (c.a < 128 || (c.r == ol.r && c.g == ol.g && c.b == ol.b)) continue;
+                body++; sum += c.r + c.g + c.b;
+            }
+            if (body == 0 || (ol.r + ol.g + ol.b) > 0.75f * sum / body) return src;       // closed already, or a thing with no outline to speak of
+            var p = new Px(w, h);
+            for (int y = h - 1; y >= 1; y--)
+                for (int x = 0; x < w; x++) p.c[y * w + x] = src.c[(y - 1) * w + x];
+            for (int x = 0; x < w; x++)
+            {
+                var up = p.c[w + x];
+                if (up.a >= 128 && !(up.r == ol.r && up.g == ol.g && up.b == ol.b)) p.c[x] = ol;
+            }
+            return p;
+        }
+
         static void Save(Px p, string rel, Vector2 pivot, Vector4 border = default)
         {
+            if (rel.StartsWith("Sprites/Items/")) p = CloseUnder(p);
             if (rel.StartsWith("Sprites/Player/") || rel.StartsWith("Sprites/Enemies/") || rel.StartsWith("Sprites/Items/")) p = AutoShade(p);
             string path = Root + rel + ".png";
             p.Save(Path.Combine(Directory.GetCurrentDirectory(), path));
@@ -2132,14 +2178,16 @@ namespace Gloomdelve.EditorTools
             }
             {
                 var p = ItemCanvas(); Color32 s = C(146, 100, 58), sd = C(100, 66, 36);
-                p.Ellipse(8, 4.5f, 4.5f, 4f, s); p.Rect(7, 8, 2, 2, sd); p.Rect(6, 10, 4, 1, s);
-                p.Disc(8, 4f, 1.8f, C(40, 40, 54)); p.Set(7, 5, C(110, 110, 130));
+                // (drawn a row clear of the sheet's lower edge: the outline has to close under it)
+                p.Ellipse(8, 5.5f, 4.5f, 4f, s); p.Rect(7, 9, 2, 2, sd); p.Rect(6, 11, 4, 1, s);
+                p.Disc(8, 5f, 1.8f, C(40, 40, 54)); p.Set(7, 6, C(110, 110, 130));
                 p.Outline(ol); Save(p, d + "bombbag", PItem);
             }
             {
                 var p = ItemCanvas(); Color32 r = C(196, 156, 92), rd = C(130, 96, 50);
-                p.Ellipse(8, 3f, 5.5f, 3f, r); p.Ellipse(8, 3f, 3.5f, 1.6f, rd); p.Ellipse(8, 3f, 2f, 0.8f, r);
-                p.Set(13, 5, r); p.Set(14, 6, r);
+                // (as the bomb bag: a row up, room under it for its outline)
+                p.Ellipse(8, 4f, 5.5f, 3f, r); p.Ellipse(8, 4f, 3.5f, 1.6f, rd); p.Ellipse(8, 4f, 2f, 0.8f, r);
+                p.Set(13, 6, r); p.Set(14, 7, r);
                 p.Outline(ol); Save(p, d + "ropepile", PItem);
             }
             {

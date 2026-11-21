@@ -85,12 +85,23 @@ namespace Gloomdelve
             return l;
         }
 
+        float ambientBase = 0.6f;
+
+        /// <summary>Turns the level's own light down (0..1 of what the area gives it; 1 = as it was). The Eclipse King's last third.</summary>
+        public static void SetAmbientScale(float k)
+        {
+            var inst = Instance;
+            if (inst == null || inst.global == null) return;
+            inst.global.intensity = inst.ambientBase * Mathf.Clamp01(k);
+        }
+
         /// <summary>Applies the area's ambient light and places torches for this level.</summary>
         public void Setup(LevelData level, AreaConfig area)
         {
             float ambient = area != null && area.ambientIntensity >= 0f ? area.ambientIntensity : 0.6f;
             global.color = area != null ? area.ambientColor : Color.white;
             global.intensity = ambient;
+            ambientBase = ambient;
             playerBase = area != null ? area.playerLightIntensity : 0.8f;
             playerRadius = area != null ? area.playerLightRadius : 7.5f;
             playerLight.pointLightOuterRadius = playerRadius;

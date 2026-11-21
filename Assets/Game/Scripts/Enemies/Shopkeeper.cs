@@ -11,8 +11,37 @@ namespace Gloomdelve
     ///  - angered but alive: every later shop is closed, and when you walk in he attacks with two brothers;
     ///  - killed: every later shop is simply gone.
     /// </summary>
-    public class Shopkeeper : Enemy
+    public class Shopkeeper : Enemy, IInteractable
     {
+        // He buys as well as sells: a golden idol carried up to him is worth its gold on the spot (it need not be
+        // lugged to the way out). Only while he is at peace, and never the Sunstone.
+        static Treasure Idol(PlayerController p) => p != null && p.held is Treasure t && !t.isHeartstone ? t : null;
+
+        public string GetPrompt(PlayerController p)
+        {
+            var idol = Idol(p);
+            if (angry || Dead || idol == null) return null;
+            return $"[enter]  Sell  -  {ItemLog.Title(idol.displayName)}, ${idol.value}";
+        }
+
+        public void Interact(PlayerController p)
+        {
+            var idol = Idol(p);
+            var run = RunSession.Current;
+            if (angry || Dead || idol == null || run == null) return;
+            int paid = idol.value;
+            var picture = idol.GetComponentInChildren<SpriteRenderer>();
+            Sprite icon = picture != null ? picture.sprite : null;
+            string what = ItemLog.Title(idol.displayName);
+            p.held = null;
+            idol.Despawn();
+            run.AddResource(Res.Gold, paid);
+            Sfx.PlayUI("buy");
+            Fx.Sparks(Center, new Color(1f, 0.9f, 0.4f), 14, 4f);
+            var dir = GameDirector.Instance;
+            if (dir != null && dir.hud != null) dir.hud.Gain("sold:" + what, what + " sold", icon, paid, null);
+        }
+
         public float chaseSpeed = 4.6f;
         public float jumpVelocity = 12f;
         public SpriteAnim animIdle;

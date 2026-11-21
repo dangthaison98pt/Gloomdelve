@@ -389,7 +389,7 @@ namespace Gloomdelve
 
         /// <summary>
         /// Something has hit a fist. The shell turns the player's own blows; only on the fist that lies open do they
-        /// count. (A bomb or a trap is worth its half point as against any boss - the shell is no help against a blast.)
+        /// count. (A bomb or a trap is worth its one point as against any boss - the shell is no help against a blast.)
         /// </summary>
         public bool FistStruck(FacetFist f, in DamageInfo d)
         {

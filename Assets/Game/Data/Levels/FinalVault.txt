@@ -1,39 +1,21 @@
 name: The Sunken Vault
-boss: warden
-sign1: THE SUNKEN VAULT.  Deep below the Warden guards the Sunstone.  Defeat it, then carry the stone back to this gate.
-sign2: The Sunstone!  [down] + [whip] lifts it.  Lifting it wakes the vault - climb the east ladder to the gate, fast!
+boss: eclipseking
+sign1: THE SUNKEN VAULT.  The Eclipse King keeps the Sunstone in its chest.  Break its shell, put out what is inside, lift the stone, and carry it out through the gate behind it.
 ---
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-XBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBX
-X........................v.............X
-X......................................X
-X..S.1..............................G..X
-XBBBBBBB..BBBBBBBBBBBBBBBBBBBBBBBBBHBBBX
-XB..b........b..BBBBBBBBBBBBBBBBB.eH.eBX
-XB..............BBBBBBBBBBBBBBBBB..H..BX
-XB..............BB$BBBBBBBBBBBBBB..H..BX
-XB....BBBBBBB...BBBBBBBBBBB$BBBBB..H..BX
-XB..............BBBBBBBBBBBBBBBBB..H..BX
-XB..............BBBBBBBBBBBBBBBBB..H..BX
-XB..............BBBBBB$BBBBBBBBBB..H..BX
-XBBBBBBB........BBBBBBBBBBBBBBBBB..H..BX
-XB.x............BB$BBBBBBBBBBBBBB..H..BX
-XB..............BBBBBBBBBBBBB$BBA..H..BX
-XB..........s...BBBBBBBBBBBBBBBBB..H..BX
-XB......BBBBBBB.BBBBBBBBBBBBBBBBB..H.TBX
-XB........x.....BBBB$BBBBBBBBBBBB..HBBBX
-XB..............BBBBBBBBBBBBBBBBB..H..BX
-XB.T............ABBBBBBBBBBBBB$BB..H..BX
-XBBBBBBBB.......BBBBBBBB$BBBBBBBB..H..BX
-XB..............BBBBBBBBBBBBBBBBA..H..BX
-XB..............BBBBBBBBBBBBBBBBB..H..BX
-XB..........T...BBBBBBBBBBBBBBBBB..H..BX
-XB.....BBBBBBBB.BBBBBBBBBBBBBBBBB..H..BX
-XB..............v.......w....v.....H..BX
-XB..........................Z......H..BX
-XB.................................H..BX
-XB.....u.c....T..2..Y....*....t....H..BX
-XBBBBBBBBBBBfBBBBBBBBBBBBBBfBBBBBBBBBBBX
-XBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBX
-XBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBX
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBX
+X..........................................X
+X..........................................X
+X..........................................X
+X..........................................X
+X..........................................X
+X..........................................X
+X..........................................X
+X..........................................X
+X..........................................X
+X.......=====..................=====.......X
+X..........................................X
+X..S.1....................Z.............G..X
+XBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBX
+XBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBX
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX

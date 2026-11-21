@@ -16,6 +16,7 @@ MonoBehaviour:
   shop: {fileID: 11400000, guid: 74a8c9b2c3f9abf4fba0c6978cc8eec5, type: 2}
   prefabs: {fileID: 11400000, guid: 7e67c5d380b678b4f903ea3b7d562ead, type: 2}
   quests: {fileID: 11400000, guid: 459b75a3ffc86c141b38fb0df0013cba, type: 2}
+  emberPouchIcon: {fileID: 21300000, guid: 106c5584ad59d184c8e1712592801768, type: 3}
   sfx: {fileID: 11400000, guid: 032aa30e6ccab44418d28b5577fcd123, type: 2}
   equipment:
   - {fileID: 11400000, guid: 71cc6d1f52344b1478385f8e19f7a975, type: 2}

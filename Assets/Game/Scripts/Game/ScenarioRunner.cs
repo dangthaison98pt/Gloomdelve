@@ -347,6 +347,9 @@ namespace Gloomdelve
             new Scenario { name = "bosses: the cogwyrm runs the floor, dives and sticks, spits bolts, rolls as a wheel, sheds segments as saws, and only its head can be hurt", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => GearWyrmCase(c) },
 
+            new Scenario { name = "bosses: the eclipse king is a shell of stone that swipes, charges and sticks, leaps - then breaks, and the light inside fights on with a column of light a ledge stops, its two hands, a burst, and vanishing - and drops the Sunstone", map = m => { Set(m, 3, 1, 'S'); for (int x = 7; x <= 9; x++) Set(m, x, 3, '='); },
+                run = c => EclipseKingCase(c) },
+
             new Scenario { name = "hawk dives at the player below it", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => HawkCase(c) },
 
@@ -415,6 +418,9 @@ namespace Gloomdelve
 
             new Scenario { name = "carrying a golden idol out pays gold", map = m => { Set(m, 3, 1, 'S'); Set(m, 4, 1, 'G'); },
                 run = c => IdolCase(c) },
+
+            new Scenario { name = "a golden idol can be sold to a shopkeeper on the spot; an angry one buys nothing", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => IdolSaleCase(c) },
 
             new Scenario { name = "exit door ends the level", map = m => { Set(m, 3, 1, 'S'); Set(m, 5, 1, 'G'); },
                 run = c => Run(c, Seq((16, F(x: 1)), (20, F()), (1, F(act: true)), (10, F())), 50, () => c.Expect(c.dir.Ended, "level ended")) },
@@ -786,6 +792,48 @@ namespace Gloomdelve
             c.Expect(c.p.DeathCause != null && c.p.DeathCause.Contains("Reaper"), "cause: " + c.p.DeathCause);
         }
 
+        static IEnumerator IdolSaleCase(Ctx c)
+        {
+            c.p.godMode = true;
+            var keeper = c.Spawn<Shopkeeper>("shopkeeper", 8, 1);
+            var idol = c.Spawn<Treasure>("idol", 3, 1);
+            c.Expect(keeper != null && idol != null, "a shopkeeper and an idol spawned");
+            if (keeper == null || idol == null) yield break;
+            int worth = idol.value, gold0 = c.run.gold;
+            yield return c.Frames(4);
+            c.Teleport(keeper.pos.x, 1f);
+            yield return c.Frames(4);
+            c.Expect(keeper.GetPrompt(c.p) == null, "empty-handed he has nothing to buy");
+            // pick the idol up, carry it to him, press the button
+            c.Teleport(3.5f, 1f);
+            c.Bot(Seq((3, F()), (1, F(down: true, atk: true)), (8, F())));
+            yield return c.Frames(14);
+            c.Expect(c.p.held == idol, "the idol is in hand");
+            c.Teleport(keeper.pos.x, 1f);
+            yield return c.Frames(6);
+            string offer = keeper.GetPrompt(c.p);
+            c.Expect(offer != null && offer.StartsWith("[enter]  Sell") && offer.Contains("$" + worth) && c.p.Prompt == offer, $"with the idol in hand he offers to buy it ({offer})");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "idol_sale.png"));
+            yield return c.Frames(3);
+            c.Bot(Seq((2, F()), (1, F(act: true)), (30, F())));
+            yield return c.Frames(12);
+            c.Expect(c.p.held == null && idol.Dead && c.run.gold == gold0 + worth && !keeper.angry, $"sold: the idol is gone, {worth} gold paid, and he is still at peace (gold {gold0} -> {c.run.gold})");
+            c.Expect(c.dir.hud.FeedAmount("sold:Golden Idol") == worth, "the sale shows in the list at the left");
+            // an angry shopkeeper buys nothing
+            var second = c.Spawn<Treasure>("idol", 3, 1);
+            yield return c.Frames(4);
+            c.Teleport(3.5f, 1f);
+            c.Bot(Seq((3, F()), (1, F(down: true, atk: true)), (8, F())));
+            yield return c.Frames(14);
+            keeper.angry = true;
+            c.Teleport(keeper.pos.x, 1f);
+            yield return c.Frames(4);
+            c.Expect(c.p.held == second && keeper.GetPrompt(c.p) == null, "an angry shopkeeper offers nothing");
+            keeper.Despawn();
+            if (second != null) second.Despawn();
+            c.Bot(Seq((3000, F())));
+        }
+
         static IEnumerator IdolCase(Ctx c)
         {
             c.Spawn<Treasure>("idol", 3, 1);
@@ -1114,12 +1162,12 @@ namespace Gloomdelve
             b.TakeDamage(new DamageInfo(99, DamageType.Whip, c.p, new Vector2(20f, 20f), "test"));
             c.Expect(h0 - b.health == b.maxHitDamage && !b.Dead, $"a 99-damage blow of the player's only takes {b.maxHitDamage} (took {h0 - b.health})");
             yield return c.Frames(14);
-            // bombs and traps: half a point each, whatever they would do to the player
+            // bombs and traps: one point each, whatever they would do to the player
             int h1 = b.health;
             b.TakeDamage(new DamageInfo(3, DamageType.Explosion, c.p, new Vector2(20f, 20f), "test"));
             int afterOne = h1 - b.health;
             b.TakeDamage(new DamageInfo(3, DamageType.Explosion, c.p, new Vector2(20f, 20f), "test"));
-            c.Expect(afterOne == 0 && h1 - b.health == 1, $"a bomb blast takes half a point from a boss: one blast {afterOne}, two blasts {h1 - b.health}");
+            c.Expect(afterOne == 1 && h1 - b.health == 2, $"a bomb blast takes one point from a boss, however hard it is: one blast {afterOne}, two blasts {h1 - b.health}");
             yield return c.Frames(40);
             int h2 = b.health;
             b.TakeDamage(new DamageInfo(99, DamageType.Spikes, null, Vector2.zero, "spikes"));
@@ -1128,9 +1176,9 @@ namespace Gloomdelve
             int trapSame = h2 - b.health;
             yield return c.Frames(40);
             b.TakeDamage(new DamageInfo(99, DamageType.Fire, null, Vector2.zero, "test"));
-            c.Expect(trapOne == 0 && trapSame == 0 && h2 - b.health == 1, $"a trap takes half a point too, and not twice in the same moment: {trapOne}, {trapSame}, then {h2 - b.health} after a second one");
+            c.Expect(trapOne == 1 && trapSame == 1 && h2 - b.health == 2, $"a trap takes one point too, and not twice in the same moment: {trapOne}, {trapSame}, then {h2 - b.health} after a second one");
             {
-                // the Hollow Warden is not hurt by traps at all (a bomb still counts its half)
+                // the Hollow Warden is not hurt by traps at all (a bomb still takes its point)
                 var ghost = c.Spawn<Warden>("warden", 22, 3);
                 yield return c.Frames(3);
                 if (ghost != null)
@@ -1140,7 +1188,7 @@ namespace Gloomdelve
                     int byTraps = g0 - ghost.health;
                     ghost.TakeDamage(new DamageInfo(3, DamageType.Explosion, c.p, Vector2.zero, "test"));
                     ghost.TakeDamage(new DamageInfo(3, DamageType.Explosion, c.p, Vector2.zero, "test"));
-                    c.Expect(byTraps == 0 && g0 - ghost.health == 1, $"traps do nothing to the Warden ({byTraps}); two bombs take 1 ({g0 - ghost.health})");
+                    c.Expect(byTraps == 0 && g0 - ghost.health == 2, $"traps do nothing to the Warden ({byTraps}); two bombs take 2 ({g0 - ghost.health})");
                     ghost.Despawn();
                     foreach (var e in c.world.Entities) if (!e.Dead && e is BossShot) e.Despawn();
                     c.dir.RegisterBoss(b);
@@ -1286,6 +1334,10 @@ namespace Gloomdelve
             c.Expect(rain, "it rains spore clouds on the floor");
             c.Expect(lure, "it wakes a lurecap among the plants");
             c.Expect(Mathf.Abs(b.pos.y - hangY) < 0.01f, "it never moves");
+            // the lashes below are measured one at a time: the heart must throw nothing of its own meanwhile (a dart
+            // or a low lash of its own would be counted as the lash under test). No more moves after the one it has begun.
+            b.actionGap = b.actionGapLow = 9999f;
+            yield return c.Frames(220);
             // clear what it threw - not the heart itself (ClearFight would remove it too)
             foreach (var e in c.world.Entities) if (!e.Dead && e != b && (e is SporeCloud || e is BossShot || e is Lurecap)) e.Despawn();
             c.Expect(!b.Dead, "the heart is still there");
@@ -1921,7 +1973,7 @@ namespace Gloomdelve
             c.Bot(Seq((6000, F())));
             c.Teleport(5.5f, 1f);
             var b = c.Spawn<YetiKing>("yetiking", 17, 1, 0, null, -1);
-            c.Expect(b != null && b.maxHealth == 30, "the yeti king spawned with 30 health");
+            c.Expect(b != null && b.maxHealth == 36, "the yeti king spawned with 36 health");
             if (b == null) yield break;
             yield return c.Frames(5);
             float tall = b.size.y;
@@ -3998,13 +4050,177 @@ namespace Gloomdelve
             c.Bot(Seq((3000, F())));
         }
 
+        static IEnumerator EclipseKingCase(Ctx c)
+        {
+            c.p.godMode = true;
+            c.Bot(Seq((40000, F())));
+            c.Teleport(4.5f, 1f);
+            var b = c.Spawn<EclipseKing>("eclipseking", 16, 1, 0, null, -1);
+            c.Expect(b != null && c.dir.Boss == b && b.Form == 1 && b.maxHealth == 35 && !b.IsStompable, "the eclipse king spawned as the boss: a shell of 35 health, not to be stomped");
+            if (b == null) yield break;
+            yield return c.Frames(5);
+            IEnumerator Until(System.Func<bool> done, int frames) { for (int i = 0; i < frames && !done(); i++) yield return new WaitForFixedUpdate(); }
+            IEnumerator Settle() { yield return Until(() => b.Doing == EclipseKing.Act.Idle, 1800); }
+
+            // ---- the shell
+            // the swipe: a standing player in front of it is struck for sweepDamage
+            c.Teleport(b.pos.x - 3f, 1f);
+            yield return c.Frames(6);
+            c.p.godMode = false; c.run.health = c.run.maxHealth;
+            int h = c.run.health;
+            b.ForceMove(EclipseKing.MoveSweep);
+            yield return Until(() => b.Sweeps >= 1, 600);
+            yield return c.Frames(20);
+            c.Expect(b.Sweeps == 1 && c.run.health == h - b.sweepDamage, $"its swipe strikes a player who stands in front of it (swipes {b.Sweeps}, health {h} -> {c.run.health})");
+            c.p.godMode = true;
+            yield return Settle();
+
+            // the charge: to the wall, where its horns stick and its chest is open - blows count double there, and only there
+            b.ForceMove(EclipseKing.MoveCharge);
+            yield return Until(() => b.Stucks >= 1, 1200);
+            c.Expect(b.Stucks == 1 && b.Exposed && b.Doing == EclipseKing.Act.Stuck, $"its charge ends with the horns in the wall and its chest open ({b.Doing})");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_eclipseking_stuck.png"));
+            int bh = b.health;
+            b.TakeDamage(new DamageInfo(1, DamageType.Whip, c.p, Vector2.zero, "test"));
+            c.Expect(bh - b.health == 2, $"a blow on the open chest counts double ({bh - b.health})");
+            yield return Settle();
+            yield return c.Frames(20);
+            bh = b.health;
+            b.TakeDamage(new DamageInfo(1, DamageType.Whip, c.p, Vector2.zero, "test"));
+            c.Expect(bh - b.health == 1, $"a blow on its stone counts once ({bh - b.health})");
+
+            // the leap: down with a wall of light along the floor
+            yield return Settle();
+            b.ForceMove(EclipseKing.MoveLeap);
+            yield return Until(() => b.Leaps >= 1, 900);
+            yield return c.Frames(2);
+            BossShot wave = null;
+            foreach (var e in c.world.Entities) if (!e.Dead && e is BossShot ws) wave = ws;
+            c.Expect(b.Leaps == 1 && wave != null && wave.size.y >= 3.5f && wave.unbreakable, $"its leap comes down with a wall of light along the floor: too tall to jump, and the blade does nothing to it (height {(wave != null ? wave.size.y : 0f)})");
+            yield return Settle();
+            // half broken, the cracks stand wide
+            b.health = b.maxHealth / 2;
+            c.Expect(b.Cracked, "at half its health the cracks stand wide");
+
+            // ---- the shell breaks: it does not die - the light inside rises, with its health full
+            yield return c.Frames(20);
+            b.health = 1;
+            b.TakeDamage(new DamageInfo(3, DamageType.Whip, c.p, Vector2.zero, "test"));
+            c.Expect(!b.Dead && c.dir.BossAlive && b.Doing == EclipseKing.Act.Shatter, $"its health gone, the shell does not die: it comes apart ({b.Doing})");
+            bool touched = b.TakeDamage(new DamageInfo(3, DamageType.Whip, c.p, Vector2.zero, "test"));
+            c.Expect(!touched, "nothing touches it while it comes apart");
+            yield return Until(() => b.Form == 2, 600);
+            c.Expect(b.Form == 2 && b.health == b.coreHealth && b.maxHealth == b.coreHealth && b.Darkened && !b.Dead, $"the core rises: health full again ({b.health} / {b.maxHealth}), the hall dark");
+            c.Expect(!c.dir.Ended, "and the fight goes on");
+            yield return Settle();
+            c.Expect(b.pos.y > 1.5f && b.ContactDamage == 0, $"it hangs in the air, and touching it does not hurt (y {b.pos.y:0.0})");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_eclipseking_core.png"));
+
+            // ---- the core
+            // the column of light: a ledge stops it; a hole in the floor does not
+            c.Teleport(8.5f, 1f);       // under the ledge
+            b.ForceMove(EclipseKing.MoveBeam);
+            yield return Until(() => b.BeamWalking, 900);
+            c.Expect(Mathf.Abs(b.BeamBottom(8.5f) - 4f) < 0.01f && Mathf.Abs(b.BeamBottom(13.5f) - 1f) < 0.01f, $"the light stops at a ledge and reaches the floor elsewhere ({b.BeamBottom(8.5f)}, {b.BeamBottom(13.5f)})");
+            {
+                var was = c.world.Grid.Get(20, 0);
+                c.world.Grid.SetRaw(20, 0, TileType.Empty);
+                float pit = b.BeamBottom(20.5f);
+                c.world.Grid.SetRaw(20, 0, was);
+                c.Expect(pit < 0.5f, $"the light reaches the bottom of a hole in the floor (stops at {pit})");
+            }
+            c.p.godMode = false; c.run.health = c.run.maxHealth; h = c.run.health;
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_eclipseking_sun.png"));
+            yield return Until(() => !b.BeamWalking, 900);
+            c.Expect(b.Beams == 1 && c.run.health == h, $"under the ledge the light passes over the player (health {h} -> {c.run.health})");
+            c.p.godMode = true;
+            bool embers = false;
+            for (int i = 0; i < 900 && b.Doing == EclipseKing.Act.Cast; i++) { yield return new WaitForFixedUpdate(); if (c.Count<BossShot>() > 0) embers = true; }
+            c.Expect(embers, "then embers rain where the player stands");
+            yield return Until(() => b.Doing == EclipseKing.Act.Open, 600);
+            c.Expect(b.Exposed && b.pos.y < 1.5f, $"after the move it sinks to the floor, chest unguarded ({b.Doing}, y {b.pos.y:0.0})");
+            bh = b.health;
+            b.TakeDamage(new DamageInfo(1, DamageType.Whip, c.p, Vector2.zero, "test"));
+            c.Expect(bh - b.health == 2, $"a blow counts double then ({bh - b.health})");
+            yield return Settle();
+            // in the open the same light burns
+            c.Teleport(14.5f, 1f);
+            b.ForceMove(EclipseKing.MoveBeam);
+            yield return Until(() => b.BeamWalking, 1500);
+            c.p.godMode = false; c.run.health = c.run.maxHealth; h = c.run.health;
+            yield return Until(() => !b.BeamWalking, 900);
+            c.Expect(c.run.health == h - b.beamDamage, $"in the open the light burns for beamDamage (health {h} -> {c.run.health})");
+            c.p.godMode = true;
+            yield return Until(() => b.Doing == EclipseKing.Act.Open, 1500);
+            yield return Settle();
+
+            // a hand comes down on a player who stays where they are
+            c.Teleport(12.5f, 1f);
+            yield return c.Frames(4);
+            c.p.godMode = false; c.run.health = c.run.maxHealth; h = c.run.health;
+            b.ForceMove(EclipseKing.MoveSlam);
+            yield return Until(() => b.Slams >= 1, 900);
+            yield return c.Frames(3);
+            c.Expect(b.Slams == 1 && c.run.health == h - b.slamDamage, $"a hand comes down on a player who stays under it (slams {b.Slams}, health {h} -> {c.run.health})");
+            c.p.godMode = true;
+            yield return Until(() => b.Doing == EclipseKing.Act.Open, 600);
+            yield return Settle();
+
+            // both hands sweep the floor from the walls until they meet
+            b.ForceMove(EclipseKing.MoveClap);
+            yield return Until(() => b.Doing == EclipseKing.Act.Clap, 900);
+            c.Expect(b.Doing == EclipseKing.Act.Clap && b.HandAt(0).x < 3.5f && b.HandAt(1).x > 21f && b.HandAt(0).y < 1.1f, $"its hands go out to the walls, down on the floor ({b.HandAt(0).x:0.0}, {b.HandAt(1).x:0.0})");
+            yield return Until(() => b.Claps >= 1, 900);
+            c.Expect(b.Claps == 1 && Mathf.Abs(b.HandAt(0).x - b.pos.x) < 1.5f && Mathf.Abs(b.HandAt(1).x - b.pos.x) < 1.5f, "and come together under it");
+            yield return Until(() => b.Doing == EclipseKing.Act.Open, 600);
+            yield return Settle();
+
+            // it vanishes, and comes back over the player with a hand raised
+            int slams = b.Slams;
+            b.ForceMove(EclipseKing.MoveBlink);
+            yield return Until(() => b.Doing == EclipseKing.Act.BlinkOut, 900);
+            bh = b.health;
+            bool hit = b.TakeDamage(new DamageInfo(1, DamageType.Whip, c.p, Vector2.zero, "test"));
+            c.Expect(b.Blinks == 1 && !hit && b.health == bh && Mathf.Abs(b.pos.x - c.p.pos.x) < 4f, $"it vanishes: nothing touches it, and it will be over the player ({Mathf.Abs(b.pos.x - c.p.pos.x):0.0} away)");
+            yield return Until(() => b.Slams > slams, 900);
+            c.Expect(b.Slams == slams + 1, "it comes back with a hand already coming down");
+            yield return Until(() => b.Doing == EclipseKing.Act.Open, 600);
+            yield return Settle();
+
+            // the burst: the wall of light again, embers into the air - and it is on the floor
+            b.ForceMove(EclipseKing.MoveNova);
+            yield return Until(() => b.Novas >= 1, 1500);
+            yield return c.Frames(2);
+            c.Expect(b.Novas == 1 && b.Exposed && c.Count<BossShot>() >= 3, $"the stone bursts along the floor and into the air, and leaves it open (shots {c.Count<BossShot>()})");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_eclipseking_open.png"));
+
+            // ---- its end: the Sunstone drops where it hung and can be lifted - and nothing comes down
+            for (int i = 0; i < 80 && !b.Dead; i++)
+            {
+                b.TakeDamage(new DamageInfo(99, DamageType.Whip, c.p, Vector2.zero, "test"));
+                yield return c.Frames(14);
+            }
+            yield return c.Frames(10);
+            Treasure stone = null;
+            foreach (var e in c.world.Entities) if (!e.Dead && e is Treasure t && t.isHeartstone) stone = t;
+            c.Expect(b.Dead && !c.dir.BossAlive && stone != null && stone.CanPickUp, $"the core is put out and the Sunstone drops, free to lift (dead {b.Dead}, stone {stone != null})");
+            if (stone != null)
+            {
+                yield return c.Frames(90);
+                c.Teleport(stone.pos.x, 1f);
+                c.Bot(Seq((3, F()), (1, F(down: true, atk: true)), (3000, F())));
+                yield return c.Frames(16);
+                c.Expect(c.p.held == stone && !c.dir.Collapsing, $"the stone is lifted and nothing comes down: the hall stands (held {c.p.held == stone}, collapsing {c.dir.Collapsing})");
+            }
+        }
+
         static IEnumerator GearWyrmCase(Ctx c)
         {
             c.p.godMode = true;
             c.Bot(Seq((9000, F())));
             c.Teleport(6.5f, 1f);
             var b = c.Spawn<GearWyrm>("gearwyrm", 14, 1, 0, null, -1);
-            c.Expect(b != null && c.dir.Boss == b && b.maxHealth == 30 && b.SegmentCount == 6, "the cogwyrm spawned as the boss: 30 health, six segments");
+            c.Expect(b != null && c.dir.Boss == b && b.maxHealth == 36 && b.SegmentCount == 6, "the cogwyrm spawned as the boss: 36 health, six segments");
             if (b == null) yield break;
             for (int i = 0; i < 400 && !b.Patrolling; i++) yield return new WaitForFixedUpdate();
             c.Expect(b.Patrolling && b.HeadCentre.y > b.FloorLevel + 3f, $"it climbs to its track, out of reach (head {b.HeadCentre.y - b.FloorLevel:0.0} above the floor)");

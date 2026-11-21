@@ -134,6 +134,12 @@ MonoBehaviour:
     prefab: {fileID: 6212438178658104716, guid: 7687771b53a978240afc4c2f4f594a52, type: 3}
   - id: warden
     prefab: {fileID: 1924136200737026320, guid: 7288a4b403e39ce4493b5a4d510a4ca7, type: 3}
+  - id: sunember
+    prefab: {fileID: 445726819203912391, guid: d16e0da4a84eb71449c6df8ccb626002, type: 3}
+  - id: sunwave
+    prefab: {fileID: 4780311529467987059, guid: 8a5eb0fa380467547b4ca5f1ebd1ecbd, type: 3}
+  - id: eclipseking
+    prefab: {fileID: 3448577782961264555, guid: 7db1d3c91daaefb47a78bcd41c08d8aa, type: 3}
   - id: gloomorb
     prefab: {fileID: 7832127820332425931, guid: 767c7e73031f16d4a95cceec37d7850a, type: 3}
   - id: venomshot
