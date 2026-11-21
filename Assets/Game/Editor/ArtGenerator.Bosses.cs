@@ -110,8 +110,8 @@ namespace Gloomdelve.EditorTools
         /// tone with a rim of shadow, a handful of large marks, and one thing that shines - the slit down its middle.
         /// First a shell: a boulder of a beast with two shoulders, two fists, two feet, two horns, the Sunstone's
         /// light in the slit of its chest (two sets of pictures: the slit narrow, and wide with two veins of light
-        /// once it is half broken). 0 standing, 1 fists raised, 2 head down in the charge, 3 / 4 the two steps of
-        /// its walk; and "open": the slit gaping (horns stuck, and coming apart).
+        /// once it is half broken). 0 standing, 1 fists raised, 2 leaning into its swipe, 3 / 4 the two steps of
+        /// its walk; "open": the slit gaping (horns stuck, and coming apart); and "fire": the ball of flame it charges as.
         /// Then the core: a small covered sun - a ball of light with a dark disc on it and a slit of white in that,
         /// flares round it, threads of light under it (0 / 1 burning, "cast", "open") - and its two hands (open, fist).
         /// Also what it throws: the stroke of its arm (three frames), the wall of light, the column of light, an ember.
@@ -129,8 +129,8 @@ namespace Gloomdelve.EditorTools
                 {
                     bool open = f == 5;
                     if (open && wide == 0) continue;
-                    var p = new Px(76, 72);
-                    int lean = f == 2 ? 7 : 0, sq = f == 2 ? -6 : open ? -4 : 0, cx = 38;
+                    var p = new Px(84, 72);      // (wide enough for the fist it throws forward in the charge)
+                    int lean = f == 2 ? 7 : 0, sq = f == 2 ? -6 : open ? -4 : 0, cx = 42;
                     int stepL = f == 3 ? 3 : f == 4 ? -1 : 0, stepR = f == 4 ? 3 : f == 3 ? -1 : 0;      // a foot lifted, turn about
                     int fistY = f == 1 ? 52 : open ? 12 : 22;
                     // two feet
@@ -147,18 +147,9 @@ namespace Gloomdelve.EditorTools
                     // four pale stones in it
                     int[,] studs = { { -22, 30 }, { 22, 30 }, { -15, 14 }, { 15, 14 } };
                     for (int k = 0; k < 4; k++) p.Disc(cx + studs[k, 0] + lean * 0.5f + 0.5f, studs[k, 1] + sq + 0.5f, 2.6f, l);
-                    // two horns: up and out - both levelled forward in the charge
-                    if (f == 2)
-                    {
-                        // (each thick at its root, thinner, then a point: as sharp as when they stand up)
-                        Bar(p, cx + 6 + lean, 56 + sq, cx + 16 + lean, 58 + sq, 2, horn); Bar(p, cx + 16 + lean, 58 + sq, cx + 23 + lean, 60 + sq, 1, horn); p.Line(cx + 23 + lean, 60 + sq, cx + 27 + lean, 61 + sq, horn);
-                        Bar(p, cx - 6 + lean, 58 + sq, cx + 3 + lean, 63 + sq, 2, horn); Bar(p, cx + 3 + lean, 63 + sq, cx + 9 + lean, 66 + sq, 1, horn); p.Line(cx + 9 + lean, 66 + sq, cx + 12 + lean, 68 + sq, horn);
-                    }
-                    else
-                    {
-                        Bar(p, cx - 9 + lean, 57 + sq, cx - 16 + lean, 64 + sq, 2, horn); Bar(p, cx - 16 + lean, 64 + sq, cx - 15 + lean, 69 + sq, 1, horn);
-                        Bar(p, cx + 9 + lean, 57 + sq, cx + 16 + lean, 64 + sq, 2, horn); Bar(p, cx + 16 + lean, 64 + sq, cx + 15 + lean, 69 + sq, 1, horn);
-                    }
+                    // two horns: up and out
+                    Bar(p, cx - 9 + lean, 57 + sq, cx - 16 + lean, 64 + sq, 2, horn); Bar(p, cx - 16 + lean, 64 + sq, cx - 15 + lean, 69 + sq, 1, horn);
+                    Bar(p, cx + 9 + lean, 57 + sq, cx + 16 + lean, 64 + sq, 2, horn); Bar(p, cx + 16 + lean, 64 + sq, cx + 15 + lean, 69 + sq, 1, horn);
                     // half broken: two broad veins of light to either side of the slit
                     int sx = Mathf.RoundToInt(cx + lean * 0.5f), sy = 27 + sq;
                     if (wide == 1 || open)
@@ -176,6 +167,35 @@ namespace Gloomdelve.EditorTools
                     p.Rect(cx - 7 + lean, 54 + sq, 5, 1, dD); p.Rect(cx + 3 + lean, 54 + sq, 5, 1, dD);
                     Save(p, open ? "Sprites/Bosses/eclipseshell_open" : $"Sprites/Bosses/eclipseshell_{wide}_{f}", new Vector2(0.5f, 0f));
                 }
+
+            // ---- the charge: the shell wrapped in the Sunstone's fire - a ball of it, the stone a dark knot inside with its
+            // slit and its two eyes alight, tongues of flame streaming behind (drawn running right). Two frames: they flicker.
+            for (int f = 0; f < 2; f++)
+            {
+                var p = new Px(96, 52);
+                const float hx = 66f, hy = 23f;
+                // three flames, one inside the other: each a ball with a tail that thins to a point behind it
+                void Flame(float r, float tail, Color32 col)
+                {
+                    p.Disc(hx, hy, r, col);
+                    for (int x = Mathf.FloorToInt(hx - tail); x <= hx; x++)
+                    {
+                        float t = (hx - x) / tail;                                                        // 0 at the ball, 1 at the tip
+                        float half = r * Mathf.Pow(1f - t, 1.15f) + ((x / 6 + f) % 2 == 0 ? 2.2f : -1.6f) * t * (r / 21f);
+                        float yc = hy + 5f * t * t + ((x / 9 + f) % 2 == 0 ? 1.5f : -1.5f) * t;           // it lifts a little as it trails
+                        for (int y = Mathf.CeilToInt(yc - half); y <= Mathf.FloorToInt(yc + half); y++) p.Set(x, y, col);
+                    }
+                }
+                Flame(21f, 62f, rim); Flame(16.5f, 44f, mid); Flame(12f, 26f, hot);
+                // the stone inside
+                Color32 ms = C(98, 100, 153);
+                p.Disc(hx + 1f, hy - 1f, 10.5f, ms);
+                Shade(p, ms, d, l, 3, 2, 2);
+                p.Ellipse(hx + 1f, hy - 2f, 2.6f, 6.5f, dD); p.Ellipse(hx + 1f, hy - 2f, 1.3f, 5f, hot);
+                p.Outline(ol);
+                p.Rect((int)hx - 4, (int)hy + 5, 3, 2, hot); p.Rect((int)hx + 4, (int)hy + 5, 3, 2, hot);
+                Save(p, $"Sprites/Bosses/eclipseshell_fire_{f}", new Vector2(hx / 96f, 0f));
+            }
 
             // ---- the core: 0 / 1 burning, 2 "cast" (its flares stand out), 3 "open" (the dark disc split wide, the stone bare)
             for (int f = 0; f < 4; f++)

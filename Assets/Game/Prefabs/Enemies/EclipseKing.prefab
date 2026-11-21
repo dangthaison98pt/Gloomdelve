@@ -125,6 +125,7 @@ MonoBehaviour:
   animLunge: {fileID: 11400000, guid: 5e918d12f486ef943adffeef5feaa205, type: 2}
   animOpen: {fileID: 11400000, guid: b16c50fd6adb1994c932dc721f6fe13f, type: 2}
   slashFx: {fileID: 11400000, guid: b0f72ad4afdab7e448f30b42155d46b8, type: 2}
+  animCharge: {fileID: 11400000, guid: 76059aad34e063a479fc8b0ddf418e38, type: 2}
   animIdleCracked: {fileID: 11400000, guid: 6a196639092d99e4d8f173f6ad147619, type: 2}
   animWalkCracked: {fileID: 11400000, guid: 9f203af388c96d7418cc07156550298f, type: 2}
   animWindupCracked: {fileID: 11400000, guid: 26d853df1f50aee4f97b37ec86c49084, type: 2}
@@ -238,7 +239,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 4.75, y: 4.5}
+  m_Size: {x: 5.25, y: 4.5}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1

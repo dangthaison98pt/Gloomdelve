@@ -7,7 +7,7 @@ namespace Gloomdelve
     ///
     /// THE SHELL. A beast of black stone, hunched on its fists, the Sunstone's light leaking through the cracks in
     /// its chest (they open wider below half its health). It walks at the player and has three moves, in random
-    /// order: a swipe of its arm low across half the hall (jump it), a charge horns-first the length of the hall
+    /// order: a swipe of its arm low across half the hall (jump it), a charge as a ball of fire the length of the hall
     /// that ends with the horns stuck in the wall, and a leap that comes down on the player with a wall of light
     /// along the floor to either side (too tall to jump, and the blade does nothing to it: dash through).
     ///
@@ -91,6 +91,7 @@ namespace Gloomdelve
         public Sprite beamSprite;
         public Sprite handOpen, handFist;
         public SpriteAnim animIdle, animWalk, animWindup, animLunge, animOpen, slashFx;
+        [Tooltip("The ball of fire it charges as (it catches fire where it stands first: the tell).")] public SpriteAnim animCharge;
         [Tooltip("The same, with the cracks wide (half the shell's health and under).")] public SpriteAnim animIdleCracked, animWalkCracked, animWindupCracked, animLungeCracked;
         public SpriteAnim animCore, animCoreCast, animCoreOpen;
 
@@ -204,8 +205,11 @@ namespace Gloomdelve
                     if (timer <= 0f) { act = Act.Recover; timer = 0.35f; }
                     break;
                 case Act.ChargeTell:
+                    // it catches fire where it stands
                     vel.x = 0f;
-                    anim?.Play(Worn(animLunge, animLungeCracked));
+                    anim?.Play(animCharge != null ? animCharge : Worn(animLunge, animLungeCracked));
+                    Aflame(true);
+                    if (timer % 0.1f < dt) Fx.Sparks(Chest + Random.insideUnitCircle * 1.1f, Gold, 2, 3f);
                     if (timer <= 0f)
                     {
                         act = Act.Charge; timer = 4f;
@@ -215,9 +219,14 @@ namespace Gloomdelve
                     break;
                 case Act.Charge:
                     vel.x = facing * chargeSpeed * (Cracked ? 1.15f : 1f);
-                    anim?.Play(Worn(animLunge, animLungeCracked));
-                    if (timer % 0.08f < dt) Fx.Dust(pos, 1);
-                    if (timer <= 0f) { size = new Vector2(size.x, fullHeight); act = Act.Recover; timer = 0.4f; }
+                    anim?.Play(animCharge != null ? animCharge : Worn(animLunge, animLungeCracked));
+                    if (timer % 0.08f < dt)
+                    {
+                        // sparks and dust streaming off behind it
+                        Fx.Dust(pos, 1);
+                        Fx.Sparks(new Vector2(pos.x - facing * HalfW, pos.y + chargeHeight * 0.5f) + Random.insideUnitCircle * 0.6f, Gold, 3, 3f);
+                    }
+                    if (timer <= 0f) { size = new Vector2(size.x, fullHeight); Aflame(false); act = Act.Recover; timer = 0.4f; }
                     break;
                 case Act.Stuck:
                     vel.x = 0f;
@@ -251,8 +260,10 @@ namespace Gloomdelve
             var b = StepPhysics(dt, gravity, 18f, true);        // (it falls through ledges: they are no floor to it)
             if (act == Act.Charge && (b.hitLeft || b.hitRight))
             {
-                // the horns go into the wall and stay there
+                // the fire goes out against the wall: the horns go into it and stay there
                 size = new Vector2(size.x, fullHeight);
+                Aflame(false);
+                Fx.Sparks(new Vector2(pos.x + facing * HalfW, pos.y + 1.4f), Gold, 20, 8f);
                 act = Act.Stuck; timer = stuckTime * (Cracked ? 0.8f : 1f);
                 vel.x = 0f;
                 Stucks++;
@@ -346,6 +357,7 @@ namespace Gloomdelve
             health = 1;
             if (act == Act.Shatter) return;
             size = new Vector2(size.x, fullHeight);
+            Aflame(false);
             act = Act.Shatter; timer = shatterTime; markT = 0f;
             vel.x = 0f;
             forced = -1;
@@ -354,6 +366,18 @@ namespace Gloomdelve
             Sfx.Play("crack", pos);
             Sfx.Play("brute", pos, 1f, 0.5f);
         }
+
+        /// <summary>Burning (the charge): its picture is drawn at full brightness whatever the light of the hall, and back.</summary>
+        void Aflame(bool on)
+        {
+            if (sr == null || aflame == on) return;
+            aflame = on;
+            if (on) shellMaterial = sr.sharedMaterial;
+            var glow = LevelLighting.Instance != null ? LevelLighting.Instance.glowMaterial : null;
+            if (on ? glow != null : shellMaterial != null) sr.sharedMaterial = on ? glow : shellMaterial;
+        }
+        bool aflame;
+        Material shellMaterial;
 
         void BecomeCore()
         {

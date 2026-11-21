@@ -4077,6 +4077,9 @@ namespace Gloomdelve
 
             // the charge: to the wall, where its horns stick and its chest is open - blows count double there, and only there
             b.ForceMove(EclipseKing.MoveCharge);
+            yield return Until(() => b.Doing == EclipseKing.Act.Charge, 600);
+            yield return c.Frames(8);
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_eclipseking_charge.png"));      // (a ball of fire)
             yield return Until(() => b.Stucks >= 1, 1200);
             c.Expect(b.Stucks == 1 && b.Exposed && b.Doing == EclipseKing.Act.Stuck, $"its charge ends with the horns in the wall and its chest open ({b.Doing})");
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_eclipseking_stuck.png"));
