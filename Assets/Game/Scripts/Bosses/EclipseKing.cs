@@ -16,8 +16,9 @@ namespace Gloomdelve
     ///
     /// THE CORE. Pure light: a body without a face, the Sunstone burning in its chest, the covered sun behind its
     /// head, two hands of light that are not joined to it. It hangs in the air out of the blade's reach. Its moves:
-    /// a column of light that walks across the hall (it stops at a ledge - stand under one, or dash through) with
-    /// embers raining after it; a hand that comes down on the player (step out from under it); both hands swept
+    /// a column of light that walks across the hall (it goes through a wooden ledge: there is no shelter - dash through) with
+    /// embers raining after it - and four stakes of light driven into the floor first: each one broken wounds the
+    /// King, each one still standing bursts when the column reaches it (SunStake); a hand that comes down on the player (step out from under it); both hands swept
     /// along the floor from the walls until they meet (jump them); the stone's burst (the wall of light again, and
     /// embers into the air); and vanishing, to come back over the player with a hand already raised.
     /// Below half its health a second move may follow the first at once.
@@ -69,12 +70,18 @@ namespace Gloomdelve
         [Header("Core: the column of light")]
         public float beamTell = 0.9f;
         public float beamSpeed = 8f;
-        public float beamWidth = 1.3f;
+        public float beamWidth = 2.6f;
         public int beamDamage = 2;
         public int embers = 8;
         public float emberGap = 0.3f;
         public float emberSpeed = 9f;
         public string emberId = "sunember";
+        [Header("Core: the stakes of light (planted when the column is called)")]
+        public string stakeId = "sunstake";
+        public int stakes = 4;
+        [Tooltip("What breaking a stake costs the King.")] public int stakeBreakDamage = 2;
+        [Tooltip("A stake the column reaches bursts: this much to a player within stakeBlastRadius (as wide as a bomb's blast; no stone is broken).")] public int stakeBlastDamage = 2;
+        public float stakeBlastRadius = 2.3f;
         [Header("Core: the hands")]
         public Vector2 handSize = new Vector2(1.8f, 1.5f);
         [Tooltip("A hand hangs over the player this long before it comes down ...")] public float slamTell = 0.7f;
@@ -84,6 +91,7 @@ namespace Gloomdelve
         public float clapTell = 0.35f;
         public float clapSpeed = 11f;
         public int clapDamage = 2;
+        [Tooltip("Embers thrown in a ring, all round, from where the hands meet.")] public int clapShots = 16;
         [Header("Core: the burst, and vanishing")]
         public float novaTell = 0.8f;
         public float blinkTime = 0.7f;
@@ -94,6 +102,7 @@ namespace Gloomdelve
         [Tooltip("The ball of fire it charges as, and catching fire where it stands before that (the tell; played once, as long as chargeTell).")] public SpriteAnim animCharge, animIgnite;
         [Tooltip("The same, with the cracks wide (half the shell's health and under).")] public SpriteAnim animIdleCracked, animWalkCracked, animWindupCracked, animLungeCracked;
         public SpriteAnim animCore, animCoreCast, animCoreOpen;
+        [Tooltip("The fire a hand throws up where it comes down; the burst of a stake of light (drawn 80 pixels across for a radius of 2.3).")] public SpriteAnim slamFx, blastFx;
 
         static readonly Color Gold = new Color(1f, 0.82f, 0.35f);
         static readonly Color Stone = new Color(0.25f, 0.24f, 0.36f);
@@ -108,7 +117,10 @@ namespace Gloomdelve
         // the column of light
         int beamPhase, beamDir;         // 0 none, 1 warning, 2 walking
         float beamX, beamT;
-        SpriteRenderer beamSr;
+        SpriteRenderer beamSr, beamLegSr;      // (the second: the half of it that goes on down past a block of stone)
+
+        // the stakes of light standing in the hall
+        readonly System.Collections.Generic.List<SunStake> staked = new System.Collections.Generic.List<SunStake>();
 
         // the two hands of the core (0 left, 1 right): where each is (lower edge, middle) and where it was a step ago
         readonly Vector2[] hand = new Vector2[2], handPrev = new Vector2[2];
@@ -135,6 +147,8 @@ namespace Gloomdelve
         public int Claps { get; private set; }
         public int Novas { get; private set; }
         public int Blinks { get; private set; }
+        public int StakesBroken { get; private set; }
+        public int StakesBurst { get; private set; }
 
         /// <summary>Only what it does hurts: the shell's charge and its coming down. Nothing of the core's body does - its light and its hands do.</summary>
         public override bool Attacking => form == 1 && (act == Act.Charge || (act == Act.Leap && vel.y < 0f));
@@ -520,6 +534,10 @@ namespace Gloomdelve
                         // a ripple off it along the floor, low: this one a jump clears
                         FireShot(new Vector2(hand[slamHand].x - handSize.x * 0.5f - 0.2f, floorY + 0.2f), new Vector2(-shockSpeed, 0f), "shockwave", Gold);
                         FireShot(new Vector2(hand[slamHand].x + handSize.x * 0.5f + 0.2f, floorY + 0.2f), new Vector2(shockSpeed, 0f), "shockwave", Gold);
+                        // and a great gout of fire up out of the floor where it struck
+                        Fx.PlayAnim(slamFx, new Vector2(hand[slamHand].x, floorY), 1f);
+                        Fx.Sparks(new Vector2(hand[slamHand].x, floorY + 0.6f), Gold, 24, 9f);
+                        LevelLighting.Flash(new Vector2(hand[slamHand].x, floorY + 1f), Gold, 9f, 1.8f, 0.4f);
                         Fx.Dust(hand[slamHand], 10);
                         Fx.Shake(0.55f);
                         Sfx.Play("thud", hand[slamHand], 1f, 0.6f);
@@ -552,8 +570,14 @@ namespace Gloomdelve
                     {
                         handLive[0] = handLive[1] = false;
                         Claps++;
-                        var at = new Vector2(pos.x, floorY + handSize.y * 0.5f);
-                        FanAt(at, at + Vector2.up, 5, 26f, 7f, emberId);
+                        // a ring of embers from where they met, all round: along the floor too (jump them, or cut them down)
+                        var at = new Vector2(pos.x, floorY + 0.5f);
+                        for (int i = 0; i < clapShots; i++)
+                        {
+                            float a = i * Mathf.PI * 2f / clapShots;
+                            var s = FireShot(at, new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * 7f, emberId);
+                            if (s != null) s.burstColor = Gold;
+                        }
                         LevelLighting.Flash(at, Gold, 8f, 1.6f, 0.4f);
                         Fx.Sparks(at, Gold, 18, 7f);
                         Fx.Shake(0.5f);
@@ -696,13 +720,75 @@ namespace Gloomdelve
                 if (sr != null) { beamSr.sortingLayerID = sr.sortingLayerID; beamSr.sortingOrder = sr.sortingOrder - 1; }
                 if (LevelLighting.Instance != null && LevelLighting.Instance.glowMaterial != null) beamSr.sharedMaterial = LevelLighting.Instance.glowMaterial;
                 LevelLighting.MakeLight(go.transform, "Light", UnityEngine.Rendering.Universal.Light2D.LightType.Point, Gold, 1.1f, 1f, 5.5f);
+                var leg = new GameObject("SunBeamLeg");
+                beamLegSr = leg.AddComponent<SpriteRenderer>();
+                beamLegSr.sprite = beamSprite;
+                beamLegSr.sortingLayerID = beamSr.sortingLayerID; beamLegSr.sortingOrder = beamSr.sortingOrder; beamLegSr.sharedMaterial = beamSr.sharedMaterial;
+                beamLegSr.enabled = false;
             }
             Fx.Text(new Vector2(beamX, floorY + 2.2f), "!", Gold, beamTell + 0.2f);
             Sfx.Play("wraith", pos, 0.7f, 1.7f);
+            PlantStakes();
+        }
+
+        /// <summary>Four stakes of light into the floor, spread across the hall (none of the last ones left standing).</summary>
+        void PlantStakes()
+        {
+            ClearStakes();
+            float span = rightX - leftX;
+            for (int i = 0; i < stakes; i++)
+            {
+                float x = Mathf.Clamp(leftX + span * (i + 0.5f) / stakes + Random.Range(-1f, 1f), leftX + 1f, rightX - 1f);
+                var s = World.SpawnById(stakeId, new Vector2(x, floorY)) as SunStake;
+                if (s == null) continue;
+                s.owner = this;
+                staked.Add(s);
+                Fx.Sparks(new Vector2(x, floorY + 0.4f), Gold, 8, 4f);
+                Fx.Dust(new Vector2(x, floorY), 3);
+            }
+        }
+
+        void ClearStakes()
+        {
+            foreach (var s in staked) if (s != null && !s.Dead) s.Despawn();
+            staked.Clear();
+        }
+
+        /// <summary>The player broke a stake: it costs the King (SunStake).</summary>
+        public void StakeBroken(SunStake s)
+        {
+            staked.Remove(s);
+            StakesBroken++;
+            Fx.Sparks(Chest, Gold, 14, 7f);
+            LevelLighting.Flash(Chest, Gold, 5f, 1.4f, 0.2f);
+            // (the player's own doing, though not a blow on its chest: counted once, whatever it is doing)
+            // (and every stake counts, two broken in one moment too: the pause after a blow does not swallow it)
+            hurtTimer = 0f;
+            base.TakeDamage(new DamageInfo(stakeBreakDamage, DamageType.Thrown, World.Player, Vector2.zero, "a broken stake"));
+        }
+
+        /// <summary>The column has reached a stake: it bursts - light, not fire. No stone is broken; a player in it is burnt.</summary>
+        void BurstStake(SunStake s, PlayerController p)
+        {
+            Vector2 at = s.Center;
+            s.Despawn();
+            StakesBurst++;
+            Fx.PlayAnim(blastFx, at, stakeBlastRadius / 2.3f);
+            Fx.Sparks(at, new Color(1f, 0.97f, 0.8f), 26, 10f);
+            LevelLighting.Flash(at, new Color(1f, 0.95f, 0.75f), stakeBlastRadius * 3f, 2.4f, 0.35f);
+            Fx.Shake(0.4f);
+            Sfx.Play("wraith", at, 0.9f, 1.9f);
+            Sfx.Play("crack", at, 0.8f, 1.3f);
+            if (p == null || p.IsDead) return;
+            Vector2 away = p.Center - at;
+            if (away.magnitude > stakeBlastRadius) return;
+            away = away.sqrMagnitude < 0.0001f ? Vector2.up : away.normalized;
+            p.TakeDamage(new DamageInfo(stakeBlastDamage, DamageType.Explosion, this, away * 8f + Vector2.up * 5f, "a stake of light"));
         }
 
         /// <summary>
-        /// Where the light stops in this column: on the first ledge or stone under the ceiling - wherever that is.
+        /// Where the light stops in this column: on the first stone under the ceiling - wherever that is. A wooden
+        /// ledge does not stop it: the light goes through.
         /// A hole blown in the floor is no shelter: the light goes down to the bottom of it.
         /// </summary>
         public float BeamBottom(float x)
@@ -710,7 +796,7 @@ namespace Gloomdelve
             var g = World.Grid;
             int cx = Mathf.FloorToInt(x);
             for (int y = Mathf.FloorToInt(ceilY) - 1; y >= 0; y--)
-                if (g.IsSolid(cx, y) || g.Get(cx, y) == TileType.Platform) return y + 1;
+                if (g.IsSolid(cx, y)) return y + 1;
             return 0f;
         }
 
@@ -727,17 +813,36 @@ namespace Gloomdelve
             else
             {
                 beamX += beamDir * beamSpeed * (HealthFraction <= 0.5f ? 1.2f : 1f) * dt;
-                if (p != null && new Rect(beamX - beamWidth * 0.5f, bottom, beamWidth, ceilY - bottom).Overlaps(p.Bounds))
+                // (wide as it is, the light stops on stone wherever the stone is under it: what counts is the column the player is in)
+                float under = p != null ? BeamBottom(Mathf.Clamp(p.pos.x, beamX - beamWidth * 0.5f, beamX + beamWidth * 0.5f)) : bottom;
+                if (p != null && new Rect(beamX - beamWidth * 0.5f, under, beamWidth, ceilY - under).Overlaps(p.Bounds))
                     p.TakeDamage(new DamageInfo(beamDamage, DamageType.Contact, this, new Vector2(beamDir * 6f, 5f), "the Sunstone's light"));
-                if (beamX < leftX - 0.2f || beamX > rightX + 0.2f) { beamPhase = 0; if (beamSr != null) beamSr.enabled = false; return; }
+                // a stake the light reaches bursts
+                for (int i = staked.Count - 1; i >= 0; i--)
+                {
+                    var s = staked[i];
+                    if (s == null || s.Dead) { staked.RemoveAt(i); continue; }
+                    if (beamDir > 0 ? beamX >= s.pos.x : beamX <= s.pos.x) { staked.RemoveAt(i); BurstStake(s, p); }
+                }
+                if (beamX < leftX - 0.2f || beamX > rightX + 0.2f) { beamPhase = 0; if (beamSr != null) beamSr.enabled = false; if (beamLegSr != null) beamLegSr.enabled = false; return; }
             }
             if (beamSr == null) return;
             beamSr.enabled = true;
             var bs = beamSr.sprite.bounds.size;
-            float h = Mathf.Max(0.1f, ceilY - bottom);
-            beamSr.transform.position = new Vector3(beamX, bottom + h * 0.5f, 0f);
+            // the picture: the whole width down to where the higher of its two halves stops, and the other half on
+            // down from there by itself (half over a block of stone, half past it)
+            float bl = BeamBottom(beamX - width * 0.25f), br = BeamBottom(beamX + width * 0.25f), top = Mathf.Max(bl, br);
+            float h = Mathf.Max(0.1f, ceilY - top);
+            beamSr.transform.position = new Vector3(beamX, top + h * 0.5f, 0f);
             beamSr.transform.localScale = new Vector3(width / Mathf.Max(0.01f, bs.x), h / Mathf.Max(0.01f, bs.y), 1f);
             beamSr.color = beamPhase == 1 ? new Color(1f, 1f, 1f, 0.35f) : Color.white;
+            if (beamLegSr == null) return;
+            beamLegSr.enabled = !Mathf.Approximately(bl, br);
+            if (!beamLegSr.enabled) return;
+            float low = Mathf.Min(bl, br), lh = top - low;
+            beamLegSr.transform.position = new Vector3(beamX + (bl < br ? -1f : 1f) * width * 0.25f, low + lh * 0.5f, 0f);
+            beamLegSr.transform.localScale = new Vector3(width * 0.5f / Mathf.Max(0.01f, bs.x), lh / Mathf.Max(0.01f, bs.y), 1f);
+            beamLegSr.color = beamSr.color;
         }
 
         // ------------------------------------------------------------------ light, pictures, being hit
@@ -777,6 +882,8 @@ namespace Gloomdelve
         {
             base.OnDespawn();
             if (beamSr != null) Destroy(beamSr.gameObject);
+            if (beamLegSr != null) Destroy(beamLegSr.gameObject);
+            ClearStakes();
             for (int i = 0; i < 2; i++) if (handSr[i] != null) Destroy(handSr[i].gameObject);
             if (sr != null) sr.enabled = true;
             if (lightTouched) LevelLighting.SetAmbientScale(1f);

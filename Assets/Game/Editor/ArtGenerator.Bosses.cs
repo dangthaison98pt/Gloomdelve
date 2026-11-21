@@ -79,7 +79,7 @@ namespace Gloomdelve.EditorTools
         /// its walk; "open": the slit gaping (horns stuck, and coming apart); "ignite": catching fire, and "fire": the ball of flame it charges as.
         /// Then the core: a small covered sun - a ball of light with a dark disc on it and a slit of white in that,
         /// flares round it, threads of light under it (0 / 1 burning, "cast", "open") - and its two hands (open, fist).
-        /// Also what it throws: the breath of fire out of its chest (three frames), the wall of light, the column of light, an ember.
+        /// Its stake of light, the burst of one, the fire a hand throws up. Also what it throws: the breath of fire out of its chest (three frames), the wall of light, the column of light, an ember.
         /// </summary>
         static void EclipseKingArt()
         {
@@ -275,6 +275,76 @@ namespace Gloomdelve.EditorTools
                 p.Rect(3, 6, 2, 4, rim); p.Set(3, 10, rim);
                 p.Disc(3.5f, 3.5f, 3.2f, rim); p.Disc(3.5f, 3.5f, 2.2f, mid); p.Disc(3.5f, 3.5f, 1f, hot);
                 Save(p, "Sprites/Bosses/sunember", PCenter);
+            }
+            // a stake of light, driven into the floor: a tall splinter of the stone's light on a foot of dark rock, a
+            // bright head on it. Two frames: it throbs.
+            for (int f = 0; f < 2; f++)
+            {
+                var p = new Px(16, 30);
+                Color32 rock = C(76, 69, 124), rockD = C(38, 33, 68);
+                for (int y = 4; y <= 26; y++)
+                {
+                    float half = y < 20 ? Mathf.Lerp(3.2f, 2.2f, (y - 4) / 16f) : Mathf.Lerp(2.2f, 0.4f, (y - 20) / 6f);
+                    for (int x = 0; x < 16; x++)
+                    {
+                        float off = Mathf.Abs(x - 7.5f);
+                        if (off > half) continue;
+                        p.Set(x, y, off < half * (f == 1 ? 0.55f : 0.35f) ? hot : x < 7.5f ? sunD : sun);
+                    }
+                }
+                p.Disc(8f, 21f, f == 1 ? 3.6f : 3f, sun); p.Disc(8f, 21f, f == 1 ? 2.2f : 1.6f, hot);      // its head
+                p.Rect(3, 1, 10, 4, rock); p.Rect(3, 1, 10, 1, rockD); p.Rect(2, 1, 1, 2, rockD); p.Rect(13, 1, 1, 2, rockD); p.Rect(4, 4, 8, 1, C(128, 121, 180));
+                p.Outline(ol);
+                Save(p, $"Sprites/Bosses/sunstake_{f}", new Vector2(0.5f, 1f / 30f));
+            }
+            // the burst of a stake: light, not fire - a white flash, then a ring running out to the edge of the blast with
+            // rays through it, thinning as it goes (80 pixels across: a radius of 2.3 tiles at its widest)
+            for (int f = 0; f < 4; f++)
+            {
+                var p = new Px(80, 80);
+                Color32 white = C(255, 255, 255), pale = C(255, 244, 196), faint = C(255, 210, 110, 150);
+                float r = f == 0 ? 11f : f == 1 ? 24f : f == 2 ? 33f : 37f, thick = f == 0 ? 11f : f == 1 ? 6f : f == 2 ? 3.5f : 1.6f;
+                for (int y = 0; y < 80; y++)
+                    for (int x = 0; x < 80; x++)
+                    {
+                        float dx = x - 39.5f, dy = y - 39.5f, dist = Mathf.Sqrt(dx * dx + dy * dy);
+                        // eight rays, every other one shorter
+                        float ang = Mathf.Atan2(dy, dx) / (Mathf.PI * 2f) * 8f, near = Mathf.Abs(ang - Mathf.Round(ang));
+                        bool longRay = Mathf.RoundToInt(ang + 8f) % 2 == 0;
+                        bool ray = f > 0 && near * dist * 0.8f < (f == 3 ? 0.6f : 1.3f) && dist > r * 0.25f && dist < r * (longRay ? 1.08f : 0.8f);
+                        bool ring = Mathf.Abs(dist - (r - thick * 0.5f)) <= thick * 0.5f;
+                        if (f == 0 && dist <= r) p.Set(x, y, dist < r * 0.6f ? white : pale);
+                        else if (ring) p.Set(x, y, f == 3 ? faint : dist > r - thick * 0.45f ? mid : pale);
+                        else if (ray) p.Set(x, y, f == 3 ? faint : pale);
+                        else if (f == 1 && dist < 8f) p.Set(x, y, white);
+                    }
+                Save(p, $"Sprites/Bosses/sunblast_{f}", PCenter);
+            }
+            // the fire a hand throws up where it comes down: seven tongues out of the floor, the middle one tallest -
+            // rising, at their height, thinning, and going out (the bottom of the picture is the floor)
+            for (int f = 0; f < 4; f++)
+            {
+                var p = new Px(84, 58);
+                int[] tall = { 18, 30, 42, 54, 42, 30, 18 };
+                float grow = f == 0 ? 0.5f : f == 1 ? 0.9f : f == 2 ? 1f : 0.8f;
+                for (int layer = 0; layer < 3; layer++)
+                {
+                    if (f == 3 && layer > 0) break;                                              // going out: only its rim colour is left
+                    float k = layer == 0 ? 1f : layer == 1 ? 0.66f : 0.36f;
+                    Color32 col = layer == 0 ? rim : layer == 1 ? mid : hot;
+                    for (int i = 0; i < 7; i++)
+                    {
+                        float cx = 42f + (i - 3) * 11.5f, h = tall[i] * grow * k, w = (f == 3 ? 3.5f : 7.5f) * k;
+                        int from = f == 3 ? Mathf.RoundToInt(tall[i] * 0.3f) : 0;                 // (and it has left the floor)
+                        for (int y = from; y < h + from; y++)
+                        {
+                            float t = (y - from) / h, half = w * (1f - Mathf.Pow(t, 1.4f));
+                            float sway = ((y / 6 + i + f) % 2 == 0 ? 1.2f : -1.2f) * t;
+                            for (int x = Mathf.CeilToInt(cx + sway - half); x <= Mathf.FloorToInt(cx + sway + half); x++) p.Set(x, y, col);
+                        }
+                    }
+                }
+                Save(p, $"Sprites/Bosses/sunburst_{f}", new Vector2(0.5f, 0f));
             }
         }
 

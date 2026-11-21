@@ -393,6 +393,9 @@ namespace Gloomdelve.EditorTools
             Anim("eclipsecore", F(bo + "eclipsecore_0", bo + "eclipsecore_1"), 6f); Anim("eclipsecore_cast", F(bo + "eclipsecore_cast"), 1); Anim("eclipsecore_open", F(bo + "eclipsecore_open"), 1);
             Anim("sunslash", F(bo + "sunslash_0", bo + "sunslash_1", bo + "sunslash_2"), 14f);
             Anim("sunwave", F(bo + "sunwave_0", bo + "sunwave_1"), 12f);
+            Anim("sunstake", F(bo + "sunstake_0", bo + "sunstake_1"), 6f);
+            Anim("sunblast", F(bo + "sunblast_0", bo + "sunblast_1", bo + "sunblast_2", bo + "sunblast_3"), 14f);
+            Anim("sunburst", F(bo + "sunburst_0", bo + "sunburst_1", bo + "sunburst_2", bo + "sunburst_3"), 12f);
             Anim("gearwyrm_idle", F(bo + "gearwyrm_0"), 1); Anim("gearwyrm_open", F(bo + "gearwyrm_1"), 1);
             Anim("facet_idle", F(bo + "facet_0"), 1); Anim("facet_strike", F(bo + "facet_1"), 1); Anim("facet_cracked", F(bo + "facet_2"), 1);
             Anim("dunequeen_idle", F(bo + "dunequeen_0"), 1); Anim("dunequeen_rear", F(bo + "dunequeen_1"), 1); Anim("dunequeen_mound", F(bo + "dunequeen_2"), 1);
@@ -1270,6 +1273,7 @@ namespace Gloomdelve.EditorTools
             new Dictionary<string, (Color, float, float, float, bool, bool, Vector2)>
         {
             ["Bomb"] = (new Color(1f, 0.6f, 0.25f), 3.2f, 1.3f, 0.45f, false, false, new Vector2(0f, 0.4f)),
+            ["SunStake"] = (new Color(1f, 0.82f, 0.35f), 3f, 1.1f, 0.25f, true, true, new Vector2(0f, 1f)),
             ["FlameVent"] = (new Color(1f, 0.5f, 0.15f), 5.5f, 1.9f, 0.3f, false, false, new Vector2(0f, 1f)),
             ["Gem"] = (new Color(0.4f, 1f, 0.6f), 2.2f, 0.75f, 0.2f, true, true, new Vector2(0f, 0.2f)),
             // Shardlight Geode: the crystals are its lamps
@@ -1585,6 +1589,9 @@ namespace Gloomdelve.EditorTools
             Reg("warden", Make<Warden>("Warden", "Enemies", "Hollow Warden", new Vector2(1.7f, 2.2f), BS("warden_0"), anims["warden_float"], 31,
                 (e, go, sr) => { e.maxHealth = 32; e.contactDamage = 2; e.stompable = false; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = ""; e.animFloat = anims["warden_float"]; e.bloodColor = new Color(0.7f, 0.4f, 1f); }));
             // the last boss: the Eclipse King, and the embers off the stone in his chest (which he drops when he falls)
+            // (the stakes of light its core plants when it calls the column: one blow breaks one)
+            Reg("sunstake", Make<SunStake>("SunStake", "Enemies", "stake of light", new Vector2(0.7f, 1.7f), BS("sunstake_0"), anims["sunstake"], 16,
+                (e, go, sr) => { e.flipWithFacing = false; e.maxHealth = 1; }));
             Reg("sunember", Make<BossShot>("SunEmber", "Enemies", "ember", new Vector2(0.4f, 0.5f), BS("sunember"), null, 32,
                 (e, go, sr) => { e.flipWithFacing = false; e.burstColor = new Color(1f, 0.82f, 0.35f); }));
             // (the wave off his landings: as tall as he is - no jump clears it, and the blade does nothing to it: dash through)
@@ -1600,7 +1607,7 @@ namespace Gloomdelve.EditorTools
                     e.animOpen = anims["eclipseshell_open"]; e.animCharge = anims["eclipseshell_fire"]; e.animIgnite = anims["eclipseshell_ignite"];
                     e.animCore = anims["eclipsecore"]; e.animCoreCast = anims["eclipsecore_cast"]; e.animCoreOpen = anims["eclipsecore_open"];
                     e.handOpen = BS("sunhand_open"); e.handFist = BS("sunhand_fist");
-                    e.slashFx = anims["sunslash"]; e.beamSprite = BS("sunbeam");
+                    e.slashFx = anims["sunslash"]; e.beamSprite = BS("sunbeam"); e.slamFx = anims["sunburst"]; e.blastFx = anims["sunblast"];
                     e.bloodColor = new Color(1f, 0.8f, 0.35f);
                 }));
             Reg("gloomorb", Make<BossShot>("GloomOrb", "Enemies", "gloom orb", new Vector2(0.35f, 0.35f), BS("orb"), null, 32,

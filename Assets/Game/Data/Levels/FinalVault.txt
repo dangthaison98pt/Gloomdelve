@@ -1,6 +1,5 @@
 name: The Sunken Vault
 boss: eclipseking
-sign1: THE SUNKEN VAULT.  The Eclipse King keeps the Sunstone in its chest.  Break its shell, put out what is inside, lift the stone, and carry it out through the gate behind it.
 ---
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBX
@@ -15,7 +14,7 @@ X..........................................X
 X..........................................X
 X.......=====..................=====.......X
 X..........................................X
-X..S.1....................Z.............G..X
+X..S......................Z.............G..X
 XBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBX
 XBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBX
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX

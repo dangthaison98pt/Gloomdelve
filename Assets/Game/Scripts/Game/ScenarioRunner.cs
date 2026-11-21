@@ -347,7 +347,7 @@ namespace Gloomdelve
             new Scenario { name = "bosses: the cogwyrm runs the floor, dives and sticks, spits bolts, rolls as a wheel, sheds segments as saws, and only its head can be hurt", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => GearWyrmCase(c) },
 
-            new Scenario { name = "bosses: the eclipse king is a shell of stone that swipes, charges and sticks, leaps - then breaks, and the light inside fights on with a column of light a ledge stops, its two hands, a burst, and vanishing - and drops the Sunstone", map = m => { Set(m, 3, 1, 'S'); for (int x = 7; x <= 9; x++) Set(m, x, 3, '='); },
+            new Scenario { name = "bosses: the eclipse king is a shell of stone that swipes, charges and sticks, leaps - then breaks, and the light inside fights on with a column of light no ledge stops, its two hands, a burst, and vanishing - and drops the Sunstone", map = m => { Set(m, 3, 1, 'S'); for (int x = 7; x <= 9; x++) Set(m, x, 3, '='); },
                 run = c => EclipseKingCase(c) },
 
             new Scenario { name = "hawk dives at the player below it", map = m => { Set(m, 3, 1, 'S'); },
@@ -4127,11 +4127,23 @@ namespace Gloomdelve
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_eclipseking_core.png"));
 
             // ---- the core
-            // the column of light: a ledge stops it; a hole in the floor does not
+            // the column of light: a wooden ledge does not stop it, nor a hole in the floor
             c.Teleport(8.5f, 1f);       // under the ledge
             b.ForceMove(EclipseKing.MoveBeam);
+            yield return Until(() => b.Doing == EclipseKing.Act.Cast, 900);
+            yield return c.Frames(3);
+            // four stakes of light stand in the hall: breaking one costs it stakeBreakDamage
+            {
+                var stakes = new List<SunStake>();
+                foreach (var e in c.world.Entities) if (!e.Dead && e is SunStake st) stakes.Add(st);
+                ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_eclipseking_stakes.png"));
+                int before = b.health;
+                foreach (var st in stakes) st.OnWhipped(c.p, 1, 1);
+                c.Expect(stakes.Count == b.stakes && b.StakesBroken == b.stakes && before - b.health == b.stakes * b.stakeBreakDamage,
+                    $"it plants {b.stakes} stakes of light, and each one broken wounds it for {b.stakeBreakDamage} ({stakes.Count} stakes, {b.StakesBroken} broken, health {before} -> {b.health})");
+            }
             yield return Until(() => b.BeamWalking, 900);
-            c.Expect(Mathf.Abs(b.BeamBottom(8.5f) - 4f) < 0.01f && Mathf.Abs(b.BeamBottom(13.5f) - 1f) < 0.01f, $"the light stops at a ledge and reaches the floor elsewhere ({b.BeamBottom(8.5f)}, {b.BeamBottom(13.5f)})");
+            c.Expect(Mathf.Abs(b.BeamBottom(8.5f) - 1f) < 0.01f && Mathf.Abs(b.BeamBottom(13.5f) - 1f) < 0.01f, $"the light goes through a wooden ledge down to the floor, as it does elsewhere ({b.BeamBottom(8.5f)}, {b.BeamBottom(13.5f)})");
             {
                 var was = c.world.Grid.Get(20, 0);
                 c.world.Grid.SetRaw(20, 0, TileType.Empty);
@@ -4142,7 +4154,7 @@ namespace Gloomdelve
             c.p.godMode = false; c.run.health = c.run.maxHealth; h = c.run.health;
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_eclipseking_sun.png"));
             yield return Until(() => !b.BeamWalking, 900);
-            c.Expect(b.Beams == 1 && c.run.health == h, $"under the ledge the light passes over the player (health {h} -> {c.run.health})");
+            c.Expect(b.Beams == 1 && c.run.health == h - b.beamDamage, $"a ledge is no shelter: under it the light burns the player all the same (health {h} -> {c.run.health})");
             c.p.godMode = true;
             bool embers = false;
             for (int i = 0; i < 900 && b.Doing == EclipseKing.Act.Cast; i++) { yield return new WaitForFixedUpdate(); if (c.Count<BossShot>() > 0) embers = true; }
@@ -4158,8 +4170,12 @@ namespace Gloomdelve
             b.ForceMove(EclipseKing.MoveBeam);
             yield return Until(() => b.BeamWalking, 1500);
             c.p.godMode = false; c.run.health = c.run.maxHealth; h = c.run.health;
+            yield return Until(() => b.StakesBurst >= 1 || !b.BeamWalking, 900);
+            yield return c.Frames(4);
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_eclipseking_blast.png"));       // (a stake bursting: a ring of light)
             yield return Until(() => !b.BeamWalking, 900);
-            c.Expect(c.run.health == h - b.beamDamage, $"in the open the light burns for beamDamage (health {h} -> {c.run.health})");
+            c.Expect(c.run.health <= h - b.beamDamage, $"in the open the light burns for beamDamage (health {h} -> {c.run.health})");
+            c.Expect(b.StakesBurst == b.stakes && c.Count<SunStake>() == 0, $"and every stake left standing bursts as the light reaches it ({b.StakesBurst} burst, {c.Count<SunStake>()} left)");
             c.p.godMode = true;
             yield return Until(() => b.Doing == EclipseKing.Act.Open, 1500);
             yield return Settle();
@@ -4171,6 +4187,7 @@ namespace Gloomdelve
             b.ForceMove(EclipseKing.MoveSlam);
             yield return Until(() => b.Slams >= 1, 900);
             yield return c.Frames(3);
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_eclipseking_slam.png"));        // (fire out of the floor where the hand struck)
             c.Expect(b.Slams == 1 && c.run.health == h - b.slamDamage, $"a hand comes down on a player who stays under it (slams {b.Slams}, health {h} -> {c.run.health})");
             c.p.godMode = true;
             yield return Until(() => b.Doing == EclipseKing.Act.Open, 600);
@@ -4182,6 +4199,11 @@ namespace Gloomdelve
             c.Expect(b.Doing == EclipseKing.Act.Clap && b.HandAt(0).x < 3.5f && b.HandAt(1).x > 21f && b.HandAt(0).y < 1.1f, $"its hands go out to the walls, down on the floor ({b.HandAt(0).x:0.0}, {b.HandAt(1).x:0.0})");
             yield return Until(() => b.Claps >= 1, 900);
             c.Expect(b.Claps == 1 && Mathf.Abs(b.HandAt(0).x - b.pos.x) < 1.5f && Mathf.Abs(b.HandAt(1).x - b.pos.x) < 1.5f, "and come together under it");
+            yield return c.Frames(2);
+            int ring = c.Count<BossShot>();
+            yield return c.Frames(10);
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_eclipseking_clap.png"));        // (a ring of embers)
+            c.Expect(ring >= b.clapShots / 2, $"where they meet a ring of embers flies out all round ({ring} in the air of {b.clapShots})");
             yield return Until(() => b.Doing == EclipseKing.Act.Open, 600);
             yield return Settle();
 

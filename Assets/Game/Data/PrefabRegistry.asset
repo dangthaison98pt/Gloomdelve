@@ -134,6 +134,8 @@ MonoBehaviour:
     prefab: {fileID: 6212438178658104716, guid: 7687771b53a978240afc4c2f4f594a52, type: 3}
   - id: warden
     prefab: {fileID: 1924136200737026320, guid: 7288a4b403e39ce4493b5a4d510a4ca7, type: 3}
+  - id: sunstake
+    prefab: {fileID: 6189737859007565127, guid: a0263681f09a6c74e8ff62c78a158077, type: 3}
   - id: sunember
     prefab: {fileID: 445726819203912391, guid: d16e0da4a84eb71449c6df8ccb626002, type: 3}
   - id: sunwave
