@@ -1194,22 +1194,6 @@ namespace Gloomdelve.EditorTools
                     Save(p, d + $"spider_{f}", pv18);
                 }
             }
-            // Spider falling (only the source picture of the Broodmother's drop): all eight legs trail upward
-            {
-                Color32 b = C(52, 40, 64), bl = C(98, 78, 120), eye = C(255, 60, 60), leg = C(36, 28, 44);
-                var p = new Px(18, 18);
-                for (int i = 0; i < 4; i++)
-                {
-                    int dx = 2 + i;
-                    p.Line(8, 6, 8 - dx - 1, 8, leg); p.Line(8 - dx - 1, 8, 8 - dx, 13 + (i % 2), leg);
-                    p.Line(9, 6, 9 + dx + 1, 8, leg); p.Line(9 + dx + 1, 8, 9 + dx, 13 + (i % 2), leg);
-                }
-                p.Ellipse(8.5f, 5f, 3.6f, 3f, b);
-                p.Set(7, 7, bl); p.Set(8, 7, bl);
-                p.Set(7, 3, eye); p.Set(10, 3, eye); p.Set(8, 2, eye);
-                p.Outline(C(14, 10, 18));
-                Save(p, d + "spider_3", pv18);
-            }
             // Toad
             for (int f = 0; f < 2; f++)
             {
@@ -1261,24 +1245,6 @@ namespace Gloomdelve.EditorTools
                     if (f == 3) { p.Set(ox + 12, oy + 17, C(255, 230, 90)); p.Set(ox + 16, oy + 18, C(255, 230, 90)); p.Set(ox + 19, oy + 16, C(255, 255, 255)); }
                     Save(p, d + $"brute_{f}", pv);
                 }
-            }
-            // Specter (24x24): only the source picture of the Hollow Warden, the final boss
-            for (int f = 0; f < 2; f++)
-            {
-                var p = new Px(24, 24);
-                Color32 body = C(186, 228, 240, 210), bodyD = C(120, 170, 200, 200), hole = C(20, 30, 50, 230);
-                p.Disc(12, 15, 6.5f, body);
-                p.Rect(6, 4, 13, 11, body);
-                for (int x = 6; x < 19; x++)
-                {
-                    int t = ((x + f * 2) % 4 < 2) ? 3 : 1;
-                    for (int y = 1; y < 4 + (t == 1 ? 0 : 0); y++) if (y >= t) p.Set(x, y, body);
-                }
-                for (int y = 4; y < 14; y++) { p.Set(6, y, bodyD); p.Set(18, y, bodyD); }
-                p.Rect(8, 14, 3, 3, hole); p.Rect(14, 14, 3, 3, hole);
-                p.Ellipse(12.5f, 9.5f, 2f, 1.6f + f * 0.4f, hole);
-                p.Outline(C(80, 120, 160, 160));
-                Save(p, d + $"specter_{f}", new Vector2(0.5f, 0f));
             }
             // The Reaper (24x32): what comes when the player stays too long. A black hooded robe, a skull with red
             // eyes, a scythe over the shoulder. The files keep the old "wraith_" names. Art faces right.
@@ -1672,16 +1638,6 @@ namespace Gloomdelve.EditorTools
             return p;
         }
 
-        static void Tint(Px p, float r, float g, float b)
-        {
-            for (int i = 0; i < p.c.Length; i++)
-            {
-                var c = p.c[i];
-                if (c.a == 0) continue;
-                p.c[i] = new Color32((byte)Mathf.Min(255, c.r * r), (byte)Mathf.Min(255, c.g * g), (byte)Mathf.Min(255, c.b * b), c.a);
-            }
-        }
-
         /// <summary>
         /// The Broodmother, drawn for herself (4 tiles by 2.9; she faces right): a swollen abdomen with a red
         /// hourglass, a plated chest, a head full of eyes, eight jointed legs arching over her back.
@@ -1789,14 +1745,7 @@ namespace Gloomdelve.EditorTools
         /// </summary>
         static void BossArt()
         {
-            const string e = "Sprites/Enemies/", o = "Sprites/Bosses/";
-            void Big(string src, string dst, float r, float g, float b, System.Action<Px> extra = null, bool centre = false)
-            {
-                var p = Scale(LoadPx(e + src), 2);
-                Tint(p, r, g, b);
-                extra?.Invoke(p);
-                Save(p, o + dst, centre ? PCenter : new Vector2(0.5f, 2f / p.h));
-            }
+            const string o = "Sprites/Bosses/";
             BroodmotherArt();
             OldBossesArt();      // the Forge Brute, the Yeti King, the Storm Hawk, the Rot Heart, the Hollow Warden, the Cogwyrm
             {

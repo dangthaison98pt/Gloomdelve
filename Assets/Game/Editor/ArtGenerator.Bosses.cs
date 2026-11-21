@@ -11,31 +11,6 @@ namespace Gloomdelve.EditorTools
     /// </summary>
     public static partial class ArtGenerator
     {
-        /// <summary>
-        /// The tone of a point on a rounded form (nx, ny: -1..1 across it), lit from the upper right as a ball is:
-        /// most of it the middle tone, a crescent of shadow hugging the lower left edge, the light on the upper
-        /// right and one small bright spot in it. (Not bands straight across: those read as stripes.)
-        /// </summary>
-        static Color32 Round(float nx, float ny, Color32 d, Color32 m, Color32 l, Color32 h)
-        {
-            float nz = Mathf.Sqrt(Mathf.Max(0f, 1f - nx * nx - ny * ny));
-            float lam = nx * 0.42f + ny * 0.56f + nz * 0.71f;
-            // (the deepest of the shadow a shade darker still, the bright spot a shade brighter than the light)
-            return lam > 0.955f ? Lerp(h, C(255, 255, 255), 0.3f) : lam > 0.82f ? l : lam > 0.34f ? m : lam > 0.08f ? d : Mul(d, 0.78f);
-        }
-
-        /// <summary>A round shape in four flat tones, lit from the upper right (see Round).</summary>
-        static void Ball(Px p, float cx, float cy, float rx, float ry, Color32 d, Color32 m, Color32 l, Color32 h)
-        {
-            for (int y = Mathf.FloorToInt(cy - ry); y <= Mathf.CeilToInt(cy + ry); y++)
-                for (int x = Mathf.FloorToInt(cx - rx); x <= Mathf.CeilToInt(cx + rx); x++)
-                {
-                    float nx = (x - cx) / rx, ny = (y - cy) / ry;
-                    if (nx * nx + ny * ny > 1f) continue;
-                    p.Set(x, y, Round(nx, ny, d, m, l, h));
-                }
-        }
-
         /// <summary>A line with some thickness (r 0 = one pixel).</summary>
         static void Bar(Px p, int x0, int y0, int x1, int y1, int r, Color32 c)
         {
@@ -59,16 +34,6 @@ namespace Gloomdelve.EditorTools
                     float w2 = 1f - w0 - w1;
                     if (w0 >= -0.01f && w1 >= -0.01f && w2 >= -0.01f) p.Set(x, y, col);
                 }
-        }
-
-        /// <summary>A plate of metal: lit along its top and right edge, dark along the bottom and left, a rivet in each corner.</summary>
-        static void Plate(Px p, int x, int y, int w, int h, Color32 d, Color32 m, Color32 l, bool rivets = true)
-        {
-            p.Rect(x, y, w, h, m);
-            p.Rect(x, y, w, 1, d); p.Rect(x, y, 1, h, d);
-            p.Rect(x, y + h - 1, w, 1, l); p.Rect(x + w - 1, y, 1, h, l);
-            if (!rivets || w < 7 || h < 7) return;
-            p.Set(x + 2, y + 2, d); p.Set(x + w - 3, y + 2, d); p.Set(x + 2, y + h - 3, d); p.Set(x + w - 3, y + h - 3, d);
         }
 
         /// <summary>

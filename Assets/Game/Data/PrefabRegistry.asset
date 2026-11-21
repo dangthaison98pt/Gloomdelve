@@ -262,5 +262,3 @@ MonoBehaviour:
     prefab: {fileID: 5755584402361523035, guid: ce755e956692d4c4ca0ab43a18267346, type: 3}
   - id: shopitem
     prefab: {fileID: 2780275439992920030, guid: d91446493146f784c8c41fa8f4cde44e, type: 3}
-  - id: herohome
-    prefab: {fileID: 8579967847157757216, guid: acfa12f4be6f66c4284cb1ac33b54f1e, type: 3}
