@@ -148,7 +148,12 @@ namespace Gloomdelve.EditorTools
                     int[,] studs = { { -22, 30 }, { 22, 30 }, { -15, 14 }, { 15, 14 } };
                     for (int k = 0; k < 4; k++) p.Disc(cx + studs[k, 0] + lean * 0.5f + 0.5f, studs[k, 1] + sq + 0.5f, 2.6f, l);
                     // two horns: up and out - both levelled forward in the charge
-                    if (f == 2) { Bar(p, cx + 6 + lean, 56 + sq, cx + 22 + lean, 60 + sq, 2, horn); Bar(p, cx - 6 + lean, 58 + sq, cx + 8 + lean, 66 + sq, 2, horn); }
+                    if (f == 2)
+                    {
+                        // (each thick at its root, thinner, then a point: as sharp as when they stand up)
+                        Bar(p, cx + 6 + lean, 56 + sq, cx + 16 + lean, 58 + sq, 2, horn); Bar(p, cx + 16 + lean, 58 + sq, cx + 23 + lean, 60 + sq, 1, horn); p.Line(cx + 23 + lean, 60 + sq, cx + 27 + lean, 61 + sq, horn);
+                        Bar(p, cx - 6 + lean, 58 + sq, cx + 3 + lean, 63 + sq, 2, horn); Bar(p, cx + 3 + lean, 63 + sq, cx + 9 + lean, 66 + sq, 1, horn); p.Line(cx + 9 + lean, 66 + sq, cx + 12 + lean, 68 + sq, horn);
+                    }
                     else
                     {
                         Bar(p, cx - 9 + lean, 57 + sq, cx - 16 + lean, 64 + sq, 2, horn); Bar(p, cx - 16 + lean, 64 + sq, cx - 15 + lean, 69 + sq, 1, horn);
