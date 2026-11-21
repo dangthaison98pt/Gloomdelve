@@ -13,23 +13,27 @@ namespace Gloomdelve
         [Tooltip("The blade and blasts do nothing to it (the Rot Heart's tendril): it has to be avoided.")] public bool unbreakable;
 
         [System.NonSerialized] public Entity owner;
+        /// <summary>Seconds it does not touch the player yet (a wave that starts inside the body of the boss that threw it).</summary>
+        [System.NonSerialized] public float harmless;
         float life;
 
         public override void OnSpawn()
         {
             base.OnSpawn();
             life = lifetime;
+            harmless = 0f;
         }
 
         public override void Tick(float dt)
         {
             life -= dt;
+            harmless -= dt;
             Vector2 v = vel;
             var b = new Body { pos = pos, vel = vel, hw = size.x * 0.5f, h = size.y };
             BodyPhysics.Move(World.Grid, ref b, dt, true);
             pos = b.pos;
             var p = World.Player;
-            if (p != null && !p.IsDead && Overlaps(p))
+            if (harmless <= 0f && p != null && !p.IsDead && Overlaps(p))
             {
                 p.TakeDamage(new DamageInfo(damage, DamageType.Contact, owner, new Vector2(Mathf.Sign(v.x) * 5f, 4f),
                     owner != null ? owner.displayName : displayName));

@@ -111,10 +111,10 @@ namespace Gloomdelve.EditorTools
         /// First a shell: a boulder of a beast with two shoulders, two fists, two feet, two horns, the Sunstone's
         /// light in the slit of its chest (two sets of pictures: the slit narrow, and wide with two veins of light
         /// once it is half broken). 0 standing, 1 fists raised, 2 leaning into its swipe, 3 / 4 the two steps of
-        /// its walk; "open": the slit gaping (horns stuck, and coming apart); and "fire": the ball of flame it charges as.
+        /// its walk; "open": the slit gaping (horns stuck, and coming apart); "ignite": catching fire, and "fire": the ball of flame it charges as.
         /// Then the core: a small covered sun - a ball of light with a dark disc on it and a slit of white in that,
         /// flares round it, threads of light under it (0 / 1 burning, "cast", "open") - and its two hands (open, fist).
-        /// Also what it throws: the stroke of its arm (three frames), the wall of light, the column of light, an ember.
+        /// Also what it throws: the breath of fire out of its chest (three frames), the wall of light, the column of light, an ember.
         /// </summary>
         static void EclipseKingArt()
         {
@@ -169,32 +169,43 @@ namespace Gloomdelve.EditorTools
                 }
 
             // ---- the charge: the shell wrapped in the Sunstone's fire - a ball of it, the stone a dark knot inside with its
-            // slit and its two eyes alight, tongues of flame streaming behind (drawn running right). Two frames: they flicker.
-            for (int f = 0; f < 2; f++)
+            // slit and its two eyes alight, tongues of flame streaming behind (drawn running right).
+            // "ignite" 0..2: it catches fire where it stands - the stone curled into a ball (its horns still showing) with
+            // a rim of flame, then smaller in more fire, the tail growing; "fire" 0 / 1: flying, the tongues flicker.
+            for (int k = 0; k < 5; k++)
             {
                 var p = new Px(96, 52);
                 const float hx = 66f, hy = 23f;
+                int f = k < 3 ? k : k - 3;
+                float stone = k == 0 ? 19f : k == 1 ? 15.5f : k == 2 ? 12.5f : 10.5f;      // the stone shrinks into the fire
+                float tailK = k == 0 ? 0f : k == 1 ? 0.28f : k == 2 ? 0.62f : 1f;          // and the tail grows
                 // three flames, one inside the other: each a ball with a tail that thins to a point behind it
                 void Flame(float r, float tail, Color32 col)
                 {
                     p.Disc(hx, hy, r, col);
-                    for (int x = Mathf.FloorToInt(hx - tail); x <= hx; x++)
+                    for (int x = Mathf.FloorToInt(hx - tail); x <= hx && tail > 1f; x++)
                     {
-                        float t = (hx - x) / tail;                                                        // 0 at the ball, 1 at the tip
+                        float t = Mathf.Min(1f, (hx - x) / tail);                                                      // 0 at the ball, 1 at the tip
                         float half = r * Mathf.Pow(1f - t, 1.15f) + ((x / 6 + f) % 2 == 0 ? 2.2f : -1.6f) * t * (r / 21f);
                         float yc = hy + 5f * t * t + ((x / 9 + f) % 2 == 0 ? 1.5f : -1.5f) * t;           // it lifts a little as it trails
                         for (int y = Mathf.CeilToInt(yc - half); y <= Mathf.FloorToInt(yc + half); y++) p.Set(x, y, col);
                     }
                 }
-                Flame(21f, 62f, rim); Flame(16.5f, 44f, mid); Flame(12f, 26f, hot);
+                // (while it catches, its horns still stand out of the fire)
+                if (k < 2)
+                    for (int sd = -1; sd <= 1; sd += 2)
+                        Bar(p, Mathf.RoundToInt(hx + sd * 8), Mathf.RoundToInt(hy + stone - 4), Mathf.RoundToInt(hx + sd * (13 - k * 2)), Mathf.RoundToInt(hy + stone + 5 - k * 3), 1, horn);
+                Flame(k == 0 ? 21.5f : 21f, 62f * tailK, rim); Flame(16.5f, 44f * tailK, mid); Flame(12f, 26f * tailK, hot);
                 // the stone inside
                 Color32 ms = C(98, 100, 153);
-                p.Disc(hx + 1f, hy - 1f, 10.5f, ms);
+                p.Disc(hx + 1f, hy - 1f, stone, ms);
                 Shade(p, ms, d, l, 3, 2, 2);
-                p.Ellipse(hx + 1f, hy - 2f, 2.6f, 6.5f, dD); p.Ellipse(hx + 1f, hy - 2f, 1.3f, 5f, hot);
+                float sl = stone / 10.5f;
+                p.Ellipse(hx + 1f, hy - 2f * sl, 2.6f, 6.5f * sl, dD); p.Ellipse(hx + 1f, hy - 2f * sl, 1.3f, 5f * sl, hot);
                 p.Outline(ol);
-                p.Rect((int)hx - 4, (int)hy + 5, 3, 2, hot); p.Rect((int)hx + 4, (int)hy + 5, 3, 2, hot);
-                Save(p, $"Sprites/Bosses/eclipseshell_fire_{f}", new Vector2(hx / 96f, 0f));
+                int ey = Mathf.RoundToInt(hy + 5f * sl), ex = Mathf.RoundToInt(4f * Mathf.Sqrt(sl));
+                p.Rect((int)hx - ex, ey, 3, 2, hot); p.Rect((int)hx + ex, ey, 3, 2, hot);
+                Save(p, k < 3 ? $"Sprites/Bosses/eclipseshell_ignite_{k}" : $"Sprites/Bosses/eclipseshell_fire_{f}", new Vector2(hx / 96f, 0f));
             }
 
             // ---- the core: 0 / 1 burning, 2 "cast" (its flares stand out), 3 "open" (the dark disc split wide, the stone bare)
@@ -252,27 +263,35 @@ namespace Gloomdelve.EditorTools
                             p.Set(x, y, off < half * 0.35f ? hot : off < half * 0.7f ? mid : rim);
                         }
                     }
-                    Save(p, $"Sprites/Bosses/sunwave_{f}", new Vector2(0.5f, 0f));
+                    // (the shot flies a hair above the floor, so that it is not taken to have landed: its picture hangs down to it)
+                    Save(p, $"Sprites/Bosses/sunwave_{f}", new Vector2(0.5f, 2f / 66f));
                 }
             }
-            // the stroke of the blade: a long low crescent, its bright edge leading (drawn running right)
+            // the breath of fire out of the slit in its chest (drawn running right, its left end at the slit): one straight
+            // jet, narrow where it leaves the stone and swelling to fill everything from the floor to a tile and a half
+            // above it - tongues along its upper edge, a round head. The bottom of the picture is the floor.
+            // 0 half way out, 1 at its full length, 2 dying (thin, and only its rim colour).
             for (int f = 0; f < 3; f++)
             {
-                var p = new Px(108, 22);
-                int from = f == 2 ? 30 : 2, to = f == 0 ? 64 : 105;
-                for (int x = from; x <= to; x++)
+                var p = new Px(112, 30);
+                float len = f == 0 ? 64f : 108f;
+                for (int x = 1; x <= len; x++)
                 {
-                    float u = (x - 2) / 103f;
-                    float thick = (2f + 7f * Mathf.Sin(u * Mathf.PI)) * (f == 2 ? 0.45f : 1f);
-                    float yc = 5f + 9f * u * u;                                     // it rises a little towards its tip
-                    for (int y = 0; y < 22; y++)
+                    float u = (x - 1) / len;                                                 // 0 at the slit, 1 at its head
+                    float yc = Mathf.Lerp(20f, 12.5f, Mathf.Clamp01(u / 0.45f));             // out of the slit, level along the floor
+                    float half = Mathf.Lerp(3.5f, 12f, Mathf.Sqrt(Mathf.Clamp01(u / 0.6f)));
+                    if (u > 0.82f) half *= Mathf.Sqrt(Mathf.Max(0f, 1f - Mathf.Pow((u - 0.82f) / 0.18f, 2f)));      // the round head
+                    if (f == 2) half *= 0.45f;
+                    float up = half + (3f * Mathf.Abs((x + f * 4) % 8 / 4f - 1f) - 0.5f) * Mathf.Clamp01(u * 3f);      // tongues on top: pointed
+                    for (int y = 0; y < 30; y++)
                     {
-                        float dist = Mathf.Abs(y - yc);
-                        if (dist > thick) continue;
-                        p.Set(x, y, f == 2 ? rim : dist < thick * 0.4f ? hot : dist < thick * 0.75f ? mid : rim);
+                        float dist = y - yc, lim = dist > 0f ? up : half;
+                        if (Mathf.Abs(dist) > lim) continue;
+                        float k = Mathf.Abs(dist) / lim;
+                        p.Set(x, y, f == 2 ? rim : k < 0.42f ? hot : k < 0.75f ? mid : rim);
                     }
                 }
-                Save(p, $"Sprites/Bosses/sunslash_{f}", PCenter);
+                Save(p, $"Sprites/Bosses/sunslash_{f}", new Vector2(0.5f, 12f / 30f));
             }
             {
                 // the column of light (stretched to the height of the hall): a white core, gold to either side, fading out

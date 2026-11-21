@@ -7,7 +7,7 @@ namespace Gloomdelve
     ///
     /// THE SHELL. A beast of black stone, hunched on its fists, the Sunstone's light leaking through the cracks in
     /// its chest (they open wider below half its health). It walks at the player and has three moves, in random
-    /// order: a swipe of its arm low across half the hall (jump it), a charge as a ball of fire the length of the hall
+    /// order: a breath of fire out of its chest, low across half the hall (jump it), a charge as a ball of fire the length of the hall
     /// that ends with the horns stuck in the wall, and a leap that comes down on the player with a wall of light
     /// along the floor to either side (too tall to jump, and the blade does nothing to it: dash through).
     ///
@@ -43,7 +43,7 @@ namespace Gloomdelve
         [Header("Shell: swipe")]
         public float sweepTell = 0.55f;
         [Tooltip("How far in front of it the arm reaches ...")] public float sweepReach = 5.5f;
-        [Tooltip("... and how high above the floor (a jump clears it).")] public float sweepHeight = 1.3f;
+        [Tooltip("... and how high above the floor (a jump clears it).")] public float sweepHeight = 1.5f;
         public int sweepDamage = 2;
         [Header("Shell: charge")]
         public float chargeTell = 0.6f;
@@ -91,7 +91,7 @@ namespace Gloomdelve
         public Sprite beamSprite;
         public Sprite handOpen, handFist;
         public SpriteAnim animIdle, animWalk, animWindup, animLunge, animOpen, slashFx;
-        [Tooltip("The ball of fire it charges as (it catches fire where it stands first: the tell).")] public SpriteAnim animCharge;
+        [Tooltip("The ball of fire it charges as, and catching fire where it stands before that (the tell; played once, as long as chargeTell).")] public SpriteAnim animCharge, animIgnite;
         [Tooltip("The same, with the cracks wide (half the shell's health and under).")] public SpriteAnim animIdleCracked, animWalkCracked, animWindupCracked, animLungeCracked;
         public SpriteAnim animCore, animCoreCast, animCoreOpen;
 
@@ -207,7 +207,7 @@ namespace Gloomdelve
                 case Act.ChargeTell:
                     // it catches fire where it stands
                     vel.x = 0f;
-                    anim?.Play(animCharge != null ? animCharge : Worn(animLunge, animLungeCracked));
+                    anim?.Play(animIgnite != null ? animIgnite : animCharge != null ? animCharge : Worn(animLunge, animLungeCracked));
                     Aflame(true);
                     if (timer % 0.1f < dt) Fx.Sparks(Chest + Random.insideUnitCircle * 1.1f, Gold, 2, 3f);
                     if (timer <= 0f)
@@ -328,7 +328,10 @@ namespace Gloomdelve
             act = Act.Sweep; timer = 0.2f; swept = false;
             Sweeps++;
             var r = SweepRect;
+            // (a jet of fire straight out of the slit in its chest: the picture's left end is the slit, its bottom the floor)
             Fx.PlayAnim(slashFx, new Vector2(r.center.x, pos.y + sweepHeight * 0.5f), 1f, facing < 0);
+            Fx.Sparks(Chest, Gold, 12, 6f);
+            LevelLighting.Flash(Chest, Gold, 4f, 1.1f, 0.15f);
             Fx.Shake(0.25f);
             Sfx.Play("whip", pos, 1f, 0.5f);
         }
@@ -336,16 +339,22 @@ namespace Gloomdelve
         void SweepHit(PlayerController p)
         {
             if (swept || p == null || !SweepRect.Overlaps(p.Bounds)) return;
-            swept = p.TakeDamage(new DamageInfo(sweepDamage, DamageType.Contact, this, new Vector2(facing * 9f, 6f), displayName + "'s arm"));
+            swept = p.TakeDamage(new DamageInfo(sweepDamage, DamageType.Contact, this, new Vector2(facing * 9f, 6f), displayName + "'s fire"));
         }
 
-        /// <summary>A wall of light along the floor to either side of it.</summary>
+        /// <summary>A wall of light along the floor to either side of it: out of its chest, one each way.</summary>
         void Wave(float speed)
         {
-            float y = floorY + 0.1f, hw = HalfW + 0.5f;
-            FireShot(new Vector2(pos.x - hw, y), new Vector2(-speed, 0f), waveId);
-            FireShot(new Vector2(pos.x + hw, y), new Vector2(speed, 0f), waveId);
+            // (they start in the middle of it and hurt nobody until they are clear of its body: where they used to start)
+            float y = floorY + 0.1f, clear = (HalfW + 0.2f) / Mathf.Max(0.1f, speed);
+            for (int side = -1; side <= 1; side += 2)
+            {
+                var shot = FireShot(new Vector2(pos.x + side * 0.3f, y), new Vector2(side * speed, 0f), waveId);
+                if (shot != null) shot.harmless = clear;
+            }
             Fx.Dust(new Vector2(pos.x, floorY), 12);
+            Fx.Sparks(Chest, Gold, 18, 7f);
+            LevelLighting.Flash(Chest, Gold, 5f, 1.2f, 0.2f);
         }
 
         // ================================================================== the shell breaks

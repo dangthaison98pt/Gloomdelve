@@ -208,7 +208,7 @@ namespace Gloomdelve
             Place("The Sunken Vault",
                 "The last hall, under all the others: bare stone, no traps, nothing alive but its keeper. The Sunstone is here - in his chest.");
             One("Eclipse King", "eclipseking",
-                "First a shell: a beast of black stone with the Sunstone's light in its cracks. A swipe of its arm (jump it), a charge that leaves its horns in the wall (dash through it), a leap with a wall of light along the floor (dash through that too). " +
+                "First a shell: a beast of black stone with the Sunstone's light in its cracks. A breath of fire out of its chest (jump it), a charge that leaves its horns in the wall (dash through it), a leap with a wall of light along the floor (dash through that too). " +
                 "Break the shell and the hall goes dark: what was inside rises - pure light, out of the blade's reach, with two hands of its own. A column of light walks the hall (it stops at a ledge - stand under one), a hand comes down on you, both sweep the floor until they meet (jump them), the stone bursts, and it vanishes to come back over your head. " +
                 "With its horns stuck, and each time the light sinks to the floor after a move, its chest is unguarded: every blow of yours counts double.");
             // pictures for the pages that have no creature or trap to show: every place a view of its own stone,

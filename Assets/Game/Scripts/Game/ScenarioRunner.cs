@@ -4070,13 +4070,18 @@ namespace Gloomdelve
             int h = c.run.health;
             b.ForceMove(EclipseKing.MoveSweep);
             yield return Until(() => b.Sweeps >= 1, 600);
-            yield return c.Frames(20);
+            yield return c.Frames(2);
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_eclipseking_sweep.png"));       // (fire out of its chest, down to the floor and along it)
+            yield return c.Frames(18);
             c.Expect(b.Sweeps == 1 && c.run.health == h - b.sweepDamage, $"its swipe strikes a player who stands in front of it (swipes {b.Sweeps}, health {h} -> {c.run.health})");
             c.p.godMode = true;
             yield return Settle();
 
             // the charge: to the wall, where its horns stick and its chest is open - blows count double there, and only there
             b.ForceMove(EclipseKing.MoveCharge);
+            yield return Until(() => b.Doing == EclipseKing.Act.ChargeTell, 600);
+            yield return c.Frames(14);
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_eclipseking_ignite.png"));      // (catching fire)
             yield return Until(() => b.Doing == EclipseKing.Act.Charge, 600);
             yield return c.Frames(8);
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_eclipseking_charge.png"));      // (a ball of fire)
@@ -4096,6 +4101,8 @@ namespace Gloomdelve
             yield return Settle();
             b.ForceMove(EclipseKing.MoveLeap);
             yield return Until(() => b.Leaps >= 1, 900);
+            yield return c.Frames(6);
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_eclipseking_wave.png"));        // (the two walls of light, out of its chest, down to the floor)
             yield return c.Frames(2);
             BossShot wave = null;
             foreach (var e in c.world.Entities) if (!e.Dead && e is BossShot ws) wave = ws;

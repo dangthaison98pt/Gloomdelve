@@ -389,6 +389,7 @@ namespace Gloomdelve.EditorTools
             }
             Anim("eclipseshell_open", F(bo + "eclipseshell_open"), 1);
             Anim("eclipseshell_fire", F(bo + "eclipseshell_fire_0", bo + "eclipseshell_fire_1"), 12f);
+            Anim("eclipseshell_ignite", F(bo + "eclipseshell_ignite_0", bo + "eclipseshell_ignite_1", bo + "eclipseshell_ignite_2"), 5f, false);      // (three pictures in the 0.6 s of the tell)
             Anim("eclipsecore", F(bo + "eclipsecore_0", bo + "eclipsecore_1"), 6f); Anim("eclipsecore_cast", F(bo + "eclipsecore_cast"), 1); Anim("eclipsecore_open", F(bo + "eclipsecore_open"), 1);
             Anim("sunslash", F(bo + "sunslash_0", bo + "sunslash_1", bo + "sunslash_2"), 14f);
             Anim("sunwave", F(bo + "sunwave_0", bo + "sunwave_1"), 12f);
@@ -1596,7 +1597,7 @@ namespace Gloomdelve.EditorTools
                     e.maxHealth = 35; e.coreHealth = 40; e.coreSize = new Vector2(2.6f, 3.6f); e.handSize = new Vector2(1.5f, 1.3f); e.contactDamage = 2; e.stompable = false; e.goldDrop = 0; e.heartDropChance = 0f; e.rewardId = "heartstone";
                     e.animIdle = anims["eclipseshell_idle"]; e.animWalk = anims["eclipseshell_walk"]; e.animWindup = anims["eclipseshell_windup"]; e.animLunge = anims["eclipseshell_charge"];
                     e.animIdleCracked = anims["eclipseshell_idle_cracked"]; e.animWalkCracked = anims["eclipseshell_walk_cracked"]; e.animWindupCracked = anims["eclipseshell_windup_cracked"]; e.animLungeCracked = anims["eclipseshell_charge_cracked"];
-                    e.animOpen = anims["eclipseshell_open"]; e.animCharge = anims["eclipseshell_fire"];
+                    e.animOpen = anims["eclipseshell_open"]; e.animCharge = anims["eclipseshell_fire"]; e.animIgnite = anims["eclipseshell_ignite"];
                     e.animCore = anims["eclipsecore"]; e.animCoreCast = anims["eclipsecore_cast"]; e.animCoreOpen = anims["eclipsecore_open"];
                     e.handOpen = BS("sunhand_open"); e.handFist = BS("sunhand_fist");
                     e.slashFx = anims["sunslash"]; e.beamSprite = BS("sunbeam");

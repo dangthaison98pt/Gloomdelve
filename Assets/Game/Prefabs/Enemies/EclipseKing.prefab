@@ -79,7 +79,7 @@ MonoBehaviour:
   walkSpeed: 1.8
   sweepTell: 0.55
   sweepReach: 5.5
-  sweepHeight: 1.3
+  sweepHeight: 1.5
   sweepDamage: 2
   chargeTell: 0.6
   chargeSpeed: 15
@@ -126,6 +126,7 @@ MonoBehaviour:
   animOpen: {fileID: 11400000, guid: b16c50fd6adb1994c932dc721f6fe13f, type: 2}
   slashFx: {fileID: 11400000, guid: b0f72ad4afdab7e448f30b42155d46b8, type: 2}
   animCharge: {fileID: 11400000, guid: 76059aad34e063a479fc8b0ddf418e38, type: 2}
+  animIgnite: {fileID: 11400000, guid: 2647b066ee9ded441a644cc9225cd1c7, type: 2}
   animIdleCracked: {fileID: 11400000, guid: 6a196639092d99e4d8f173f6ad147619, type: 2}
   animWalkCracked: {fileID: 11400000, guid: 9f203af388c96d7418cc07156550298f, type: 2}
   animWindupCracked: {fileID: 11400000, guid: 26d853df1f50aee4f97b37ec86c49084, type: 2}
