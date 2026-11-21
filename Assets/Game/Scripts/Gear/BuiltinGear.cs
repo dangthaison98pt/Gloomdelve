@@ -132,4 +132,84 @@ namespace Gloomdelve
             });
         }
     }
+
+    /// <summary>
+    /// The slingshot, carried from the start of every run. It is drawn and let go, like the real thing: holding
+    /// the use button draws the band back (the player stands as if about to throw), and the pebble flies when the
+    /// button is let go - straight ahead from the hand, flat for about eight tiles before it drops; with UP held
+    /// at that moment, straight up. Let go while crouched, it flies low along the floor: the way to hit what is
+    /// too small to hit standing. The first thing it meets takes one point (a pot or a crate is broken).
+    /// It needs pebbles, which pots and crates give up; only so many can be carried. A draw is dropped, and no
+    /// pebble spent, if something else is taken in hand or the player is knocked about meanwhile.
+    /// </summary>
+    public class SlingshotGear : GearBehaviour
+    {
+        int readyFrame, lastHeldFrame;
+        bool drawn;
+        World lastWorld;
+
+        /// <summary>The band is drawn back: the pebble flies when the button is let go.</summary>
+        public bool Drawn => drawn;
+
+        public override int Ammo(RunState run) => run.Pebbles;
+
+        void Sync(World w)
+        {
+            if (w == lastWorld) return;
+            lastWorld = w; readyFrame = 0; drawn = false;      // (a new level counts its frames from nothing)
+        }
+
+        /// <summary>The button goes down: the band is drawn.</summary>
+        public override void Use(PlayerController p, FrameInput fi)
+        {
+            var run = RunSession.Current;
+            if (run == null) return;
+            var w = p.World;
+            Sync(w);
+            if (drawn || w.Frame < readyFrame) return;
+            if (run.Pebbles <= 0)
+            {
+                Sfx.Play("error", p.pos);
+                Fx.Text(p.Center + Vector2.up * 0.9f, "NO PEBBLES", new Color(1f, 0.5f, 0.45f), 0.9f);
+                return;
+            }
+            drawn = true;
+            lastHeldFrame = w.Frame;
+            Sfx.Play("rope_throw", p.pos, 0.5f, 1.7f);
+        }
+
+        /// <summary>Held: the band stays drawn. Let go: the pebble flies.</summary>
+        public override void Hold(PlayerController p, FrameInput fi)
+        {
+            if (!drawn) return;
+            var w = p.World;
+            Sync(w);
+            if (!drawn) return;
+            // not held from one step to the next (stunned, a menu, other gear taken in hand): the draw is dropped
+            if (w.Frame - lastHeldFrame > 2 || p.IsDead) { drawn = false; return; }
+            lastHeldFrame = w.Frame;
+            if (fi.useHeld) { if (!p.Crouching) p.PlayThrowAnim(0.12f); return; }      // (crouched, the crouch is what shows)
+            drawn = false;
+            Loose(p, fi.up && !p.Crouching);
+        }
+
+        void Loose(PlayerController p, bool up)
+        {
+            var run = RunSession.Current;
+            var w = p.World;
+            if (run == null || run.Pebbles <= 0) return;
+            var prefab = w.config.prefabs.Get("pebbleshot") as PebbleShot;
+            if (prefab == null) return;
+            Vector2 dir = up ? Vector2.up : new Vector2(p.facing, 0f);
+            // out of the hand that holds the slingshot out in front, at the height of the arm
+            Vector2 from = up ? new Vector2(p.pos.x, p.pos.y + 0.75f) : new Vector2(p.pos.x + p.facing * 0.35f, p.pos.y + (p.Crouching ? p.cfg.slingCrouchHeight : p.cfg.slingHeight));
+            var shot = w.Spawn(prefab, from);
+            if (shot == null) return;
+            run.AddResource(Res.Pebbles, -1);
+            shot.Fire(p, dir, p.cfg.slingSpeed);
+            readyFrame = w.Frame + Mathf.CeilToInt(p.cfg.slingCooldown / GameConst.Dt);
+            if (!p.Crouching) p.PlayThrowAnim(0.15f);
+            Sfx.Play("throw", p.pos, 0.8f, 1.5f);
+        }
+    }
 }

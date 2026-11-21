@@ -74,6 +74,8 @@ MonoBehaviour:
     weight: 1
   - id: heart
     weight: 2
+  - id: pebbles
+    weight: 2.5
 --- !u!114 &2121535821679607601
 MonoBehaviour:
   m_ObjectHideFlags: 0

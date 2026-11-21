@@ -89,7 +89,7 @@ namespace Gloomdelve
         /// Shows a thing's picture in a square of 'box' pixels: at its own pixels times 'scale', what is drawn of it
         /// (not the empty margin of its sheet) set in the middle of the square.
         /// </summary>
-        void FitIcon(Image img, Sprite s, float box, float scale)
+        public void FitIcon(Image img, Sprite s, float box, float scale)
         {
             if (img == null) return;
             var rt = img.rectTransform;
@@ -523,6 +523,7 @@ namespace Gloomdelve
                 || (dir.gearWheel != null && dir.gearWheel.IsOpen)
                 || (dir.inventory != null && dir.inventory.IsOpen)
                 || (dir.codex != null && dir.codex.IsOpen)
+                || (dir.villageShop != null && dir.villageShop.IsOpen)
                 || (dir.transition != null && dir.transition.root != null && dir.transition.root.activeSelf);
             // in the village only health and gold are shown: no gear to use there and no clock running
             if (corners != null)
@@ -576,7 +577,17 @@ namespace Gloomdelve
                     if (tagSub.gameObject.activeSelf != two) tagSub.gameObject.SetActive(two);
                     if (two && tagSub.text != sub) tagSub.text = sub;
                     float w = Mathf.Max(tagText.preferredWidth, two ? tagSub.preferredWidth : 0f);
-                    tagRoot.sizeDelta = new Vector2(Mathf.Clamp(w + 110f, 260f, 1100f), two ? 92f : 58f);
+                    // One row as a rule. Somebody who offers several things has a row for each (the button sits on the
+                    // chosen one): the tag grows downward by the rows, and the small line goes under the last of them.
+                    float rowsH = Mathf.Max(58f, tagText.preferredHeight + 22f);
+                    float subH = two ? Mathf.Max(30f, tagSub.preferredHeight) : 0f;
+                    tagText.rectTransform.sizeDelta = new Vector2(tagText.rectTransform.sizeDelta.x, rowsH);
+                    if (two)
+                    {
+                        tagSub.rectTransform.anchoredPosition = new Vector2(tagSub.rectTransform.anchoredPosition.x, -(rowsH - 2f));
+                        tagSub.rectTransform.sizeDelta = new Vector2(tagSub.rectTransform.sizeDelta.x, subH);
+                    }
+                    tagRoot.sizeDelta = new Vector2(Mathf.Clamp(w + 110f, 260f, 1100f), two ? rowsH + 4f + subH : rowsH);
                 }
             }
             if (talkRoot != null)

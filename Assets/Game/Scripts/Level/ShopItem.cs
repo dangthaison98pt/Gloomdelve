@@ -129,6 +129,13 @@ namespace Gloomdelve
             var run = RunSession.Current;
             if (offer == null || run == null || Dead) return;
             if (Owned(offer)) { Despawn(); return; }   // never charge for equipment the run already has
+            if (!string.IsNullOrEmpty(offer.resource) && run.CapOf(offer.resource) != int.MaxValue && run.RoomFor(offer.resource) <= 0)
+            {
+                // the bag is full: nothing is sold that could not be carried
+                Sfx.Play("error", pos);
+                Fx.Text(Center + Vector2.up * 0.8f, $"YOUR BAG IS FULL ({run.CapOf(offer.resource)})", new Color(1f, 0.4f, 0.4f));
+                return;
+            }
             if (offer.resource == Res.Health && run.HealthFull)
             {
                 Sfx.Play("error", pos);

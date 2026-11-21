@@ -7,8 +7,11 @@ namespace Gloomdelve
     /// wants him spoken to (QuestLog.TalkStep) he says what that quest has him say, and the quest moves on when
     /// he has been heard out - the first of them ends with the Ember Pouch. Otherwise he tells how many of the
     /// villagers are still lost.
+    /// Once the pouch is handed over he also makes bags larger (Bags): the prompt beside him then offers a word
+    /// with him or "Upgrade" (IInteractChoices), and that opens a screen with the four of them - bomb bag,
+    /// rope bag, pebble bag, Ember Pouch - each at the price of its next enlarging.
     /// </summary>
-    public class Elder : Entity, IInteractable, IQuestTarget
+    public class Elder : Entity, IInteractChoices, IQuestTarget
     {
         public const string ElderName = "Elder Aldous";
         public string QuestId => "elder";
@@ -18,6 +21,9 @@ namespace Gloomdelve
             if (!Villagers.Enabled) return null;
             return $"[enter]  {ElderName}";
         }
+
+        /// <summary>What he says over his work on the bags.</summary>
+        public const string BagLine = "Bring me embers and I will let your bags out. Five more each time, and it stays so.";
 
         /// <summary>What he has to say once the pouch is handed over (he says it when spoken to).</summary>
         public static string Line()
@@ -43,6 +49,29 @@ namespace Gloomdelve
                 return;
             }
             if (hud != null) hud.ShowTalk(ElderName, Line());
+        }
+
+        /// <summary>A word with him, or his work on the bags - once there is a pouch to pay him from, and no quest has him speak first.</summary>
+        public string[] Choices(PlayerController p)
+        {
+            if (!Villagers.Enabled || !Villagers.HasKey(Villagers.KeyPouch) || QuestLog.TalkStep(QuestId, out _)) return null;
+            var dir = GameDirector.Instance;
+            if (dir == null || dir.villageShop == null) return null;
+            return new[] { "Talk", "Upgrade" };
+        }
+
+        public string ChoiceTitle => ElderName;
+
+        public void Choose(PlayerController p, int index)
+        {
+            var dir = GameDirector.Instance;
+            if (index == 1 && dir != null && dir.villageShop != null)
+            {
+                Sfx.PlayUI("menu_select", 0.8f);
+                dir.villageShop.Open(ElderName, BagLine, VillageShopPanel.BagWork(World.config));
+                return;
+            }
+            Interact(p);
         }
 
         public override void OnExplosion(Vector2 center, float radius, Entity source, int generation, int damage) { }

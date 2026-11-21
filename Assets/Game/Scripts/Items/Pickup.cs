@@ -22,7 +22,7 @@ namespace Gloomdelve
         public Color textColor = new Color(1f, 0.85f, 0.3f);
         public float gravity = 30f;
 
-        float age;
+        float age, fullSaidAt = -10f;
 
         public override void Tick(float dt)
         {
@@ -49,6 +49,24 @@ namespace Gloomdelve
                 Fx.Sparks(Center, textColor, 8, 3.5f);
                 Sfx.Play(sfx, pos);
                 Despawn();
+                return;
+            }
+            if (run.CapOf(resource) != int.MaxValue)
+            {
+                // bombs, ropes, pebbles: only so many can be carried. What fits is taken, the rest stays where it lies
+                int room = run.RoomFor(resource);
+                if (room <= 0)
+                {
+                    if (age - fullSaidAt > 2f) { fullSaidAt = age; Fx.Text(Center + Vector2.up * 0.4f, $"{(string.IsNullOrEmpty(label) ? resource.ToUpperInvariant() : label)} FULL ({run.CapOf(resource)})", textColor, 1f); }
+                    return;
+                }
+                int take = Mathf.Min(value, room);
+                run.AddResource(resource, take);
+                Show(take);
+                Fx.Sparks(Center, textColor, 4, 2.5f);
+                Sfx.Play(sfx, pos);
+                value -= take;
+                if (value <= 0) Despawn();
                 return;
             }
             run.AddResource(string.IsNullOrEmpty(resource) ? Res.Gold : resource, value);

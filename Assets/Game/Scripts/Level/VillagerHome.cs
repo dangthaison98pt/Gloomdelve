@@ -4,10 +4,12 @@ namespace Gloomdelve
 {
     /// <summary>
     /// The keeper of one of Brindlemoor's shops, inside their house (see VillageInterior): they stand behind the
-    /// counter with their wares set out beside them (bought with the gold the player carries; see Villagers).
+    /// counter. Standing by them the prompt offers a word with them or their shop (IInteractChoices: no screen
+    /// opens to choose); the shop is a screen with their wares for this run, priced in embers (VillageShopPanel;
+    /// see Villagers). Nothing is laid out on the floor: that is how shops look on the mountain.
     /// Only there once the player has freed them. Which villager it is comes from the number of the building.
     /// </summary>
-    public class VillagerHome : Entity, IInteractable, IQuestTarget
+    public class VillagerHome : Entity, IInteractChoices, IQuestTarget
     {
         [Tooltip("One picture per villager, in the order of Villagers.All.")] public Sprite[] looks;
 
@@ -36,23 +38,10 @@ namespace Gloomdelve
             SetOutWares();
         }
 
-        /// <summary>Their wares for this run, on the ground to the right of where they stand.</summary>
+        /// <summary>Their wares for this run (counted here; shown when they are spoken to).</summary>
         void SetOutWares()
         {
-            var cfg = World.config;
-            var run = RunSession.Current;
-            var prefab = cfg != null && cfg.prefabs != null ? cfg.prefabs.Get("shopitem") : null;
-            if (cfg == null || cfg.shop == null || prefab == null) return;
-            var wares = Villagers.WaresOf(who, cfg.shop, run != null ? run.seed : 0);
-            int cx = Mathf.FloorToInt(pos.x), cy = Mathf.RoundToInt(pos.y);
-            for (int i = 0; i < wares.Count; i++)
-            {
-                var cell = new Vector2Int(cx + 2 + i, cy);
-                var item = World.Spawn(prefab, new Vector2(cell.x + 0.5f, cell.y), new SpawnPoint("shopitem", cell, 0, i, wares[i].id)) as ShopItem;
-                if (item == null) continue;
-                item.SetVillageWare(Villagers.EmberPrice(wares[i], who));
-                WareCount++;
-            }
+            WareCount = VillageShopPanel.WaresOf(who, World.config, RunSession.Current).Count;
         }
 
         public string GetPrompt(PlayerController p)
@@ -71,6 +60,29 @@ namespace Gloomdelve
             else dir.hud.ShowTalk($"{who.name} {who.role}", who.homeLine, 0f, () => QuestLog.Notify(QuestTrigger.Talk, QuestId));
             Sfx.PlayUI("menu_select", 0.8f);
         }
+        /// <summary>A word with them, or their shop - unless a quest has something for them to say: then that comes first.</summary>
+        public string[] Choices(PlayerController p)
+        {
+            if (who == null || !home || QuestLog.TalkStep(QuestId, out _)) return null;
+            var dir = GameDirector.Instance;
+            if (dir == null || dir.villageShop == null || WareCount == 0) return null;
+            return new[] { "Talk", "Shop" };
+        }
+
+        public string ChoiceTitle => who != null ? $"{who.name} {who.role}" : "";
+
+        public void Choose(PlayerController p, int index)
+        {
+            var dir = GameDirector.Instance;
+            if (index == 1 && dir != null && dir.villageShop != null)
+            {
+                Sfx.PlayUI("menu_select", 0.8f);
+                dir.villageShop.Open($"{who.name} {who.role}", "For this climb. Paid in embers.", VillageShopPanel.WaresOf(who, World.config, RunSession.Current));
+                return;
+            }
+            Interact(p);
+        }
+
         public override void OnExplosion(Vector2 center, float radius, Entity source, int generation, int damage) { }
         public override void OnWhipped(PlayerController p, int damage, int dir) { }
     }

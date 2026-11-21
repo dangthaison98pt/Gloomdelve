@@ -74,8 +74,8 @@ namespace Gloomdelve
             var problems = new StringBuilder();
             if (run.stageIndex != 0) problems.Append("stageIndex ");
             if (run.health != cfg.startHealth) problems.Append("health ");
-            if (run.bombs != cfg.startBombs) problems.Append("bombs ");
-            if (run.ropes != cfg.startRopes) problems.Append("ropes ");
+            if (run.bombs != run.BombCap) problems.Append("bombs ");          // (a run sets out with its bags full)
+            if (run.ropes != run.RopeCap) problems.Append("ropes ");
             if (run.gold != cfg.startGold) problems.Append("gold ");
             if (run.upgrades.Count > 0 || !run.stats.IsZero || run.counters.Count > 0) problems.Append("upgrades ");
             if (run.totalTime > 0.5f) problems.Append("time ");

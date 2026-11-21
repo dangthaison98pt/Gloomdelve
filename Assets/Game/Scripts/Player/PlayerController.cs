@@ -11,6 +11,21 @@ namespace Gloomdelve
         void Interact(PlayerController p);
     }
 
+    /// <summary>
+    /// Somebody (or something) that offers more than one thing to do: a villager who can be talked to or whose
+    /// shop can be opened. Nothing opens to choose from: the prompt at the edge of the screen lists what there
+    /// is, one row each; the row with the button on it is what the interact button does, and up / down moves
+    /// that row (PlayerController.Interactions). While the list is up, up and down do nothing else.
+    /// </summary>
+    public interface IInteractChoices : IInteractable
+    {
+        /// <summary>What can be done, by name, the usual one first. Null (or one) when there is nothing to choose: Interact is used.</summary>
+        string[] Choices(PlayerController p);
+        void Choose(PlayerController p, int index);
+        /// <summary>Who (or what) this is: written over the list, so the player knows whom the rows belong to.</summary>
+        string ChoiceTitle { get; }
+    }
+
     /// <summary>The explorer. Movement is delegated to PlayerMotor; this class handles actions, damage and feedback.</summary>
     public class PlayerController : Entity
     {
@@ -113,6 +128,8 @@ namespace Gloomdelve
             ? null : GearRegistry.Get(Run.EquippedId);
 
         public float HalfWidth => HalfW;
+        /// <summary>Down on the ground: crouched or crawling.</summary>
+        public bool Crouching => motor.crouching;
         public void PlayThrowAnim(float seconds) => throwAnimTimer = seconds;
 
         public Vector2 HoldPos => new Vector2(pos.x + facing * 0.35f, pos.y + 0.22f);
@@ -152,6 +169,7 @@ namespace Gloomdelve
                 grip = Mathf.Max(World.Level != null ? World.Level.grip : 1f, Run != null ? Run.stats.iceGrip : 0f),
             };
             EquippedGear?.ModifyMotor(this, ref mi);
+            if (choiceOf != null && motor.mode == MotorMode.Normal && motor.grounded) { mi.up = false; mi.down = false; }      // (they move the chosen row: Interactions)
             var prevMode = motor.mode;
             float prevVy = motor.vel.y;
             PlayerMotor.Step(ref motor, mi, World.Grid, cfg.motor, dt);
@@ -295,6 +313,7 @@ namespace Gloomdelve
                 else if (whipCooldown <= 0f && motor.mode == MotorMode.Normal) StartWhip();
             }
             if (fi.usePressed) UseGear(fi);
+            EquippedGear?.Hold(this, fi);
         }
 
         bool TryPickup()
@@ -451,6 +470,14 @@ namespace Gloomdelve
         // Something within reach answers the interact button. On a pad that button is also the dash, so while
         // this is set the press goes to the thing and not to a dash.
         bool interactable;
+        // which row of what somebody offers is chosen (IInteractChoices), and who that is
+        IInteractable choiceOf;
+        int choiceIndex;
+        bool choiceUpWas, choiceDownWas;
+        /// <summary>What the interact button will do with whoever is in reach, by its row in their list (0 when there is no list).</summary>
+        public int ChoiceIndex => choiceIndex;
+        /// <summary>Where the words of every row begin: the up / down mark and the button's picture sit before the chosen row's.</summary>
+        const int ChoiceTextAt = 112;
 
         void Interactions(FrameInput fi)
         {
@@ -471,6 +498,29 @@ namespace Gloomdelve
                 interactable = true;
                 Prompt = best.GetPrompt(this);
                 PromptIsSign = best is Sign;
+                // more than one thing to do here: the list, the one in front first; the change button turns it
+                string[] offers = best is IInteractChoices ic0 ? ic0.Choices(this) : null;
+                if (offers != null && offers.Length > 1)
+                {
+                    if (!ReferenceEquals(choiceOf, best)) { choiceOf = best; choiceIndex = 0; choiceUpWas = fi.up; choiceDownWas = fi.down; }
+                    choiceIndex = Mathf.Clamp(choiceIndex, 0, offers.Length - 1);
+                    // up / down (a key or the stick) moves the chosen row; the rows themselves stay where they are
+                    int step = !IsStunned ? (fi.down && !choiceDownWas ? 1 : 0) - (fi.up && !choiceUpWas ? 1 : 0) : 0;
+                    choiceUpWas = fi.up; choiceDownWas = fi.down;
+                    if (step != 0) { choiceIndex = (choiceIndex + step + offers.Length) % offers.Length; Sfx.PlayUI("menu_select", 0.5f); }
+                    var rows = new System.Text.StringBuilder();
+                    // who it is, over the rows: smaller, in gold, beginning where the words of the rows begin
+                    string title = ((IInteractChoices)best).ChoiceTitle;
+                    if (!string.IsNullOrEmpty(title)) rows.Append("<pos=").Append(ChoiceTextAt).Append("><size=78%><color=#FFD98C>").Append(title).Append("</color></size>").Append((char)10);
+                    for (int k = 0; k < offers.Length; k++)
+                    {
+                        if (k > 0) rows.Append('\n');
+                        if (k == choiceIndex) rows.Append("[updown] [enter]<pos=").Append(ChoiceTextAt).Append('>').Append(offers[k]);
+                        else rows.Append("<pos=").Append(ChoiceTextAt).Append("><color=#FFFFFF8C>").Append(offers[k]).Append("</color>");
+                    }
+                    Prompt = rows.ToString();        // (no words about how to choose: the mark before the button says it)
+                }
+                else { offers = null; choiceOf = null; choiceIndex = 0; }
                 if (fi.interactPressed && !IsStunned)
                 {
                     // something is being read or heard: the same button puts it down (it does not start it over)
@@ -478,6 +528,7 @@ namespace Gloomdelve
                     if (hud != null && hud.TalkUp) hud.AdvanceTalk();            // the rest of the sentence, the next one, the end
                     else if (hud != null && hud.NoteUp) hud.DismissHeld();
                     else if (best is Sign && hud != null) hud.ToggleSign(Prompt);    // a sign's card can be put away, and taken out again
+                    else if (offers != null) ((IInteractChoices)best).Choose(this, choiceIndex);
                     else best.Interact(this);
                 }
                 return;

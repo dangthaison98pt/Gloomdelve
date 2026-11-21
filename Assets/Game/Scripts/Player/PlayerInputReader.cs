@@ -10,6 +10,8 @@ namespace Gloomdelve
         public bool up, down, walk;
         public bool jumpPressed, jumpHeld;
         public bool attackPressed, usePressed, interactPressed, upPressed, dashPressed;
+        /// <summary>The use button is down (gear that is drawn and let go: the slingshot).</summary>
+        public bool useHeld;
     }
 
     public interface IFrameInputSource
@@ -107,6 +109,7 @@ namespace Gloomdelve
             f.jumpPressed = jumpL;
             f.attackPressed = attackL;
             f.usePressed = useL;
+            f.useHeld = use != null && use.IsPressed();
             f.interactPressed = interactL;
             f.upPressed = upL;
             f.dashPressed = dashL;

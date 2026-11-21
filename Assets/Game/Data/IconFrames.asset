@@ -44,6 +44,9 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 2a0c0bb710ccc6e429d661fbd7ffee7e, type: 3}
   - {fileID: 21300000, guid: 4fcd63a3a98b065459a52433aabfded0, type: 3}
   - {fileID: 21300000, guid: a682f619659a45544bf6be00114e8503, type: 3}
+  - {fileID: 21300000, guid: 6e3c33e5d8099be468375a823c5e9881, type: 3}
+  - {fileID: 21300000, guid: 5c1650ef07f936e4ab132950007a6586, type: 3}
+  - {fileID: 21300000, guid: e634fa265c63b934e8b38308a750912d, type: 3}
   - {fileID: 21300000, guid: 8e3c8a08524e7fa4a8459cb020c5821a, type: 3}
   - {fileID: 21300000, guid: 4825ee6fbf79a034992b1d34fa556de5, type: 3}
   - {fileID: 21300000, guid: 99ef5e7d0111abf4085170abed48a040, type: 3}
@@ -87,12 +90,14 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 224db3d531f0f1349a712722ab21b76e, type: 3}
   - {fileID: 21300000, guid: ad0e3be8950c79540b1308dbbb2486e7, type: 3}
   - {fileID: 21300000, guid: 91ff4d89db96d1f42b58b49b89d66319, type: 3}
+  - {fileID: 21300000, guid: 6b1e81947c56570489afd04500f834d1, type: 3}
   - {fileID: 21300000, guid: a1c549f41da98d04aaa184ae5bd9ad16, type: 3}
   - {fileID: 21300000, guid: 50bb14b3ef843b74fb353f913994a9dc, type: 3}
   - {fileID: 21300000, guid: 992b1bcb531b6de46a9cae02e2421df8, type: 3}
   - {fileID: 21300000, guid: 1238a863c00a4444fb98c76539e66e00, type: 3}
   - {fileID: 21300000, guid: 21ae43f73de73724a83be83be1fb643c, type: 3}
   - {fileID: 21300000, guid: 2072b74ecaf120e499b27f5b44808ff1, type: 3}
+  - {fileID: 21300000, guid: 1549928450cd3294b82f23e5ad6e2871, type: 3}
   - {fileID: 21300000, guid: a2908bd84fcd1914ab8d2da293642800, type: 3}
   - {fileID: 21300000, guid: 5becd32d0f821ed458e3e30d50af0ef2, type: 3}
   - {fileID: 21300000, guid: e30c8509922a8b242b9f073a3fca7974, type: 3}
@@ -278,6 +283,21 @@ MonoBehaviour:
     y: 0
     width: 0.84375
     height: 1
+  - serializedVersion: 2
+    x: 0.125
+    y: 0
+    width: 0.75
+    height: 0.4375
+  - serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+  - serializedVersion: 2
+    x: 0.125
+    y: 0
+    width: 0.75
+    height: 0.8125
   - serializedVersion: 2
     x: 0.1875
     y: 0
@@ -494,6 +514,11 @@ MonoBehaviour:
     width: 1
     height: 0.875
   - serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+  - serializedVersion: 2
     x: 0.055555556
     y: 0
     width: 0.8888889
@@ -523,6 +548,11 @@ MonoBehaviour:
     y: 0
     width: 0.8333333
     height: 1
+  - serializedVersion: 2
+    x: 0.125
+    y: 0
+    width: 0.75
+    height: 0.9375
   - serializedVersion: 2
     x: 0.083333336
     y: 0.083333336

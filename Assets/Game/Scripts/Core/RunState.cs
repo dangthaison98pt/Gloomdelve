@@ -175,6 +175,22 @@ namespace Gloomdelve
         /// <summary>Health is at its limit: hearts and tonics would do nothing.</summary>
         public bool HealthFull => maxHealth > 0 && health >= maxHealth;
 
+        /// <summary>What can be carried before any bag is enlarged (PlayerConfig).</summary>
+        public int pebbleBase = 10, bombBase = 5, ropeBase = 5;
+        /// <summary>How many pebbles can be carried now: the first size of the bag, what the elder has added to it
+        /// for good (Bags), and what the Pebble Pouch adds while it is worn.</summary>
+        public int PebbleCap => Mathf.Max(0, pebbleBase + Bags.Bonus(Bags.Pebbles) + stats.pebbleBonus);
+        /// <summary>How many bombs / ropes can be carried: the first size of the bag and what the elder has added to it.</summary>
+        public int BombCap => Mathf.Max(0, bombBase + Bags.Bonus(Bags.Bombs));
+        public int RopeCap => Mathf.Max(0, ropeBase + Bags.Bonus(Bags.Ropes));
+
+        /// <summary>The most that can be carried of a resource; int.MaxValue for what has no bag (gold, health...).</summary>
+        public int CapOf(string id)
+            => id == Res.Bombs ? BombCap : id == Res.Ropes ? RopeCap : id == Res.Pebbles ? PebbleCap : int.MaxValue;
+        /// <summary>How many more of it there is room for.</summary>
+        public int RoomFor(string id) { int cap = CapOf(id); return cap == int.MaxValue ? int.MaxValue : Mathf.Max(0, cap - GetResource(id)); }
+        public int Pebbles => GetResource(Res.Pebbles);
+
         public int GetResource(string id)
         {
             switch (id)
@@ -199,12 +215,15 @@ namespace Gloomdelve
                     if (maxHealth > 0 && health > maxHealth) health = maxHealth;
                     break;
                 case Res.MaxHealth: maxHealth += amount; health = maxHealth; break;
-                case Res.Bombs: bombs += amount; break;
-                case Res.Ropes: ropes += amount; break;
+                // (what has a bag never goes over what the bag holds; what is carried above it already is left alone)
+                case Res.Bombs: bombs = amount > 0 ? Mathf.Max(bombs, Mathf.Min(bombs + amount, BombCap)) : Mathf.Max(0, bombs + amount); break;
+                case Res.Ropes: ropes = amount > 0 ? Mathf.Max(ropes, Mathf.Min(ropes + amount, RopeCap)) : Mathf.Max(0, ropes + amount); break;
                 default:
                     if (string.IsNullOrEmpty(id)) break;
                     counters.TryGetValue(id, out int v);
-                    counters[id] = Mathf.Max(0, v + amount);
+                    int next = Mathf.Max(0, v + amount);
+                    if (amount > 0 && id == Res.Pebbles) next = Mathf.Max(v, Mathf.Min(next, PebbleCap));
+                    counters[id] = next;
                     break;
             }
         }
@@ -230,10 +249,19 @@ namespace Gloomdelve
                 bombs = cfg != null ? cfg.startBombs : 4,
                 ropes = cfg != null ? cfg.startRopes : 4,
                 gold = cfg != null ? cfg.startGold : 0,
+                pebbleBase = cfg != null ? cfg.pebbleCapacity : 10,
+                bombBase = cfg != null ? cfg.bombCapacity : 5,
+                ropeBase = cfg != null ? cfg.ropeCapacity : 5,
             };
             if (cfg != null && cfg.startingGear != null) Current.gear.AddRange(cfg.startingGear);
             else { Current.gear.Add("bomb"); Current.gear.Add("rope"); }
+            // A run sets out with its bags full: as many bombs, ropes and pebbles as they hold (Bags). The tutorial
+            // hands out its own few.
             if (tutorial) { Current.bombs = 3; Current.ropes = 3; }
+            else FillBags(Current);
+            // A run begins with the first of its gear in hand: the slingshot. The tutorial teaches the bombs first
+            // ("Your GEAR is BOMBS"), so there the bombs are in hand.
+            if (tutorial) Current.equipped = Mathf.Max(0, Current.gear.IndexOf("bomb"));
             // (the Recall Charm is found in the tutorial's chest, not carried into it - except by the test bots, whose room is a tutorial too)
             if (tutorial && !ScenarioRunner.Active && !AutoTest.Active) Current.gear.Remove("recall");
             Current.inVillage = !tutorial && Villagers.Enabled;       // a real run starts in the village
@@ -251,6 +279,15 @@ namespace Gloomdelve
         }
 
         public static void Clear() => Current = null;
+
+        /// <summary>Fills the bomb bag, the rope bag and the pebble bag of a run to what they hold now.</summary>
+        public static void FillBags(RunState r)
+        {
+            if (r == null) return;
+            r.bombs = Mathf.Max(r.bombs, r.BombCap);
+            r.ropes = Mathf.Max(r.ropes, r.RopeCap);
+            r.AddResource(Res.Pebbles, r.PebbleCap);        // (it never goes over what the bag holds)
+        }
 
         /// <summary>What has to be kept of a run to go on with it later, from the start of the level it is in.</summary>
         public static RunSave Capture(RunState r, string stageName)

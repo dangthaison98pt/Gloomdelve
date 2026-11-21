@@ -23,6 +23,7 @@ namespace Gloomdelve
         public EquipmentWheel gearWheel;
         public InventoryScreen inventory;
         [Tooltip("The Field Guide, open (read from the bag's KEY ITEMS).")] public CodexScreen codex;
+        [Tooltip("A villager's shop (and the elder's work on the bags), open.")] public VillageShopPanel villageShop;
         public SkyBackdrop sky;
         public CaveBackdrop caveBackdrop;
 
@@ -324,6 +325,13 @@ namespace Gloomdelve
             if (hud != null && hud.CardModal)
             {
                 if (input != null && (input.ConfirmPressed || input.PausePressed || input.BackPressed)) { hud.DismissCard(); if (!hud.CardModal) input.ClearLatches(); }
+                return;
+            }
+            // a villager's shop: Pause or a gamepad's back button shuts it (its own Close button too)
+            if (villageShop != null && villageShop.IsOpen)
+            {
+                if (Ended || input == null) villageShop.Close();
+                else if (input.PausePressed || input.BackPressed) villageShop.Back();      // (from a list to the choices, from the choices out)
                 return;
             }
             // the Field Guide: Pause, the bag's button or a gamepad's back button shuts it
@@ -740,6 +748,7 @@ namespace Gloomdelve
         {
             if (codex == null || !Codex.Owned) return;
             if (inventory != null) inventory.Close();
+            if (villageShop != null) villageShop.Close();
             codex.Open();
             tutorialBookRead = true;
         }

@@ -70,6 +70,7 @@ namespace Gloomdelve
                 case Res.Ropes: return "Rope. Thrown up, it hangs from the ceiling; let down from a ledge, it is a way back.";
                 case "ember": return "An ember off one of the mountain's great beasts. It goes in the Ember Pouch, and Brindlemoor trades in them.";
                 case "maxhealth": return "One more heart, for good.";
+                case Res.Pebbles: return "Pebbles: shot for your slingshot. You can only carry so many - a Pebble Pouch holds more.";
                 default: return $"Treasure. Worth ${value} to any shopkeeper on the mountain.";
             }
         }

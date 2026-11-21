@@ -88,6 +88,8 @@ namespace Gloomdelve.EditorTools
                     GE("move", "\u25C4 \u25B2 \u25BC \u25BA", darkBtn, "L"),
                     // not a button: the "beaten without damage" badge, so any UI text can show it with "[flawless]"
                     new InputGlyphSet.Entry { token = "flawless", keyboard = GS("flawless"), keyboardLabel = "" },
+                    // not a button either: the mark in front of a list of things to do, "up / down chooses" ("[updown]")
+                    new InputGlyphSet.Entry { token = "updown", keyboard = GS("updown"), keyboardLabel = "" },
                 };
                 EditorUtility.SetDirty(glyphs);
                 UIBuilder.glyphSet = glyphs;
@@ -534,6 +536,9 @@ namespace Gloomdelve.EditorTools
                 shop.offers.Add(new ShopOffer { id = "heartfull", displayName = "Elixir of Dawn", price = 550, resource = Res.Health, amount = 99, description = "back to full health" });
             if (shop.Find("lampoil") == null)
                 shop.offers.Add(new ShopOffer { id = "lampoil", displayName = "Lamp Oil", price = 200, resource = "lampoil", amount = 120, description = "the Reaper comes 2 minutes later" });
+            if (shop.Find("pebblepouch") == null)
+                shop.offers.Add(new ShopOffer { id = "pebblepouch", displayName = "Pebble Pouch", price = 450, isUpgrade = true, slot = "charm",
+                    description = "carry 10 more pebbles for the slingshot", modifiers = new StatModifiers { pebbleBonus = 10 } });
             if (shop.Find("iceboots") == null)
                 shop.offers.Add(new ShopOffer { id = "iceboots", displayName = "Ice Cleats", price = 600, isUpgrade = true, slot = "feet",
                     description = "spiked soles: no sliding on ice", modifiers = new StatModifiers { iceGrip = 1f } });
@@ -580,6 +585,7 @@ namespace Gloomdelve.EditorTools
             };
             icons["dampener"] = "Sprites/Items/dampener"; icons["truthlens"] = "Sprites/Items/truthlens";
             icons["sandstriders"] = "Sprites/Items/sandstriders"; icons["wardscarab"] = "Sprites/Items/wardscarab";
+            icons["pebblepouch"] = "Sprites/Items/pebblepouch";
             icons["vigor"] = "Sprites/NPC/ware_vigor"; icons["lampoil"] = "Sprites/NPC/ware_lampoil";
             foreach (var o in shop.offers) if (icons.TryGetValue(o.id, out var ic)) o.icon = ArtGenerator.S(ic);
             EditorUtility.SetDirty(shop);
@@ -1027,8 +1033,28 @@ namespace Gloomdelve.EditorTools
                 cfg.player.startingGear = sg.ToArray();
                 EditorUtility.SetDirty(cfg.player);
             }
+            // The slingshot: every explorer carries one too. Its shot is pebbles, out of pots and crates.
+            var gSling = LoadOrCreate<EquipmentDef>(G + "Data/Gear_Slingshot.asset", out bool newSling);
+            if (newSling)
+            {
+                gSling.id = "slingshot"; gSling.displayName = "Slingshot";
+                gSling.description = InputTokens("Use: shoot a pebble straight ahead.  UP + use: straight up.  Break pots and crates for pebbles.");
+                gSling.terrainHint = "Strikes from afar: a creature across a gap, a pot on a ledge, an arrow trap to spend.";
+                gSling.ammoLabel = "pebble(s)";
+            }
+            gSling.icon = ArtGenerator.S("UI/icon_slingshot");
+            EditorUtility.SetDirty(gSling);
+            // It is the first of the starting gear: the first is what a run begins with in hand (RunState.NewRun).
+            if (cfg.player != null && cfg.player.startingGear != null && System.Array.IndexOf(cfg.player.startingGear, "slingshot") != 0)
+            {
+                var sg = new List<string>(cfg.player.startingGear);
+                sg.Remove("slingshot");
+                sg.Insert(0, "slingshot");
+                cfg.player.startingGear = sg.ToArray();
+                EditorUtility.SetDirty(cfg.player);
+            }
             // Built-in gear first; equipment a designer added to the list by hand is kept.
-            var gearList = new List<EquipmentDef> { gBomb, gRope, gGlide, gRecall };
+            var gearList = new List<EquipmentDef> { gBomb, gRope, gGlide, gRecall, gSling };
             if (cfg.equipment != null) foreach (var extra in cfg.equipment) if (extra != null && !gearList.Contains(extra)) gearList.Add(extra);
             cfg.equipment = gearList.ToArray();
             cfg.roomTemplates = AssetDatabase.LoadAssetAtPath<TextAsset>(G + "Data/RoomTemplates.txt");
@@ -1218,6 +1244,7 @@ namespace Gloomdelve.EditorTools
             ["CodexChest"] = (new Color(1f, 0.85f, 0.3f, 0.8f), false, true),       // the chest by an area's gate: it must not be walked past
             ["Heartstone"] = (new Color(1f, 0.82f, 0.35f, 0.85f), false, true),        // the Sunstone (the prefab keeps its old name)
             ["GoldNugget"] = (new Color(1f, 0.85f, 0.3f, 0.85f), true, false),
+            ["Pebbles"] = (new Color(1f, 1f, 1f, 0.7f), true, false),
             ["GoldChunk"] = (new Color(1f, 0.85f, 0.3f, 0.9f), true, false),
             ["Gem"] = (new Color(0.4f, 1f, 0.6f, 0.9f), true, false),
             ["BombBag"] = (new Color(1f, 1f, 1f, 0.75f), true, false),
@@ -1575,7 +1602,7 @@ namespace Gloomdelve.EditorTools
                 (e, g, s) =>
                 {
                     e.breakSpeed = 10f; e.flipWithFacing = false; e.breakSfx = "crate_break"; e.debrisColor = new Color(0.6f, 0.42f, 0.24f);
-                    e.contents = new[] { new WeightedId("bombbag", 3f), new WeightedId("ropepile", 3f), new WeightedId("gold_big", 2f), new WeightedId("gem", 1f), new WeightedId("heart", 2f) };
+                    e.contents = new[] { new WeightedId("bombbag", 3f), new WeightedId("ropepile", 3f), new WeightedId("gold_big", 2f), new WeightedId("gem", 1f), new WeightedId("heart", 2f), new WeightedId("pebbles", 2.5f) };
                 }));
             Reg("arrow", Make<Arrow>("Arrow", "Items", "arrow", new Vector2(0.6f, 0.2f), ArtGenerator.S(I("arrow")), null, 12, (e, g, s) => { e.damageSpeed = 5f; e.bounce = 0.2f; }));
             Reg("bomb", Make<Bomb>("Bomb", "Items", "bomb", new Vector2(0.45f, 0.45f), ArtGenerator.S(I("bomb_0")), anims["bomb_idle"], 12,
@@ -1601,6 +1628,10 @@ namespace Gloomdelve.EditorTools
             }));
             Reg("bombbag", Make<Pickup>("BombBag", "Items", "bomb bag", new Vector2(0.6f, 0.55f), ArtGenerator.S(I("bombbag")), null, 11, (e, g, s) => { e.itemId = "bombs"; e.resource = Res.Bombs; e.label = "BOMBS"; e.value = 3; e.sfx = "pickup"; e.textColor = Color.white; e.flipWithFacing = false; }));
             Reg("ropepile", Make<Pickup>("RopePile", "Items", "rope pile", new Vector2(0.6f, 0.45f), ArtGenerator.S(I("ropepile")), null, 11, (e, g, s) => { e.itemId = "ropes"; e.resource = Res.Ropes; e.label = "ROPES"; e.value = 3; e.sfx = "pickup"; e.textColor = Color.white; e.flipWithFacing = false; }));
+            Reg("pebbles", Make<Pickup>("Pebbles", "Items", "pebbles", new Vector2(0.5f, 0.3f), ArtGenerator.S(I("pebbles")), null, 11,
+                (e, g, s) => { e.itemId = "pebbles"; e.resource = Res.Pebbles; e.label = "PEBBLES"; e.value = 3; e.sfx = "pickup"; e.textColor = new Color(0.86f, 0.84f, 0.8f); e.flipWithFacing = false; }));
+            Reg("pebbleshot", Make<PebbleShot>("PebbleShot", "Items", "pebble", new Vector2(0.2f, 0.2f), ArtGenerator.S(I("pebble")), null, 12,
+                (e, g, s) => { e.flipWithFacing = false; e.throwDamage = 1; e.damageSpeed = 4f; e.bounce = 0f; e.canPickUp = false; }));
             Reg("heart", Make<Pickup>("Heart", "Items", "heart", new Vector2(0.5f, 0.45f), ArtGenerator.S(I("heart")), null, 11,
                 (e, g, s) => { e.itemId = "heart_pickup"; e.resource = Res.Health; e.label = "HP"; e.value = 1; e.sfx = "buy"; e.textColor = new Color(1f, 0.45f, 0.5f); e.flipWithFacing = false; }));
             Reg("heartvessel", Make<Pickup>("HeartVessel", "Items", "heart vessel", new Vector2(0.6f, 0.55f), ArtGenerator.S(I("heartvessel")), null, 11,
@@ -2634,6 +2665,41 @@ namespace Gloomdelve.EditorTools
             trs.body = UIBuilder.Label(trRoot.transform, "Body", "", 34, Color.white, TextAnchor.UpperLeft, new Vector2(0.5f, 0.5f), new Vector2(0, 20), new Vector2(760, 260));
             trs.hint = UIBuilder.Label(trRoot.transform, "Hint", "", 26, new Color(1, 1, 1, 0.6f), TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), new Vector2(0, -230), new Vector2(1200, 50));
             dir.transition = trs;
+
+            // a villager's shop (and the elder's work on the bags): a screen with the wares in a list - in the village
+            // nothing is laid out on the floor
+            {
+                var vsGo = UIBuilder.Node(t, "VillageShop");
+                UIBuilder.Stretch(UIBuilder.Rect(vsGo));
+                var vs = vsGo.AddComponent<VillageShopPanel>();
+                var vsRoot = UIBuilder.Dimmer(vsGo.transform, "Root");
+                vs.root = vsRoot.gameObject;
+                var vsPanel = UIBuilder.Panel(vsRoot.transform, "Panel", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(980, 368));
+                vs.panel = vsPanel.rectTransform;
+                var vp = vsPanel.transform;
+                Color ember = new Color(1f, 0.72f, 0.36f);
+                // (UIBuilder.Place: a thing's position is that of its own anchor corner - top edge for what hangs from the top)
+                vs.title = UIBuilder.Label(vp, "Title", "", 46, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -30), new Vector2(880, 64), true, FontStyle.Bold);
+                vs.line = UIBuilder.Label(vp, "Line", "", 24, new Color(1f, 1f, 1f, 0.85f), TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -100), new Vector2(880, 66));
+                vs.embers = UIBuilder.Label(vp, "Embers", "", 24, ember, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -172), new Vector2(880, 34), false);
+                const int vsRows = 4;
+                vs.rows = new Button[vsRows]; vs.icons = new Image[vsRows];
+                vs.names = new TMPro.TMP_Text[vsRows]; vs.descs = new TMPro.TMP_Text[vsRows]; vs.prices = new TMPro.TMP_Text[vsRows];
+                vs.firstRowY = -222f; vs.rowStep = 96f; vs.baseHeight = 368f;
+                for (int i = 0; i < vsRows; i++)
+                {
+                    var wareRow = UIBuilder.Button(vp, "Row_" + i, "", new Vector2(0.5f, 1f), new Vector2(0, vs.firstRowY - vs.rowStep * i), new Vector2(880, 84));
+                    vs.rows[i] = wareRow;
+                    vs.icons[i] = UIBuilder.Img(wareRow.transform, "Icon", null, Color.white, new Vector2(0f, 0.5f), new Vector2(24, 0), new Vector2(60, 60));
+                    vs.icons[i].preserveAspect = true;
+                    vs.names[i] = UIBuilder.Label(wareRow.transform, "Name", "", 28, Color.white, TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(102, 17), new Vector2(480, 38));
+                    vs.descs[i] = UIBuilder.Label(wareRow.transform, "Desc", "", 20, new Color(1f, 1f, 1f, 0.75f), TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(102, -19), new Vector2(740, 30), false);
+                    vs.prices[i] = UIBuilder.Label(wareRow.transform, "Price", "", 24, ember, TextAnchor.MiddleRight, new Vector2(1f, 0.5f), new Vector2(-24, 17), new Vector2(240, 36), false);
+                }
+                vs.note = UIBuilder.Label(vp, "Note", "", 22, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0, 110), new Vector2(880, 34), false);
+                vs.closeButton = UIBuilder.Button(vp, "Close", "CLOSE", new Vector2(0.5f, 0f), new Vector2(0, 28), new Vector2(320, 66));
+                dir.villageShop = vs;
+            }
 
             // pause
             var pauseGo = UIBuilder.Node(t, "Pause");

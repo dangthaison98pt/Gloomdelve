@@ -9,11 +9,14 @@ namespace Gloomdelve
 
         [Header("Run start")]
         public int startHealth = 10;
-        public int startBombs = 4;
+        [Tooltip("Not used by a real run any more: it sets out with its bomb and rope bags full (bombCapacity, ropeCapacity, and what the elder has added).")] public int startBombs = 4;
         public int startRopes = 4;
         public int startGold = 0;
-        [Tooltip("Equipment ids the player starts every run with (see GameConfig.equipment).")]
+        [Tooltip("Equipment ids the player starts every run with (see GameConfig.equipment). The first is in hand when the run begins.")]
         public string[] startingGear = { "bomb", "rope" };
+        [Tooltip("Pebbles (slingshot shot) that can be carried without the Pebble Pouch.")] public int pebbleCapacity = 10;
+        [Tooltip("Bombs and ropes that can be carried before the elder has enlarged their bags (Bags: +5 each time).")] public int bombCapacity = 5;
+        public int ropeCapacity = 5;
 
         [Header("Blade (fields keep the old whip names)")]
         public float whipDuration = 0.3f;
@@ -34,6 +37,11 @@ namespace Gloomdelve
         public float stompBounce = 9f;
         public float stompBounceHeld = 13.5f;
 
+        [Header("Slingshot")]
+        [Tooltip("Speed of a pebble, tiles a second (it flies flat for PebbleShot.flatTime, then drops).")] public float slingSpeed = 16f;
+        [Tooltip("Seconds between two shots.")] public float slingCooldown = 0.35f;
+        [Tooltip("Height above the feet at which a pebble leaves the hand (the player's hitbox is 0.85 high).")] public float slingHeight = 0.42f;
+        [Tooltip("... and when crouched: low along the floor, for what is too small to hit standing.")] public float slingCrouchHeight = 0.12f;
         [Header("Dash")]
         [Tooltip("Speed of the dash, tiles a second (it must stay under one tile a simulation step).")] public float dashSpeed = 17f;
         [Tooltip("Seconds a dash lasts (speed times this is how far it goes: 3.4 tiles).")] public float dashTime = 0.2f;

@@ -12,7 +12,9 @@ namespace Gloomdelve
         [Tooltip("Possible contents (ids). Use 'enemy' for a random ground enemy of the area, empty string for nothing.")]
         public WeightedId[] contents =
         {
-            new WeightedId("gold_small", 4f), new WeightedId("gem", 0.8f), new WeightedId("enemy", 1.2f), new WeightedId("heart", 0.5f), new WeightedId("", 3f)
+            new WeightedId("gold_small", 4f), new WeightedId("gem", 0.8f), new WeightedId("enemy", 1.2f), new WeightedId("heart", 0.5f),
+            new WeightedId("pebbles", 2.5f),        // shot for the slingshot
+            new WeightedId("", 1.5f)
         };
 
         bool broken;

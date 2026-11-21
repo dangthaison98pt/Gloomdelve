@@ -19,6 +19,12 @@ namespace Gloomdelve
         /// <summary>The "Use gear" button was pressed with this gear equipped.</summary>
         public abstract void Use(PlayerController p, FrameInput fi);
 
+        /// <summary>
+        /// Called every simulation step in which the player can act, while this gear is in hand - after Use, if the
+        /// button went down in that step. For gear that is held and let go (fi.useHeld): the slingshot.
+        /// </summary>
+        public virtual void Hold(PlayerController p, FrameInput fi) { }
+
         /// <summary>Called every simulation step while equipped: change how the player moves (e.g. allow gliding).</summary>
         public virtual void ModifyMotor(PlayerController p, ref MotorInput mi) { }
 
@@ -45,6 +51,7 @@ namespace Gloomdelve
             Register("rope", new RopeGear());
             Register("glider", new GliderGear());
             Register("recall", new RecallGear());
+            Register("slingshot", new SlingshotGear());
             // New gear: add a Register line here.
         }
 

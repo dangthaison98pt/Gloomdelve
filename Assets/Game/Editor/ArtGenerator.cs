@@ -1783,6 +1783,18 @@ namespace Gloomdelve.EditorTools
                 Save(p, "UI/Glyphs/flawless", PCenter);
             }
             {
+                // the "up / down chooses" mark (the [updown] token): a little direction cross, its up and down arms lit
+                var p = new Px(16, 16);
+                Color32 body = C(64, 60, 84), bodyD = C(40, 38, 56), lit = C(236, 232, 244), dim = C(110, 106, 132);
+                p.Rect(6, 1, 4, 14, body); p.Rect(1, 6, 14, 4, body);              // the cross
+                p.Rect(6, 1, 4, 1, bodyD); p.Rect(1, 6, 1, 4, bodyD); p.Rect(14, 6, 1, 4, bodyD); p.Rect(6, 14, 4, 1, bodyD);
+                p.Rect(7, 11, 2, 1, lit); p.Rect(6, 10, 4, 1, lit); p.Set(7, 12, lit); p.Set(8, 12, lit);                 // up arrow
+                p.Rect(7, 4, 2, 1, lit); p.Rect(6, 5, 4, 1, lit); p.Set(7, 3, lit); p.Set(8, 3, lit);                    // down arrow
+                p.Set(3, 7, dim); p.Set(3, 8, dim); p.Set(12, 7, dim); p.Set(12, 8, dim);                                // left / right: not used here
+                p.Outline(C(18, 16, 28));
+                Save(p, "UI/Glyphs/updown", PCenter);
+            }
+            {
                 var p = new Px(9, 9);
                 p.Disc(4f, 4f, 3.4f, C(150, 90, 230)); p.Disc(4f, 4f, 2f, C(214, 170, 255)); p.Set(4, 4, C(255, 255, 255));
                 Save(p, o + "orb", PCenter);
@@ -2042,6 +2054,26 @@ namespace Gloomdelve.EditorTools
         {
             const string d = "Sprites/Items/";
             Color32 ol = C(30, 22, 22);
+            {
+                // pebbles: three small stones lying together (shot for the slingshot)
+                var p = ItemCanvas(); Color32 st = C(140, 134, 128), stL = C(190, 184, 176), stD = C(96, 92, 88);
+                p.Ellipse(5.5f, 2f, 2.4f, 1.8f, st); p.Ellipse(10.5f, 2f, 2.6f, 2f, st); p.Ellipse(8f, 4.6f, 2.2f, 1.7f, st);
+                p.Set(4, 3, stL); p.Set(5, 3, stL); p.Set(10, 3, stL); p.Set(7, 5, stL); p.Set(8, 5, stL); p.Set(12, 1, stD); p.Set(6, 1, stD);
+                p.Outline(ol); Save(p, d + "pebbles", PItem);
+            }
+            {
+                // one pebble in flight
+                var p = new Px(6, 6); p.Disc(3f, 3f, 1.8f, C(150, 144, 138)); p.Set(3, 4, C(206, 200, 192)); p.Set(2, 1, C(100, 96, 92));
+                p.Outline(ol); Save(p, d + "pebble", PCenter);
+            }
+            {
+                // the Pebble Pouch: a small leather bag with stones showing at its mouth
+                var p = ItemCanvas(); Color32 lt = C(150, 104, 62), ltD = C(104, 70, 40), ltL = C(190, 142, 90), st = C(150, 144, 138), tie = C(214, 190, 120);
+                p.Ellipse(8f, 4.5f, 5f, 4.2f, lt); p.Rect(5, 8, 6, 2, lt); p.Rect(5, 8, 6, 1, tie);
+                p.Rect(4, 2, 1, 4, ltD); p.Rect(5, 1, 6, 1, ltD); p.Set(10, 6, ltL); p.Set(11, 5, ltL); p.Set(10, 5, ltL);
+                p.Set(6, 10, st); p.Set(8, 11, st); p.Set(9, 10, st); p.Set(7, 10, C(196, 190, 182));
+                p.Outline(ol); Save(p, d + "pebblepouch", PItem);
+            }
             { var p = ItemCanvas(); p.Ellipse(8, 3.5f, 3.6f, 2.6f, C(124, 118, 112)); p.Set(6, 5, C(176, 170, 162)); p.Set(7, 5, C(176, 170, 162)); p.Set(10, 2, C(86, 82, 78)); p.Set(9, 1, C(86, 82, 78)); p.Outline(ol); Save(p, d + "rock", PItem); }
             {
                 // ice chunk left by a frost bat
@@ -2614,6 +2646,16 @@ namespace Gloomdelve.EditorTools
             }
             { var p = new Px(12, 10); HeartShape(p, 1, 1, C(220, 40, 60), C(255, 150, 160), C(140, 20, 40)); p.Outline(C(30, 10, 14)); Save(p, d + "icon_heart", PCenter); }
             { var p = new Px(12, 12); p.Disc(5.5f, 5f, 4f, C(40, 40, 54)); p.Set(4, 7, C(130, 130, 150)); p.Set(3, 6, C(130, 130, 150)); p.Set(8, 9, C(140, 100, 60)); p.Set(9, 10, C(255, 200, 60)); p.Outline(C(10, 10, 16)); Save(p, d + "icon_bomb", PCenter); }
+            {
+                // the slingshot: a forked branch, a band between its tips, a pebble in the band
+                var p = new Px(16, 16); Color32 wd = C(150, 104, 62), wdD = C(104, 70, 40), wdL = C(196, 150, 96), band = C(196, 64, 60), st = C(170, 164, 158);
+                p.Rect(7, 0, 2, 7, wd); p.Rect(7, 0, 1, 7, wdD);                                   // the handle
+                p.Line(7, 7, 4, 11, wd); p.Line(6, 7, 3, 11, wdD); p.Line(8, 7, 11, 11, wd); p.Line(9, 7, 12, 11, wdL);   // the fork
+                p.Rect(3, 11, 2, 3, wd); p.Rect(11, 11, 2, 3, wd); p.Set(12, 13, wdL);
+                p.Line(4, 13, 7, 10, band); p.Line(11, 13, 8, 10, band);                              // the band, drawn back
+                p.Rect(7, 9, 2, 2, st); p.Set(8, 10, C(220, 214, 206));
+                p.Outline(C(40, 26, 12)); Save(p, d + "icon_slingshot", PCenter);
+            }
             { var p = new Px(12, 12); Color32 r = C(200, 160, 96), rd = C(130, 96, 50); p.Ellipse(6, 5, 4.5f, 3.5f, r); p.Ellipse(6, 5, 2.6f, 1.8f, rd); p.Ellipse(6, 5, 1.2f, 0.8f, r); p.Line(9, 8, 10, 10, r); p.Outline(C(40, 26, 12)); Save(p, d + "icon_rope", PCenter); }
             { var p = new Px(12, 12); p.Disc(6, 6, 4.5f, C(240, 196, 64)); p.Disc(6, 6, 3f, C(214, 166, 40)); p.Rect(5, 4, 2, 5, C(255, 236, 140)); p.Outline(C(80, 54, 10)); Save(p, d + "icon_gold", PCenter); }
             { var p = new Px(12, 12); p.Disc(6, 6, 4.5f, C(220, 220, 230)); p.Disc(6, 6, 3.4f, C(60, 64, 80)); p.Line(6, 6, 6, 9, C(255, 255, 255)); p.Line(6, 6, 8, 6, C(255, 255, 255)); p.Outline(C(20, 20, 30)); Save(p, d + "icon_clock", PCenter); }

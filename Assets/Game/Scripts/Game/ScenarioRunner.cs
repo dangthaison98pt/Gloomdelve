@@ -380,6 +380,12 @@ namespace Gloomdelve
             new Scenario { name = "a heart pickup heals 1", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => HeartCase(c) },
 
+            new Scenario { name = "bags: five bombs and five ropes can be carried, what does not fit stays; the elder lets a bag out by five for embers, dearer each time, three times", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => BagsCase(c) },
+
+            new Scenario { name = "slingshot: carried from the start, it shoots pebbles that pots and crates give up; ten can be carried, twenty with the pouch", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => SlingshotCase(c) },
+
             new Scenario { name = "collectibles glow, pickups bob, hint arrow near a rock", map = m => { Set(m, 3, 1, 'S'); Set(m, 4, 1, 'o'); Set(m, 8, 1, 'u'); Set(m, 10, 1, 'c'); },
                 run = c => HighlightCase(c) },
 
@@ -521,6 +527,7 @@ namespace Gloomdelve
         static IEnumerator ShopCase(Ctx c, bool angry)
         {
             c.run.gold = 1000;
+            c.run.bombs = 2;        // (room for the three in the bag: five can be carried)
             var keeper = c.Spawn<Shopkeeper>("shopkeeper", 12, 1, 0, null, -1);
             var item = c.Spawn<ShopItem>("shopitem", 6, 1, 0, "bombs");
             yield return c.Frames(2);
@@ -545,7 +552,7 @@ namespace Gloomdelve
             c.p.godMode = angry;   // the angry keeper would knock us around
             c.Bot(Seq((5, F()), (1, F(act: true)), (5, F())));
             yield return c.Frames(12);
-            c.Expect(c.run.bombs == 7, $"bombs 7 (got {c.run.bombs})");
+            c.Expect(c.run.bombs == 5, $"bombs 5 (got {c.run.bombs})");
             c.Expect(c.run.gold == (angry ? 1000 : 650), $"gold {c.run.gold}");
             c.Expect(c.Count<ShopItem>() == 0, "item taken");
         }
@@ -1741,17 +1748,69 @@ namespace Gloomdelve
             yield return c.Frames(4);
             c.Expect(home != null && home.Home && home.Who == Villagers.All[2] && home.WareCount == Villagers.All[2].wares.Length,
                 $"the Healer is home: her place is lit and her wares are out ({(home != null ? home.WareCount : -1)})");
-            ShopItem ware = null;
-            foreach (var e in c.world.Entities) if (e is ShopItem si && !si.Dead) ware = si;
-            c.Expect(ware != null && ware.GetPrompt(c.p) != null && ware.GetPrompt(c.p).Contains("Buy"), "a ware in the village is for sale, not free");
-            if (ware != null)
+            // nothing is laid out on the floor in the village: spoken to, she opens her shop as a screen
+            int onFloor = 0;
+            foreach (var e in c.world.Entities) if (e is ShopItem si && !si.Dead) onFloor++;
+            var shopUi = c.dir.villageShop;
+            // standing by her, the prompt has a row for a word and a row for her shop - no screen opens to choose;
+            // down / up moves the chosen row (the one with the button on it), the rows stay where they are
+            c.Teleport(home != null ? home.pos.x : 12.5f, 1f);
+            c.Bot(Seq((6000, F())));
+            yield return c.Frames(6);
+            string[] offers = home != null ? home.Choices(c.p) : null;
+            string tag0 = c.p.Prompt ?? "";
+            string[] all0 = tag0.Split('\n');
+            string[] rows0 = all0.Length == 3 ? new[] { all0[1], all0[2] } : new string[0];       // (the first line is her name)
+            c.Expect(all0.Length == 3 && all0[0].Contains("Maren the Healer") && !all0[0].Contains("[enter]"), $"her name stands over the rows ('{(all0.Length > 0 ? all0[0] : "")}')");
+            c.Expect(offers != null && offers.Length == 2 && shopUi != null && !shopUi.IsOpen && c.p.ChoiceIndex == 0 && rows0.Length == 2
+                     && rows0[0].StartsWith("[updown] [enter]") && rows0[0].EndsWith(">Talk") && !rows0[1].Contains("[enter]") && rows0[1].Contains(">Shop<") && !tag0.Contains("choose"),
+                $"by the Healer the prompt has two rows, Talk and Shop, the up/down mark and the button before the first, and no words about choosing ('{tag0.Replace("\n", " / ")}')");
+            yield return new WaitForSecondsRealtime(0.4f);
+            var tagFaults = UIOverlap.Find();
+            c.Expect(tagFaults.Count == 0, "the rows at the prompt are laid out cleanly" + (tagFaults.Count > 0 ? " (" + tagFaults[0] + ")" : ""));
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "village_choices.png"));
+            yield return new WaitForSecondsRealtime(0.3f);
+            c.Bot(Seq((2, F()), (1, new FrameInput { interactPressed = true }), (20, F())));
+            yield return c.Frames(10);
+            c.Expect(shopUi != null && !shopUi.IsOpen && c.dir.hud.TalkUp, "the interact button does the chosen row: she says her piece, and no screen opens");
+            c.dir.hud.AdvanceTalk(); c.dir.hud.AdvanceTalk(); c.dir.hud.AdvanceTalk(); c.dir.hud.AdvanceTalk();
+            yield return c.Frames(6);
+            float standH = c.p.Bounds.height;
+            c.Bot(Seq((2, F()), (8, F(down: true)), (6, F())));
+            yield return c.Frames(8);
+            bool noCrouch = !c.p.Crouching;
+            yield return c.Frames(6);
+            string tag1 = c.p.Prompt ?? "";
+            string[] all1 = tag1.Split('\n');
+            string[] rows1 = all1.Length == 3 ? new[] { all1[1], all1[2] } : new string[0];
+            c.Expect(c.p.ChoiceIndex == 1 && rows1.Length == 2 && rows1[0].Contains(">Talk<") && !rows1[0].Contains("[enter]") && rows1[1].StartsWith("[updown] [enter]") && rows1[1].EndsWith(">Shop") && noCrouch,
+                $"down moves the button to the second row - the rows stay in place, and the player does not crouch for it ('{tag1.Replace("\n", " / ")}', crouched {!noCrouch})");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "village_choices_2.png"));
+            yield return c.Frames(3);
+            c.Bot(Seq((2, F()), (4, F(up: true)), (4, F()), (4, F(up: true)), (4, F())));
+            yield return c.Frames(20);
+            c.Expect(c.p.ChoiceIndex == 1, $"up goes back to the first row, and up again round to the last ({c.p.ChoiceIndex})");
+            c.Bot(Seq((2, F()), (1, new FrameInput { interactPressed = true }), (6000, F())));
+            yield return new WaitForSecondsRealtime(0.5f);       // (the game stands still once the shop is open: no counting its steps)
+            c.Expect(onFloor == 0 && shopUi != null && shopUi.IsOpen && shopUi.Count == Villagers.All[2].wares.Length && Time.timeScale == 0f,
+                $"no wares on the floor ({onFloor}); spoken to, the Healer's shop opens as a screen with her wares, and the game stands still ({(shopUi != null ? shopUi.Count : -1)} rows)");
+            if (shopUi != null && shopUi.IsOpen)
             {
+                var shopFaults = UIOverlap.Find();
+                c.Expect(shopFaults.Count == 0, "the shop screen is laid out cleanly" + (shopFaults.Count > 0 ? " (" + shopFaults[0] + ")" : ""));
+                ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "village_shop.png"));
+                yield return new WaitForSecondsRealtime(0.3f);
+                int row = -1;
+                for (int i = 0; i < shopUi.Count; i++) if (shopUi.At(i).offer.id == "vigor") row = i;
                 int hp = run.maxHealth, gold0 = run.gold, e0 = Villagers.Embers;
                 int price = Villagers.EmberPrice(c.dir.config.shop.Find("vigor"), Villagers.All[2]);
-                ware.Interact(c.p);
-                c.Expect(run.maxHealth == hp + 1 && Villagers.Embers == e0 - price && run.gold == gold0,
-                    $"buying the Heart Draught: +1 heart for this run, {price} embers paid ({e0} -> {Villagers.Embers}), no gold");
+                bool bought = row >= 0 && shopUi.Buy(row);
+                c.Expect(bought && run.maxHealth == hp + 1 && Villagers.Embers == e0 - price && run.gold == gold0 && shopUi.IsOpen,
+                    $"buying the Heart Draught there: +1 heart for this run, {price} embers paid ({e0} -> {Villagers.Embers}), no gold, and the shop stays open");
                 run.maxHealth = hp; run.health = Mathf.Min(run.health, hp);
+                shopUi.Close();
+                yield return new WaitForSecondsRealtime(0.1f);
+                c.Expect(!shopUi.IsOpen && Time.timeScale > 0f, "closed, the game goes on");
             }
             yield return c.Frames(10);
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "villager_homes.png"));
@@ -3872,6 +3931,7 @@ namespace Gloomdelve
             int gold0 = c.run.gold;
             c.Teleport(3.5f, 1f);
             ItemLog.FirstTime("ropes");       // (seen before: it goes to the list)
+            c.run.ropes = 0;                  // (room for five: of the two piles of three, three are taken and then two)
             c.Spawn<Pickup>("ropepile", 6, 1); c.Spawn<Pickup>("ropepile", 6, 1);
             c.Spawn<Pickup>("gold_small", 7, 1); c.Spawn<Pickup>("gold_big", 7, 1);
             yield return c.Frames(20);
@@ -3879,7 +3939,7 @@ namespace Gloomdelve
             yield return c.Frames(14);
             c.Teleport(7.5f, 1f);
             yield return c.Frames(14);
-            c.Expect(c.run.gold == gold0 + 40 && hud.FeedCount == 4 && hud.FeedLines("ropes") == 2 && hud.FeedAmount("ropes") == 6 && hud.FeedAmount("gold_small") == 10 && hud.FeedAmount("gold_big") == 30 && hud.CardName == "Bomb Bag",
+            c.Expect(c.run.gold == gold0 + 40 && hud.FeedCount == 4 && hud.FeedLines("ropes") == 2 && hud.FeedAmount("ropes") == 5 && hud.FeedAmount("gold_small") == 10 && hud.FeedAmount("gold_big") == 30 && hud.CardName == "Bomb Bag",
                 $"picked up again an item is a line at the left edge, each with a line of its own - two rope piles two lines, a nugget +10, a chunk +30 - and gold never a card (lines {hud.FeedCount}, rope lines {hud.FeedLines("ropes")}, nugget +{hud.FeedAmount("gold_small")}, chunk +{hud.FeedAmount("gold_big")})");
             // one id for a thing, however it is come by: the bomb bag found on the ground has had its card, so the
             // Bomb Bag a shop sells afterwards (the same id, "bombs") is only a line - and a save from before the ids
@@ -4210,6 +4270,244 @@ namespace Gloomdelve
             c.Expect(g.Get(12, 5) == TileType.Bedrock, "bedrock intact");
             c.Expect(c.p.pos.x > 14f, $"walked through (pos {c.p.pos})");
             c.Expect(!c.p.IsDead && c.run.bombs == 3, "safe, one bomb used");
+        }
+
+        static IEnumerator SlingshotCase(Ctx c)
+        {
+            c.p.godMode = true;
+            var run = c.run;
+            var sling = GearRegistry.Get("slingshot") as SlingshotGear;
+            // the use button down for a few steps (the band is drawn), then let go (the pebble flies)
+            IEnumerator Shoot(bool up = false, int holdFrames = 6)
+            {
+                sling.Use(c.p, new FrameInput { usePressed = true, useHeld = true, up = up });
+                for (int i = 0; i < holdFrames; i++) { sling.Hold(c.p, new FrameInput { useHeld = true, up = up }); yield return new WaitForFixedUpdate(); }
+                sling.Hold(c.p, new FrameInput { useHeld = false, up = up });
+            }
+            var def = c.world.config.FindGear("slingshot");
+            c.Expect(run.gear.Contains("slingshot") && sling != null && def != null && def.icon != null && run.Pebbles == 0 && run.PebbleCap == 10,
+                $"every run starts with the slingshot, no pebbles, and room for ten (gear {run.gear.Contains("slingshot")}, pebbles {run.Pebbles}, room {run.PebbleCap})");
+            var kit = c.dir.config.player.startingGear;
+            c.Expect(kit != null && kit.Length > 0 && kit[0] == "slingshot" && System.Array.IndexOf(kit, "bomb") > 0 && run.EquippedId == "bomb",
+                $"it is the first of the starting gear, so a run begins with it in hand and the bombs behind it - but the tutorial, which teaches the bombs, begins with those (first {(kit != null && kit.Length > 0 ? kit[0] : "?")}, in hand here {run.EquippedId})");
+            c.Teleport(3.5f, 1f);
+            c.p.facing = 1;
+            yield return Shoot();
+            yield return c.Frames(3);
+            c.Expect(c.Count<PebbleShot>() == 0 && run.Pebbles == 0 && !sling.Drawn, "without pebbles the band is not even drawn, and nothing is shot");
+
+            // pots and crates can give pebbles up
+            bool inPot = false, inCrate = false;
+            var pot = c.world.config.prefabs.Get("pot") as Breakable; var crate = c.world.config.prefabs.Get("crate") as Breakable;
+            if (pot != null) foreach (var w in pot.contents) if (w.id == "pebbles" && w.weight > 0f) inPot = true;
+            if (crate != null) foreach (var w in crate.contents) if (w.id == "pebbles" && w.weight > 0f) inCrate = true;
+            c.Expect(inPot && inCrate, $"pebbles are among what a pot and a crate may hold (pot {inPot}, crate {inCrate})");
+
+            // three to a pile; four piles are twelve, and only ten can be carried: the rest stays where it lies
+            ItemLog.FirstTime("pebbles");        // (seen before: no card over the test)
+            for (int i = 0; i < 4; i++) c.Spawn<Pickup>("pebbles", 6, 1);
+            yield return c.Frames(20);
+            c.Teleport(6.5f, 1f);
+            yield return c.Frames(20);
+            int left = 0, leftValue = 0;
+            foreach (var e in c.world.Entities) if (!e.Dead && e is Pickup pk && pk.resource == Res.Pebbles) { left++; leftValue += pk.value; }
+            c.Expect(run.Pebbles == 10 && left == 1 && leftValue == 2, $"ten are picked up and the two that do not fit stay on the ground (carried {run.Pebbles}, piles left {left} holding {leftValue})");
+
+            // a shot: one pebble spent, one point to what it meets
+            c.Teleport(3.5f, 1f);
+            c.p.facing = 1;
+            var snake = c.Spawn<Snake>("snake", 9, 1);
+            yield return c.Frames(4);
+            // held, nothing flies yet; let go, it does - from the hand, at the height of the arm
+            sling.Use(c.p, new FrameInput { usePressed = true, useHeld = true });
+            for (int i = 0; i < 20; i++) { sling.Hold(c.p, new FrameInput { useHeld = true }); yield return new WaitForFixedUpdate(); }
+            c.Expect(sling.Drawn && c.Count<PebbleShot>() == 0 && run.Pebbles == 10, $"while the button is held the band is drawn and nothing flies (drawn {sling.Drawn}, pebbles {run.Pebbles})");
+            sling.Hold(c.p, new FrameInput { useHeld = false });
+            yield return new WaitForFixedUpdate();
+            PebbleShot inAir = null;
+            foreach (var e in c.world.Entities) if (!e.Dead && e is PebbleShot ps) inAir = ps;
+            bool flew = inAir != null;
+            float shotHeight = inAir != null ? inAir.pos.y - c.p.pos.y : -1f;
+            c.Expect(flew && !sling.Drawn && shotHeight > 0.35f && shotHeight < 0.6f, $"let go, the pebble flies from the hand, at arm height ({shotHeight:0.00} above the feet)");
+            for (int i = 0; i < 90 && snake != null && !snake.Dead; i++) yield return new WaitForFixedUpdate();
+            c.Expect(flew && run.Pebbles == 9 && snake != null && snake.Dead, $"a shot spends one pebble and kills a snake across the room (flew {flew}, pebbles {run.Pebbles}, snake dead {snake != null && snake.Dead})");
+            yield return c.Frames(30);
+            c.Expect(c.Count<PebbleShot>() == 0, "the pebble is gone after it has hit: it is not picked up again");
+
+            // a pot in its way is broken open
+            foreach (var e in c.world.Entities) if (!e.Dead && e is Pickup pk2 && pk2.resource != Res.Pebbles) e.Despawn();
+            var jar = c.Spawn<Breakable>("pot", 8, 1);
+            yield return c.Frames(10);
+            yield return Shoot();
+            for (int i = 0; i < 90 && jar != null && !jar.Dead; i++) yield return new WaitForFixedUpdate();
+            c.Expect(run.Pebbles == 8 && jar != null && jar.Dead, $"a pebble breaks a pot from afar (pebbles {run.Pebbles}, pot broken {jar != null && jar.Dead})");
+            yield return c.Frames(20);
+            foreach (var e in c.world.Entities) if (!e.Dead && (e is Enemy || (e is Pickup pk3 && pk3.resource != Res.Pebbles))) e.Despawn();      // (whatever the pot held)
+
+            // crouched, the pebble leaves low and flies on along the floor (for what is too small to hit standing)
+            yield return c.Frames(30);
+            c.Bot(Seq((200, F(down: true))));
+            yield return c.Frames(12);
+            sling.Use(c.p, new FrameInput { usePressed = true, useHeld = true, down = true });
+            for (int i = 0; i < 6; i++) { sling.Hold(c.p, new FrameInput { useHeld = true, down = true }); yield return new WaitForFixedUpdate(); }
+            bool crouched = c.p.Crouching;
+            sling.Hold(c.p, new FrameInput { useHeld = false, down = true });
+            float lowHeight = -1f, lowLater = -1f, flown = 0f;
+            for (int i = 0; i < 12; i++)
+            {
+                yield return new WaitForFixedUpdate();
+                foreach (var e in c.world.Entities)
+                    if (!e.Dead && e is PebbleShot ps2)
+                    {
+                        if (lowHeight < 0f) lowHeight = ps2.pos.y - c.p.pos.y;
+                        lowLater = ps2.pos.y - c.p.pos.y; flown = ps2.pos.x - c.p.pos.x;
+                    }
+            }
+            c.Expect(crouched && lowHeight >= 0.05f && lowHeight < 0.3f && Mathf.Abs(lowLater - lowHeight) < 0.01f && flown > 2f && run.Pebbles == 7,
+                $"let go while crouched, the pebble leaves low ({lowHeight:0.00} above the feet, against 0.42 standing) and flies on level along the floor ({flown:0.0} tiles on, still at {lowLater:0.00})");
+            c.Bot(Seq((9000, F())));
+            yield return c.Frames(40);
+            run.AddResource(Res.Pebbles, 8 - run.Pebbles);        // (back to what the next part counts from)
+
+            // a draw that is dropped (the button is no longer seen: stunned, a menu, other gear in hand) spends nothing
+            yield return c.Frames(30);
+            sling.Use(c.p, new FrameInput { usePressed = true, useHeld = true });
+            yield return c.Frames(10);         // (ten steps without a word from the button)
+            sling.Hold(c.p, new FrameInput { useHeld = false });
+            yield return c.Frames(3);
+            c.Expect(!sling.Drawn && c.Count<PebbleShot>() == 0 && run.Pebbles == 8, $"a draw that was interrupted is dropped and no pebble is spent (pebbles {run.Pebbles})");
+
+            // the Pebble Pouch: ten more
+            var pouch = c.world.config.shop.Find("pebblepouch");
+            c.Expect(pouch != null && pouch.icon != null && pouch.isUpgrade, "shops sell a Pebble Pouch");
+            if (pouch != null)
+            {
+                ShopItem.Apply(run, pouch);
+                c.Expect(run.PebbleCap == 20, $"worn, it makes room for twenty (room {run.PebbleCap})");
+                c.Teleport(6.5f, 1f);
+                yield return c.Frames(20);
+                c.Expect(run.Pebbles == 10, $"and the pile left behind is picked up now (carried {run.Pebbles})");
+            }
+            c.Teleport(3.5f, 1f);
+        }
+
+        static IEnumerator BagsCase(Ctx c)
+        {
+            c.p.godMode = true;
+            var run = c.run;
+            Villagers.testRescued = new HashSet<string>();       // the test keeps its own state: the save file is not touched
+            Villagers.ResetTestState();
+            Bags.ResetTestState();
+            Villagers.GiveKey(Villagers.KeyPouch);
+            ItemLog.FirstTime("bombs"); ItemLog.FirstTime("ropes");       // (seen before: no cards over the test)
+            run.bombs = 4; run.ropes = 5;
+            c.Expect(run.BombCap == 5 && run.RopeCap == 5 && run.PebbleCap == 10 && Villagers.PouchCapacity == 5,
+                $"at first: five bombs, five ropes, ten pebbles, five embers (bombs {run.BombCap}, ropes {run.RopeCap}, pebbles {run.PebbleCap}, pouch {Villagers.PouchCapacity})");
+
+            // a bomb bag (three) with room for one: one is taken, two stay; a rope pile with no room at all stays whole
+            c.Teleport(3.5f, 1f);
+            c.Spawn<Pickup>("bombbag", 6, 1);
+            c.Spawn<Pickup>("ropepile", 6, 1);
+            yield return c.Frames(20);
+            c.Teleport(6.5f, 1f);
+            yield return c.Frames(20);
+            int bombsLeft = -1, ropesLeft = -1;
+            foreach (var e in c.world.Entities)
+                if (!e.Dead && e is Pickup pk) { if (pk.resource == Res.Bombs) bombsLeft = pk.value; else if (pk.resource == Res.Ropes) ropesLeft = pk.value; }
+            c.Expect(run.bombs == 5 && run.ropes == 5 && bombsLeft == 2 && ropesLeft == 3,
+                $"only what fits is picked up, the rest stays on the ground (bombs {run.bombs} with {bombsLeft} left lying, ropes {run.ropes} with {ropesLeft} left lying)");
+
+            // a shop does not sell what cannot be carried
+            c.Teleport(3.5f, 1f);
+            run.gold = 2000;
+            var ware = c.Spawn<ShopItem>("shopitem", 9, 1, 0, "bombs");
+            yield return c.Frames(3);
+            if (ware != null) ware.Interact(c.p);
+            yield return c.Frames(3);
+            c.Expect(ware != null && !ware.Dead && run.gold == 2000 && run.bombs == 5, $"with a full bag a shop sells no more bombs and takes no gold (gold {run.gold}, bombs {run.bombs})");
+            if (ware != null) ware.Despawn();
+
+            // the elder: spoken to, he opens a screen with his work on the four bags (nothing on the floor)
+            var elder = c.Spawn<Elder>("elder", 11, 1);
+            yield return c.Frames(4);
+            var ui = c.dir.villageShop;
+            int laidOut = 0;
+            foreach (var e in c.world.Entities) if (!e.Dead && e is ShopItem) laidOut++;
+            string[] elderOffers = elder != null ? elder.Choices(c.p) : null;
+            c.Expect(elderOffers != null && elderOffers.Length == 2 && elderOffers[0] == "Talk" && elderOffers[1] == "Upgrade" && ui != null && !ui.IsOpen,
+                "by the elder the prompt offers a word with him or his work on the bags; nothing opens yet");
+            if (elder != null) elder.Choose(c.p, 1);
+            yield return new WaitForSecondsRealtime(0.3f);
+            // every picture in the list is drawn at the same size of pixel
+            {
+                float unit = -1f; bool same = true; string sizes = "";
+                for (int i = 0; ui != null && i < ui.icons.Length && i < ui.Count; i++)
+                {
+                    var im = ui.icons[i];
+                    if (im == null || im.sprite == null) continue;
+                    float per = im.rectTransform.sizeDelta.x / im.sprite.rect.width;      // screen units to one pixel of the picture
+                    sizes += $"{per:0.0} ";
+                    if (unit < 0f) unit = per; else if (Mathf.Abs(per - unit) > 0.01f) same = false;
+                }
+                c.Expect(unit > 0f && same, $"the pictures of the wares all have the same size of pixel ({sizes.Trim()})");
+            }
+            int Row(string kind) { for (int i = 0; ui != null && i < ui.Count; i++) if (ui.At(i).bag == kind) return i; return -1; }
+            c.Expect(laidOut == 0 && ui != null && ui.IsOpen && ui.Count == 4 && Row(Bags.Bombs) >= 0 && Row(Bags.Ropes) >= 0 && Row(Bags.Pebbles) >= 0 && Row(Bags.Embers) >= 0,
+                $"the elder's work on all four bags is a screen, not wares on the floor (rows {(ui != null ? ui.Count : -1)}, on the floor {laidOut})");
+            var uio = UIOverlap.Find();
+            c.Expect(uio.Count == 0, "the screen is laid out cleanly" + (uio.Count > 0 ? " (" + uio[0] + ")" : ""));
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "elder_bags.png"));
+            yield return new WaitForSecondsRealtime(0.3f);
+
+            // 2 embers, then 3, then 4: five more each time, three times; without the embers nothing happens
+            Villagers.AddEmbers(5);
+            ui.Buy(Row(Bags.Bombs));
+            c.Expect(run.BombCap == 10 && run.bombs == 10 && Villagers.Embers == 3 && Bags.Price(Bags.Bombs) == 3, $"the first enlarging costs 2 embers, the bag holds ten - and is full at once (holds {run.BombCap}, bombs {run.bombs}, embers {Villagers.Embers}, next {Bags.Price(Bags.Bombs)})");
+            ui.Buy(Row(Bags.Bombs));
+            c.Expect(run.BombCap == 15 && Villagers.Embers == 0 && Bags.Price(Bags.Bombs) == 4, $"the second costs 3 and it holds fifteen (holds {run.BombCap}, embers {Villagers.Embers})");
+            bool refused = !ui.Buy(Row(Bags.Bombs));
+            c.Expect(refused && run.BombCap == 15, "with no embers left nothing is enlarged");
+            Villagers.AddEmbers(5);
+            ui.Buy(Row(Bags.Bombs));
+            bool atMost = !ui.Buy(Row(Bags.Bombs));
+            c.Expect(run.BombCap == 20 && Villagers.Embers == 1 && !Bags.CanEnlarge(Bags.Bombs) && atMost,
+                $"the third costs 4, it holds twenty, and that is as large as it gets (holds {run.BombCap}, embers {Villagers.Embers})");
+
+            // the pouch itself, the ropes and the pebbles go the same way
+            Villagers.AddEmbers(5);
+            ui.Buy(Row(Bags.Embers));
+            c.Expect(Villagers.PouchCapacity == 10 && Villagers.Embers == 3, $"the Ember Pouch is let out the same way (holds {Villagers.PouchCapacity}, embers {Villagers.Embers})");
+            ui.Buy(Row(Bags.Ropes));
+            Villagers.AddEmbers(9);
+            ui.Buy(Row(Bags.Pebbles));
+            var pouchItem = c.world.config.shop.Find("pebblepouch");
+            if (pouchItem != null && !run.HasUpgrade("pebblepouch")) ShopItem.Apply(run, pouchItem);
+            c.Expect(run.RopeCap == 10 && run.PebbleCap == 25, $"ropes ten; pebbles fifteen from the elder and ten more from the Pebble Pouch worn on top (ropes {run.RopeCap}, pebbles {run.PebbleCap})");
+            yield return new WaitForSecondsRealtime(0.2f);
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "elder_bags_after.png"));
+            yield return new WaitForSecondsRealtime(0.3f);
+            ui.Close();
+            yield return c.Frames(3);
+
+            // a bag that was let out is full at once; and a run sets out with every bag full
+            c.Expect(run.bombs == 20 && run.ropes == 10 && run.Pebbles == 15, $"each bag he let out was filled on the spot (bombs {run.bombs}, ropes {run.ropes}, pebbles {run.Pebbles})");
+            run.bombs = 1; run.ropes = 0; run.AddResource(Res.Pebbles, -run.Pebbles);
+            RunSession.FillBags(run);
+            c.Expect(run.bombs == run.BombCap && run.ropes == run.RopeCap && run.Pebbles == run.PebbleCap && run.Pebbles == 25,
+                $"a run sets out with its bags full: bombs, ropes and pebbles as many as they hold (bombs {run.bombs}/{run.BombCap}, ropes {run.ropes}/{run.RopeCap}, pebbles {run.Pebbles}/{run.PebbleCap})");
+            // and with room again, what was left lying is picked up
+            run.bombs = 18; run.ropes = 7;
+            c.Teleport(6.5f, 1f);
+            yield return c.Frames(20);
+            c.Expect(run.bombs == 20 && run.ropes == 10, $"with room in the bags the bombs and ropes left behind are picked up (bombs {run.bombs}, ropes {run.ropes})");
+
+            foreach (var e in c.world.Entities) if (!e.Dead && (e is ShopItem || e is Elder)) e.Despawn();
+            if (run.HasUpgrade("pebblepouch")) run.RemoveUpgrade("pebblepouch");
+            c.Teleport(3.5f, 1f);
+            Bags.ResetTestState();
+            Villagers.ResetTestState();
+            Villagers.testRescued = null;
+            yield return c.Frames(2);
         }
 
         static IEnumerator HeartCase(Ctx c)

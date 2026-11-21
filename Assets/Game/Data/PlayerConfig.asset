@@ -40,9 +40,11 @@ MonoBehaviour:
   startRopes: 4
   startGold: 0
   startingGear:
+  - slingshot
   - bomb
   - rope
   - recall
+  pebbleCapacity: 10
   whipDuration: 0.3
   whipCooldown: 0.1
   whipBackEnd: 0.08
@@ -56,6 +58,15 @@ MonoBehaviour:
   heavyCarrySpeed: 0.8
   stompBounce: 9
   stompBounceHeld: 13.5
+  slingSpeed: 16
+  slingCooldown: 0.35
+  dashSpeed: 17
+  dashTime: 0.2
+  dashEnergyMax: 100
+  dashCost: 30
+  dashRegenDelay: 0.5
+  dashRegenRate: 60
+  dashGrace: 0.12
   invulnTime: 1.2
   spikeDamage: 2
   spikeBounce: 10

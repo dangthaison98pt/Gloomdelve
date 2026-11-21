@@ -186,6 +186,10 @@ MonoBehaviour:
     prefab: {fileID: 7834356725537803413, guid: 75ce697fa053d2e479829287c662ad32, type: 3}
   - id: ropepile
     prefab: {fileID: 3867685975134011339, guid: d733cc154a885b44089f2f3076eec8af, type: 3}
+  - id: pebbles
+    prefab: {fileID: 2635122054344712088, guid: 8addfc941b3be62439138a52aaca5dd7, type: 3}
+  - id: pebbleshot
+    prefab: {fileID: 5271112908577177235, guid: c9614eef6685a67438894efb7aef5bae, type: 3}
   - id: heart
     prefab: {fileID: 5961885058789331752, guid: 6e603d80527355d44ac1e5bfde83e838, type: 3}
   - id: heartvessel

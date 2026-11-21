@@ -441,7 +441,7 @@ namespace Gloomdelve.EditorTools
                 int c1 = RunSession.RunCounter;
                 r1.gold = 999; r1.bombs = 0; r1.AddUpgrade(cfg.shop.Find("springboots")); r1.AddResource("test_counter", 3); r1.stageIndex = 4; r1.totalTime = 100; r1.kills = 7;
                 var r2 = RunSession.NewRun(456, false, cfg.player);
-                bool fresh = r2 != r1 && r2.gold == cfg.player.startGold && r2.bombs == cfg.player.startBombs && r2.upgrades.Count == 0 && r2.stats.IsZero && r2.counters.Count == 0 && r2.stageIndex == 0 &&
+                bool fresh = r2 != r1 && r2.gold == cfg.player.startGold && r2.bombs == r2.BombCap && r2.upgrades.Count == 0 && r2.stats.IsZero && r2.counters.Count == 0 && r2.stageIndex == 0 &&
                              r2.totalTime == 0 && r2.kills == 0 && r2.health == cfg.player.startHealth && RunSession.RunCounter == c1 + 1;
                 Check("new run does not keep the previous run's state", fresh);
                 RunSession.Clear();
