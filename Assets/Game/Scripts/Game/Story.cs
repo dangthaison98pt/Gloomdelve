@@ -33,27 +33,6 @@ namespace Gloomdelve
 
         /// <summary>Tests: place the story's things although a test is running.</summary>
         public static bool forTests;
-        /// <summary>"-breakTest" on the command line: in the last hall the keeper falls by itself and the stone is broken (for looking at what follows).</summary>
-        public static bool autoBreak;
-
-        /// <summary>The last hall plays itself out to the real end: the keeper falls, the stone is struck.</summary>
-        public static System.Collections.IEnumerator AutoBreak(GameDirector d)
-        {
-            autoBreak = false;
-            yield return new WaitForSeconds(2.5f);
-            for (int i = 0; i < 400 && d.BossAlive; i++)
-            {
-                var boss = d.Boss;
-                boss.health = 1;
-                boss.TakeDamage(new DamageInfo(1, DamageType.Explosion, d.Player, Vector2.zero, "test"));
-                yield return new WaitForSeconds(0.3f);
-            }
-            yield return new WaitForSeconds(3f);
-            Treasure stone = null;
-            foreach (var e in d.world.Entities) if (e is Treasure t && t.isHeartstone && !t.Dead) stone = t;
-            Debug.Log($"[Story] auto break: boss alive {d.BossAlive}, stone {(stone != null ? stone.pos.ToString() : "none")}");
-            if (stone != null) d.BreakSunstone(stone);
-        }
 
         public static bool HasRubbing => Villagers.HasKey(KeyRubbing);
         public static bool Decoded => Villagers.HasKey(KeyDecoded);

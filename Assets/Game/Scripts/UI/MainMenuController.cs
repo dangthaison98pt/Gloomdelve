@@ -83,48 +83,6 @@ namespace Gloomdelve
                     return;
                 }
 
-            // "-endingTest": the scene that follows a run that was won, by itself (for looking at it)
-            for (int i = 0; i < args.Length; i++)
-                if (args[i] == "-endingTest" && !endingArgUsed) { endingArgUsed = true; EndingScene.BeginFromMenu(config); return; }
-            // "-trueEndTest": the morning after the Sunstone is broken, by itself (for looking at it)
-            for (int i = 0; i < args.Length; i++)
-                if (args[i] == "-trueEndTest" && !endingArgUsed)
-                {
-                    endingArgUsed = true;
-                    EndingScene.autoCredits = System.Array.IndexOf(args, "-creditsTest") >= 0;
-                    EndingScene.BeginTrueFromMenu(config);
-                    return;
-                }
-            // "-storyTest N": a run that starts in stage N (0 = its first level) with the old signs already read
-            // and, with "-hammer", the hammer whole in the bag (for looking at the pillars, the parts and the last hall)
-            for (int i = 0; i + 1 < args.Length; i++)
-                if (args[i] == "-storyTest" && !endingArgUsed && int.TryParse(args[i + 1], out int storyStage))
-                {
-                    endingArgUsed = true;
-                    Villagers.GiveKey(Villagers.KeyPouch);
-                    if (System.Array.IndexOf(args, "-unread") < 0) { Villagers.GiveKey(Story.KeyRubbing); Villagers.GiveKey(Story.KeyDecoded); }       // ("-unread": the signs not copied yet)
-                    var sr = RunSession.NewRun(RunSession.RandomSeed(), false, config.player);
-                    RunPlan.Ensure(sr, config);
-                    sr.inVillage = false;
-                    sr.stageIndex = Mathf.Clamp(storyStage, 0, sr.stageOrder.Length - 1);
-                    sr.totalTime = 1f;
-                    if (System.Array.IndexOf(args, "-hammer") >= 0) { sr.hammerHandle = sr.hammerHead = sr.hammerCore = true; sr.gear.Add(Story.HammerGear); }
-                    if (System.Array.IndexOf(args, "-paper") >= 0) sr.AddResource(Story.Paper, 1);
-                    // "-storyTest last -breakTest": the last hall, played out by itself to the real end
-                    if (System.Array.IndexOf(args, "-breakTest") >= 0) { sr.stageIndex = sr.stageOrder.Length - 1; Story.autoBreak = true; }
-                    SceneManager.LoadScene(GameConst.SceneGame);
-                    return;
-                }
-            // "-wakeTest": the scene of a save's first death - waking in bed - by itself (for looking at it)
-            for (int i = 0; i < args.Length; i++)
-                if (args[i] == "-wakeTest" && !endingArgUsed)
-                {
-                    endingArgUsed = true;
-                    EndingScene.ForceFirstDeath = true; EndingScene.Last = EndingScene.Night.Died;
-                    RunSession.NewRun(12345, false, config.player).wakeInBed = true;
-                    SceneManager.LoadScene(GameConst.SceneGame);
-                    return;
-                }
             // "-tutorialTest": straight into the tutorial, as a new game begins (for looking at it)
             for (int i = 0; i < args.Length; i++)
                 if (args[i] == "-tutorialTest" && !tutorialArgUsed) { tutorialArgUsed = true; StartTutorial(); return; }
@@ -395,7 +353,7 @@ namespace Gloomdelve
             LoadingScreen.Load(GameConst.SceneGame);
         }
 
-        static bool bossTestArgUsed, loadingShotUsed, tutorialArgUsed, endingArgUsed;
+        static bool bossTestArgUsed, loadingShotUsed, tutorialArgUsed;
 
         /// <summary>"01:00.2  [flawless]" for a boss that was beaten in Challenge, "" otherwise.</summary>
         public static string BossBest(string boss, string never)

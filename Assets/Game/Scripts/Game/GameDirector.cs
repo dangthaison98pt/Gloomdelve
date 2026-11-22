@@ -201,7 +201,6 @@ namespace Gloomdelve
             SaveSystem.AppendRunLog(line);
 
             if (ending) { StartCoroutine(trueEnd ? EndingScene.PlayTrue(this) : EndingScene.Play(this)); return; }
-            if (Story.autoBreak && Stage.kind == LevelKind.Final) StartCoroutine(Story.AutoBreak(this));
             // waking in bed after a night that ended - won or lost - is the same day again, and only Brann knows it:
             // a line says so, and the first death of a save gets a short scene of its own (EndingScene)
             var lastNight = EndingScene.Last;

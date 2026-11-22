@@ -31,10 +31,6 @@ namespace Gloomdelve
         /// <summary>How the night before this waking ended (told once, by the next waking in bed).</summary>
         public enum Night { None, Won, Died }
         public static Night Last;
-        /// <summary>"-creditsTest" on the command line: the real end's numbers go on to the credits by themselves.</summary>
-        public static bool autoCredits;
-        /// <summary>"-wakeTest" on the command line: the scene of the first death, whatever the save has seen.</summary>
-        public static bool ForceFirstDeath;
 
         static RunState won;
         static string news = "";
@@ -103,7 +99,7 @@ namespace Gloomdelve
         }
 
         /// <summary>This waking is the one that gets the scene of the first death: after a death, in a save that has not seen it.</summary>
-        public static bool FirstDeathDue(Night last) => last == Night.Died && (ForceFirstDeath || !SaveSystem.Records.loopSeen);
+        public static bool FirstDeathDue(Night last) => last == Night.Died && !SaveSystem.Records.loopSeen;
 
         /// <summary>
         /// The run is won: on to the village, where the scene is played. False when it cannot be (tests, a game
@@ -120,16 +116,6 @@ namespace Gloomdelve
             return true;
         }
 
-        /// <summary>"-endingTest" on the command line: the scene by itself, after a run that never was (for looking at it).</summary>
-        public static void BeginFromMenu(GameConfig cfg)
-        {
-            won = RunSession.NewRun(12345, false, cfg.player);
-            won.victory = true; won.finished = true; won.totalTime = 1158f; won.kills = 42; won.levelsCompleted = 18; won.inVillage = false;
-            RunPlan.Ensure(won, cfg);
-            news = "";
-            Load(cfg);
-        }
-
         /// <summary>
         /// The Sunstone has been broken (GameDirector.BreakSunstone): the hall fills with its light, slowly, and
         /// out of that light comes the village on the morning after. False when the scene cannot be played (tests).
@@ -142,17 +128,6 @@ namespace Gloomdelve
             Time.timeScale = 1f;
             d.StartCoroutine(Break(d, stone));
             return true;
-        }
-
-        /// <summary>"-trueEndTest" on the command line: the morning after, by itself.</summary>
-        public static void BeginTrueFromMenu(GameConfig cfg)
-        {
-            won = RunSession.NewRun(12345, false, cfg.player);
-            won.victory = true; won.finished = true; won.totalTime = 1158f; won.kills = 42; won.bossKills = 5; won.levelsCompleted = 18; won.inVillage = false;
-            RunPlan.Ensure(won, cfg);
-            news = "";
-            PendingTrue = true;
-            Load(cfg);
         }
 
         static IEnumerator Break(GameDirector d, Entity stone)
@@ -552,7 +527,6 @@ namespace Gloomdelve
             d.ShowTrueEnd(won, news);
             won = null;
             yield return FadeIn(d.results != null ? d.results.root : null);
-            if (autoCredits) { autoCredits = false; yield return new WaitForSecondsRealtime(1.5f); d.RollCredits(); }
         }
 
         /// <summary>The credits: the names go up over the dark; then the title screen. The "yes" button hurries them, "back" ends them.</summary>
@@ -604,7 +578,6 @@ namespace Gloomdelve
         public static IEnumerator PlayWaking(GameDirector d)
         {
             Playing = true;
-            ForceFirstDeath = false;
             if (!SaveSystem.Records.loopSeen) { SaveSystem.Records.loopSeen = true; SaveSystem.SaveRecords(); }
             var p = d.Player;
             var steps = new Steps();

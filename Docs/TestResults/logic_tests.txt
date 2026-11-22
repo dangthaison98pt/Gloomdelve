@@ -35,7 +35,7 @@ PASS  challenge: the Field Guide is in the bag with every page open, and nothing
 PASS  challenge: a win is put down in the Challenge list and nowhere else  
 PASS  challenge: out of the fight the save is as it was  
 PASS  challenge: the list is the same whichever save is played  
-PASS  story: a pillar and a part of the hammer find a place to stand in every level  24/24 places, 0 bad, slowest search 62 ms
+PASS  story: a pillar and a part of the hammer find a place to stand in every level  24/24 places, 0 bad, slowest search 61 ms
 PASS  story: what leads to the hammer stands in a side room, off the main path  12/12 levels: 12 walked into, 0 behind a wall (bomb or rope), 0 on the path for want of a side room
 PASS  story: the Peddler sells paper for an ember, and the mountain's own shelves and chests never carry it  
 PASS  the loop: a waking after a win has its line, after a death one of several in turn, and any other waking none  
