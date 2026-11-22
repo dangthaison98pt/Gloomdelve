@@ -55,6 +55,8 @@ namespace Gloomdelve
         public bool shopkeeperDead;
 
         public int kills;
+        /// <summary>How many of the kills were bosses.</summary>
+        public int bossKills;
         public int levelsCompleted;
         public int goldAtLevelStart;
         public string deathCause;
@@ -261,10 +263,14 @@ namespace Gloomdelve
             };
             if (cfg != null && cfg.startingGear != null) Current.gear.AddRange(cfg.startingGear);
             else { Current.gear.Add("bomb"); Current.gear.Add("rope"); }
+            // A Challenge fight is fought with the slingshot and the bombs, and nothing else: no rope to hang out
+            // of reach on, no Recall Charm to leave by.
+            if (challenge) Current.gear.RemoveAll(g => g != "slingshot" && g != "bomb");
             // A run sets out with its bags full: as many bombs, ropes and pebbles as they hold (Bags). The tutorial
             // hands out its own few.
             if (tutorial) { Current.bombs = 3; Current.ropes = 3; }
             else FillBags(Current);
+            if (challenge) Current.ropes = 0;       // (no rope in the bag, so none counted on the screen)
             // A run begins with the first of its gear in hand: the slingshot. The tutorial teaches the bombs first
             // ("Your GEAR is BOMBS"), so there the bombs are in hand.
             if (tutorial) Current.equipped = Mathf.Max(0, Current.gear.IndexOf("bomb"));
@@ -274,9 +280,11 @@ namespace Gloomdelve
             return Current;
         }
 
-        /// <summary>Starts a boss test: a fresh explorer dropped straight into the boss arena at this stage of the run.</summary>
+        /// <summary>Starts a boss test: a fresh explorer dropped straight into the boss arena at this stage of the run.
+        /// It belongs to no save (SaveSystem.Apart): the same fight whoever starts it.</summary>
         public static RunState NewBossPractice(int catalogueIndex, PlayerConfig cfg)
         {
+            SaveSystem.BeginApart();
             var run = NewRun(RandomSeed(), false, cfg, challenge: true);
             RunPlan.UseSingleStage(run, catalogueIndex, "CHALLENGE");
             run.stageIndex = 0;
@@ -303,7 +311,7 @@ namespace Gloomdelve
                 inVillage = r.inVillage, extraTime = r.extraTime, damageTaken = r.damageTaken,
                 health = r.health, maxHealth = r.maxHealth, bombs = r.bombs, ropes = r.ropes, gold = r.gold, totalTime = r.totalTime,
                 equipped = r.equipped, previousEquipped = r.previousEquipped,
-                shopkeeperWanted = r.shopkeeperWanted, shopkeeperDead = r.shopkeeperDead, kills = r.kills, levelsCompleted = r.levelsCompleted,
+                shopkeeperWanted = r.shopkeeperWanted, shopkeeperDead = r.shopkeeperDead, kills = r.kills, bossKills = r.bossKills, levelsCompleted = r.levelsCompleted,
                 villagerFreed = r.villagerFreed, bossDownStage = r.bossDownStage, stageName = stageName ?? "",
             };
             s.upgrades.AddRange(r.upgrades); s.worn.AddRange(r.worn); s.purchases.AddRange(r.purchases); s.gear.AddRange(r.gear);
@@ -321,7 +329,7 @@ namespace Gloomdelve
                 seed = s.seed, stageIndex = s.stageIndex, stageOrder = s.stageOrder, stageNames = s.stageNames,
                 inVillage = s.inVillage, extraTime = s.extraTime, damageTaken = s.damageTaken, perksApplied = true,
                 health = s.health, maxHealth = s.maxHealth, bombs = s.bombs, ropes = s.ropes, gold = s.gold, totalTime = s.totalTime,
-                shopkeeperWanted = s.shopkeeperWanted, shopkeeperDead = s.shopkeeperDead, kills = s.kills, levelsCompleted = s.levelsCompleted,
+                shopkeeperWanted = s.shopkeeperWanted, shopkeeperDead = s.shopkeeperDead, kills = s.kills, bossKills = s.bossKills, levelsCompleted = s.levelsCompleted,
                 villagerFreed = s.villagerFreed, bossDownStage = s.bossDownStage,
             };
             if (s.gear != null) r.gear.AddRange(s.gear);

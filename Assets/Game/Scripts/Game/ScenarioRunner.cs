@@ -771,7 +771,7 @@ namespace Gloomdelve
             c.dir.hud.ShowHurt(c.p.DeathCause, 99);
             yield return new WaitForSecondsRealtime(0.3f);
             c.run.deathCause = c.p.DeathCause;
-            c.dir.results.ShowRunEnd(c.run, false, "NEW BEST GOLD!", 1);
+            c.dir.results.ShowRunEnd(c.run, false, "NEW FASTEST WIN!", 1);
             yield return new WaitForSecondsRealtime(0.3f);
             c.Expect(c.dir.results.root.activeSelf, "results visible");
             var rs = c.dir.results;
@@ -1451,16 +1451,16 @@ namespace Gloomdelve
             }
             {
                 // the record book (nothing is written by tests: save = false only compares)
-                var kept = SaveSystem.Records.bosses;
-                SaveSystem.Records.bosses = new List<BossRecord>();
+                var kept = new List<BossRecord>(SaveSystem.Challenge.bosses);
+                SaveSystem.Challenge.bosses.Clear();
                 SaveSystem.RecordBossWin("Test Boss", 50f, false, false, out bool nb, out bool ff);
                 c.Expect(nb && !ff && SaveSystem.BossRecordOf("Test Boss") == null, "compare only: a first win would be a new best, nothing stored");
-                SaveSystem.Records.bosses.Add(new BossRecord { boss = "Test Boss", bestTime = 50f });
+                SaveSystem.Challenge.bosses.Add(new BossRecord { boss = "Test Boss", bestTime = 50f });
                 SaveSystem.RecordBossWin("Test Boss", 60f, true, false, out nb, out ff);
                 c.Expect(!nb && ff, "a slower win is no new best, but the first one without damage earns the badge");
                 SaveSystem.RecordBossWin("Test Boss", 40f, false, false, out nb, out ff);
                 c.Expect(nb && !ff, "a faster win is a new best");
-                SaveSystem.Records.bosses = kept;
+                SaveSystem.Challenge.bosses.Clear(); SaveSystem.Challenge.bosses.AddRange(kept);
             }
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "boss_test_result.png"));
             yield return new WaitForSecondsRealtime(2.5f);
@@ -4754,8 +4754,10 @@ namespace Gloomdelve
             var ch = RunSession.NewBossPractice(0, c.world.config.player);
             var pc = c.world.config.player;
             c.Expect(ch.bossPractice && ch.BombCap == pc.bombCapacity && ch.RopeCap == pc.ropeCapacity && ch.PebbleCap == pc.pebbleCapacity
-                     && ch.bombs == pc.bombCapacity && ch.ropes == pc.ropeCapacity && ch.Pebbles == pc.pebbleCapacity,
+                     && ch.bombs == pc.bombCapacity && ch.ropes == 0 && ch.Pebbles == pc.pebbleCapacity,
                 $"a Challenge fight sets out with the bags at their first size, whatever the elder did (bombs {ch.bombs}/{ch.BombCap}, ropes {ch.ropes}/{ch.RopeCap}, pebbles {ch.Pebbles}/{ch.PebbleCap})");
+            c.Expect(ch.gear.Count == 2 && ch.gear.Contains("slingshot") && ch.gear.Contains("bomb"),
+                $"and with the slingshot and the bombs alone: no rope, no Recall Charm ({string.Join(", ", ch.gear)})");
 
             foreach (var e in c.world.Entities) if (!e.Dead && (e is ShopItem || e is Elder)) e.Despawn();
             if (run.HasUpgrade("pebblepouch")) run.RemoveUpgrade("pebblepouch");

@@ -68,7 +68,7 @@ namespace Gloomdelve
         /// <summary>The name its kills are counted under: what the creature itself is called.</summary>
         string KillKey(Codex.Page page) { var pf = PrefabOf(page); return pf != null ? pf.displayName : page.name; }
 
-        bool Known(Codex.Page page) => page.place || page.info || Codex.Kills(KillKey(page)) > 0;
+        bool Known(Codex.Page page) => page.place || page.info || Codex.AllKnown || Codex.Kills(KillKey(page)) > 0;
 
         void Awake()
         {
@@ -191,7 +191,7 @@ namespace Gloomdelve
             if (bodyText != null) bodyText.text = read ? page.text : "Nothing is written here yet.\n\nKill one, and what is known of it is yours to read.";
             if (killsText != null)
             {
-                killsText.gameObject.SetActive(creature);
+                killsText.gameObject.SetActive(creature && !Codex.AllKnown);       // (Challenge keeps no count)
                 if (creature) killsText.text = "Defeated  " + Codex.Kills(KillKey(page));
             }
             if (countText != null)

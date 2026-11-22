@@ -39,6 +39,7 @@ namespace Gloomdelve
         public static bool Seen(string id)
         {
             if (string.IsNullOrEmpty(id)) return true;
+            if (!Testing && SaveSystem.Apart) return true;      // a Challenge fight has no save to learn things in: no cards over the fight
             if (Testing) { foreach (var f in Forms(id)) if (inMemory.Contains(f)) return true; return false; }
             var s = SaveSystem.Records.seenItems;
             if (s == null) return false;

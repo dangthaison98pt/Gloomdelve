@@ -679,7 +679,7 @@ namespace Gloomdelve
                 NextAutoRun();
                 return;
             }
-            string news = SaveSystem.RecordRunEnd(run, run.stageOrder.Length);
+            string news = SaveSystem.RecordRunEnd(run);
             SaveSystem.AppendRunLog($"seed {run.seed} VICTORY time {run.totalTime:0.0} gold {run.gold}");
             results.ShowRunEnd(run, true, news, run.stageOrder.Length);
         }
@@ -722,7 +722,7 @@ namespace Gloomdelve
                 NextAutoRun();
                 yield break;
             }
-            string news = SaveSystem.RecordRunEnd(run, run.stageIndex);
+            string news = SaveSystem.RecordRunEnd(run);
             SaveSystem.AppendRunLog($"seed {run.seed} DIED at {Stage.displayName}: {run.deathCause}");
             results.ShowRunEnd(run, false, news, run.stageIndex);
         }
@@ -816,7 +816,7 @@ namespace Gloomdelve
             pauseMenu.Hide();
             if (!ScenarioRunner.Active && !AutoTest.Active)
             {
-                SaveSystem.RecordRunEnd(run, run.stageIndex, true);
+                SaveSystem.RecordRunEnd(run, true);
                 SaveSystem.AppendRunLog($"seed {run.seed} GIVEN UP at {Stage.displayName}");
             }
             RestartRun(false, true);

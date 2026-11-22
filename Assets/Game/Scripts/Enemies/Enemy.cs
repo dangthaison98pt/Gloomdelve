@@ -111,9 +111,11 @@ namespace Gloomdelve
         {
             Fx.Blood(Center, bloodColor, 14);
             Sfx.Play("enemy_die", pos);
-            if (RunSession.Current != null && (d.source is PlayerController || (d.source is Item it && it.thrower is PlayerController) || d.source is Bomb))
+            // (a boss that falls is the player's kill whatever struck the last blow - a shard, its own wall)
+            if (RunSession.Current != null && (this is Boss || d.source is PlayerController || (d.source is Item it && it.thrower is PlayerController) || d.source is Bomb))
             {
                 RunSession.Current.kills++;
+                if (this is Boss) RunSession.Current.bossKills++;
                 Codex.CountKill(displayName);       // its page in the Field Guide
                 QuestLog.Notify(QuestTrigger.Kill, displayName);
             }

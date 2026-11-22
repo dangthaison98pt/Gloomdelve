@@ -441,7 +441,7 @@ namespace Gloomdelve.EditorTools
                 int c1 = RunSession.RunCounter;
                 r1.gold = 999; r1.bombs = 0; r1.AddUpgrade(cfg.shop.Find("springboots")); r1.AddResource("test_counter", 3); r1.stageIndex = 4; r1.totalTime = 100; r1.kills = 7;
                 var r2 = RunSession.NewRun(456, false, cfg.player);
-                bool fresh = r2 != r1 && r2.gold == cfg.player.startGold && r2.bombs == r2.BombCap && r2.upgrades.Count == 0 && r2.stats.IsZero && r2.counters.Count == 0 && r2.stageIndex == 0 &&
+                bool fresh = r2 != r1 && r2.gold == cfg.player.startGold && r2.bombs == r2.BombCap && r2.upgrades.Count == 0 && r2.stats.IsZero && !r2.counters.ContainsKey("test_counter") && r2.Pebbles == r2.PebbleCap && r2.stageIndex == 0 &&
                              r2.totalTime == 0 && r2.kills == 0 && r2.health == cfg.player.startHealth && RunSession.RunCounter == c1 + 1;
                 Check("new run does not keep the previous run's state", fresh);
                 RunSession.Clear();
@@ -468,9 +468,63 @@ namespace Gloomdelve.EditorTools
                     Check("save slots: ... whichever it was", SaveSystem.Slot == 1 && SaveSystem.Records.embers == 4);
                     SaveSystem.EraseSlot(1);
                     Check("save slots: erasing empties a slot and leaves the others alone", !SaveSystem.SlotUsed(1) && SaveSystem.Records.embers == 0 && SaveSystem.PeekSlot(0).runs == 7);
+
+                    // Challenge stands apart from every save: its times are one list for the whole game, and a
+                    // fight neither takes anything from the save being played nor leaves anything in it
+                    File.WriteAllText(Path.Combine(scratch, "slot1.json"), "{\"runs\":7,\"embers\":4,\"pouchCapacity\":10,\"bagBombs\":2,\"bagRopes\":1,\"bagPebbles\":1,\"keyItems\":[\"pouch\"],\"seenItems\":[\"bombs\"],\"bosses\":[{\"boss\":\"Broodmother\",\"bestTime\":50,\"noDamage\":false},{\"boss\":\"Yeti King\",\"bestTime\":90,\"noDamage\":true}]}");
+                    File.WriteAllText(Path.Combine(scratch, "slot3.json"), "{\"bosses\":[{\"boss\":\"Broodmother\",\"bestTime\":40,\"noDamage\":true}]}");
+                    SaveSystem.Reload();
+                    SaveSystem.SelectSlot(0);
+                    var bm = SaveSystem.BossRecordOf("Broodmother"); var yk = SaveSystem.BossRecordOf("Yeti King");
+                    Check("challenge: the times the saves used to keep become one list, the best of each", File.Exists(Path.Combine(scratch, "challenge.json")) && bm != null && bm.bestTime == 40f && bm.noDamage && yk != null && yk.bestTime == 90f && yk.noDamage);
+                    var home = RunSession.NewRun(5, false, cfg.player);
+                    Check("challenge: (a run of the save has what the elder made of its bags)", home.BombCap == cfg.player.bombCapacity + 10 && Villagers.Embers == 4);
+                    string slotBefore = File.ReadAllText(Path.Combine(scratch, "slot1.json"));
+                    var fight = RunSession.NewBossPractice(0, cfg.player);
+                    Check("challenge: a fight takes nothing from the save - bags of the first size, no pouch, no embers",
+                        SaveSystem.Apart && fight.BombCap == cfg.player.bombCapacity && fight.RopeCap == cfg.player.ropeCapacity && fight.PebbleCap == cfg.player.pebbleCapacity
+                        && fight.bombs == cfg.player.bombCapacity && !Villagers.HasKey(Villagers.KeyPouch) && Villagers.Embers == 0 && Villagers.PouchCapacity == Villagers.PouchStartCapacity);
+                    Check("challenge: it is fought with the slingshot and the bombs alone - no rope, no Recall Charm", fight.gear.Count == 2 && fight.gear.Contains("slingshot") && fight.gear.Contains("bomb") && fight.ropes == 0 && home.gear.Contains("rope") && home.gear.Contains("recall"));
+                    Codex.CountKill("Snake"); bool card = ItemLog.FirstTime("compass");
+                    Check("challenge: the Field Guide is in the bag with every page open, and nothing picked up gets a card", Codex.Owned && Codex.AllKnown && !card);
+                    SaveSystem.RecordBossWin("Broodmother", 30f, false, true, out bool best, out bool flawlessNow);
+                    SaveSystem.SaveRecords();
+                    Check("challenge: a win is put down in the Challenge list and nowhere else", best && !flawlessNow && SaveSystem.BossRecordOf("Broodmother").bestTime == 30f && File.ReadAllText(Path.Combine(scratch, "slot1.json")) == slotBefore);
+                    RunSession.Clear();
+                    Check("challenge: out of the fight the save is as it was", !SaveSystem.Apart && SaveSystem.Records.embers == 4 && SaveSystem.Records.killCounts.Count == 0 && SaveSystem.Records.seenItems.Count == 1 && Codex.Kills("Snake") == 0);
+                    SaveSystem.SelectSlot(2); SaveSystem.Reload();
+                    Check("challenge: the list is the same whichever save is played", SaveSystem.Slot == 2 && SaveSystem.BossRecordOf("Broodmother").bestTime == 30f && SaveSystem.BossRecordOf("Yeti King") != null);
+
+                    // the Records screen: everything since the game was first played, all saves together
+                    File.Delete(Path.Combine(scratch, "totals.json"));
+                    File.WriteAllText(Path.Combine(scratch, "slot1.json"), "{\"runs\":7,\"wins\":0,\"deaths\":6,\"bestStage\":3,\"bestStageName\":\"Mossroot 4\",\"bestGold\":200,\"fastestWin\":-1,\"totalKills\":40}");
+                    File.WriteAllText(Path.Combine(scratch, "slot3.json"), "{\"runs\":3,\"wins\":1,\"deaths\":2,\"bestStage\":9,\"bestStageName\":\"The Sunken Vault\",\"bestGold\":500,\"fastestWin\":100,\"totalKills\":15}");
+                    SaveSystem.Reload();
+                    var tot = SaveSystem.Totals;
+                    Check("records: what the saves used to keep is added up - counts summed, the fastest of the wins",
+                        tot.runs == 10 && tot.wins == 1 && tot.deaths == 8 && tot.kills == 55 && tot.bossKills == 0 && tot.fastestWin == 100f);
+                    SaveSystem.SelectSlot(0);
+                    var night = RunSession.NewRun(5, false, cfg.player);
+                    night.kills = 5; night.bossKills = 2; night.victory = true; night.totalTime = 80f;
+                    string said = SaveSystem.RecordRunEnd(night);
+                    tot = SaveSystem.Totals;
+                    Check("records: a night that ends is counted once, for the game - creatures and bosses apart, and no save keeps a count of its own",
+                        tot.runs == 11 && tot.wins == 2 && tot.deaths == 8 && tot.kills == 58 && tot.bossKills == 2 && tot.fastestWin == 80f && said == "NEW FASTEST WIN!" && SaveSystem.Records.runs == 7);
+                    var bout = RunSession.NewBossPractice(0, cfg.player);
+                    bout.kills = 1; bout.bossKills = 1; bout.victory = true; bout.totalTime = 5f;
+                    SaveSystem.RecordRunEnd(bout);
+                    tot = SaveSystem.Totals;
+                    Check("records: nothing of a Challenge fight is counted - not the fight, not the boss, not its time", tot.runs == 11 && tot.wins == 2 && tot.bossKills == 2 && tot.kills == 58 && tot.fastestWin == 80f);
+                    RunSession.Clear();
+                    SaveSystem.SelectSlot(2); SaveSystem.Reload();
+                    Check("records: they are the same whichever save is played, and after a restart", SaveSystem.Slot == 2 && SaveSystem.Totals.runs == 11 && SaveSystem.Totals.bossKills == 2 && SaveSystem.Totals.kills == 58);
+                    File.WriteAllText(Path.Combine(scratch, "totals.json"), "{\"runs\":30,\"wins\":1,\"deaths\":20,\"fastestWin\":1158.7,\"totalKills\":752}");
+                    SaveSystem.Reload();
+                    Check("records: kills from before bosses were counted apart go with the creatures", SaveSystem.Totals.kills == 752 && SaveSystem.Totals.bossKills == 0 && SaveSystem.Totals.totalKills == 0 && SaveSystem.Totals.runs == 30);
                 }
                 finally
                 {
+                    RunSession.Clear();
                     SaveSystem.DirOverride = null;
                     SaveSystem.Reload();
                     try { Directory.Delete(scratch, true); } catch { }

@@ -64,9 +64,9 @@ namespace Gloomdelve
             statKills.text = run.kills.ToString();
             statLevels.text = run.levelsCompleted.ToString();
             seedText.text = "Seed " + run.seed;
-            var r = SaveSystem.Records;
+            var r = SaveSystem.Totals;
             records.text =
-                $"BEST     deepest {r.bestStageName}     gold ${r.bestGold}     fastest win {(r.fastestWin < 0 ? "--" : UIUtil.FormatTime(r.fastestWin))}\n" +
+                $"BEST     fastest win {(r.fastestWin < 0 ? "--" : UIUtil.FormatTime(r.fastestWin))}\n" +
                 $"{r.runs} runs     {r.wins} wins     {r.deaths} deaths";
             news.text = newsText;
             // two ways on from here: straight down into the mountain again, or home to Brindlemoor (to wake in bed,

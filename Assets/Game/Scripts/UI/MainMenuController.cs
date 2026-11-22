@@ -39,6 +39,7 @@ namespace Gloomdelve
         void Start()
         {
             Time.timeScale = 1f;
+            RunSession.Clear();         // (first: back from a Challenge fight, the menu shows the save again - SaveSystem.Apart)
             SaveSystem.EnsureLoaded();
             UIUtil.Wire(startButton, OpenSlots);
             UIUtil.Wire(slotBack, ShowMain);
@@ -71,7 +72,6 @@ namespace Gloomdelve
             RefreshVersion();
             ShowMain();
             if (AudioManager.Instance != null) { AudioManager.Instance.SetMusicPitch(1f); AudioManager.Instance.PlayMusic("menu"); }
-            RunSession.Clear();
             if (OpenBossListOnLoad) { OpenBossListOnLoad = false; OpenBossList(); }
             // "-bossTest N" on the command line starts boss number N (1 = the first in the list) right away
             var args = System.Environment.GetCommandLineArgs();
@@ -281,7 +281,7 @@ namespace Gloomdelve
 
         void RefreshVersion()
         {
-            if (versionText != null) versionText.text = $"v{GameConst.Version}   ·   save {SaveSystem.Slot + 1}   ·   last seed {SaveSystem.Records.lastSeed}";
+            if (versionText != null) versionText.text = $"v{GameConst.Version}   ·   save {SaveSystem.Slot + 1}";
         }
 
         /// <summary>The save slots: what each one holds. Picking one plays it; Erase wipes it (asks once).</summary>
@@ -308,7 +308,7 @@ namespace Gloomdelve
                     int freed = r.rescued != null ? r.rescued.Count : 0;
                     string going = r.run != null && r.run.active ? $"   ·   <color=#FFD662>Continue: {r.run.stageName}</color>" : "";
                     // (a night in progress is named beside the slot's name: picking the slot goes on with it)
-                    slotTexts[i].text = head + going + $"\n<color=#FFFFFFCC>{freed}/{Villagers.All.Length} villagers home   ·   {r.embers} embers   ·   {r.runs} nights, {r.wins} won</color>";
+                    slotTexts[i].text = head + going + $"\n<color=#FFFFFFCC>{freed}/{Villagers.All.Length} villagers home   ·   {r.embers} embers</color>";
                 }
                 if (slotErase != null && i < slotErase.Length) slotErase[i].gameObject.SetActive(used);
                 if (slotEraseLabels != null && i < slotEraseLabels.Length) slotEraseLabels[i].text = eraseArmed == i ? "SURE?" : "ERASE";
@@ -421,16 +421,14 @@ namespace Gloomdelve
 
         void RefreshRecords()
         {
-            var r = SaveSystem.Records;
+            var r = SaveSystem.Totals;      // (all saves together, since the game was first played)
             recordsText.text =
                 $"Runs played        {r.runs}\n" +
                 $"Victories          {r.wins}\n" +
                 $"Deaths             {r.deaths}\n" +
-                $"Deepest reached    {r.bestStageName}\n" +
-                $"Most gold          ${r.bestGold}\n" +
                 $"Fastest victory    {(r.fastestWin < 0 ? "--" : UIUtil.FormatTime(r.fastestWin))}\n" +
-                $"Total kills        {r.totalKills}\n" +
-                $"Last seed          {r.lastSeed}";
+                $"Creatures killed   {r.kills}\n" +
+                $"Bosses defeated    {r.bossKills}";
             if (bossRecordsText != null && bossNames != null)
             {
                 var sb = new System.Text.StringBuilder();

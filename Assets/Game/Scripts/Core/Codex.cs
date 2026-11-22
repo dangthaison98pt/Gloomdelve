@@ -60,11 +60,16 @@ namespace Gloomdelve
         static readonly HashSet<string> inMemory = new HashSet<string>();
         static bool Testing => ScenarioRunner.Active || AutoTest.Active;
 
+        /// <summary>A Challenge fight belongs to no save, so no save's book can be the one in the bag: there the
+        /// book is always carried, and every page of it can be read (no kills are counted in it).</summary>
+        public static bool AllKnown => !Testing && SaveSystem.Apart;
+
         /// <summary>The player has the book (in tests: only once it was given in this test run).</summary>
         public static bool Owned
         {
             get
             {
+                if (AllKnown) return true;
                 if (Testing) return inMemory.Contains(Key);
                 var k = SaveSystem.Records.keyItems;
                 return k != null && k.Contains(Key);

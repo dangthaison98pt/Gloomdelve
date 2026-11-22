@@ -12,7 +12,7 @@ namespace Gloomdelve
         public float sfxVolume = 0.8f;
         public bool fullscreen = false;
         public bool screenShake = true;
-        [Tooltip("The save slot played last (0-2): the one the menu shows records and Challenge times for.")] public int lastSlot = 0;
+        [Tooltip("The save slot played last (0-2): the one the menu shows records for.")] public int lastSlot = 0;
         [Tooltip("Keyboard keys the player changed (Settings > Keys). Empty = all default. See KeyBindings.")]
         public System.Collections.Generic.List<KeyBind> keys = new System.Collections.Generic.List<KeyBind>();
     }
@@ -25,9 +25,28 @@ namespace Gloomdelve
         public string key;
     }
 
+    /// <summary>
+    /// The Records screen: everything since the game was first played, whichever save it was played in
+    /// (totals.json) - the only count there is: no save keeps one of its own. Nights on the mountain only:
+    /// nothing that happens in a Challenge fight is counted here.
+    /// </summary>
+    [Serializable]
+    public class TotalRecords
+    {
+        public int runs;
+        public int wins;
+        public int deaths;
+        public float fastestWin = -1f;
+        [Tooltip("Creatures killed that were not bosses, and bosses brought down.")] public int kills;
+        public int bossKills;
+        [Tooltip("Not written any more: kills from before bosses were counted apart. Read once and put with the creatures (which of them were bosses was never written down).")]
+        public int totalKills;
+    }
+
     [Serializable]
     public class GameRecords
     {
+        [Tooltip("Not written any more: runs, wins, deaths, kills and bests were kept with each save before the Records screen got a file of its own (TotalRecords). Read once, to carry them over.")]
         public int runs;
         public int wins;
         public int deaths;
@@ -35,11 +54,10 @@ namespace Gloomdelve
         public string bestStageName = "-";
         public int bestGold;
         public float fastestWin = -1f;
-        public int lastSeed;
         public int totalKills;
         [Tooltip("When this save was last played (shown on the save slot).")] public string lastPlayed = "";
         [Tooltip("The run in progress, if there is one.")] public RunSave run = new RunSave();
-        [Tooltip("Challenge: best time against each boss, and whether it was ever beaten without losing health.")]
+        [Tooltip("Not written any more: Challenge times were kept with each save before Challenge got a file of its own (ChallengeRecords). Read once, to carry them over - and an old save that has some is past the tutorial.")]
         public System.Collections.Generic.List<BossRecord> bosses = new System.Collections.Generic.List<BossRecord>();
         [Tooltip("Villagers of Brindlemoor freed on the mountain (ids from Villagers.All). They stay freed.")]
         public System.Collections.Generic.List<string> rescued = new System.Collections.Generic.List<string>();
@@ -84,7 +102,7 @@ namespace Gloomdelve
         public System.Collections.Generic.List<string> counterIds = new System.Collections.Generic.List<string>();
         public System.Collections.Generic.List<int> counterValues = new System.Collections.Generic.List<int>();
         public bool shopkeeperWanted, shopkeeperDead;
-        public int kills, levelsCompleted;
+        public int kills, bossKills, levelsCompleted;
         public bool villagerFreed;
         public int bossDownStage = -1;
         [Tooltip("Name of the level it is in (shown on the save slot).")] public string stageName = "";
@@ -99,16 +117,38 @@ namespace Gloomdelve
         [Tooltip("Beaten at least once without losing any health.")] public bool noDamage;
     }
 
+    /// <summary>Challenge: best time against each boss, and whether it was ever beaten without losing health.
+    /// One list for the whole game (challenge.json), whichever save is being played.</summary>
+    [Serializable]
+    public class ChallengeRecords
+    {
+        public System.Collections.Generic.List<BossRecord> bosses = new System.Collections.Generic.List<BossRecord>();
+    }
+
     /// <summary>
     /// Saved as JSON in Application.persistentDataPath. Settings (volume, keys, ...) are shared. Everything the
-    /// player has achieved - villagers freed, embers, key items, records, Challenge times - lives in one of three
-    /// save slots (slot1.json .. slot3.json); 'Records' is always the slot being played. A run in progress is not
-    /// saved: a run is one night, and ends when the game is closed.
+    /// player has achieved on the mountain - villagers freed, embers, key items, records - lives in one of three
+    /// save slots (slot1.json .. slot3.json); 'Records' is the slot being played.
+    /// The Records screen is not a save's: it counts everything since the game was first played (totals.json).
+    /// Challenge stands apart from all three: its times are in a file of their own (challenge.json), and while a
+    /// Challenge fight is on (Apart) 'Records' is a blank save that is never written - so nothing a save has
+    /// earned goes into the fight, and nothing that happens in the fight is put down in a save.
     /// </summary>
     public static class SaveSystem
     {
         public static GameSettings Settings { get; private set; } = new GameSettings();
-        public static GameRecords Records { get; private set; } = new GameRecords();
+        /// <summary>The save being played - or, in a Challenge fight, a blank one that belongs to that fight alone.</summary>
+        public static GameRecords Records => Apart ? apartRecords : slotRecords;
+        static GameRecords slotRecords = new GameRecords();
+        static GameRecords apartRecords = new GameRecords();
+        /// <summary>A Challenge fight is on: no save is read or written.</summary>
+        public static bool Apart => RunSession.Current != null && RunSession.Current.bossPractice;
+        /// <summary>A Challenge fight begins: it starts from nothing, whatever the one before it left.</summary>
+        public static void BeginApart() { apartRecords = new GameRecords(); }
+        /// <summary>The Challenge times (the same for every save).</summary>
+        public static ChallengeRecords Challenge { get; private set; } = new ChallengeRecords();
+        /// <summary>The Records screen: all saves together, since the game was first played.</summary>
+        public static TotalRecords Totals { get; private set; } = new TotalRecords();
         static bool loaded;
 
         static string Dir => !string.IsNullOrEmpty(DirOverride) ? DirOverride : !string.IsNullOrEmpty(ArgDir) ? ArgDir : Application.persistentDataPath;
@@ -136,6 +176,8 @@ namespace Gloomdelve
         static string LegacyRecordsPath => Path.Combine(Dir, "records.json");
         static string SlotPath(int i) => Path.Combine(Dir, $"slot{i + 1}.json");
         static string RecordsPath => SlotPath(Slot);
+        static string ChallengePath => Path.Combine(Dir, "challenge.json");
+        static string TotalsPath => Path.Combine(Dir, "totals.json");
 
         public static bool SlotUsed(int i) => i >= 0 && i < SlotCount && File.Exists(SlotPath(i));
 
@@ -144,7 +186,7 @@ namespace Gloomdelve
         {
             EnsureLoaded();
             if (i < 0 || i >= SlotCount) return null;
-            if (i == Slot && SlotUsed(i)) return Records;
+            if (i == Slot && SlotUsed(i)) return slotRecords;
             return Load<GameRecords>(SlotPath(i));
         }
 
@@ -156,9 +198,9 @@ namespace Gloomdelve
             if (i != Slot || !SlotUsed(i))
             {
                 Slot = i;
-                Records = Load<GameRecords>(SlotPath(i)) ?? new GameRecords();
+                slotRecords = Load<GameRecords>(SlotPath(i)) ?? new GameRecords();
             }
-            Records.lastPlayed = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+            slotRecords.lastPlayed = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
             SaveRecords();
             if (Settings.lastSlot != i) { Settings.lastSlot = i; SaveSettings(); }
         }
@@ -170,7 +212,7 @@ namespace Gloomdelve
             if (i < 0 || i >= SlotCount) return;
             try { if (File.Exists(SlotPath(i))) File.Delete(SlotPath(i)); }
             catch (Exception e) { Debug.LogWarning($"[Save] Could not erase slot {i + 1}: {e.Message}"); }
-            if (i == Slot) Records = new GameRecords();
+            if (i == Slot) slotRecords = new GameRecords();
         }
 
         /// <summary>Automated runs and one-off modes never write a run in progress.</summary>
@@ -225,7 +267,55 @@ namespace Gloomdelve
             // a save from before there were slots becomes slot 1 (the old file is left where it is)
             try { if (File.Exists(LegacyRecordsPath) && !File.Exists(SlotPath(0))) File.Copy(LegacyRecordsPath, SlotPath(0)); }
             catch (Exception e) { Debug.LogWarning($"[Save] Could not move the old save into slot 1: {e.Message}"); }
-            Records = Load<GameRecords>(RecordsPath) ?? new GameRecords();
+            slotRecords = Load<GameRecords>(RecordsPath) ?? new GameRecords();
+            Challenge = Load<ChallengeRecords>(ChallengePath) ?? ChallengeFromSlots();
+            if (Challenge.bosses == null) Challenge.bosses = new System.Collections.Generic.List<BossRecord>();
+            Totals = Load<TotalRecords>(TotalsPath) ?? TotalsFromSlots();
+            if (Totals.totalKills > 0) { Totals.kills += Totals.totalKills; Totals.totalKills = 0; Write(TotalsPath, Totals); }      // (a file from before bosses were counted apart)
+        }
+
+        /// <summary>
+        /// The records used to be kept with each save. The first time the game starts without a totals file, what
+        /// the three saves hold is added up into it: counts summed, the fastest of the wins.
+        /// </summary>
+        static TotalRecords TotalsFromSlots()
+        {
+            var t = new TotalRecords();
+            bool any = false;
+            for (int i = 0; i < SlotCount; i++)
+            {
+                var r = i == Slot ? slotRecords : Load<GameRecords>(SlotPath(i));
+                if (r == null) continue;
+                any |= r.runs > 0 || r.totalKills > 0;
+                t.runs += r.runs; t.wins += r.wins; t.deaths += r.deaths; t.kills += r.totalKills;
+                if (r.fastestWin >= 0f && (t.fastestWin < 0f || r.fastestWin < t.fastestWin)) t.fastestWin = r.fastestWin;
+            }
+            if (any) Write(TotalsPath, t);
+            return t;
+        }
+
+        /// <summary>
+        /// Challenge times used to be kept with each save. The first time the game starts without a Challenge file,
+        /// the best of what the three saves hold becomes that file (the saves are left as they are).
+        /// </summary>
+        static ChallengeRecords ChallengeFromSlots()
+        {
+            var all = new ChallengeRecords();
+            for (int i = 0; i < SlotCount; i++)
+            {
+                var r = i == Slot ? slotRecords : Load<GameRecords>(SlotPath(i));
+                if (r == null || r.bosses == null) continue;
+                foreach (var b in r.bosses)
+                {
+                    if (b == null || string.IsNullOrEmpty(b.boss)) continue;
+                    var rec = all.bosses.Find(x => x.boss == b.boss);
+                    if (rec == null) { all.bosses.Add(new BossRecord { boss = b.boss, bestTime = b.bestTime, noDamage = b.noDamage }); continue; }
+                    if (b.bestTime >= 0f && (rec.bestTime < 0f || b.bestTime < rec.bestTime)) rec.bestTime = b.bestTime;
+                    rec.noDamage |= b.noDamage;
+                }
+            }
+            if (all.bosses.Count > 0) Write(ChallengePath, all);
+            return all;
         }
 
         /// <summary>
@@ -279,7 +369,8 @@ namespace Gloomdelve
         }
 
         public static void SaveSettings() => Write(SettingsPath, Settings);
-        public static void SaveRecords() => Write(RecordsPath, Records);
+        /// <summary>Writes the save being played (nothing in a Challenge fight: it has no save).</summary>
+        public static void SaveRecords() { if (!Apart) Write(RecordsPath, slotRecords); }
 
         /// <summary>
         /// This save is past the tutorial: it was finished or skipped - or the save is older than the tutorial's
@@ -302,22 +393,23 @@ namespace Gloomdelve
         }
 
         /// <summary>Returns a short "new record" summary. givenUp: the player ended the run from the pause screen - a run, but not a death.</summary>
-        public static string RecordRunEnd(RunState run, int stageReached, bool givenUp = false)
+        public static string RecordRunEnd(RunState run, bool givenUp = false)
         {
+            if (run == null || run.bossPractice) return "";      // a Challenge fight is not a night on the mountain: never counted
             EnsureLoaded();
             var r = Records;
+            var t = Totals;
             string news = "";
-            r.runs++;
-            r.lastSeed = run.seed;
-            r.totalKills += run.kills;
+            t.runs++;
+            t.bossKills += run.bossKills;
+            t.kills += Mathf.Max(0, run.kills - run.bossKills);
             if (run.victory)
             {
-                r.wins++;
-                if (r.fastestWin < 0f || run.totalTime < r.fastestWin) { r.fastestWin = run.totalTime; news += "NEW FASTEST WIN!  "; }
+                t.wins++;
+                if (t.fastestWin < 0f || run.totalTime < t.fastestWin) { t.fastestWin = run.totalTime; news += "NEW FASTEST WIN!"; }
             }
-            else if (!givenUp) r.deaths++;
-            if (stageReached > r.bestStage) { r.bestStage = stageReached; r.bestStageName = run.reachedStageName; news += "NEW DEEPEST!  "; }
-            if (run.gold > r.bestGold) { r.bestGold = run.gold; news += "NEW BEST GOLD!"; }
+            else if (!givenUp) t.deaths++;
+            Write(TotalsPath, t);
             r.lastPlayed = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
             r.run = new RunSave();          // the run is over: nothing to go on with
             SaveRecords();
@@ -328,8 +420,8 @@ namespace Gloomdelve
         public static BossRecord BossRecordOf(string boss)
         {
             EnsureLoaded();
-            if (Records.bosses == null || string.IsNullOrEmpty(boss)) return null;
-            foreach (var b in Records.bosses) if (b != null && b.boss == boss && b.bestTime >= 0f) return b;
+            if (Challenge.bosses == null || string.IsNullOrEmpty(boss)) return null;
+            foreach (var b in Challenge.bosses) if (b != null && b.boss == boss && b.bestTime >= 0f) return b;
             return null;
         }
 
@@ -341,15 +433,15 @@ namespace Gloomdelve
         public static void RecordBossWin(string boss, float time, bool noDamage, bool save, out bool newBest, out bool firstFlawless)
         {
             EnsureLoaded();
-            if (Records.bosses == null) Records.bosses = new System.Collections.Generic.List<BossRecord>();
-            var rec = Records.bosses.Find(b => b != null && b.boss == boss);
+            if (Challenge.bosses == null) Challenge.bosses = new System.Collections.Generic.List<BossRecord>();
+            var rec = Challenge.bosses.Find(b => b != null && b.boss == boss);
             newBest = rec == null || rec.bestTime < 0f || time < rec.bestTime;
             firstFlawless = noDamage && (rec == null || !rec.noDamage);
             if (!save || string.IsNullOrEmpty(boss)) return;
-            if (rec == null) { rec = new BossRecord { boss = boss }; Records.bosses.Add(rec); }
+            if (rec == null) { rec = new BossRecord { boss = boss }; Challenge.bosses.Add(rec); }
             if (newBest) rec.bestTime = time;
             if (noDamage) rec.noDamage = true;
-            SaveRecords();
+            Write(ChallengePath, Challenge);
         }
 
         public static void AppendRunLog(string line)
