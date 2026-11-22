@@ -55,8 +55,9 @@ namespace Gloomdelve
             ShowRule(true);
             title.text = victory ? "VICTORY!" : "YOU DIED";
             title.color = victory ? new Color(1f, 0.85f, 0.3f) : new Color(1f, 0.35f, 0.35f);
-            cause.text = victory ? "You carried the Sunstone home. Brindlemoor is warm again." : run.deathCause;
-            reached.text = victory ? "" : "REACHED  " + run.reachedStageName;
+            cause.text = victory ? "You carried the Sunstone home." : run.deathCause;
+            // (a run that is won is not the end of the story: the line under it says that something is off)
+            reached.text = victory ? "<color=#B4A6C6><i>...and yet something is not right.</i></color>" : "REACHED  " + run.reachedStageName;
             body.text = "";
             statsRoot.SetActive(true);
             statGold.text = "$" + run.gold;
@@ -64,10 +65,8 @@ namespace Gloomdelve
             statKills.text = run.kills.ToString();
             statLevels.text = run.levelsCompleted.ToString();
             seedText.text = "Seed " + run.seed;
-            var r = SaveSystem.Totals;
-            records.text =
-                $"BEST     fastest win {(r.fastestWin < 0 ? "--" : UIUtil.FormatTime(r.fastestWin))}\n" +
-                $"{r.runs} runs     {r.wins} wins     {r.deaths} deaths";
+            // (the game's records are read on the Records screen of the main menu: this frame is about the one night)
+            records.text = "";
             news.text = newsText;
             // two ways on from here: straight down into the mountain again, or home to Brindlemoor (to wake in bed,
             // spend embers, look around). The middle button is gone, so the two sit side by side in the middle.
@@ -79,6 +78,21 @@ namespace Gloomdelve
             if (homeLabel != null) homeLabel.text = "BACK TO VILLAGE";
             UIUtil.Wire(menuButton, () => GameDirector.Instance.RestartRun(false, true));
             UIUtil.Select(newRunButton);
+            // a run that was won has one way on: the stone has been carried home, and what follows is the bed
+            newRunButton.gameObject.SetActive(!victory);
+            // without the game's records the frame would stand half empty: it closes up under the four numbers
+            // (a "new fastest win" takes the line the records had)
+            bool hasNews = !string.IsNullOrEmpty(newsText);
+            var panel = cause.transform.parent as RectTransform;
+            if (panel != null) panel.sizeDelta = new Vector2(panel.sizeDelta.x, hasNews ? 706f : 648f);
+            var newsAt = news.rectTransform;
+            newsAt.anchoredPosition = new Vector2(newsAt.anchoredPosition.x, 204f);
+            if (victory)
+            {
+                SetX(menuButton, 0f);
+                if (homeLabel != null) homeLabel.text = "CONFIRM";
+                UIUtil.Select(menuButton);
+            }
         }
 
         /// <summary>

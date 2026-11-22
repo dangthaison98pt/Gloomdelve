@@ -65,6 +65,8 @@ namespace Gloomdelve
         public System.Collections.Generic.List<string> keyItems = new System.Collections.Generic.List<string>();
         [Tooltip("The tutorial has been finished or skipped in this save: a new game starts with it, later ones go straight to the village.")]
         public bool tutorialDone;
+        [Tooltip("The scene of the first death has been seen in this save (EndingScene): Brann wakes in bed, on the same day, and knows it.")]
+        public bool loopSeen;
         [Tooltip("Quests begun and done (see QuestLog).")]
         public System.Collections.Generic.List<QuestState> quests = new System.Collections.Generic.List<QuestState>();
         [Tooltip("Creatures killed, by kind (the Field Guide opens a creature's page with the first, and counts them).")]

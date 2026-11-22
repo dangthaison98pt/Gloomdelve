@@ -83,6 +83,19 @@ namespace Gloomdelve
                     return;
                 }
 
+            // "-endingTest": the scene that follows a run that was won, by itself (for looking at it)
+            for (int i = 0; i < args.Length; i++)
+                if (args[i] == "-endingTest" && !endingArgUsed) { endingArgUsed = true; EndingScene.BeginFromMenu(config); return; }
+            // "-wakeTest": the scene of a save's first death - waking in bed - by itself (for looking at it)
+            for (int i = 0; i < args.Length; i++)
+                if (args[i] == "-wakeTest" && !endingArgUsed)
+                {
+                    endingArgUsed = true;
+                    EndingScene.ForceFirstDeath = true; EndingScene.Last = EndingScene.Night.Died;
+                    RunSession.NewRun(12345, false, config.player).wakeInBed = true;
+                    SceneManager.LoadScene(GameConst.SceneGame);
+                    return;
+                }
             // "-tutorialTest": straight into the tutorial, as a new game begins (for looking at it)
             for (int i = 0; i < args.Length; i++)
                 if (args[i] == "-tutorialTest" && !tutorialArgUsed) { tutorialArgUsed = true; StartTutorial(); return; }
@@ -353,7 +366,7 @@ namespace Gloomdelve
             LoadingScreen.Load(GameConst.SceneGame);
         }
 
-        static bool bossTestArgUsed, loadingShotUsed, tutorialArgUsed;
+        static bool bossTestArgUsed, loadingShotUsed, tutorialArgUsed, endingArgUsed;
 
         /// <summary>"01:00.2  [flawless]" for a boss that was beaten in Challenge, "" otherwise.</summary>
         public static string BossBest(string boss, string never)

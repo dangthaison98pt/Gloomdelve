@@ -1,152 +1,160 @@
-Gloomdelve seed sweep  2026-11-19 01:37:50
-seeds 1..20, stages per seed: 24 procedural + final
+Brindlemoor seed sweep  2026-11-22 21:29:43
+seeds 1..60, stages per seed: 24 procedural + final
 
 NOTE seed 12 4-1: guaranteed shop could not be placed
+NOTE seed 24 4-2: guaranteed shop could not be placed
+NOTE seed 37 6-1: guaranteed shop could not be placed
+NOTE seed 38 4-1: guaranteed shop could not be placed
+NOTE seed 43 6-1: guaranteed shop could not be placed
+NOTE seed 46 4-1: guaranteed shop could not be placed
+NOTE seed 49 4-2: guaranteed shop could not be placed
+NOTE seed 52 4-2: guaranteed shop could not be placed
 
-Procedural levels generated : 480
+Procedural levels generated : 1440
 Levels without a valid route: 0
 Entrance/spawn safety issues: 0
-Total re-rolls (attempts-1) : 287   max attempts for one level: 14
-Generation time             : avg 197.3 ms, max 759 ms (incl. validation)
-Shops placed                : 290 (levels with guaranteed shop: 180)
-Idol rooms                  : 162
-Levels with a caged villager: 19
+Total re-rolls (attempts-1) : 903   max attempts for one level: 36
+Generation time             : avg 204.0 ms, max 1352 ms (incl. validation)
+Shops placed                : 890 (levels with guaranteed shop: 540)
+Idol rooms                  : 502
+Levels with a caged villager: 59
+Runs without a caged villager: 0 of 60
 Holes in the path's floors  : 5.5 lead on per level, 2.8 are dead ends
-Gold per level (estimate)   : 462 lying about + 358 from enemies + 607 in veins at the surface + 135 idols = 1562   (and 2576 buried in rock, bombs only)
-Rooms in the grid           : 14483 of 25680 cells (56% - the rest is solid rock)
-Levels with mandatory gear  : 180 / 480   gates total 219  (rope 70, bomb 71, glider 78)
+Gold per level (estimate)   : 467 lying about + 359 from enemies + 607 in veins at the surface + 138 idols = 1570   (and 2569 buried in rock, bombs only)
+Rooms in the grid           : 43489 of 77040 cells (56% - the rest is solid rock)
+Levels with mandatory gear  : 540 / 1440   gates total 652  (rope 209, bomb 209, glider 234)
   (each gated level: exit reachable WITH the gear, NOT reachable without it - checked by the validator)
-Final level validator       : OK; bot plan 882 frames
+Final level validator       : OK; bot plan 416 frames
 Tutorial parse              : OK (9 signs)
 
 Re-roll causes (rejected attempts):
-    179  exit unreachable;
-    105  exit unreachable; shop unreachable;
-      2  gate can be bypassed without glider;
+    559  exit unreachable;
+    337  exit unreachable; shop unreachable;
+      6  gate can be bypassed without glider;
       1  shop unreachable;
 
 Levels that needed re-rolls (seed/stage:attempts):
-  1/1-3:2  1/2-2:3  1/3-2:2  1/4-1:2  1/5-1:6  1/5-2:12  1/6-1:2  1/6-3:2  1/7-2:2  2/2-3:2  2/4-2:2  2/5-1:3  2/5-2:3  2/5-3:2  2/6-3:2  2/8-3:2  3/3-2:2  3/4-1:2  3/4-2:2  3/5-2:9  3/5-3:2  3/7-2:2  4/1-2:2  4/2-3:2  4/4-3:2  4/5-1:4  4/5-2:7  4/7-1:2  5/1-1:2  5/3-3:2  5/4-3:2  5/5-1:7  5/5-2:3  5/6-3:2  6/4-1:2  6/5-1:8  6/5-3:2  6/6-3:2  6/7-1:2  7/1-1:2  7/1-2:2  7/3-3:2  7/5-1:4  7/5-2:3  7/5-3:2  7/7-3:3  7/8-3:2  8/1-1:2  8/2-2:2  8/2-3:2  8/5-1:2  8/5-2:14  8/5-3:2  8/6-2:4  8/7-3:2  8/8-3:3  9/3-3:3  9/4-1:2  9/4-3:2  9/5-1:5  10/1-1:2  10/3-2:2  10/6-2:3  10/8-2:2  10/8-3:2  11/1-2:2  11/4-1:2  11/5-1:4  11/5-3:3  11/6-1:3  12/3-2:2  12/4-2:3  12/5-1:2  12/5-2:4  12/7-1:2  12/7-3:2  12/8-3:2  13/1-3:2  13/2-1:2  13/3-3:2  13/5-1:2  13/5-3:4  13/6-2:3  13/7-2:2  14/1-1:2  14/1-2:2  14/2-1:2  14/2-3:2  14/5-1:13  14/5-2:3  14/5-3:2  14/7-3:2  15/1-2:2  15/2-1:2  15/2-2:2  15/3-2:2  15/5-1:10  15/5-3:2  16/1-2:2  16/3-3:2  16/4-1:2  16/4-2:4  16/4-3:2  16/5-2:2  16/5-3:6  16/6-1:2  16/8-1:4  17/1-1:2  17/3-1:3  17/3-3:2  17/5-1:9  17/5-2:12  17/7-1:2  17/7-2:2  18/1-2:2  18/2-1:2  18/3-1:2  18/3-2:2  18/4-2:2  18/5-1:9  18/5-2:4  18/5-3:6  18/7-3:2  18/8-1:2  18/8-2:2  19/1-2:2  19/1-3:2  19/3-2:4  19/3-3:2  19/5-1:2  19/7-1:2  19/8-1:2  20/1-2:2  20/1-3:2  20/2-1:2  20/3-2:2  20/5-1:8  20/5-2:6  20/6-2:2
+  1/1-3:2  1/2-2:3  1/3-2:2  1/4-1:2  1/5-1:6  1/5-2:12  1/6-1:2  1/6-3:2  1/7-2:2  2/2-3:2  2/4-2:2  2/5-1:3  2/5-2:3  2/5-3:2  2/6-3:2  2/8-3:2  3/3-2:2  3/4-1:2  3/4-2:2  3/5-2:9  3/5-3:2  3/7-2:2  4/1-2:2  4/2-3:2  4/4-3:2  4/5-1:4  4/5-2:7  4/7-1:2  5/1-1:2  5/3-3:2  5/4-3:2  5/5-1:7  5/5-2:3  5/6-3:2  6/4-1:2  6/5-1:8  6/5-3:2  6/6-3:2  6/7-1:2  7/1-1:2  7/1-2:2  7/3-3:2  7/5-1:4  7/5-2:3  7/5-3:2  7/7-3:3  7/8-3:2  8/1-1:2  8/2-2:2  8/2-3:2  8/5-1:2  8/5-2:14  8/5-3:2  8/6-2:4  8/7-3:2  8/8-3:3  9/3-3:3  9/4-1:2  9/4-3:2  9/5-1:5  10/1-1:2  10/3-2:2  10/6-2:3  10/8-2:2  10/8-3:2  11/1-2:2  11/4-1:2  11/5-1:4  11/5-3:3  11/6-1:3  12/3-2:2  12/4-2:3  12/5-1:2  12/5-2:4  12/7-1:2  12/7-3:2  12/8-3:2  13/1-3:2  13/2-1:2  13/3-3:2  13/5-1:2  13/5-3:4  13/6-2:3  13/7-2:2  14/1-1:2  14/1-2:2  14/2-1:2  14/2-3:2  14/5-1:13  14/5-2:3  14/5-3:2  14/7-3:2  15/1-2:2  15/2-1:2  15/2-2:2  15/3-2:2  15/5-1:10  15/5-3:2  16/1-2:2  16/3-3:2  16/4-1:2  16/4-2:4  16/4-3:2  16/5-2:2  16/5-3:6  16/6-1:2  16/8-1:4  17/1-1:2  17/3-1:3  17/3-3:2  17/5-1:9  17/5-2:12  17/7-1:2  17/7-2:2  18/1-2:2  18/2-1:2  18/3-1:2  18/3-2:2  18/4-2:2  18/5-1:9  18/5-2:4  18/5-3:6  18/7-3:2  18/8-1:2  18/8-2:2  19/1-2:2  19/1-3:2  19/3-2:4  19/3-3:2  19/5-1:2  19/7-1:2  19/8-1:2  20/1-2:2  20/1-3:2  20/2-1:2  20/3-2:2  20/5-1:8  20/5-2:6  20/6-2:2  21/2-1:2  21/3-1:3  21/3-2:2  21/4-2:2  21/5-2:5  21/5-3:5  21/6-2:2  21/7-3:2  22/4-1:3  22/4-3:2  22/5-1:5  22/5-2:7  22/5-3:3  22/7-1:2  22/7-2:2  22/7-3:2  22/8-1:2  22/8-2:2  23/3-3:2  23/4-2:2  23/4-3:2  23/5-2:2  23/5-3:5  23/8-1:3  24/1-1:2  24/1-2:2  24/4-3:2  24/6-1:2  24/6-3:2  24/7-2:2  24/8-2:3  25/2-1:2  25/4-1:4  25/5-1:3  25/5-2:3  25/8-1:2  26/3-1:2  26/4-2:3  26/5-2:3  26/5-3:36  26/6-1:2  26/6-3:2  26/7-1:2  26/7-2:2  26/8-1:2  26/8-2:2  27/2-3:2  27/3-3:2  27/4-1:3  27/5-1:4  27/6-1:2  27/6-2:2  27/6-3:2  27/8-3:2  28/2-2:2  28/3-2:2  28/5-2:3  28/5-3:3  28/8-3:3  29/2-1:2  29/3-3:2
 
 Template usage in accepted levels:
-  cell_pillars       7
-  cell_rubble        7
-  cell_shelf         6
-  gate_bomb_a        51
-  gate_bomb_b        20
-  gate_glide_a       6
-  gate_glide_b       72
-  gate_rope_a        49
-  gate_rope_b        21
-  idol_pedestal      84
-  idol_spikes        78
-  o_bridge           2
-  o_drop             2
-  o_drop_hill        1
-  o_exit_a           24
-  o_exit_b           36
-  o_hills            16
-  o_islands          7
-  o_meadow           14
-  o_rock             8
-  o_steps            5
-  o_up_in_a          28
-  o_up_in_b          32
-  o_vineisland       3
-  p1_arch            201
-  p1_arrowhall       27
-  p1_block           31
-  p1_bridge          19
-  p1_cavern          203
-  p1_columns         194
-  p1_decks           169
-  p1_gallery         172
-  p1_gap             32
-  p1_goldstairs      174
-  p1_hall            272
-  p1_hollow          192
-  p1_ladderhump      175
-  p1_ledges          208
-  p1_lowceiling      98
-  p1_mound           164
-  p1_pillars         195
-  p1_platforms       196
-  p1_rise            160
-  p1_shelf           186
-  p1_steps           224
-  p1_teeth           28
-  p1_trench          30
-  p1_vents           1
-  p2_bridges         196
-  p2_cage            183
-  p2_funnel          213
-  p2_halfshelf       205
-  p2_ledge           201
-  p2_overhang        211
-  p2_pit             296
-  p2_slope           188
-  p2_spikes          181
-  p2_tunnel          261
-  p3_bowl            199
-  p3_cups            170
-  p3_fangs           182
-  p3_hill            169
-  p3_ladder          78
-  p3_open            306
-  p3_raft            181
-  p3_shelves         169
-  p3_steps           196
-  p3_twinladder      207
-  p4_basin           329
-  p4_cross           296
-  p4_ledge           436
-  p4_platform        287
-  p4_split           290
-  p4_well            320
-  p4_zig             312
-  s1_camp            100
-  s1_high            91
-  s1_ledge           76
-  s1_plain           84
-  s2_ledge           60
-  s2_step            69
-  shop_a             290
-  side_arrows        86
-  side_cache         139
-  side_cave          172
-  side_crypt         82
-  side_goldpit       159
-  side_ladder        83
-  side_lode          161
-  side_maze          77
-  side_nest          158
-  side_roost         176
-  side_solid         167
-  side_stack         172
-  side_towers        154
-  side_treasure      168
-  solid_a            4833
-  solid_b            3266
-  solid_c            3098
-  u_in_ladder        97
-  u_in_ledges        70
-  u_in_perch         72
-  u_in_plain         59
-  u_in_step          78
-  u_out_chimney      86
-  u_out_ladder       131
-  u_out_platforms    14
-  u_out_steps        118
-  u_out_zigzag       87
-  u_shaft_ladder     71
-  u_shaft_ledges     49
-  u_shaft_rest       59
-  vault_a            82
-  vault_b            74
-  x1_alcove          66
-  x1_gate            57
-  x1_perch           65
-  x1_plain           82
-  x3_ledge           49
-  x3_plain           52
-  x3_steps           49
+  cell_pillars       18
+  cell_rubble        20
+  cell_shelf         22
+  gate_bomb_a        144
+  gate_bomb_b        65
+  gate_glide_a       21
+  gate_glide_b       213
+  gate_rope_a        137
+  gate_rope_b        72
+  idol_pedestal      236
+  idol_spikes        266
+  o_bridge           8
+  o_drop             12
+  o_drop_hill        7
+  o_exit_a           83
+  o_exit_b           97
+  o_hills            40
+  o_islands          16
+  o_meadow           30
+  o_rock             31
+  o_steps            17
+  o_up_in_a          105
+  o_up_in_b          76
+  o_vineisland       18
+  p1_arch            576
+  p1_arrowhall       83
+  p1_block           77
+  p1_bridge          80
+  p1_cavern          542
+  p1_columns         569
+  p1_decks           543
+  p1_gallery         545
+  p1_gap             83
+  p1_goldstairs      517
+  p1_hall            828
+  p1_hollow          575
+  p1_ladderhump      546
+  p1_ledges          574
+  p1_lowceiling      308
+  p1_mound           567
+  p1_pillars         608
+  p1_platforms       559
+  p1_rise            459
+  p1_shelf           564
+  p1_steps           606
+  p1_teeth           88
+  p1_trench          80
+  p1_vents           4
+  p2_bridges         592
+  p2_cage            587
+  p2_funnel          653
+  p2_halfshelf       596
+  p2_ledge           627
+  p2_overhang        617
+  p2_pit             885
+  p2_slope           576
+  p2_spikes          584
+  p2_tunnel          729
+  p3_bowl            594
+  p3_cups            544
+  p3_fangs           568
+  p3_hill            538
+  p3_ladder          275
+  p3_open            896
+  p3_raft            536
+  p3_shelves         533
+  p3_steps           566
+  p3_twinladder      552
+  p4_basin           943
+  p4_cross           897
+  p4_ledge           1369
+  p4_platform        912
+  p4_split           918
+  p4_well            948
+  p4_zig             933
+  s1_camp            273
+  s1_high            281
+  s1_ledge           263
+  s1_plain           254
+  s2_ledge           179
+  s2_step            190
+  shop_a             890
+  side_arrows        250
+  side_cache         451
+  side_cave          510
+  side_crypt         234
+  side_goldpit       494
+  side_ladder        246
+  side_lode          498
+  side_maze          232
+  side_nest          497
+  side_roost         501
+  side_solid         488
+  side_stack         476
+  side_towers        470
+  side_treasure      479
+  solid_a            14602
+  solid_b            9601
+  solid_c            9348
+  u_in_ladder        300
+  u_in_ledges        186
+  u_in_perch         228
+  u_in_plain         189
+  u_in_step          215
+  u_out_chimney      254
+  u_out_ladder       365
+  u_out_platforms    45
+  u_out_steps        372
+  u_out_zigzag       263
+  u_shaft_ladder     215
+  u_shaft_ledges     149
+  u_shaft_rest       173
+  vault_a            215
+  vault_b            201
+  x1_alcove          196
+  x1_gate            186
+  x1_perch           192
+  x1_plain           214
+  x3_ledge           159
+  x3_plain           159
+  x3_steps           154

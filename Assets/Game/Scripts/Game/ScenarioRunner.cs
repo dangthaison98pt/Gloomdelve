@@ -1749,7 +1749,7 @@ namespace Gloomdelve
                     areas.Add(st / 4);
                 }
                 c.Expect(ok && areas.Count == 3, $"the cage is in one level of area 2, 3 or 4 - never the first, never a boss room ({areas.Count} different areas over 300 runs)");
-                c.Expect(without > 110 && without < 190, $"about every other run has no caged villager at all ({without} of 300 runs without)");
+                c.Expect(without == 0, $"every run has a caged villager in it ({without} of 300 runs without)");
             }
 
             // embers: the money of the village. Only with the elder's pouch, and only as many as it holds
@@ -4837,7 +4837,7 @@ namespace Gloomdelve
             yield return new WaitForSecondsRealtime(0.6f);
             Vector2 d = hud.WaypointPos - hud.WaypointTarget;
             c.Expect(hud.WaypointOnScreen, "marker switches to on-screen mode near the exit");
-            c.Expect(Mathf.Abs(d.x) < 12f && d.y > 100f && d.y < 150f, $"marker floats just above the door (offset {d.x:0},{d.y:0})");
+            c.Expect(Mathf.Abs(d.x) < 12f && d.y > 55f && d.y < 95f, $"marker floats just above the door (offset {d.x:0},{d.y:0})");
             c.Expect(hud.wpTail.color.a > 0.9f && hud.wpChevron.color.a < 0.1f, "pin tail shown, chevron hidden");
             ScreenCapture.CaptureScreenshot(Path.Combine(outDir, "waypoint_onscreen.png"));
             yield return new WaitForSecondsRealtime(0.3f);

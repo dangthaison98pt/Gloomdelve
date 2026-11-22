@@ -83,6 +83,8 @@ namespace Gloomdelve.EditorTools
                     GE("enter", "E", GS("pad_red"), "B", false, "\u25CB", psCircle, null, "A"),
                     GE("gear", "Tab", pill, "R1", false, "R1", null, pill, "R"), GE("walk", "S", pill, "L1", false, "L1", null, pill, "L"), GE("dash", "Shift", GS("pad_red"), "B", false, "\u25CB", psCircle, null, "A"),
                     GE("pause", "Esc", pill, "Select", false, "Share", null, pill, "\u2212"), GE("inventory", "I", pill, "Start", false, "Options", null, pill, "+"),
+                    // the two buttons of a scene (EndingScene): a pad's "yes" and its "back", whatever it plays with
+                    GE("next", "Space", GS("pad_green"), "A", false, "\u00D7", psCross, null, "A"), GE("skip", "Esc", GS("pad_red"), "B", false, "\u25CB", psCircle, null, "B"),
                     GE("up", "\u25B2", darkBtn, "\u25B2"), GE("down", "\u25BC", darkBtn, "\u25BC"),
                     GE("left", "\u25C4", darkBtn, "\u25C4"), GE("right", "\u25BA", darkBtn, "\u25BA"),
                     GE("move", "\u25C4 \u25B2 \u25BC \u25BA", darkBtn, "L"),

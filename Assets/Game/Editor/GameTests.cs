@@ -58,7 +58,7 @@ namespace Gloomdelve.EditorTools
             sb.AppendLine($"Brindlemoor seed sweep  {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
             sb.AppendLine($"seeds {firstSeed}..{firstSeed + seeds - 1}, stages per seed: {cfg.stages.Count(s => s.kind == LevelKind.Area)} procedural + final");
             sb.AppendLine();
-            int levels = 0, fails = 0, retries = 0, maxAttempts = 0, safetyIssues = 0, shops = 0, shopsExpected = 0, idols = 0, gated = 0, gates = 0, captives = 0, rooms = 0, cells = 0, dropsTrue = 0, dropsFalse = 0;
+            int levels = 0, fails = 0, retries = 0, maxAttempts = 0, safetyIssues = 0, shops = 0, shopsExpected = 0, idols = 0, gated = 0, gates = 0, captives = 0, rooms = 0, cells = 0, dropsTrue = 0, dropsFalse = 0, runsWithoutCage = 0;
             // gold a level holds (an estimate): lying about, carried by its enemies, in veins that touch open air, in veins buried in rock
             double goldFloor = 0, goldEnemies = 0, goldVeinsOpen = 0, goldVeinsBuried = 0, goldIdols = 0;
             double nugget = cfg.prefabs.Get("gold_small") is Pickup pn ? pn.value : 25, chunk = cfg.prefabs.Get("gold_big") is Pickup pc ? pc.value : 75,
@@ -123,6 +123,20 @@ namespace Gloomdelve.EditorTools
                     if (d.roomTemplates != null) foreach (var tn in d.roomTemplates) { var k = tn.Replace("(m)", ""); templateUse[k] = templateUse.TryGetValue(k, out int u) ? u + 1 : 1; }
                     if (seed < firstSeed + 2) maps.AppendLine(Ascii(d, $"seed {seed} stage {st.displayName} levelSeed {d.seed} attempts {d.attempts}"));
                 }
+                // every run hides one caged villager: the level of this run that is meant to have the cage has to have it
+                {
+                    var plan = new RunState { seed = seed };
+                    RunPlan.Ensure(plan, cfg);
+                    int at = Villagers.CaptiveStage(seed);
+                    bool caged = false;
+                    if (at >= 0 && plan.stageOrder != null && at < plan.stageOrder.Length)
+                    {
+                        var cs = cfg.stages[plan.stageOrder[at]].Named(plan.stageNames[at]);
+                        if (cs.kind == LevelKind.Area)
+                            foreach (var sp in LevelFactory.Create(cfg, cs, seed, at).spawns) if (sp.id == "captive") { caged = true; break; }
+                    }
+                    if (!caged) { runsWithoutCage++; sb.AppendLine($"CAGE seed {seed}: the run has no caged villager (level {at} of the run)"); }
+                }
             }
 
             // final + tutorial
@@ -144,6 +158,7 @@ namespace Gloomdelve.EditorTools
             sb.AppendLine($"Shops placed                : {shops} (levels with guaranteed shop: {shopsExpected})");
             sb.AppendLine($"Idol rooms                  : {idols}");
             sb.AppendLine($"Levels with a caged villager: {captives}");
+            sb.AppendLine($"Runs without a caged villager: {runsWithoutCage} of {seeds}");
             sb.AppendLine($"Holes in the path's floors  : {dropsTrue / (float)Math.Max(1, levels):0.0} lead on per level, {dropsFalse / (float)Math.Max(1, levels):0.0} are dead ends");
             double lv = Math.Max(1, levels);
             sb.AppendLine($"Gold per level (estimate)   : {goldFloor / lv:0} lying about + {goldEnemies / lv:0} from enemies + {goldVeinsOpen / lv:0} in veins at the surface + {goldIdols / lv:0} idols = {(goldFloor + goldEnemies + goldVeinsOpen + goldIdols) / lv:0}   (and {goldVeinsBuried / lv:0} buried in rock, bombs only)");
@@ -163,7 +178,7 @@ namespace Gloomdelve.EditorTools
             foreach (var kv in templateUse.OrderBy(k => k.Key)) sb.AppendLine($"  {kv.Key,-18} {kv.Value}");
             File.WriteAllText(Path.Combine(ResultsDir, "seed_sweep.txt"), sb.ToString());
             File.WriteAllText(Path.Combine(ResultsDir, "sample_maps.txt"), maps.ToString());
-            bool ok = fails == 0 && safetyIssues == 0 && finalOk && fplan != null && tutOk;
+            bool ok = fails == 0 && safetyIssues == 0 && runsWithoutCage == 0 && finalOk && fplan != null && tutOk;
             Debug.Log($"[Tests] Seed sweep {(ok ? "PASSED" : "FAILED")}: {levels} levels, {fails} fails, {safetyIssues} safety issues, {retries} re-rolls, final {finalOk}");
             return ok;
         }
@@ -494,6 +509,16 @@ namespace Gloomdelve.EditorTools
                     Check("challenge: out of the fight the save is as it was", !SaveSystem.Apart && SaveSystem.Records.embers == 4 && SaveSystem.Records.killCounts.Count == 0 && SaveSystem.Records.seenItems.Count == 1 && Codex.Kills("Snake") == 0);
                     SaveSystem.SelectSlot(2); SaveSystem.Reload();
                     Check("challenge: the list is the same whichever save is played", SaveSystem.Slot == 2 && SaveSystem.BossRecordOf("Broodmother").bestTime == 30f && SaveSystem.BossRecordOf("Yeti King") != null);
+
+                    // waking in bed after a night that ended: a line for it, and a scene for a save's first death
+                    Check("the loop: a waking after a win has its line, after a death one of several in turn, and any other waking none",
+                        EndingScene.WakingWords(EndingScene.Night.Won, 3) == EndingScene.WonWakingLine && EndingScene.WakingWords(EndingScene.Night.None, 3) == ""
+                        && EndingScene.WakingWords(EndingScene.Night.Died, 1) != EndingScene.WakingWords(EndingScene.Night.Died, 2)
+                        && EndingScene.WakingWords(EndingScene.Night.Died, 1) == EndingScene.WakingWords(EndingScene.Night.Died, 1 + EndingScene.DeathWakingLines.Length));
+                    bool dueNew = EndingScene.FirstDeathDue(EndingScene.Night.Died), notAfterWin = !EndingScene.FirstDeathDue(EndingScene.Night.Won);
+                    SaveSystem.Records.loopSeen = true;
+                    Check("the loop: the first death of a save gets its scene - once, and never a win", dueNew && notAfterWin && !EndingScene.FirstDeathDue(EndingScene.Night.Died));
+                    SaveSystem.Records.loopSeen = false;
 
                     // the Records screen: everything since the game was first played, all saves together
                     File.Delete(Path.Combine(scratch, "totals.json"));

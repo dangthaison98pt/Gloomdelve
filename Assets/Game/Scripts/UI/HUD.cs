@@ -682,6 +682,13 @@ namespace Gloomdelve
             Vector2 world = new Vector2(cell.x + 0.5f, cell.y + 1.35f);   // top of the door / altar
             float dist = Vector2.Distance(new Vector2(cell.x + 0.5f, cell.y + 0.5f), p.Center);
             if (quest) { world = questAt; dist = Vector2.Distance(questAt, p.Center); goal = true; }
+            // in the village the way anywhere is through a door: out of the room one is in, or into the house the
+            // thing is in - never a straight line to a room that lies somewhere else in the level
+            if (RunSession.Current != null && RunSession.Current.inVillage)
+            {
+                Vector2 way = VillageInterior.WayTo(World.Instance, p.Center, world);
+                if (way != world) { world = way; dist = Vector2.Distance(way, p.Center); }
+            }
 
             var root = (RectTransform)compassRoot.transform;
             Vector2 screen = dir.cam.WorldToScreenPoint(world);
@@ -689,7 +696,7 @@ namespace Gloomdelve
             WaypointTarget = local;
 
             Vector2 half = root.rect.size * 0.5f;
-            const float side = 80f, top = 190f, bottom = 120f, lift = 125f;
+            const float side = 80f, top = 190f, bottom = 120f, lift = 72f;       // (lift: how far over the thing it hangs)
             float minX = -half.x + side, maxX = half.x - side, minY = -half.y + bottom, maxY = half.y - top;
 
             bool onScreen = local.x > minX && local.x < maxX && local.y > minY && local.y < maxY - lift * 0.5f;

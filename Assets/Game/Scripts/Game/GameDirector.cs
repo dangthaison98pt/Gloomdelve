@@ -79,7 +79,9 @@ namespace Gloomdelve
             RunPlan.Ensure(run, config);
             int at = Mathf.Clamp(run.stageIndex, 0, run.stageOrder.Length - 1);
             Stage = run.inVillage ? config.village : run.isTutorial ? config.tutorial : config.stages[Mathf.Clamp(run.stageOrder[at], 0, config.stages.Length - 1)].Named(run.stageNames[at]);
-            if (run.inVillage) Stage = VillageClock.For(Stage, VillageClock.Hour);      // day or night there, by the player's own clock
+            // (the scene after a run that was won is played in the village at night, whatever the hour: EndingScene)
+            bool ending = EndingScene.Pending && run.inVillage && !ScenarioRunner.Active && !AutoTest.Active;
+            if (run.inVillage) Stage = VillageClock.For(Stage, ending ? 23 : VillageClock.Hour);      // day or night there, by the player's own clock
             run.levelTime = 0f;
             run.goldAtLevelStart = run.gold;
             run.reachedStageName = Stage.displayName;
@@ -126,8 +128,9 @@ namespace Gloomdelve
                 // people in the street, children at play: a full street by day, a few at dawn and dusk, and at night
                 // only a couple of grown-ups still about (the children are in bed)
                 var part = VillageClock.PartOf(VillageClock.Hour);
-                Townsfolk.Populate(world, part == VillageClock.Part.Day ? 8 : part == VillageClock.Part.Night ? 2 : 5,
-                                          part == VillageClock.Part.Day ? 4 : part == VillageClock.Part.Night ? 0 : 2);
+                if (ending) Townsfolk.Populate(world, 8, 3);        // (the whole village is out to see the stone come home)
+                else Townsfolk.Populate(world, part == VillageClock.Part.Day ? 8 : part == VillageClock.Part.Night ? 2 : 5,
+                                               part == VillageClock.Part.Day ? 4 : part == VillageClock.Part.Night ? 0 : 2);
             }
             // the level after this one is built in the background while this one is played
             // (in the village that is the first level of the run)
@@ -136,7 +139,8 @@ namespace Gloomdelve
                 LevelFactory.Pregenerate(config, config.stages[Mathf.Clamp(run.stageOrder[aheadAt], 0, config.stages.Length - 1)].Named(run.stageNames[aheadAt]), run.seed, run.inVillage ? run.stageIndex : run.stageIndex + 1);
             int spawnCount = world.EntityCount;
             var spawnAt = new Vector2(Level.entrance.x + 0.5f, Level.entrance.y);
-            if (run.inVillage && VillageClock.testHour >= 0 && VillageClock.Street(world.Grid, out var street)) spawnAt = street;      // (looking at the village from the command line)
+            if (ending && EndingScene.Entrance(world.Grid, out var comeHome)) spawnAt = comeHome;
+            else if (run.inVillage && VillageClock.testHour >= 0 && VillageClock.Street(world.Grid, out var street)) spawnAt = street;      // (looking at the village from the command line)
             else if (run.inVillage && !run.wakeInBed)
             {
                 // from the menu the player stands downstairs at home, a few steps from the door (the level's own
@@ -148,7 +152,7 @@ namespace Gloomdelve
             if (chestGear != null && Chest.SpawnGearChest(world, chestGear, spawnAt) == null) { run.gear.Add(chestGear); grantedGear = true; chestGear = null; }      // (no room for a chest: handed over)
             world.Player = Player;
             Player.input = input;
-            Player.godMode = debugGodMode || Cheats.God || (EditorPlaytest.Active && EditorPlaytest.GodMode);
+            Player.godMode = debugGodMode || (EditorPlaytest.Active && EditorPlaytest.GodMode);
             cameraFollow.SetTarget(Player, new Rect(0f, 0f, Level.Width, Level.Height), config.cameraOrthoSize);
             if (cam != null && Stage.area != null) cam.backgroundColor = Stage.area.cameraBackground;
 
@@ -172,7 +176,7 @@ namespace Gloomdelve
             // of an area, the camp, the final vault. Later levels and boss arenas start without a card.
             bool newPlace = Stage.kind == LevelKind.Area ? Stage.levelNumber == 1 : Stage.kind != LevelKind.Boss;
             if (newPlace)
-                if (run.inVillage) VillageBuilding.NewVisit();      // the village names itself when the player steps out of the house
+                if (run.inVillage) { if (!ending) VillageBuilding.NewVisit(); }      // the village names itself when the player steps out of the house
                 else hud.ShowAreaIntro(Stage.kind == LevelKind.Area ? Stage.area.displayName : Stage.displayName);
             if (gateGear != null && !ScenarioRunner.Active && !AutoTest.Active) SupplyCache(gateGear, run);
             if (Level.grip < 1f && Stage.levelNumber == 1 && !grantedGear)
@@ -192,6 +196,16 @@ namespace Gloomdelve
             Debug.Log("[Game] " + line);
             SaveSystem.AppendRunLog(line);
 
+            if (ending) { StartCoroutine(EndingScene.Play(this)); return; }
+            // waking in bed after a night that ended - won or lost - is the same day again, and only Brann knows it:
+            // a line says so, and the first death of a save gets a short scene of its own (EndingScene)
+            var lastNight = EndingScene.Last;
+            EndingScene.Last = EndingScene.Night.None;
+            if (run.inVillage && run.wakeInBed && !ScenarioRunner.Active && !AutoTest.Active)
+            {
+                if (EndingScene.FirstDeathDue(lastNight)) StartCoroutine(EndingScene.PlayWaking(this));
+                else { string words = EndingScene.WakingWords(lastNight, SaveSystem.Totals.deaths); if (words.Length > 0) hud.ShowMessage(words, 9f); }
+            }
             if (ScenarioRunner.Active) { StartCoroutine(ScenarioRunner.RunCurrent(this)); return; }
             if (AutoTest.Active)
             {
@@ -321,7 +335,7 @@ namespace Gloomdelve
         void Update()
         {
             DebugShots();
-            Cheats.Tick(this);
+            if (EndingScene.Playing) return;        // (the scene listens to the buttons itself)
             if (linkPending && world.Frame > 0) { LevelFactory.LinkShops(world, Level); linkPending = false; }
             // a new item's card is up: the game waits, and any of the usual buttons puts it away
             if (hud != null && hud.CardModal)
@@ -628,27 +642,6 @@ namespace Gloomdelve
             transition.Show(Stage, run, run.gold - run.goldAtLevelStart, AutoTest.Active ? 0.1f : 0f, ContinueToNextStage);
         }
 
-        /// <summary>Hidden GD help (Cheats): this level counts as done - in the last hall, the run as won.</summary>
-        public void CheatSkipLevel()
-        {
-            if (Ended || Run == null || Stage == null || Player == null || Player.IsDead) return;
-            if (Run.inVillage || Run.bossPractice) { ShowMessage("GD: nothing to skip here."); return; }
-            if (skipping) return;
-            skipping = true;
-            if (Stage.kind == LevelKind.Final) Victory(); else LevelComplete();
-        }
-        bool skipping;
-
-        /// <summary>Hidden GD help (Cheats): the boss of this level falls.</summary>
-        public void CheatKillBoss()
-        {
-            if (!BossAlive) { ShowMessage("GD: no boss here."); return; }
-            var b = Boss;
-            b.health = 1;
-            b.TakeDamage(new DamageInfo(1, DamageType.Explosion, Player, Vector2.zero, "GD"));
-            if (!b.Dead) ShowMessage("GD: it slipped away - press again.");
-        }
-
         void ContinueToNextStage()
         {
             var run = Run;
@@ -681,7 +674,18 @@ namespace Gloomdelve
             }
             string news = SaveSystem.RecordRunEnd(run);
             SaveSystem.AppendRunLog($"seed {run.seed} VICTORY time {run.totalTime:0.0} gold {run.gold}");
+            // the stone is carried home first (EndingScene); the run's numbers come at the end of that
+            if (EndingScene.Begin(this, run, news)) return;
             results.ShowRunEnd(run, true, news, run.stageOrder.Length);
+        }
+
+        /// <summary>The end of the scene in the village: the numbers of the run that was won (not of the run the scene was played on).</summary>
+        public void ShowWonRun(RunState won, string news)
+        {
+            Ended = true;
+            world.enabled = false;
+            if (won == null) { RestartRun(false); return; }
+            results.ShowRunEnd(won, true, news, won.stageOrder != null ? won.stageOrder.Length : 0);
         }
 
         public void OnPlayerDied(string cause)
@@ -723,6 +727,7 @@ namespace Gloomdelve
                 yield break;
             }
             string news = SaveSystem.RecordRunEnd(run);
+            EndingScene.Last = EndingScene.Night.Died;      // (the next waking in bed knows what it follows)
             SaveSystem.AppendRunLog($"seed {run.seed} DIED at {Stage.displayName}: {run.deathCause}");
             results.ShowRunEnd(run, false, news, run.stageIndex);
         }

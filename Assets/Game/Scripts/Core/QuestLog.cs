@@ -251,7 +251,7 @@ namespace Gloomdelve
                 foreach (var n in names) if (n.Trim() == id) { wanted = true; break; }
                 if (!wanted) continue;
                 float d = (e.Center - from).sqrMagnitude;
-                if (d < best) { best = d; at = new Vector2(e.pos.x, e.pos.y + e.size.y + 0.5f); }
+                if (d < best) { best = d; at = new Vector2(e.pos.x, e.pos.y + e.size.y + 0.25f); }
             }
             return best < float.MaxValue;
         }

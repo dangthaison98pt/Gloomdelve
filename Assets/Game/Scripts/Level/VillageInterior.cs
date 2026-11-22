@@ -103,6 +103,32 @@ namespace Gloomdelve
         /// <summary>Left edge of the room's floor (the door is the second cell).</summary>
         float RoomLeft => Mathf.Floor(pos.x) - 1f;
         Rect RoomRect => new Rect(RoomLeft, pos.y, RoomW, RoomH);
+
+        /// <summary>The room this spot is in (null = out on the street).</summary>
+        public static VillageInterior RoomAt(World w, Vector2 at)
+        {
+            if (w == null) return null;
+            foreach (var e in w.Entities)
+                if (e is VillageInterior room && !room.Dead && room.RoomRect.Contains(at)) return room;
+            return null;
+        }
+
+        /// <summary>
+        /// The way to a place in the village is through doors: the rooms lie somewhere else in the level than the
+        /// fronts they belong to, so a straight line from one to the other points at nothing. From inside a room
+        /// the way to anything outside it is that room's own door; from the street the way to something inside a
+        /// room is the door of its building. Otherwise the place itself. (Returns the spot to point at.)
+        /// </summary>
+        public static Vector2 WayTo(World w, Vector2 from, Vector2 target)
+        {
+            var here = RoomAt(w, new Vector2(from.x, from.y));
+            var there = RoomAt(w, new Vector2(target.x, target.y - 0.6f));
+            if (here == there) return target;
+            if (here != null) return new Vector2(here.pos.x, here.pos.y + 1.7f);       // out through this room's door first
+            foreach (var e in w.Entities)
+                if (e is VillageBuilding b && !b.Dead && b.Index == there.Index) return new Vector2(b.pos.x, b.pos.y + 1.9f);
+            return target;
+        }
         /// <summary>What the camera is kept to while the player is inside: the middle of the room. The room is smaller
         /// than the view, so the camera stands still on it instead of sliding after the player.</summary>
         Rect Frame => new Rect(RoomLeft + RoomW * 0.5f - 0.05f, pos.y + RoomH * 0.5f - 0.05f, 0.1f, 0.1f);

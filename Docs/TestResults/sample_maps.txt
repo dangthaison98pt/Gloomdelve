@@ -3257,40 +3257,23 @@ X############################################################X
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 == FINAL  (@ entrance, % exit)
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-XBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBX
-X........................v.............X
-X......................................X
-X..@................................%..X
-XBBBBBBB..BBBBBBBBBBBBBBBBBBBBBBBBBHBBBX
-XB..b........b..BBBBBBBBBBBBBBBBB.eH.eBX
-XB..............BBBBBBBBBBBBBBBBB..H..BX
-XB..............BB$BBBBBBBBBBBBBB..H..BX
-XB....BBBBBBB...BBBBBBBBBBB$BBBBB..H..BX
-XB..............BBBBBBBBBBBBBBBBB..H..BX
-XB..............BBBBBBBBBBBBBBBBB..H..BX
-XB..............BBBBBB$BBBBBBBBBB..H..BX
-XBBBBBBB........BBBBBBBBBBBBBBBBB..H..BX
-XB.x............BB$BBBBBBBBBBBBBB..H..BX
-XB..............BBBBBBBBBBBBB$BBA..H..BX
-XB..........s...BBBBBBBBBBBBBBBBB..H..BX
-XB......BBBBBBB.BBBBBBBBBBBBBBBBB..H.gBX
-XB........x.....BBBB$BBBBBBBBBBBB..HBBBX
-XB..............BBBBBBBBBBBBBBBBB..H..BX
-XB.g............ABBBBBBBBBBBBB$BB..H..BX
-XBBBBBBBB.......BBBBBBBB$BBBBBBBB..H..BX
-XB..............BBBBBBBBBBBBBBBBA..H..BX
-XB..............BBBBBBBBBBBBBBBBB..H..BX
-XB..........g...BBBBBBBBBBBBBBBBB..H..BX
-XB.....BBBBBBBB.BBBBBBBBBBBBBBBBB..H..BX
-XB..............v.......w....v.....H..BX
-XB.................................H..BX
-XB.................................H..BX
-XB.....u.c....G.....Y....*....t....H..BX
-XBBBBBBBBBBBfBBBBBBBBBBBBBBfBBBBBBBBBBBX
-XBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBX
-XBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBX
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBX
+X..........................................X
+X..........................................X
+X..........................................X
+X..........................................X
+X..........................................X
+X..........................................X
+X..........................................X
+X..........................................X
+X..........................................X
+X.......=====..................=====.......X
+X..........................................X
+X..@....................................%..X
+XBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBX
+XBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBX
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 == TUTORIAL  (@ entrance, % exit)
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX

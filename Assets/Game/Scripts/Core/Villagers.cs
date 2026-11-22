@@ -19,8 +19,8 @@ namespace Gloomdelve
 
     /// <summary>
     /// The people of Brindlemoor and what the player keeps between runs.
-    ///  - Lost villagers: in every other run or so (an even chance, by the run seed) one of them is caged somewhere
-    ///    off the main path in ONE level, in the second, third or fourth area; the other runs have no cage at all. Freed villagers are home for good; each keeps their own kind of shop outside
+    ///  - Lost villagers: in every run, while any of them is still lost, one is caged somewhere off the main path
+    ///    in ONE level, in the second, third or fourth area (which level: by the run seed). Freed villagers are home for good; each keeps their own kind of shop outside
     ///    their house in the village, where the player buys things for the coming run.
     ///  - Key items: the few things that are not lost when a run ends (kept in the save file). The first one is
     ///    the Ember Pouch the village elder gives.
@@ -111,7 +111,7 @@ namespace Gloomdelve
 
         /// <summary>Who is in the cage of this level: one of those still lost, picked by the level seed. Null when everyone is home.</summary>
         /// <summary>The chance that a run has a caged villager in it at all.</summary>
-        public const float CaptiveChance = 0.5f;
+        public const float CaptiveChance = 1f;
 
         public static VillagerDef NextCaptive(int seed)
         {
@@ -136,7 +136,7 @@ namespace Gloomdelve
         /// <summary>
         /// The one level of a run that hides a caged villager: a level of the second, third or fourth area (never
         /// the first), picked by the run seed. The number is the position of the level in the run (each area is
-        /// three levels and a boss). Only half of all runs have a cage (CaptiveChance): -1 means this run has none.
+        /// three levels and a boss). Every run has one (CaptiveChance is 1; below that, -1 means this run has none).
         /// </summary>
         public static int CaptiveStage(int runSeed)
         {
