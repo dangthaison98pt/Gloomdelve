@@ -4749,6 +4749,14 @@ namespace Gloomdelve
             yield return c.Frames(20);
             c.Expect(run.bombs == 20 && run.ropes == 10, $"with room in the bags the bombs and ropes left behind are picked up (bombs {run.bombs}, ropes {run.ropes})");
 
+            // a Challenge fight is the same for every save: none of the elder's work goes into it (this is the
+            // last thing the scenario does - it leaves that fight as the run in hand)
+            var ch = RunSession.NewBossPractice(0, c.world.config.player);
+            var pc = c.world.config.player;
+            c.Expect(ch.bossPractice && ch.BombCap == pc.bombCapacity && ch.RopeCap == pc.ropeCapacity && ch.PebbleCap == pc.pebbleCapacity
+                     && ch.bombs == pc.bombCapacity && ch.ropes == pc.ropeCapacity && ch.Pebbles == pc.pebbleCapacity,
+                $"a Challenge fight sets out with the bags at their first size, whatever the elder did (bombs {ch.bombs}/{ch.BombCap}, ropes {ch.ropes}/{ch.RopeCap}, pebbles {ch.Pebbles}/{ch.PebbleCap})");
+
             foreach (var e in c.world.Entities) if (!e.Dead && (e is ShopItem || e is Elder)) e.Despawn();
             if (run.HasUpgrade("pebblepouch")) run.RemoveUpgrade("pebblepouch");
             c.Teleport(3.5f, 1f);

@@ -177,12 +177,15 @@ namespace Gloomdelve
 
         /// <summary>What can be carried before any bag is enlarged (PlayerConfig).</summary>
         public int pebbleBase = 10, bombBase = 5, ropeBase = 5;
+        /// <summary>What the elder's work adds to a bag in this run. Nothing in a Challenge fight: its times are
+        /// compared boss by boss, so every save goes in with the same bags.</summary>
+        int KeptBonus(string kind) => bossPractice ? 0 : Bags.Bonus(kind);
         /// <summary>How many pebbles can be carried now: the first size of the bag, what the elder has added to it
         /// for good (Bags), and what the Pebble Pouch adds while it is worn.</summary>
-        public int PebbleCap => Mathf.Max(0, pebbleBase + Bags.Bonus(Bags.Pebbles) + stats.pebbleBonus);
+        public int PebbleCap => Mathf.Max(0, pebbleBase + KeptBonus(Bags.Pebbles) + stats.pebbleBonus);
         /// <summary>How many bombs / ropes can be carried: the first size of the bag and what the elder has added to it.</summary>
-        public int BombCap => Mathf.Max(0, bombBase + Bags.Bonus(Bags.Bombs));
-        public int RopeCap => Mathf.Max(0, ropeBase + Bags.Bonus(Bags.Ropes));
+        public int BombCap => Mathf.Max(0, bombBase + KeptBonus(Bags.Bombs));
+        public int RopeCap => Mathf.Max(0, ropeBase + KeptBonus(Bags.Ropes));
 
         /// <summary>The most that can be carried of a resource; int.MaxValue for what has no bag (gold, health...).</summary>
         public int CapOf(string id)
@@ -236,7 +239,9 @@ namespace Gloomdelve
         /// <summary>Unique id that increases with every new run (used by tests to detect stale state).</summary>
         public static int RunCounter { get; private set; }
 
-        public static RunState NewRun(int seed, bool tutorial, PlayerConfig cfg)
+        /// <param name="challenge">A Challenge fight (bossPractice): set before the bags are filled, so they are
+        /// filled to their first size and not to what the elder has made of them.</param>
+        public static RunState NewRun(int seed, bool tutorial, PlayerConfig cfg, bool challenge = false)
         {
             RunCounter++;
             Current = new RunState
@@ -244,6 +249,7 @@ namespace Gloomdelve
                 seed = seed,
                 stageIndex = 0,
                 isTutorial = tutorial,
+                bossPractice = challenge,
                 health = cfg != null ? cfg.startHealth : 10,
                 maxHealth = cfg != null ? cfg.startHealth : 10,
                 bombs = cfg != null ? cfg.startBombs : 4,
@@ -271,10 +277,9 @@ namespace Gloomdelve
         /// <summary>Starts a boss test: a fresh explorer dropped straight into the boss arena at this stage of the run.</summary>
         public static RunState NewBossPractice(int catalogueIndex, PlayerConfig cfg)
         {
-            var run = NewRun(RandomSeed(), false, cfg);
+            var run = NewRun(RandomSeed(), false, cfg, challenge: true);
             RunPlan.UseSingleStage(run, catalogueIndex, "CHALLENGE");
             run.stageIndex = 0;
-            run.bossPractice = true;
             return run;
         }
 
