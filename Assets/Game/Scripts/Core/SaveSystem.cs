@@ -107,6 +107,8 @@ namespace Gloomdelve
         public int kills, bossKills, levelsCompleted;
         public bool villagerFreed;
         public int bossDownStage = -1;
+        public bool hammerHandle, hammerHead, hammerCore;
+        public int ghostMask;
         [Tooltip("Name of the level it is in (shown on the save slot).")] public string stageName = "";
     }
 

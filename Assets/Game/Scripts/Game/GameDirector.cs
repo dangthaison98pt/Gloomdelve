@@ -81,7 +81,9 @@ namespace Gloomdelve
             Stage = run.inVillage ? config.village : run.isTutorial ? config.tutorial : config.stages[Mathf.Clamp(run.stageOrder[at], 0, config.stages.Length - 1)].Named(run.stageNames[at]);
             // (the scene after a run that was won is played in the village at night, whatever the hour: EndingScene)
             bool ending = EndingScene.Pending && run.inVillage && !ScenarioRunner.Active && !AutoTest.Active;
-            if (run.inVillage) Stage = VillageClock.For(Stage, ending ? 23 : VillageClock.Hour);      // day or night there, by the player's own clock
+            bool trueEnd = ending && EndingScene.PendingTrue;      // (the morning after the stone is broken: by day, and no snow)
+            if (run.inVillage) Stage = VillageClock.For(Stage, trueEnd ? 12 : ending ? 23 : VillageClock.Hour);      // day or night there, by the player's own clock
+            if (trueEnd && Stage.area != null && Stage.area != config.village.area) Stage.area.ambientParticles = AmbientParticles.Pollen;
             run.levelTime = 0f;
             run.goldAtLevelStart = run.gold;
             run.reachedStageName = Stage.displayName;
@@ -122,13 +124,14 @@ namespace Gloomdelve
                 Level.spawns.RemoveAll(sp => config.prefabs.Get(sp.id) is Boss);
             SaveSystem.Checkpoint(run, Stage.displayName);      // the game is saved at the start of every level
             LevelFactory.SpawnAll(world, Level, config.prefabs);
+            Story.Populate(world, Level, Stage, run, config);       // the old pillars, and - once they are read - the parts of the hammer
             QuestLog.Use(config.quests, !run.isTutorial && !run.bossPractice);      // (quests begin once the tutorial is behind; a Challenge fight is not part of the story)
             if (run.inVillage)
             {
                 // people in the street, children at play: a full street by day, a few at dawn and dusk, and at night
                 // only a couple of grown-ups still about (the children are in bed)
                 var part = VillageClock.PartOf(VillageClock.Hour);
-                if (ending) Townsfolk.Populate(world, 8, 3);        // (the whole village is out to see the stone come home)
+                if (ending) Townsfolk.Populate(world, 8, trueEnd ? 4 : 3);        // (the whole village is out: to see the stone come home, or the morning)
                 else Townsfolk.Populate(world, part == VillageClock.Part.Day ? 8 : part == VillageClock.Part.Night ? 2 : 5,
                                                part == VillageClock.Part.Day ? 4 : part == VillageClock.Part.Night ? 0 : 2);
             }
@@ -139,7 +142,8 @@ namespace Gloomdelve
                 LevelFactory.Pregenerate(config, config.stages[Mathf.Clamp(run.stageOrder[aheadAt], 0, config.stages.Length - 1)].Named(run.stageNames[aheadAt]), run.seed, run.inVillage ? run.stageIndex : run.stageIndex + 1);
             int spawnCount = world.EntityCount;
             var spawnAt = new Vector2(Level.entrance.x + 0.5f, Level.entrance.y);
-            if (ending && EndingScene.Entrance(world.Grid, out var comeHome)) spawnAt = comeHome;
+            if (trueEnd && VillageClock.Street(world.Grid, out var square)) spawnAt = square;
+            else if (ending && EndingScene.Entrance(world.Grid, out var comeHome)) spawnAt = comeHome;
             else if (run.inVillage && VillageClock.testHour >= 0 && VillageClock.Street(world.Grid, out var street)) spawnAt = street;      // (looking at the village from the command line)
             else if (run.inVillage && !run.wakeInBed)
             {
@@ -196,7 +200,8 @@ namespace Gloomdelve
             Debug.Log("[Game] " + line);
             SaveSystem.AppendRunLog(line);
 
-            if (ending) { StartCoroutine(EndingScene.Play(this)); return; }
+            if (ending) { StartCoroutine(trueEnd ? EndingScene.PlayTrue(this) : EndingScene.Play(this)); return; }
+            if (Story.autoBreak && Stage.kind == LevelKind.Final) StartCoroutine(Story.AutoBreak(this));
             // waking in bed after a night that ended - won or lost - is the same day again, and only Brann knows it:
             // a line says so, and the first death of a save gets a short scene of its own (EndingScene)
             var lastNight = EndingScene.Last;
@@ -340,7 +345,7 @@ namespace Gloomdelve
             // a new item's card is up: the game waits, and any of the usual buttons puts it away
             if (hud != null && hud.CardModal)
             {
-                if (input != null && (input.ConfirmPressed || input.PausePressed || input.BackPressed)) { hud.DismissCard(); if (!hud.CardModal) input.ClearLatches(); }
+                if (input != null && (input.ConfirmPressed || input.PausePressed || input.BackPressed)) { hud.DismissCard(); input.ClearLatches(); }       // (the press that puts a card away is nobody else's: not a dash, not a jump)
                 return;
             }
             // a villager's shop: Pause or a gamepad's back button shuts it (its own Close button too)
@@ -505,7 +510,11 @@ namespace Gloomdelve
                 StartCoroutine(EndPractice(2.2f));
                 return;
             }
-            hud.ShowBanner($"{b.displayName.ToUpperInvariant()} DEFEATED", final ? (Level != null && Level.goal.HasValue ? "The Sunstone is yours. Lift it and run!" : "The Sunstone lies where he fell. Lift it.") : "The way on is open.", 4.5f);
+            // (with the hammer in the bag there are two things to do with the stone, and the screen says so)
+            bool hammer = final && Run != null && Run.gear.Contains(Story.HammerGear);
+            hud.ShowBanner($"{b.displayName.ToUpperInvariant()} DEFEATED",
+                hammer ? "The Sunstone lies where he fell. Lift it - or take the hammer to it."
+                : final ? (Level != null && Level.goal.HasValue ? "The Sunstone is yours. Lift it and run!" : "The Sunstone lies where he fell. Lift it.") : "The way on is open.", hammer ? 6.5f : 4.5f);
             Sfx.PlayUI("victory");
             if (AudioManager.Instance != null) AudioManager.Instance.SetMusicPitch(1f);
         }
@@ -677,6 +686,43 @@ namespace Gloomdelve
             // the stone is carried home first (EndingScene); the run's numbers come at the end of that
             if (EndingScene.Begin(this, run, news)) return;
             results.ShowRunEnd(run, true, news, run.stageOrder.Length);
+        }
+
+        /// <summary>
+        /// The hammer has come down on the Sunstone, its keeper fallen: the stone breaks. This is the real end of
+        /// the game - the run is won, the loop is over (Story.KeyTrueEnd), and the morning after is shown.
+        /// </summary>
+        public void BreakSunstone(Treasure stone)
+        {
+            if (Ended || Stage == null || Stage.kind != LevelKind.Final || BossAlive || Run == null || stone == null) return;
+            Ended = true;
+            var run = Run;
+            run.victory = true;
+            run.finished = true;
+            if (Player != null) { Player.godMode = true; if (Player.held == stone) Player.held = null; }
+            if (AudioManager.Instance != null) AudioManager.Instance.SetMusicPitch(1f);
+            string news = SaveSystem.RecordRunEnd(run);
+            SaveSystem.AppendRunLog($"seed {run.seed} TRUE END time {run.totalTime:0.0}");
+            Villagers.GiveKey(Story.KeyTrueEnd);
+            if (EndingScene.BeginTrue(this, run, news, stone)) return;
+            world.enabled = false;
+            results.ShowTrueEnd(run, news);
+        }
+
+        /// <summary>The end of the morning after: the numbers of the run that broke the stone.</summary>
+        public void ShowTrueEnd(RunState won, string news)
+        {
+            Ended = true;
+            world.enabled = false;
+            if (won == null) { QuitToMenu(); return; }
+            results.ShowTrueEnd(won, news);
+        }
+
+        /// <summary>From the real end's numbers: the credits, then the title screen.</summary>
+        public void RollCredits()
+        {
+            if (EndingScene.Playing) return;
+            StartCoroutine(EndingScene.Credits(this));
         }
 
         /// <summary>The end of the scene in the village: the numbers of the run that was won (not of the run the scene was played on).</summary>

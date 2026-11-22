@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a60ed576d1c0ea54eab9008652f87571, type: 3}
+  m_Name: Gear_Hammer
+  m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.EquipmentDef
+  id: hammer
+  displayName: Stonebreaker
+  description: '[use] : bring it down in front of you - 3 damage, never used up.
+    Nothing else breaks the Sunstone.'
+  icon: {fileID: 21300000, guid: b3eaeb2b9ef18a54093276f11259ac55, type: 3}
+  inHand: {fileID: 21300000, guid: 5a236e3ca90694148b66f818bfc4da32, type: 3}
+  terrainHint: Heavy and slow, and it hits hard. The old signs say what else it is
+    for.
+  gateBanner: 
+  gateSign: 
+  supplyPickupId: 
+  ammoLabel: 

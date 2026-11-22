@@ -202,7 +202,15 @@ namespace Gloomdelve
             {
                 string step = QuestLog.StepText(q);
                 if (questTitle.text != q.title) questTitle.text = q.title;
-                if (questStep.text != step) questStep.text = step;
+                if (questStep.text != step)
+                {
+                    questStep.text = step;
+                    // a step that takes two lines (or three) to say: the frame grows down to hold them
+                    var stepAt = questStep.rectTransform;
+                    float lines = questStep.GetPreferredValues(step, stepAt.sizeDelta.x, 0f).y;
+                    stepAt.sizeDelta = new Vector2(stepAt.sizeDelta.x, Mathf.Max(48f, lines + 4f));
+                    questRoot.sizeDelta = new Vector2(questRoot.sizeDelta.x, Mathf.Max(104f, -stepAt.anchoredPosition.y + lines + 22f));
+                }
                 // in the village the clock's corner is put away: the quest moves up into its place
                 var run = RunSession.Current;
                 questRoot.anchoredPosition = new Vector2(questRoot.anchoredPosition.x, run != null && run.inVillage ? -16f : -178f);

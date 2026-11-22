@@ -14,6 +14,7 @@ namespace Gloomdelve
     {
         public Sprite openSprite;
         [Tooltip("Picture of the Field Guide (the chest that holds it shows it on a card).")] public Sprite bookIcon;
+        [Tooltip("Picture of the hammer's head (the chest that holds it shows it on a card).")] public Sprite hammerHeadIcon;
         public int itemCount = 3;
 
         [Tooltip("Set (by its spawn point's text): the chest holds this piece of gear and nothing else.")] public string gearId = "";
@@ -65,6 +66,12 @@ namespace Gloomdelve
                     if (!s0.gear.Contains("recall")) s0.gear.Add("recall");
                     if (d0 != null && d0.hud != null) d0.hud.Gain("recall", charm.displayName, charm.icon, 1, $"Hold [gear] to take it in hand.  {charm.description}", true);
                 }
+                return;
+            }
+            if (gearId == Story.HeadChest)
+            {
+                // the chest the old signs speak of: the head of the hammer
+                Story.GotPart(RunSession.Current, World.config, "hammerhead");
                 return;
             }
             if (!string.IsNullOrEmpty(gearId))

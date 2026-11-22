@@ -160,6 +160,12 @@ MonoBehaviour:
     prefab: {fileID: 1112100235056901730, guid: 91cfd3b09974d0d40900be970addca2b, type: 3}
   - id: gearchest
     prefab: {fileID: 6494134240556196489, guid: 49d61bbdf9867c74f9cdea6c4610ad9d, type: 3}
+  - id: runepillar
+    prefab: {fileID: 5627045631459068072, guid: 13329d014a1fdf243afc117bbc8d4015, type: 3}
+  - id: stranger
+    prefab: {fileID: 5714298268017565794, guid: d3c038879dec8a94d9a496efa6f655be, type: 3}
+  - id: ghost
+    prefab: {fileID: 2738361407194520858, guid: 2913b5c07dcebf44e83affd95bc20b5a, type: 3}
   - id: hawk
     prefab: {fileID: 282029270680871591, guid: 864923d5074fbb4498626ef3dcbdef4b, type: 3}
   - id: tree

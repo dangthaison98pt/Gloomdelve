@@ -255,6 +255,8 @@ namespace Gloomdelve
                 run = c => CodexCase(c) },
             new Scenario { name = "quests: the elder's quest leads to his hall, he speaks before he gives, and the pouch comes on a card", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => QuestCase(c) },
+            new Scenario { name = "story: the old signs are copied and read, the hammer's three parts make the hammer, and it strikes for three", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => StoryCase(c) },
             new Scenario { name = "villagers: a caged villager is freed with Enter, goes home for good, and helps every later run", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => VillagerCase(c) },
 
@@ -3904,6 +3906,147 @@ namespace Gloomdelve
             if (elder != null) elder.Despawn();
             hud.DismissHeld();
             yield return c.Frames(45);       // (his words have faded from the screen)
+        }
+
+        static IEnumerator StoryCase(Ctx c)
+        {
+            c.p.godMode = true;
+            var hud = c.dir.hud;
+            var run = c.run;
+            Villagers.testRescued = new HashSet<string>();       // the test keeps its own state: the save file is not touched
+            Villagers.ResetTestState();
+            Villagers.GiveKey(Villagers.KeyPouch);
+            QuestLog.ResetForTests();
+            QuestLog.Refresh();
+            IEnumerator PutAway() { for (int i = 0; i < 60 && (hud.CardModal || hud.CardUp); i++) { hud.DismissCard(); yield return c.Frames(2); } hud.DismissHeld(); yield return c.Frames(2); }
+
+            // a pillar: looked at with empty hands it cannot be read - and the task begins
+            var pillar = c.Spawn<RunePillar>(Story.PillarId, 6, 1);
+            yield return c.Frames(3);
+            c.Expect(pillar != null && pillar.GetPrompt(c.p).Contains("Look") && !QuestLog.IsActive(Story.QuestSigns), "a pillar stands there to be looked at; nothing is asked yet");
+            if (pillar == null) yield break;
+            pillar.Interact(c.p);
+            yield return c.Frames(4);
+            yield return c.Frames(40);
+            {
+                // its first step is a long sentence: the frame grows to hold both lines of it
+                var box = hud.questRoot.rect; var words = hud.questStep;
+                float bottom = -words.rectTransform.anchoredPosition.y + words.preferredHeight;
+                c.Expect(hud.QuestStepShown != null && words.textInfo.lineCount >= 2 && bottom <= box.height - 8f, $"a step two lines long stays inside its frame (text ends at {bottom:0}, frame is {box.height:0} high)");
+                ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "story_task.png"));
+                yield return new WaitForSecondsRealtime(0.3f);
+            }
+            c.Expect(!Story.HasRubbing && QuestLog.IsActive(Story.QuestSigns) && QuestLog.StateOf(Story.QuestSigns).step == 0,
+                "looked at with nothing to copy onto: a note says so, and the task of the old signs begins");
+            yield return PutAway();
+            // with a sheet of paper it is copied: the sheet is spent, the copy is kept
+            run.AddResource(Story.Paper, 1);
+            c.Expect(pillar.GetPrompt(c.p).Contains("Copy"), "with paper in the bag the pillar offers to be copied");
+            pillar.Interact(c.p);
+            yield return c.Frames(4);
+            c.Expect(Story.HasRubbing && run.GetResource(Story.Paper) == 0 && hud.CardUp && QuestLog.StateOf(Story.QuestSigns).step == 2,
+                $"the signs are copied: the paper is spent, the copy is a key item on a card, and the task says to take it home (step {QuestLog.StateOf(Story.QuestSigns).step})");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "story_rubbing.png"));
+            yield return new WaitForSecondsRealtime(0.3f);
+            yield return PutAway();
+            c.Expect(!Story.StrangerIn(run) && !Story.Decoded, "nothing of the hammer is on the mountain before the signs are read");
+            // the elder reads it
+            var elder = c.Spawn<Elder>("elder", 10, 1);
+            yield return c.Frames(4);
+            elder.Interact(c.p);
+            yield return c.Frames(4);
+            c.Expect(hud.TalkUp && !Story.Decoded, "the elder speaks first");
+            for (int i = 0; i < 60 && hud.TalkUp; i++) { hud.AdvanceTalk(); yield return c.Frames(2); }
+            yield return c.Frames(6);
+            c.Expect(Story.Decoded && QuestLog.IsDone(Story.QuestSigns), "heard out, he has read the signs: the task is done and the reading is kept");
+            yield return PutAway();
+            c.Expect(pillar.GetPrompt(c.p).Contains("Read"), "a pillar can be read from then on");
+            {
+                // the copy in the bag: a short word about it, inside its frame - what the signs say is read with its button
+                var inv = c.dir.inventory;
+                inv.Open();
+                inv.SetTab(InventoryScreen.TabKeys);
+                for (int i = 0; i < 6 && inv.descText.text.IndexOf("rubbed onto paper") < 0; i++) { inv.Move(1); yield return new WaitForSecondsRealtime(0.05f); }
+                yield return new WaitForSecondsRealtime(0.15f);
+                var over = UIOverlap.Find();
+                c.Expect(inv.IsOpen && inv.descText.text.Contains("rubbed onto paper") && !inv.descText.text.Contains("STOPPED DAY") && over.Count == 0,
+                    $"the bag says in two lines what the copy is, and nothing runs out of the frame ({(over.Count > 0 ? over[0] : "clean")})");
+                ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "story_bag.png"));
+                yield return new WaitForSecondsRealtime(0.3f);
+                if (inv.IsOpen) inv.Toggle();
+                yield return new WaitForSecondsRealtime(0.15f);
+            }
+            if (elder != null) elder.Despawn();
+            // where the parts are in a run
+            int keep = run.stageIndex;
+            run.stageIndex = 5; bool s5 = Story.StrangerIn(run) && !Story.HeadIn(run) && !Story.GhostIn(run);
+            run.stageIndex = 9; bool s9 = Story.HeadIn(run) && !Story.StrangerIn(run);
+            run.stageIndex = 12; bool s12 = Story.GhostIn(run); run.stageIndex = 13; bool s13 = Story.GhostIn(run); run.stageIndex = 14; bool s14 = Story.GhostIn(run);
+            run.stageIndex = 15; bool s15 = !Story.GhostIn(run);
+            run.stageIndex = 4; bool s4 = Story.PillarIn(4) && !Story.StrangerIn(run);
+            c.Expect(s5 && s9 && s12 && s13 && s14 && s15 && s4, $"the stranger is in the second area, the chest in the third, a spirit in each level of the fourth (5:{s5} 9:{s9} 12:{s12} 13:{s13} 14:{s14} boss:{s15} pillar:{s4})");
+            // the stranger: heard out, he hands over the haft
+            run.stageIndex = keep;
+            var stranger = c.Spawn<Stranger>(Story.StrangerId, 9, 1);
+            yield return c.Frames(3);
+            stranger.Interact(c.p);
+            yield return c.Frames(4);
+            c.Expect(hud.TalkUp && !run.hammerHandle, "the stranger sells nothing: he talks");
+            for (int i = 0; i < 60 && hud.TalkUp; i++) { hud.AdvanceTalk(); yield return c.Frames(2); }
+            yield return c.Frames(6);
+            c.Expect(run.hammerHandle && hud.CardUp && !run.gear.Contains(Story.HammerGear), "heard out, he hands over the haft - one of three");
+            yield return PutAway();
+            // the chest: the head
+            var chest = c.Spawn<Chest>("gearchest", 12, 1, 0, Story.HeadChest);
+            yield return c.Frames(3);
+            chest.Interact(c.p);
+            yield return c.Frames(4);
+            c.Expect(run.hammerHead && chest.Opened && hud.CardUp && !run.gear.Contains(Story.HammerGear), "the chest holds the head - two of three");
+            yield return PutAway();
+            // three spirits, one in each level of the fourth area: the third freed, they bring the heart
+            for (int lvl = 0; lvl < 3; lvl++)
+            {
+                run.stageIndex = 12 + lvl;
+                var ghost = c.Spawn<Ghost>(Story.GhostId, 14, 1);
+                yield return c.Frames(3);
+                ghost.Interact(c.p);
+                yield return c.Frames(6);
+                c.Expect(ghost.Freed && (run.ghostMask & (1 << lvl)) != 0 && !Story.GhostIn(run), $"spirit {lvl + 1} is freed, and is not bound there again");
+            }
+            run.stageIndex = keep;
+            for (int i = 0; i < 400 && !run.hammerCore; i++) yield return c.Frames(2);
+            yield return c.Frames(6);
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "story_hammer.png"));
+            yield return new WaitForSecondsRealtime(0.3f);
+            c.Expect(run.hammerCore && run.gear.Contains(Story.HammerGear) && c.dir.config.FindGear(Story.HammerGear) != null,
+                $"the three together hand over the heart - and haft, head and heart make the hammer (core {run.hammerCore}, gear {string.Join(",", run.gear)})");
+            for (int i = 0; i < 10; i++) yield return PutAway();
+            // the hammer in hand: one blow, three damage
+            var brute = c.Spawn<Brute>("brute", 5, 1);
+            yield return c.Frames(3);
+            c.Teleport(3.6f, 1f);
+            yield return c.Frames(3);
+            c.p.facing = 1;
+            if (brute != null) brute.health = 5;        // (more than one blow's worth, so that the blow can be measured)
+            int before = brute != null ? brute.health : 0;
+            var hammer = GearRegistry.Get(Story.HammerGear);
+            if (hammer != null) hammer.Use(c.p, default);
+            yield return c.Frames(3);
+            bool swung = GameObject.Find("HammerSwing") != null;
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "story_swing.png"));
+            yield return c.Frames(30);
+            c.Expect(swung && GameObject.Find("HammerSwing") == null, "the hammer is seen in the hand for the length of the blow, and put away after it");
+            c.Expect(hammer != null && brute != null && (brute.Dead || brute.health == before - HammerGear.Damage), $"a blow of the hammer does three damage ({before} -> {(brute != null ? brute.health : -1)})");
+            if (brute != null && !brute.Dead) brute.Despawn();
+            if (pillar != null) pillar.Despawn();
+            if (chest != null) chest.Despawn();
+            run.gear.Remove(Story.HammerGear);
+            run.hammerHandle = run.hammerHead = run.hammerCore = false; run.ghostMask = 0;
+            QuestLog.ResetForTests();
+            Villagers.ResetTestState();
+            Villagers.testRescued = null;
+            yield return PutAway();
+            yield return c.Frames(30);
         }
 
         static IEnumerator PromptPlacesCase(Ctx c)

@@ -553,6 +553,9 @@ namespace Gloomdelve.EditorTools
                 shop.offers.Add(new ShopOffer { id = "heartfull", displayName = "Elixir of Dawn", price = 550, resource = Res.Health, amount = 99, description = "back to full health" });
             if (shop.Find("lampoil") == null)
                 shop.offers.Add(new ShopOffer { id = "lampoil", displayName = "Lamp Oil", price = 200, resource = "lampoil", amount = 120, description = "the Reaper comes 2 minutes later" });
+            if (shop.Find(Story.Paper) == null)
+                shop.offers.Add(new ShopOffer { id = Story.Paper, displayName = "Sheet of Paper", price = 250, resource = Story.Paper, amount = 1,
+                    description = "a clean sheet and a stick of charcoal: for copying down what cannot be carried away" });
             if (shop.Find("pebblepouch") == null)
                 shop.offers.Add(new ShopOffer { id = "pebblepouch", displayName = "Pebble Pouch", price = 450, isUpgrade = true, slot = "charm",
                     description = "carry 10 more pebbles for the slingshot", modifiers = new StatModifiers { pebbleBonus = 10 } });
@@ -603,6 +606,7 @@ namespace Gloomdelve.EditorTools
             icons["dampener"] = "Sprites/Items/dampener"; icons["truthlens"] = "Sprites/Items/truthlens";
             icons["sandstriders"] = "Sprites/Items/sandstriders"; icons["wardscarab"] = "Sprites/Items/wardscarab";
             icons["pebblepouch"] = "Sprites/Items/pebblepouch";
+            icons[Story.Paper] = "Sprites/Items/paper";
             icons["vigor"] = "Sprites/NPC/ware_vigor"; icons["lampoil"] = "Sprites/NPC/ware_lampoil";
             foreach (var o in shop.offers) if (icons.TryGetValue(o.id, out var ic)) o.icon = ArtGenerator.S(ic);
             EditorUtility.SetDirty(shop);
@@ -1071,8 +1075,20 @@ namespace Gloomdelve.EditorTools
                 cfg.player.startingGear = sg.ToArray();
                 EditorUtility.SetDirty(cfg.player);
             }
+            // the hammer of the old signs (Story): whole once its three parts are found; never part of the starting gear
+            var gHammer = LoadOrCreate<EquipmentDef>(G + "Data/Gear_Hammer.asset", out bool newHammer);
+            if (newHammer)
+            {
+                gHammer.id = Story.HammerGear; gHammer.displayName = Story.HammerName;
+                gHammer.description = InputTokens("Use: bring it down in front of you - 3 damage, never used up. Nothing else breaks the Sunstone.");
+                gHammer.terrainHint = "Heavy and slow, and it hits hard. The old signs say what else it is for.";
+                gHammer.ammoLabel = "";
+            }
+            gHammer.icon = ArtGenerator.S("Sprites/Items/hammer");
+            gHammer.inHand = ArtGenerator.S("Sprites/Items/hammer_long");
+            EditorUtility.SetDirty(gHammer);
             // Built-in gear first; equipment a designer added to the list by hand is kept.
-            var gearList = new List<EquipmentDef> { gBomb, gRope, gGlide, gRecall, gSling };
+            var gearList = new List<EquipmentDef> { gBomb, gRope, gGlide, gRecall, gSling, gHammer };
             if (cfg.equipment != null) foreach (var extra in cfg.equipment) if (extra != null && !gearList.Contains(extra)) gearList.Add(extra);
             cfg.equipment = gearList.ToArray();
             cfg.roomTemplates = AssetDatabase.LoadAssetAtPath<TextAsset>(G + "Data/RoomTemplates.txt");
@@ -1259,6 +1275,9 @@ namespace Gloomdelve.EditorTools
             ["Bomb"] = (new Color(1f, 0.6f, 0.4f, 0.65f), false, true),
             ["Idol"] = (new Color(1f, 0.85f, 0.3f, 0.7f), false, true),
             ["GearChest"] = (new Color(1f, 0.85f, 0.3f, 0.8f), false, true),
+            ["RunePillar"] = (new Color(0.5f, 0.9f, 1f, 0.7f), false, true),          // the story's things (Story): none of them must be walked past
+            ["Stranger"] = (new Color(0.8f, 0.6f, 1f, 0.7f), false, true),
+            ["Ghost"] = (new Color(0.7f, 0.92f, 1f, 0.7f), false, true),
             ["CodexChest"] = (new Color(1f, 0.85f, 0.3f, 0.8f), false, true),       // the chest by an area's gate: it must not be walked past
             ["Heartstone"] = (new Color(1f, 0.82f, 0.35f, 0.85f), false, true),        // the Sunstone (the prefab keeps its old name)
             ["GoldNugget"] = (new Color(1f, 0.85f, 0.3f, 0.85f), true, false),
@@ -1275,6 +1294,8 @@ namespace Gloomdelve.EditorTools
             new Dictionary<string, (Color, float, float, float, bool, bool, Vector2)>
         {
             ["Bomb"] = (new Color(1f, 0.6f, 0.25f), 3.2f, 1.3f, 0.45f, false, false, new Vector2(0f, 0.4f)),
+            ["RunePillar"] = (new Color(0.5f, 0.9f, 1f), 3f, 0.7f, 0.1f, true, true, new Vector2(0f, 1f)),
+            ["Ghost"] = (new Color(0.7f, 0.92f, 1f), 3.2f, 0.9f, 0.15f, true, true, new Vector2(0f, 0.5f)),
             ["SunStake"] = (new Color(1f, 0.82f, 0.35f), 3f, 1.1f, 0.25f, true, true, new Vector2(0f, 1f)),
             ["FlameVent"] = (new Color(1f, 0.5f, 0.15f), 5.5f, 1.9f, 0.3f, false, false, new Vector2(0f, 1f)),
             ["Gem"] = (new Color(0.4f, 1f, 0.6f), 2.2f, 0.75f, 0.2f, true, true, new Vector2(0f, 0.2f)),
@@ -1374,6 +1395,39 @@ namespace Gloomdelve.EditorTools
             if (first.rewards != null)
                 foreach (var rw in first.rewards)
                     if (rw != null && rw.kind == RewardKind.KeyItem && rw.id == Villagers.KeyPouch) { rw.icon = ArtGenerator.S("UI/icon_pouch"); EditorUtility.SetDirty(first); }
+            // the old signs (Story): begun by looking at a pillar; ends with the elder reading the copy
+            var signs = LoadOrCreate<QuestDef>(folder + "/Quest_OldSigns.asset", out bool freshSigns);
+            if (freshSigns || string.IsNullOrEmpty(signs.id))
+            {
+                signs.id = Story.QuestSigns;
+                signs.title = "The Old Signs";
+                signs.summary = "Stone pillars on the mountain are carved with signs nobody can read.";
+                signs.autoStart = false;
+                signs.steps = new[]
+                {
+                    new QuestStep { text = "Find something to copy the signs onto (Pip the Peddler sells paper)", trigger = QuestTrigger.Obtain, target = Story.Paper },
+                    new QuestStep { text = "Copy the signs off a stone pillar on the mountain", trigger = QuestTrigger.Obtain, target = Story.KeyRubbing, waypoint = "pillar" },
+                    new QuestStep
+                    {
+                        text = "Take the copy to Elder Aldous", trigger = QuestTrigger.Talk, target = "elder", waypoint = "elder;hall",
+                        lines = "Let me see that. These are older than Brindlemoor. My grandmother could read them, and she taught me in this hall. Listen. " +
+                                "What you took for a sun is a stopped day. While the stone is whole, no morning comes. No hand breaks it. " +
+                                "The hammer lies in three: the haft with one who sells nothing, the head under a lid, the heart with the dead who cannot leave. " +
+                                "So it is no sun we sent you for, Brann. Three parts of one hammer, somewhere up there. " +
+                                "Strange. I feel I have told you all this before.",
+                    },
+                };
+                signs.rewards = new[]
+                {
+                    new QuestReward
+                    {
+                        kind = RewardKind.KeyItem, id = Story.KeyDecoded, amount = 1, displayName = "The Elder's Reading", icon = ArtGenerator.S("Sprites/Items/rubbing"),
+                        description = "The Sunstone holds Brindlemoor in one day, and only a hammer breaks it. Its three parts are on the mountain from now on: " +
+                                      "a haft with a stranger in the second place you come to, a head in a chest in the third, a heart with three bound spirits in the fourth.",
+                    },
+                };
+                EditorUtility.SetDirty(signs);
+            }
             var cat = LoadOrCreate<QuestCatalog>(G + "Data/QuestCatalog.asset");
             cat.quests.Clear();
             foreach (var guid in AssetDatabase.FindAssets("t:QuestDef", new[] { folder }))
@@ -1632,7 +1686,24 @@ namespace Gloomdelve.EditorTools
                 (e, g, s) => { e.flipWithFacing = false; e.openSprite = ArtGenerator.S("Sprites/Props/chest_1"); e.gearId = Codex.Key; e.bookIcon = ArtGenerator.S("UI/icon_book"); }));
             // the chest by the gate of an area that asks for a piece of gear (it glows and is pointed at)
             Reg("gearchest", Make<Chest>("GearChest", "Level", "chest", new Vector2(1.0f, 0.8f), ArtGenerator.S("Sprites/Props/chest_0"), null, 4,
-                (e, g, s) => { e.flipWithFacing = false; e.openSprite = ArtGenerator.S("Sprites/Props/chest_1"); }));
+                (e, g, s) => { e.flipWithFacing = false; e.openSprite = ArtGenerator.S("Sprites/Props/chest_1"); e.hammerHeadIcon = ArtGenerator.S("Sprites/Items/hammer_head"); }));
+            // the story's things on the mountain (Story): the pillar with the old signs, the stranger, the bound spirit
+            Reg(Story.PillarId, Make<RunePillar>("RunePillar", "Level", "stone pillar", new Vector2(0.9f, 1.9f), ArtGenerator.S("Sprites/Props/runepillar"), null, 3,
+                (e, g, s) => { e.flipWithFacing = false; e.rubbingIcon = ArtGenerator.S("Sprites/Items/rubbing"); }));
+            Reg(Story.StrangerId, Make<Stranger>("Stranger", "Level", "stranger", new Vector2(0.8f, 1.3f), ArtGenerator.S("Sprites/NPC/stranger"), null, 4,
+                (e, g, s) => { e.flipWithFacing = false; e.handleIcon = ArtGenerator.S("Sprites/Items/hammer_haft"); }));
+            Reg(Story.GhostId, Make<Ghost>("Ghost", "Level", "bound spirit", new Vector2(0.8f, 1.0f), ArtGenerator.S("Sprites/NPC/ghost"), null, 14,
+                (e, g, s) =>
+                {
+                    e.flipWithFacing = false; e.coreIcon = ArtGenerator.S("Sprites/Items/hammer_core");
+                    s.sharedMaterial = unlitMat;        // (it shows in the dark: it is its own light)
+                    var cg = new GameObject("Chain");
+                    cg.transform.SetParent(g.transform, false);
+                    cg.transform.localPosition = new Vector3(0f, -0.35f, 0f);
+                    var cr = cg.AddComponent<SpriteRenderer>();
+                    cr.sprite = ArtGenerator.S("Sprites/Props/ghostchain"); cr.sharedMaterial = spriteMat; cr.sortingOrder = 13;
+                    e.chain = cr;
+                }));
             Reg("hawk", Make<Hawk>("Hawk", "Enemies", "hawk", new Vector2(0.6f, 0.5f), ArtGenerator.S("Sprites/Enemies/hawk_0"), anims["hawk_fly"], 14,
                 (e, go, sr) => { e.contactDamage = 2; e.goldDrop = 100; e.animFly = anims["hawk_fly"]; e.animDive = anims["hawk_dive"]; e.bloodColor = new Color(0.6f, 0.2f, 0.15f); }));
             Reg("tree", Make<Scenery>("Tree", "Level", "tree", new Vector2(1f, 2.5f), ArtGenerator.S("Sprites/Props/tree_0"), null, -6,

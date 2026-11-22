@@ -563,5 +563,31 @@ MonoBehaviour:
       pebbleBonus: 10
     icon: {fileID: 21300000, guid: e634fa265c63b934e8b38308a750912d, type: 3}
     description: carry 10 more pebbles for the slingshot
+  - id: paper
+    displayName: Sheet of Paper
+    price: 250
+    resource: paper
+    amount: 1
+    isUpgrade: 0
+    slot: 
+    modifiers:
+      jumpBonus: 0
+      whipDamageBonus: 0
+      whipRangeBonus: 0
+      blastRadiusBonus: 0
+      iceGrip: 0
+      coldResist: 0
+      sporeResist: 0
+      lightBonus: 0
+      beltGrip: 0
+      shieldPierce: 0
+      sandGrip: 0
+      goldWard: 0
+      shardWard: 0
+      mimicSight: 0
+      pebbleBonus: 0
+    icon: {fileID: 21300000, guid: cb5b7c75254e0f343a487d85cb48ca5e, type: 3}
+    description: 'a clean sheet and a stick of charcoal: for copying down what cannot
+      be carried away'
   shopkeeperHealth: 6
   warningsBeforeAngry: 2

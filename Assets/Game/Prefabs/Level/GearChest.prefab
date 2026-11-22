@@ -53,6 +53,7 @@ MonoBehaviour:
   artFacesLeft: 0
   openSprite: {fileID: 21300000, guid: 50bb14b3ef843b74fb353f913994a9dc, type: 3}
   bookIcon: {fileID: 0}
+  hammerHeadIcon: {fileID: 21300000, guid: 5824139192d11d545a91c6c46cce3d1e, type: 3}
   itemCount: 3
   gearId: 
 --- !u!114 &1523740216603184684

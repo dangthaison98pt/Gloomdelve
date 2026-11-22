@@ -17,6 +17,7 @@ MonoBehaviour:
   description: '[use] : shoot a pebble straight ahead.  [up] + [use]: straight up. 
     Break pots and crates for pebbles.'
   icon: {fileID: 21300000, guid: 1549928450cd3294b82f23e5ad6e2871, type: 3}
+  inHand: {fileID: 0}
   terrainHint: 'Strikes from afar: a creature across a gap, a pot on a ledge, an
     arrow trap to spend.'
   gateBanner: 

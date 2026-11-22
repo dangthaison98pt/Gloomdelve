@@ -96,6 +96,23 @@ namespace Gloomdelve
         }
 
         /// <summary>
+        /// The real end: the Sunstone was broken, not carried home. The same four numbers under other words, in
+        /// the colours of a morning - and its one button goes on to the credits, not back to bed.
+        /// </summary>
+        public void ShowTrueEnd(RunState run, string newsText)
+        {
+            ShowRunEnd(run, true, newsText, 0);
+            title.text = "THE WINTER IS OVER";
+            title.color = new Color(0.72f, 0.95f, 0.78f);
+            cause.text = "You broke the Sunstone. The day moves on in Brindlemoor.";
+            reached.text = "<color=#FFD98A><i>A sliver of it hangs at Brann's throat, still warm.</i></color>";
+            var label = menuButton != null ? menuButton.GetComponentInChildren<TMPro.TMP_Text>() : null;
+            if (label != null) label.text = "CONFIRM";
+            UIUtil.Wire(menuButton, () => GameDirector.Instance.RollCredits());
+            UIUtil.Select(menuButton);
+        }
+
+        /// <summary>
         /// Challenge (boss fight from the main menu) won: time and health lost, the record for this boss, and the
         /// no-damage badge ("[flawless]") when the fight cost no health. Stays up until the player picks
         /// "fight again" or "boss list".

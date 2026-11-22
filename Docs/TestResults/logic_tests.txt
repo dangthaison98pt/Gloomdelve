@@ -35,6 +35,9 @@ PASS  challenge: the Field Guide is in the bag with every page open, and nothing
 PASS  challenge: a win is put down in the Challenge list and nowhere else  
 PASS  challenge: out of the fight the save is as it was  
 PASS  challenge: the list is the same whichever save is played  
+PASS  story: a pillar and a part of the hammer find a place to stand in every level  24/24 places, 0 bad, slowest search 62 ms
+PASS  story: what leads to the hammer stands in a side room, off the main path  12/12 levels: 12 walked into, 0 behind a wall (bomb or rope), 0 on the path for want of a side room
+PASS  story: the Peddler sells paper for an ember, and the mountain's own shelves and chests never carry it  
 PASS  the loop: a waking after a win has its line, after a death one of several in turn, and any other waking none  
 PASS  the loop: the first death of a save gets its scene - once, and never a win  
 PASS  records: what the saves used to keep is added up - counts summed, the fastest of the wins  
@@ -49,7 +52,7 @@ PASS  healing: tonic +1, flask +3, elixir to full; a bigger bottle costs less pe
 PASS  healing: shelves carry all three sizes over time  heart,heart3,heartfull
 PASS  an upgrade applies its modifiers only once  
 PASS  custom resources are counted  
-PASS  every equipment asset has a behaviour  bomb,rope,glider,recall,slingshot
+PASS  every equipment asset has a behaviour  bomb,rope,glider,recall,slingshot,hammer
 PASS  room templates cover every room type (124 templates)  
 PASS  room template file survives parse -> save unchanged  
 PASS  room rule checks: shipped templates have no errors  0 errors, 18 warnings  
@@ -59,4 +62,4 @@ PASS  forced template is placed in generated levels  6 rooms in 6 levels, 6 vali
 PASS  custom marker spawns its prefab  6 rocks in 6 forced rooms
 PASS  same seed -> identical level  
 
-60 passed, 0 failed
+63 passed, 0 failed

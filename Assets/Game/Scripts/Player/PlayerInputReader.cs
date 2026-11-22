@@ -66,6 +66,10 @@ namespace Gloomdelve
         void Update()
         {
             if (map == null || Time.timeScale == 0f) return;
+            // a press that has just been used for something else - putting a card away, closing a screen - is not
+            // also a press for the player: whoever cleared the latches in this frame meant this frame's presses too
+            // (this Update may run after theirs, and the button "was pressed this frame" until the frame is over)
+            if (Time.frameCount == mutedFrame) return;
             if (jump.WasPressedThisFrame()) jumpL = true;
             if (attack.WasPressedThisFrame()) attackL = true;
             if (use.WasPressedThisFrame()) useL = true;
@@ -76,9 +80,13 @@ namespace Gloomdelve
             prevUp = up;
         }
 
+        int mutedFrame = -1;
+
+        /// <summary>Forgets every press not yet acted on - and those of the frame it is called in, wherever in that frame they are read.</summary>
         public void ClearLatches()
         {
             jumpL = attackL = useL = interactL = upL = dashL = false;
+            mutedFrame = Time.frameCount;
         }
 
         // KeyBindings.Busy: the change-keys screen is waiting for a key, so that key press must not pause or confirm anything
@@ -113,7 +121,7 @@ namespace Gloomdelve
             f.interactPressed = interactL;
             f.upPressed = upL;
             f.dashPressed = dashL;
-            ClearLatches();
+            jumpL = attackL = useL = interactL = upL = dashL = false;       // (taken: not ClearLatches, which also shuts the frame)
             return f;
         }
     }

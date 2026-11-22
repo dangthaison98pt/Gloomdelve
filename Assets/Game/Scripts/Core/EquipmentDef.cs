@@ -13,6 +13,8 @@ namespace Gloomdelve
         public string displayName = "Bombs";
         [TextArea] public string description;
         public Sprite icon;
+        [Tooltip("How it looks in the hand, for gear that is seen there when used (the hammer's swing): drawn at the scale of the characters, standing on the end it is held by. Empty = the icon.")]
+        public Sprite inHand;
         [Tooltip("Terrain this gear is meant for (shown in the wheel).")] public string terrainHint;
 
         [Header("Terrain puzzles (areas with requiredGear = this id)")]

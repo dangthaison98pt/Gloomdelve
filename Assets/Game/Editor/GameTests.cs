@@ -510,6 +510,43 @@ namespace Gloomdelve.EditorTools
                     SaveSystem.SelectSlot(2); SaveSystem.Reload();
                     Check("challenge: the list is the same whichever save is played", SaveSystem.Slot == 2 && SaveSystem.BossRecordOf("Broodmother").bestTime == 30f && SaveSystem.BossRecordOf("Yeti King") != null);
 
+                    // the story's things are put where they can be walked to (Story.Spots): over a spread of levels
+                    {
+                        int asked = 0, got = 0, bad = 0; double worst = 0;
+                        int sideAsked = 0, sideGot = 0, sideProved = 0, sideTrusted = 0, sideOnPath = 0;
+                        var areaStages = new List<int>();
+                        for (int si = 0; si < cfg.stages.Length; si++) if (cfg.stages[si].kind == LevelKind.Area) areaStages.Add(si);
+                        for (int seed = 1; seed <= 12; seed++)
+                        {
+                            int si = areaStages[(seed * 5) % areaStages.Count];
+                            var lvl = LevelFactory.Create(cfg, cfg.stages[si], seed, si);
+                            var t0 = DateTime.Now;
+                            var spots = Story.Spots(lvl, cfg.player, 2);
+                            worst = Math.Max(worst, (DateTime.Now - t0).TotalMilliseconds);
+                            asked += 2; got += spots.Count;
+                            // ... and what leads to the hammer stands off the main path, wherever the level has a side room
+                            var aside = Story.Spots(lvl, cfg.player, 1, true, spots);
+                            sideAsked++; sideGot += aside.Count; sideProved += Story.lastProved; sideTrusted += Story.lastTrusted; sideOnPath += Story.lastOnPath;
+                            foreach (var c in aside) if (Story.lastOnPath == 0 && !Story.OffPath(lvl, c.x, c.y)) bad++;
+                            foreach (var c in spots)
+                                if (!lvl.grid.IsEmpty(c.x, c.y) || !lvl.grid.IsEmpty(c.x, c.y + 1) || !lvl.grid.IsSolid(c.x, c.y - 1) || (c.x == lvl.entrance.x && c.y == lvl.entrance.y)) bad++;
+                            if (spots.Count == 2 && spots[0] == spots[1]) bad++;
+                        }
+                        Check("story: a pillar and a part of the hammer find a place to stand in every level", got == asked && bad == 0, $"{got}/{asked} places, {bad} bad, slowest search {worst:0} ms");
+                        Check("story: what leads to the hammer stands in a side room, off the main path", sideGot == sideAsked && bad == 0,
+                            $"{sideGot}/{sideAsked} levels: {sideProved} walked into, {sideTrusted} behind a wall (bomb or rope), {sideOnPath} on the path for want of a side room");
+                    }
+
+                    {
+                        var pip = Villagers.All[Villagers.IndexOf("peddler")];
+                        var stall = Villagers.WaresOf(pip, cfg.shop, 777);
+                        var sheet = stall.Find(o => o.id == Story.Paper);
+                        Check("story: the Peddler sells paper for an ember, and the mountain's own shelves and chests never carry it",
+                            sheet != null && sheet.icon != null && !sheet.isUpgrade && Villagers.EmberPrice(sheet, pip) == 1 && stall.Count == 3 && cfg.FindGear(Story.HammerGear) != null
+                            && cfg.prefabs.Get(Story.PillarId) is RunePillar && cfg.prefabs.Get(Story.StrangerId) is Stranger && cfg.prefabs.Get(Story.GhostId) is Ghost
+                            && cfg.quests != null && cfg.quests.Find(Story.QuestSigns) != null && System.Array.IndexOf(cfg.player.startingGear, Story.HammerGear) < 0);
+                    }
+
                     // waking in bed after a night that ended: a line for it, and a scene for a save's first death
                     Check("the loop: a waking after a win has its line, after a death one of several in turn, and any other waking none",
                         EndingScene.WakingWords(EndingScene.Night.Won, 3) == EndingScene.WonWakingLine && EndingScene.WakingWords(EndingScene.Night.None, 3) == ""

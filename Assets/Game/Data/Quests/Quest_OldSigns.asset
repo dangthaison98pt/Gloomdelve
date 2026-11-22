@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dcec9b0b5c2761741b3859a31b36a5bc, type: 3}
+  m_Name: Quest_OldSigns
+  m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.QuestDef
+  id: old_signs
+  title: The Old Signs
+  summary: Stone pillars on the mountain are carved with signs nobody can read.
+  autoStart: 0
+  requires: []
+  doneIfKeyItem: 
+  holdsVillageGate: 0
+  gateMessage: 
+  steps:
+  - text: Find something to copy the signs onto (Pip the Peddler sells paper)
+    trigger: obtain
+    target: paper
+    count: 1
+    waypoint: 
+    lines: 
+  - text: Copy the signs off a stone pillar on the mountain
+    trigger: obtain
+    target: rubbing
+    count: 1
+    waypoint: pillar
+    lines: 
+  - text: Take the copy to Elder Aldous
+    trigger: talk
+    target: elder
+    count: 1
+    waypoint: elder;hall
+    lines: 'Let me see that. These are older than Brindlemoor. My grandmother could
+      read them, and she taught me in this hall. Listen. What you took for a sun
+      is a stopped day. While the stone is whole, no morning comes. No hand breaks
+      it. The hammer lies in three: the haft with one who sells nothing, the head
+      under a lid, the heart with the dead who cannot leave. So it is no sun we sent
+      you for, Brann. Three parts of one hammer, somewhere up there. Strange. I feel
+      I have told you all this before.'
+  rewards:
+  - kind: 0
+    id: decoded
+    amount: 1
+    displayName: The Elder's Reading
+    description: 'The Sunstone holds Brindlemoor in one day, and only a hammer breaks
+      it. Its three parts are on the mountain from now on: a haft with a stranger
+      in the second place you come to, a head in a chest in the third, a heart with
+      three bound spirits in the fourth.'
+    icon: {fileID: 21300000, guid: 8bcbbf4995bec294a8f809d8a16a9c23, type: 3}

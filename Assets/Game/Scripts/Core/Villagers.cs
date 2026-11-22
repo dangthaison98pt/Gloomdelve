@@ -72,7 +72,7 @@ namespace Gloomdelve
                 wares = new[] { "compass" } },
             new VillagerDef { id = "peddler", name = "Pip", role = "the Peddler", place = "The market stall is back",
                 cagedLine = "Everything I own for an open door!", homeLine = "Never the same twice, always a bargain!",
-                wares = new[] { "?", "?" }, priceFactor = 0.7f },
+                wares = new[] { "?", "?", Story.Paper }, priceFactor = 0.7f },       // (paper: for copying the old signs - Story)
             new VillagerDef { id = "lamplighter", name = "Bera", role = "the Lamplighter", place = "The lamp tower burns again",
                 cagedLine = "My lamp went out. Then it came for me.", homeLine = "Take oil. While your lamp burns, the dark is slow to find you.",
                 wares = new[] { "lampoil", "bombs" } },

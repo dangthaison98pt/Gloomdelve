@@ -24,11 +24,15 @@ namespace Gloomdelve
     {
         /// <summary>The village that is being loaded is the stage of the scene after a win.</summary>
         public static bool Pending { get; private set; }
+        /// <summary>... and that win was the real one: the stone was broken, and the scene is the morning after (PlayTrue).</summary>
+        public static bool PendingTrue { get; private set; }
         /// <summary>A scene is running: the game's own buttons (pause, bag) are not listened to.</summary>
         public static bool Playing { get; private set; }
         /// <summary>How the night before this waking ended (told once, by the next waking in bed).</summary>
         public enum Night { None, Won, Died }
         public static Night Last;
+        /// <summary>"-creditsTest" on the command line: the real end's numbers go on to the credits by themselves.</summary>
+        public static bool autoCredits;
         /// <summary>"-wakeTest" on the command line: the scene of the first death, whatever the save has seen.</summary>
         public static bool ForceFirstDeath;
 
@@ -45,6 +49,30 @@ namespace Gloomdelve
 
         /// <summary>What the people in the street cry out as the picture begins to turn (over their heads, one after another).</summary>
         public static readonly string[] Cries = { "What is happening?!", "The stone!", "Brann!", "Hold on!", "What is this?!", "The sky - look at the sky!" };
+
+        /// <summary>The words of the scene after the stone is broken.</summary>
+        public static readonly string[] TrueLines =
+        {
+            "The hammer came down. The Sunstone broke - and the day it had held for so long let go.",
+            "Morning came to Brindlemoor. A new one.",
+            "The snow ran off the roofs. Nobody remembered a winter that would not end. Brann did.",
+            "\"You look as if you had not slept in a hundred years, Brann,\" said Elder Aldous.",
+            "Among the shards had lain one sliver, still warm, on a cord. Brann put it on.",
+        };
+
+        /// <summary>What the street calls out on the morning after (over people's heads, as the scene goes).</summary>
+        public static readonly string[] Cheers = { "The sun!", "It is warm!", "Look - the roofs!", "Brann! You are back!", "No more snow!", "Spring!" };
+
+        /// <summary>The credits, top to bottom ("" = a gap; a line in capitals is a heading).</summary>
+        public static readonly string[] CreditLines =
+        {
+            "BRINDLEMOOR", "The Sunstone Hunt", "", "",
+            "A GAME BY", "Brindlemoor Team", "", "",
+            "TYPEFACE", "EB Garamond", "SIL Open Font License", "", "",
+            "MADE WITH", "Unity", "", "",
+            "The stone is broken.", "One sliver of it is not.", "", "",
+            "Thank you for playing.",
+        };
 
         /// <summary>The first death of a save.</summary>
         public static readonly string[] FirstDeathLines =
@@ -102,6 +130,58 @@ namespace Gloomdelve
             Load(cfg);
         }
 
+        /// <summary>
+        /// The Sunstone has been broken (GameDirector.BreakSunstone): the hall fills with its light, slowly, and
+        /// out of that light comes the village on the morning after. False when the scene cannot be played (tests).
+        /// </summary>
+        public static bool BeginTrue(GameDirector d, RunState run, string newsText, Entity stone)
+        {
+            if (d == null || run == null || ScenarioRunner.Active || AutoTest.Active || EditorPlaytest.Active) return false;
+            if (d.config.village == null || d.config.village.handcrafted == null || !Villagers.Enabled) return false;
+            won = run; news = newsText ?? "";
+            Time.timeScale = 1f;
+            d.StartCoroutine(Break(d, stone));
+            return true;
+        }
+
+        /// <summary>"-trueEndTest" on the command line: the morning after, by itself.</summary>
+        public static void BeginTrueFromMenu(GameConfig cfg)
+        {
+            won = RunSession.NewRun(12345, false, cfg.player);
+            won.victory = true; won.finished = true; won.totalTime = 1158f; won.kills = 42; won.bossKills = 5; won.levelsCompleted = 18; won.inVillage = false;
+            RunPlan.Ensure(won, cfg);
+            news = "";
+            PendingTrue = true;
+            Load(cfg);
+        }
+
+        static IEnumerator Break(GameDirector d, Entity stone)
+        {
+            Playing = true;
+            HideHud(d);
+            var ui = new Overlay(d.hud.healthText != null ? d.hud.healthText.font : null);
+            ui.Bars(false);
+            Vector2 at = stone != null ? stone.Center : (d.Player != null ? d.Player.Center : Vector2.zero);
+            var warm = new Color(1f, 0.9f, 0.6f);
+            if (stone != null && !stone.Dead) stone.Despawn();
+            Fx.Sparks(at, warm, 40, 7f);
+            Sfx.PlayUI("victory");
+            // cracks of light first, a little at a time; then the whole hall, slowly
+            const float fill = 3.2f;
+            float next = 0f;
+            for (float t = 0f; t < fill; t += Time.deltaTime)
+            {
+                float k = t / fill;
+                if (t >= next) { next = t + 0.22f; Fx.Sparks(at + Random.insideUnitCircle * (0.4f + k * 2f), warm, 6, 3f + k * 5f); LevelLighting.Flash(at, warm, 4f + k * 14f, 1.2f + k, 0.5f); }
+                ui.White(k * k * (3f - 2f * k));
+                yield return null;
+            }
+            ui.White(1f);
+            yield return new WaitForSecondsRealtime(0.5f);
+            PendingTrue = true;
+            Load(d.config);
+        }
+
         static void Load(GameConfig cfg)
         {
             Pending = true;
@@ -124,7 +204,14 @@ namespace Gloomdelve
         class Steps : IFrameInputSource
         {
             public int x;
-            public FrameInput Next() => new FrameInput { x = x, walk = true };
+            /// <summary>Set to hop once (a small jump where the player stands).</summary>
+            public bool hop;
+            public FrameInput Next()
+            {
+                var f = new FrameInput { x = x, walk = true, jumpPressed = hop };
+                hop = false;
+                return f;
+            }
         }
 
         /// <summary>What the buttons have done to the scene: left it, or nothing yet.</summary>
@@ -167,6 +254,7 @@ namespace Gloomdelve
         public static IEnumerator Play(GameDirector d)
         {
             Pending = false;
+            PendingTrue = false;
             Playing = true;
             var p = d.Player;
             var w = d.world;
@@ -302,6 +390,214 @@ namespace Gloomdelve
             }
         }
 
+        // ================================================================== the stone is broken
+
+        /// <summary>The numbers of a run come up out of the dark, they do not jump onto it.</summary>
+        static IEnumerator FadeIn(GameObject panel)
+        {
+            if (panel == null) yield break;
+            var pg = panel.GetComponent<CanvasGroup>();
+            if (pg == null) pg = panel.AddComponent<CanvasGroup>();
+            var scale0 = panel.transform.localScale;
+            for (float t = 0f; t < 1.1f; t += Time.unscaledDeltaTime)
+            {
+                float k = t / 1.1f, e = k * k * (3f - 2f * k);
+                pg.alpha = e;
+                panel.transform.localScale = scale0 * Mathf.Lerp(0.95f, 1f, e);
+                yield return null;
+            }
+            pg.alpha = 1f;
+            panel.transform.localScale = scale0;
+        }
+
+        /// <summary>
+        /// The morning after: the village by day, no snow in the air, everybody out. The light the hall ended in
+        /// clears slowly onto it. Four sentences, then the numbers of the run - the real ones this time - and
+        /// from there the credits.
+        /// </summary>
+        public static IEnumerator PlayTrue(GameDirector d)
+        {
+            Pending = false;
+            PendingTrue = false;
+            Playing = true;
+            var p = d.Player;
+            var w = d.world;
+            var g = w.Grid;
+            float ground = p.pos.y;
+            float middle = g.Width * 0.5f;
+            // Brann comes up the street from the left; the elder is already out, in the middle of it
+            VillageInterior.Place(p, new Vector2(middle - 8f, ground));
+            var steps = new Steps { x = 1 };
+            p.bot = steps;
+            p.facing = 1;
+            p.godMode = true;
+            float low = Mathf.Max(0f, ground - 3.6f);
+            if (d.cameraFollow != null) d.cameraFollow.SetBounds(new Rect(0f, low, g.Width, g.Height - low));
+            var hudGroup = HideHud(d);
+            var ui = new Overlay(d.hud.healthText != null ? d.hud.healthText.font : null);
+            ui.White(1f);
+            ui.Say(TrueLines[0]);
+            var elder = w.SpawnById("elder", new Vector2(middle + 1.8f, ground));
+            if (elder != null) elder.facing = -1;
+            // the picture begins close on Brann and draws back over the whole street as the morning goes on
+            var cam = Camera.main;
+            float wide = cam != null ? cam.orthographicSize : 6f;
+            if (cam != null) cam.orthographicSize = wide * 0.72f;
+
+            var b = new Buttons();
+            var crowd = new System.Collections.Generic.List<Entity>();
+            foreach (var en in w.Entities) if (en != null && !en.Dead && en is Townsfolk) crowd.Add(en);
+            var snow = new Color(0.95f, 0.97f, 1f);
+            float clock = 0f, nextCheer = 0f, nextSnow = 0f, nextHop = 0f;
+            int cheered = 0;
+            bool roofs = false, cheers = false, hops = false;
+            // what goes on in the street while a sentence stands under it (the buttons turn the page as ever)
+            IEnumerator Scene(float seconds)
+            {
+                for (float t = 0f; t < seconds && !b.skip; t += Time.deltaTime)
+                {
+                    clock += Time.deltaTime;
+                    if (cam != null) cam.orthographicSize = Mathf.Lerp(wide * 0.72f, wide, Mathf.SmoothStep(0f, 1f, clock / 16f));
+                    if (steps.x != 0 && p.pos.x >= middle - 1.2f) steps.x = 0;       // arrived
+                    if (cheers && clock >= nextCheer && crowd.Count > 0)
+                    {
+                        // whoever is nearest in view calls out next
+                        nextCheer = clock + 1.15f;
+                        crowd.Sort((x, y) => Mathf.Abs(x.pos.x - p.pos.x).CompareTo(Mathf.Abs(y.pos.x - p.pos.x)));
+                        var who = crowd[cheered % Mathf.Min(crowd.Count, 5)];
+                        Fx.Text(new Vector2(who.pos.x, who.pos.y + who.size.y + 0.7f + (cheered % 3) * 0.5f), Cheers[cheered % Cheers.Length], new Color(1f, 0.95f, 0.75f), 1.6f);
+                        cheered++;
+                    }
+                    if (roofs && clock >= nextSnow)
+                    {
+                        // the snow lets go of the roofs: clumps of it come down off the eaves, here and there
+                        nextSnow = clock + 0.16f;
+                        float cx = cam != null ? cam.transform.position.x : p.pos.x;
+                        var at = new Vector2(cx + Random.Range(-11f, 11f), ground + Random.Range(4.6f, 7.4f));
+                        Fx.Debris(at, snow, 3);
+                        if (Random.value < 0.4f) Fx.Dust(new Vector2(at.x, ground + 0.1f), 3);
+                    }
+                    if (hops && clock >= nextHop && steps.x == 0) { nextHop = clock + 1.3f; steps.hop = true; }
+                    if (SkipPressed(d)) b.skip = true;
+                    else if (t > 0.6f && NextPressed(d)) break;
+                    yield return null;
+                }
+            }
+
+            yield return new WaitForSecondsRealtime(0.8f);
+            // the light clears, slowly: the first thing seen is a morning, and Brann walking into it
+            for (float t = 0f; t < 3.2f && !b.skip; t += Time.deltaTime)
+            {
+                float k = t / 3.2f;
+                ui.White(1f - k * k * (3f - 2f * k));
+                clock += Time.deltaTime;
+                if (steps.x != 0 && p.pos.x >= middle - 1.2f) steps.x = 0;
+                if (SkipPressed(d)) b.skip = true;
+                yield return null;
+            }
+            ui.White(0f);
+            yield return Scene(1.6f);
+            // morning: the street sees it, and says so
+            if (!b.skip) { ui.Say(TrueLines[1]); Sfx.PlayUI("victory"); }
+            cheers = true;
+            yield return Scene(5f);
+            // the roofs
+            if (!b.skip) ui.Say(TrueLines[2]);
+            roofs = true; hops = true;
+            yield return Scene(5.6f);
+            // the elder, who remembers nothing
+            hops = false; cheers = false;
+            if (!b.skip) { ui.Say(TrueLines[3]); Sfx.PlayUI("menu_select"); }
+            if (elder != null) Fx.Text(new Vector2(elder.pos.x, elder.pos.y + elder.size.y + 0.6f), "Brann?", new Color(1f, 0.95f, 0.75f), 1.6f);
+            yield return Scene(5f);
+            // the sliver: it comes down out of the light onto Brann's chest, and stays there
+            GameObject sliver = null;
+            if (!b.skip)
+            {
+                ui.Say(TrueLines[4]);
+                sliver = new GameObject("EndingSliver");
+                var ssr = sliver.AddComponent<SpriteRenderer>();
+                ssr.sprite = Story.Icon(d.config, "hammercore");
+                var body = p.GetComponentInChildren<SpriteRenderer>();
+                if (body != null) { ssr.sortingLayerID = body.sortingLayerID; ssr.sortingOrder = body.sortingOrder + 3; }
+                sliver.transform.localScale = Vector3.one * 0.5f;
+                var glow = LevelLighting.MakeLight(sliver.transform, "Glow", Light2D.LightType.Point, new Color(0.7f, 0.95f, 1f), 1.2f, 0.3f, 2.6f);
+                Sfx.PlayUI("idol");
+                Vector2 chest() => new Vector2(p.pos.x, p.pos.y + 0.42f);
+                for (float t = 0f; t < 2.2f && !b.skip; t += Time.deltaTime)
+                {
+                    float k = t / 2.2f, e = k * k * (3f - 2f * k);
+                    sliver.transform.position = Vector2.Lerp(chest() + new Vector2(0f, 3.2f), chest(), e) + new Vector2(Mathf.Sin(t * 5f) * 0.25f * (1f - e), 0f);
+                    clock += Time.deltaTime;
+                    if (cam != null) cam.orthographicSize = Mathf.Lerp(wide * 0.72f, wide, Mathf.SmoothStep(0f, 1f, clock / 16f));
+                    if (SkipPressed(d)) b.skip = true;
+                    yield return null;
+                }
+                if (!b.skip) { Fx.Sparks(chest(), new Color(0.7f, 0.95f, 1f), 16, 4f); steps.hop = true; }
+                cheers = true;
+                yield return Scene(3.6f);
+            }
+            for (float t = 0f; t < 1.8f; t += Time.deltaTime) { ui.Fade(1f - t / 1.2f); ui.Dark(t / 1.8f); yield return null; }
+            ui.Dark(1f);
+            ui.Say("");
+            ui.Bars(false);
+            if (sliver != null) Object.Destroy(sliver);
+            if (cam != null) cam.orthographicSize = wide;
+            yield return new WaitForSecondsRealtime(b.skip ? 0.2f : 0.8f);
+            p.bot = null;
+            Playing = false;
+            Last = Night.None;
+            if (d.results != null && d.results.transform.IsChildOf(d.hud.transform)) hudGroup.alpha = 1f;
+            ui.Under(d.results != null ? d.results.GetComponentInParent<Canvas>() : null);
+            d.ShowTrueEnd(won, news);
+            won = null;
+            yield return FadeIn(d.results != null ? d.results.root : null);
+            if (autoCredits) { autoCredits = false; yield return new WaitForSecondsRealtime(1.5f); d.RollCredits(); }
+        }
+
+        /// <summary>The credits: the names go up over the dark; then the title screen. The "yes" button hurries them, "back" ends them.</summary>
+        public static IEnumerator Credits(GameDirector d)
+        {
+            Playing = true;
+            // the numbers go out first; the names only begin once the screen is empty
+            var panel = d.results != null ? d.results.root : null;
+            if (panel != null)
+            {
+                var pg = panel.GetComponent<CanvasGroup>();
+                if (pg == null) pg = panel.AddComponent<CanvasGroup>();
+                for (float t = 0f; t < 0.6f; t += Time.unscaledDeltaTime) { pg.alpha = 1f - t / 0.6f; yield return null; }
+                panel.SetActive(false);
+            }
+            var ui = new Overlay(d.hud.healthText != null ? d.hud.healthText.font : null);
+            ui.Bars(false);
+            ui.Dark(1f);
+            // (the column is made out of sight and measured there: it must not be seen in the middle of the
+            // screen for the one frame before it is sent down to where it starts from)
+            var roll = ui.Roll(CreditLines);
+            roll.alpha = 0f;
+            roll.rectTransform.anchoredPosition = new Vector2(0f, -5000f);
+            roll.ForceMeshUpdate();
+            yield return null;
+            float height = roll.preferredHeight, y = -620f - height * 0.5f, end = 620f + height * 0.5f;
+            roll.rectTransform.anchoredPosition = new Vector2(0f, y);
+            roll.alpha = 1f;
+            while (y < end)
+            {
+                bool hurry = InputDeviceTracker.PadConfirmPressed || (d.input != null && d.input.ConfirmPressed);
+                var pad = UnityEngine.InputSystem.Gamepad.current;
+                bool held = (pad != null && InputDeviceTracker.ConfirmButton(pad).isPressed) || (UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.spaceKey.isPressed);
+                if (SkipPressed(d)) break;
+                y += Time.unscaledDeltaTime * (held || hurry ? 420f : 70f);
+                roll.rectTransform.anchoredPosition = new Vector2(0f, y);
+                yield return null;
+            }
+            for (float t = 0f; t < 0.8f; t += Time.unscaledDeltaTime) { roll.alpha = 1f - t / 0.8f; yield return null; }
+            roll.alpha = 0f;
+            Playing = false;
+            // the title screen comes up out of the same dark the names went into: it does not cut in
+            ScreenFade.Through(() => d.QuitToMenu(), 0.5f, 0.35f, 1.6f);
+        }
+
         // ================================================================== the first death of a save
 
         /// <summary>The first time a save wakes in bed after a death: the dark, then the room, and what it means.</summary>
@@ -407,6 +703,28 @@ namespace Gloomdelve
             }
 
             public void Say(string line) { if (words != null) { words.text = line ?? ""; words.alpha = 1f; } }
+            /// <summary>The light of the broken stone over the picture: 0 = none, 1 = nothing else to be seen. Soft and warm, not a flash.</summary>
+            public void White(float k) { cover.color = new Color(1f, 0.96f, 0.86f, Mathf.Clamp01(k)); }
+            /// <summary>A column of names in the middle of the screen (the credits): headings small and dim, names large.</summary>
+            public TMPro.TextMeshProUGUI Roll(string[] lines)
+            {
+                var sb = new System.Text.StringBuilder();
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    string l = lines[i] ?? "";
+                    bool heading = l.Length > 0 && l == l.ToUpperInvariant() && i > 0;
+                    if (i == 0) sb.Append("<size=96><color=#FFD75E>").Append(l).Append("</color></size>");
+                    else if (heading) sb.Append("<size=26><color=#B9B2C8>").Append(l).Append("</color></size>");
+                    else sb.Append(l);
+                    sb.Append((char)10);
+                }
+                var t = Text("Roll", words.font, 44f, new Color(0.96f, 0.93f, 0.85f), new Vector2(0.1f, 0.5f), new Vector2(0.9f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, 100f);
+                t.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
+                t.overflowMode = TMPro.TextOverflowModes.Overflow;
+                t.lineSpacing = 18f;
+                t.text = sb.ToString();
+                return t;
+            }
             /// <summary>The words and the hint under them, from there (1) to gone (0).</summary>
             public void Fade(float k) { words.alpha = Mathf.Clamp01(k); hint.alpha = 0.45f * Mathf.Clamp01(k); }
             /// <summary>The picture behind the bands goes dark (1) or clears (0).</summary>

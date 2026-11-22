@@ -17,6 +17,7 @@ MonoBehaviour:
   description: '[use] : throw a lit bomb.  [down] + [use]: place it.  [up] + [use]:
     throw high.'
   icon: {fileID: 21300000, guid: 2072b74ecaf120e499b27f5b44808ff1, type: 3}
+  inHand: {fileID: 0}
   terrainHint: Blasts dirt and cracked rubble (never bedrock).
   gateBanner: Rubble blocks the tunnels ({0}) - you will need your BOMBS.  Hold [gear]
     to change gear.

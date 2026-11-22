@@ -54,6 +54,11 @@ namespace Gloomdelve
         /// <summary>The shopkeeper was killed: there are no more shops in this run.</summary>
         public bool shopkeeperDead;
 
+        /// <summary>The parts of the hammer this run has found (Story): haft, head, heart. With all three the hammer is in the bag.</summary>
+        public bool hammerHandle, hammerHead, hammerCore;
+        /// <summary>Which of the three bound spirits of the run's fourth area have been freed: one bit for each of its levels.</summary>
+        public int ghostMask;
+
         public int kills;
         /// <summary>How many of the kills were bosses.</summary>
         public int bossKills;
@@ -313,6 +318,7 @@ namespace Gloomdelve
                 equipped = r.equipped, previousEquipped = r.previousEquipped,
                 shopkeeperWanted = r.shopkeeperWanted, shopkeeperDead = r.shopkeeperDead, kills = r.kills, bossKills = r.bossKills, levelsCompleted = r.levelsCompleted,
                 villagerFreed = r.villagerFreed, bossDownStage = r.bossDownStage, stageName = stageName ?? "",
+                hammerHandle = r.hammerHandle, hammerHead = r.hammerHead, hammerCore = r.hammerCore, ghostMask = r.ghostMask,
             };
             s.upgrades.AddRange(r.upgrades); s.worn.AddRange(r.worn); s.purchases.AddRange(r.purchases); s.gear.AddRange(r.gear);
             foreach (var kv in r.counters) { s.counterIds.Add(kv.Key); s.counterValues.Add(kv.Value); }
@@ -331,6 +337,7 @@ namespace Gloomdelve
                 health = s.health, maxHealth = s.maxHealth, bombs = s.bombs, ropes = s.ropes, gold = s.gold, totalTime = s.totalTime,
                 shopkeeperWanted = s.shopkeeperWanted, shopkeeperDead = s.shopkeeperDead, kills = s.kills, bossKills = s.bossKills, levelsCompleted = s.levelsCompleted,
                 villagerFreed = s.villagerFreed, bossDownStage = s.bossDownStage,
+                hammerHandle = s.hammerHandle, hammerHead = s.hammerHead, hammerCore = s.hammerCore, ghostMask = s.ghostMask,
             };
             if (s.gear != null) r.gear.AddRange(s.gear);
             r.equipped = Mathf.Clamp(s.equipped, 0, Mathf.Max(0, r.gear.Count - 1));

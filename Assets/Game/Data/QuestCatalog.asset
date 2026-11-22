@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.QuestCatalog
   quests:
   - {fileID: 11400000, guid: 576db7dbc25e9264583eb44d216791d9, type: 2}
+  - {fileID: 11400000, guid: e3f5614828ac2f2438efa132997aadf7, type: 2}

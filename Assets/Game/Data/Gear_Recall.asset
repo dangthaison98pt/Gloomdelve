@@ -17,6 +17,7 @@ MonoBehaviour:
   description: '[use] : return to where this level began.  Never used up - it needs
     a few moments between uses.'
   icon: {fileID: 21300000, guid: 6522680e57a775e49b4419ad7d3ab205, type: 3}
+  inHand: {fileID: 0}
   terrainHint: The way back out of a drop you cannot climb.
   gateBanner: 
   gateSign: 

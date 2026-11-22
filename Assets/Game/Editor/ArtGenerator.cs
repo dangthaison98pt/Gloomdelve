@@ -198,6 +198,7 @@ namespace Gloomdelve.EditorTools
             TrapAndPropArt();
             MimicArt();
             VillagerArt();
+            StoryArt();
             BossArt();
             CounterFxArt();
             FxArt();
@@ -2321,6 +2322,117 @@ namespace Gloomdelve.EditorTools
 
         /// <summary>The people of Brindlemoor (one picture each, in the order of Villagers.All), the cage they are
         /// found in, and a village house with dark and with lit windows.</summary>
+        /// <summary>
+        /// What the story puts on the mountain (Story): the pillar with the old signs, the bound spirit and its
+        /// chain, the paper and the copy made on it, and the hammer - its three parts and the whole of it.
+        /// </summary>
+        static void StoryArt()
+        {
+            Color32 ol = C(26, 22, 30);
+            Color32 sign = C(120, 226, 245), signD = C(60, 150, 190);
+            {
+                // the pillar: a worn shaft on a foot, a cap on top, signs cut into its face and still faintly lit
+                var p = new Px(18, 32);
+                Color32 st = C(126, 124, 138), stD = C(84, 82, 98), stL = C(170, 168, 180), moss = C(74, 120, 70);
+                p.Rect(2, 0, 14, 3, stD); p.Rect(3, 1, 12, 2, st);
+                p.Rect(5, 3, 8, 23, st); p.Rect(5, 3, 2, 23, stL); p.Rect(11, 3, 2, 23, stD);
+                p.Rect(3, 26, 12, 3, st); p.Rect(3, 28, 12, 1, stL); p.Rect(4, 29, 10, 1, stD);
+                // the signs: no letters anybody knows
+                int[,] marks = { { 7, 22, 3, 1 }, { 8, 20, 1, 2 }, { 7, 17, 1, 2 }, { 9, 17, 2, 1 }, { 9, 16, 1, 1 }, { 7, 13, 3, 1 }, { 7, 12, 1, 1 }, { 9, 11, 1, 2 },
+                                 { 8, 8, 2, 1 }, { 7, 7, 1, 2 }, { 10, 6, 1, 2 }, { 8, 5, 2, 1 } };
+                for (int i = 0; i < marks.GetLength(0); i++) p.Rect(marks[i, 0], marks[i, 1], marks[i, 2], marks[i, 3], i % 3 == 0 ? signD : sign);
+                p.Set(6, 24, stD); p.Set(12, 19, stL); p.Set(6, 9, stD); p.Line(11, 24, 12, 21, stD);       // cracks
+                p.Rect(2, 2, 3, 1, moss); p.Set(5, 3, moss); p.Rect(12, 1, 3, 1, moss); p.Set(3, 26, moss);
+                p.Outline(ol); Save(p, "Sprites/Props/runepillar", new Vector2(0.5f, 0f));
+            }
+            {
+                // a spirit: pale, see-through at the hem, two dark eyes; nothing else to it
+                var p = new Px(16, 18);
+                Color32 b = C(214, 238, 250, 235), bL = C(244, 252, 255, 245), bD = C(150, 196, 226, 200), hem = C(150, 196, 226, 120);
+                p.Ellipse(8f, 11f, 5f, 5.6f, b);
+                p.Rect(3, 4, 10, 7, b);
+                p.Rect(3, 2, 2, 2, hem); p.Rect(7, 2, 2, 2, hem); p.Rect(11, 2, 2, 2, hem); p.Rect(3, 4, 10, 1, bD);
+                p.Rect(5, 13, 3, 2, bL); p.Set(4, 12, bL);
+                p.Rect(5, 9, 2, 3, C(40, 52, 80)); p.Rect(9, 9, 2, 3, C(40, 52, 80));
+                p.Rect(7, 6, 2, 1, C(70, 90, 120));
+                Save(p, "Sprites/NPC/ghost", new Vector2(0.5f, 2f / 18f));
+            }
+            {
+                // what holds it: a staple in the ground, three links and a band
+                var p = new Px(8, 10);
+                Color32 ir = C(92, 92, 108), irL = C(140, 142, 160);
+                p.Rect(2, 0, 4, 1, ir); p.Rect(3, 1, 2, 2, irL); p.Rect(3, 3, 2, 2, ir); p.Rect(3, 5, 2, 2, irL); p.Rect(2, 7, 4, 2, ir); p.Set(3, 8, irL);
+                p.Outline(ol); Save(p, "Sprites/Props/ghostchain", new Vector2(0.5f, 0f));
+            }
+            const string d = "Sprites/Items/";
+            {
+                // a sheet of paper and a stick of charcoal
+                var p = ItemCanvas(); Color32 pa = C(236, 228, 206), paD = C(196, 186, 160);
+                p.Rect(4, 2, 9, 12, pa); p.Rect(4, 2, 9, 1, paD); p.Set(12, 13, Px.Clear); p.Set(11, 13, paD); p.Set(12, 12, paD);
+                p.Line(2, 4, 6, 1, C(44, 40, 46));
+                p.Outline(ol); Save(p, d + "paper", PItem);
+            }
+            {
+                // the same sheet with the signs rubbed onto it
+                var p = ItemCanvas(); Color32 pa = C(236, 228, 206), paD = C(196, 186, 160), ink = C(40, 96, 128);
+                p.Rect(4, 2, 9, 12, pa); p.Rect(4, 2, 9, 1, paD); p.Set(12, 13, Px.Clear); p.Set(11, 13, paD); p.Set(12, 12, paD);
+                p.Rect(6, 11, 3, 1, ink); p.Set(7, 10, ink); p.Rect(9, 9, 2, 1, ink); p.Set(6, 8, ink); p.Set(6, 7, ink); p.Rect(8, 7, 3, 1, ink); p.Set(10, 6, ink);
+                p.Rect(6, 4, 2, 1, ink); p.Set(9, 4, ink); p.Set(9, 5, ink);
+                p.Outline(ol); Save(p, d + "rubbing", PItem);
+            }
+            Color32 wood = C(54, 44, 52), woodL = C(92, 76, 84), band = C(214, 176, 80), iron = C(128, 132, 148), ironL = C(190, 194, 208), ironD = C(80, 82, 98);
+            {
+                // the haft: black wood, bound with brass at both ends
+                var p = ItemCanvas();
+                p.Line(3, 2, 12, 12, wood); p.Line(4, 2, 13, 12, woodL); p.Line(3, 3, 12, 13, wood);
+                p.Rect(3, 2, 2, 2, band); p.Rect(11, 11, 2, 2, band);
+                p.Outline(ol); Save(p, d + "hammer_haft", PItem);
+            }
+            {
+                // the head: a block of grey iron with the hole the haft goes through
+                var p = ItemCanvas();
+                p.Rect(3, 4, 10, 7, iron); p.Rect(3, 10, 10, 1, ironL); p.Rect(3, 4, 10, 1, ironD); p.Rect(3, 4, 1, 7, ironL); p.Rect(12, 4, 1, 7, ironD);
+                p.Rect(7, 6, 2, 3, C(30, 28, 36)); p.Set(5, 8, ironL); p.Set(10, 6, ironD);
+                p.Outline(ol); Save(p, d + "hammer_head", PItem);
+            }
+            {
+                // the heart: a light with no flame
+                var p = ItemCanvas();
+                p.Disc(8f, 7.5f, 4.6f, C(120, 226, 245)); p.Disc(8f, 7.5f, 3f, C(200, 244, 252)); p.Disc(8f, 7.5f, 1.4f, C(255, 255, 255));
+                p.Set(8, 13, sign); p.Set(8, 2, sign); p.Set(2, 7, sign); p.Set(14, 7, sign);
+                p.Outline(C(40, 96, 128)); Save(p, d + "hammer_core", PItem);
+            }
+            {
+                // the hammer, whole, standing on the foot of its haft (it is swung by that foot: HammerSwing): black
+                // wood bound in brass, a broad head of grey iron with flared faces, and the heart set in the middle of it
+                var p = ItemCanvas();
+                p.Rect(7, 1, 2, 9, wood); p.Rect(7, 1, 1, 9, woodL);
+                p.Rect(6, 0, 4, 2, band); p.Set(6, 0, Mul(band, 0.7f)); p.Set(9, 0, Mul(band, 0.7f));
+                p.Set(7, 4, band); p.Set(8, 5, band); p.Set(7, 6, band);                                    // the grip's binding
+                p.Rect(6, 9, 4, 1, band);                                                                   // the collar under the head
+                p.Rect(3, 10, 10, 5, iron); p.Rect(3, 14, 10, 1, ironL); p.Rect(3, 10, 10, 1, ironD);
+                p.Rect(2, 10, 2, 5, ironD); p.Rect(12, 10, 2, 5, ironD); p.Rect(2, 14, 2, 1, iron); p.Rect(12, 14, 2, 1, iron);   // the two faces, a little wider
+                p.Set(4, 13, ironL); p.Set(5, 13, ironL); p.Set(11, 11, ironD);
+                p.Rect(7, 11, 2, 3, C(120, 226, 245)); p.Set(7, 12, C(255, 255, 255)); p.Set(8, 12, C(200, 244, 252));
+                p.Outline(ol); Save(p, d + "hammer", PItem);
+            }
+            {
+                // the same hammer as it is in the hand (HammerSwing): pixel for pixel the size of the player, so
+                // what makes it a two-handed thing is the length of its haft, not a bigger picture
+                var p = new Px(16, 28);
+                p.Rect(7, 1, 2, 21, wood); p.Rect(7, 1, 1, 21, woodL);
+                p.Rect(6, 0, 4, 2, band); p.Set(6, 0, Mul(band, 0.7f)); p.Set(9, 0, Mul(band, 0.7f));
+                p.Set(7, 4, band); p.Set(8, 5, band); p.Set(7, 6, band); p.Set(8, 7, band); p.Set(7, 8, band);    // the grip's binding
+                p.Rect(7, 14, 2, 1, band);                                                                          // a band halfway up
+                p.Rect(6, 21, 4, 1, band);                                                                          // the collar under the head
+                p.Rect(3, 22, 10, 5, iron); p.Rect(3, 26, 10, 1, ironL); p.Rect(3, 22, 10, 1, ironD);
+                p.Rect(2, 22, 2, 5, ironD); p.Rect(12, 22, 2, 5, ironD); p.Rect(2, 26, 2, 1, iron); p.Rect(12, 26, 2, 1, iron);
+                p.Set(4, 25, ironL); p.Set(5, 25, ironL); p.Set(11, 23, ironD);
+                p.Rect(7, 23, 2, 3, C(120, 226, 245)); p.Set(7, 24, C(255, 255, 255)); p.Set(8, 24, C(200, 244, 252));
+                p.Outline(ol); Save(p, d + "hammer_long", new Vector2(0.5f, 1f / 28f));
+            }
+        }
+
         static void VillagerArt()
         {
             const string d = "Sprites/NPC/";
@@ -2346,6 +2458,8 @@ namespace Gloomdelve.EditorTools
             };
             for (int i = 0; i < looks.Length; i++)
                 Save(Humanoid(new Pose(), looks[i]), d + "villager_" + i, new Vector2(0.5f, 1f / 20f));
+            // the stranger on the mountain (Story): a trader's coat gone grey, the hat pulled low, a violet scarf
+            Save(Humanoid(new Pose(), Make(C(74, 70, 90), C(42, 40, 56), C(156, 156, 168), C(120, 70, 150), false, true, false)), d + "stranger", new Vector2(0.5f, 1f / 20f));
             {
                 // the people in the street: nobody in particular, in winter coats
                 var folk = new[]
