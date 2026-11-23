@@ -538,6 +538,12 @@ namespace Gloomdelve.EditorTools
                     }
 
                     {
+                        var oswin = Villagers.All[Villagers.IndexOf("mapper")];
+                        var maps = Villagers.WaresOf(oswin, cfg.shop, 777);
+                        var sheetOfMap = maps.Find(o => o.id == MapScreen.ItemId);
+                        Check("map: the Mapmaker sells the compass and the map; a description is shown with a capital letter",
+                            maps.Count == 2 && sheetOfMap != null && sheetOfMap.icon != null && !sheetOfMap.isUpgrade && Villagers.EmberPrice(sheetOfMap, oswin) == 2
+                            && UIUtil.Cap("points to the exit") == "Points to the exit" && UIUtil.Cap("+3 bombs") == "+3 bombs" && UIUtil.Cap("Bombs.") == "Bombs." && UIUtil.Cap("[jump] up") == "[jump] up" && UIUtil.Cap("") == "");
                         var pip = Villagers.All[Villagers.IndexOf("peddler")];
                         var stall = Villagers.WaresOf(pip, cfg.shop, 777);
                         var sheet = stall.Find(o => o.id == Story.Paper);

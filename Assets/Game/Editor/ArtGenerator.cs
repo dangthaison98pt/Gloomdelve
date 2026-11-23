@@ -2224,6 +2224,16 @@ namespace Gloomdelve.EditorTools
                 p.Outline(ol); Save(p, d + "compass", PItem);
             }
             {
+                // the Mapmaker's map: a sheet half unrolled, a way drawn on it in red and a cross where it ends
+                var p = ItemCanvas(); Color32 pa = C(232, 214, 170), paD = C(186, 164, 120), paL = C(248, 238, 208), ink = C(190, 60, 50), ln = C(96, 78, 60);
+                p.Rect(3, 3, 11, 10, pa); p.Rect(3, 3, 11, 1, paD); p.Rect(3, 12, 11, 1, paL);
+                p.Rect(2, 2, 2, 12, paD); p.Rect(2, 2, 1, 12, paL);                    // the rolled edge
+                p.Set(6, 10, ln); p.Set(7, 10, ln); p.Set(10, 9, ln); p.Set(11, 5, ln); p.Set(6, 5, ln);     // hills and marks
+                p.Set(5, 5, ink); p.Set(6, 6, ink); p.Set(7, 7, ink); p.Set(8, 7, ink); p.Set(9, 8, ink); p.Set(10, 9, ink);      // the way
+                p.Set(11, 10, ink); p.Set(12, 11, ink); p.Set(12, 9, ink); p.Set(10, 11, ink); p.Set(11, 10, ink);                // the cross
+                p.Outline(ol); Save(p, d + "map", PItem);
+            }
+            {
                 var p = ItemCanvas(); Color32 w = C(140, 90, 50), wd = C(90, 56, 30);
                 p.Rect(4, 1, 8, 9, w); p.Rect(4, 3, 8, 1, wd); p.Rect(4, 7, 8, 1, wd);
                 p.Set(7, 10, C(60, 60, 60)); p.Set(8, 11, C(255, 200, 60));

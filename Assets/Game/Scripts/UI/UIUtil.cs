@@ -13,6 +13,17 @@ namespace Gloomdelve
             EventSystem.current.SetSelectedGameObject(s.gameObject);
         }
 
+        /// <summary>The same words with their first letter a capital (descriptions are written small in the data: "points to the exit").</summary>
+        public static string Cap(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return s ?? "";
+            // (only a description that begins with a letter: "+3 bombs", a button picture or a tag are left as they are)
+            int at = 0;
+            while (at < s.Length && char.IsWhiteSpace(s[at])) at++;
+            if (at < s.Length && char.IsLower(s[at])) return s.Substring(0, at) + char.ToUpperInvariant(s[at]) + s.Substring(at + 1);
+            return s;
+        }
+
         public static string FormatTime(float t)
         {
             if (t < 0f) return "--:--";

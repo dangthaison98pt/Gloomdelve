@@ -243,6 +243,17 @@ namespace Gloomdelve
                         name = "Ember Pouch",
                         desc = $"The Elder's gift. It holds {Villagers.Embers} of {Villagers.PouchCapacity} embers - what Brindlemoor trades in. It is never lost.",
                     });
+                // the Mapmaker's map: bought once, kept for good; it is unfolded with a button of its own
+                if (MapScreen.Carried)
+                {
+                    var sheet = director != null && director.config != null && director.config.shop != null ? director.config.shop.Find(MapScreen.ItemId) : null;
+                    entries.Add(new Entry
+                    {
+                        icon = sheet != null ? sheet.icon : null, under = "Hold", marked = false,
+                        name = sheet != null ? sheet.displayName : "Map",
+                        desc = "Hold the map button (M, or L1 on a pad) to unfold it; let go to fold it away. It draws each level as you walk it. It is never lost.",
+                    });
+                }
                 // the story's things (Story): the copy of the old signs, and the parts of the hammer this run has found
                 var gcfg = director != null ? director.config : null;
                 if (Story.HasRubbing)
@@ -375,7 +386,7 @@ namespace Gloomdelve
             nameText.text = cur != null ? cur.name : "";
             // (a description longer than its two lines is set smaller rather than run out of the frame)
             if (!descText.enableAutoSizing) { descText.fontSizeMax = descText.fontSize; descText.fontSizeMin = 15f; descText.enableAutoSizing = true; }
-            descText.text = cur != null ? cur.desc : "";
+            descText.text = cur != null ? UIUtil.Cap(cur.desc) : "";
             hintText.text = onTabs ? "[walk] [gear]  Tab          [inventory]  Close"
                           : "[move]  Choose          " + (cur != null && cur.act != null ? "[jump]  " + cur.act + "          " : "") + "[walk] [gear]  Tab          [inventory]  Close";
         }

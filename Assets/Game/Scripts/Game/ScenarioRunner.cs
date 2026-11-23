@@ -257,6 +257,8 @@ namespace Gloomdelve
                 run = c => QuestCase(c) },
             new Scenario { name = "story: the old signs are copied and read, the hammer's three parts make the hammer, and it strikes for three", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => StoryCase(c) },
+            new Scenario { name = "map: with the Mapmaker's map in the bag the level is drawn as it is walked, and the sheet is up only while its button is held", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => MapCase(c) },
             new Scenario { name = "villagers: a caged villager is freed with Enter, goes home for good, and helps every later run", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => VillagerCase(c) },
 
@@ -3906,6 +3908,48 @@ namespace Gloomdelve
             if (elder != null) elder.Despawn();
             hud.DismissHeld();
             yield return c.Frames(45);       // (his words have faded from the screen)
+        }
+
+        static IEnumerator MapCase(Ctx c)
+        {
+            c.p.godMode = true;
+            var map = c.dir.GetComponent<MapScreen>();
+            c.Expect(map != null, "every level has a map screen waiting");
+            if (map == null) yield break;
+            Villagers.testRescued = new HashSet<string>();       // the test keeps its own state: the save file is not touched
+            Villagers.ResetTestState();
+            // without the map in the bag: nothing is drawn, and the button does nothing
+            c.Teleport(4.5f, 1f);
+            yield return c.Frames(6);
+            map.forceHeld = true;
+            yield return new WaitForSecondsRealtime(0.15f);
+            c.Expect(!MapScreen.Carried && !map.IsOpen && !map.Seen(4, 1), "with no map in the bag the button unfolds nothing, and nothing is put down");
+            map.forceHeld = false;
+            // with it: where the player has been is on the sheet, the far end of the level is not
+            // (bought at the Mapmaker's it is a key item: kept with the save, nothing counted in the run)
+            ShopItem.Apply(c.run, c.dir.config.shop.Find(MapScreen.ItemId));
+            c.Expect(Villagers.HasKey(MapScreen.ItemId) && c.run.GetResource(MapScreen.ItemId) == 0, "the map bought is a key item, kept for good - not a thing of the run");
+            yield return c.Frames(6);
+            int far = c.world.Grid.Width - 3;
+            c.Expect(MapScreen.Carried && map.Seen(4, 1) && map.Seen(8, 2) && !map.Seen(far, 1) && !map.IsOpen, $"with the map carried the level around the player is put down - not the far end (x {far}) - and the sheet stays folded");
+            c.Teleport(20.5f, 1f);
+            yield return c.Frames(6);
+            c.Expect(map.Seen(20, 1) && map.Seen(4, 1), "walked further, more is put down - and what was drawn stays drawn");
+            // held, the sheet is up; let go, it is gone
+            map.forceHeld = true;
+            yield return new WaitForSecondsRealtime(0.3f);
+            c.Expect(map.IsOpen, "while the map button is held the sheet is up");
+            var over = UIOverlap.Find();
+            c.Expect(over.Count == 0, "the sheet is laid out cleanly" + (over.Count > 0 ? " (" + over[0] + ")" : ""));
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "map_open.png"));
+            yield return new WaitForSecondsRealtime(0.3f);
+            map.forceHeld = false;
+            yield return new WaitForSecondsRealtime(0.15f);
+            c.Expect(!map.IsOpen, "let go, it is folded away");
+            Villagers.ResetTestState();
+            Villagers.testRescued = null;
+            c.Teleport(3.5f, 1f);
+            yield return c.Frames(4);
         }
 
         static IEnumerator StoryCase(Ctx c)

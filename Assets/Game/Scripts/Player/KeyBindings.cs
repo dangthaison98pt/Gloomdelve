@@ -39,6 +39,7 @@ namespace Gloomdelve
             new Slot("interact", "Enter / buy", "Interact", "e", "enter"),
             new Slot("walk", "Walk slowly", "Walk", "s", "walk"),
             new Slot("inventory", "Equipment", "Inventory", "i", "inventory"),
+            new Slot("map", "Map (hold)", "Map", "m", "map"),
         };
 
         /// <summary>Goes up on every change: texts with button pictures redraw themselves.</summary>

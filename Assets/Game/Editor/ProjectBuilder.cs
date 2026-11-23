@@ -83,6 +83,7 @@ namespace Gloomdelve.EditorTools
                     GE("enter", "E", GS("pad_red"), "B", false, "\u25CB", psCircle, null, "A"),
                     GE("gear", "Tab", pill, "R1", false, "R1", null, pill, "R"), GE("walk", "S", pill, "L1", false, "L1", null, pill, "L"), GE("dash", "Shift", GS("pad_red"), "B", false, "\u25CB", psCircle, null, "A"),
                     GE("pause", "Esc", pill, "Select", false, "Share", null, pill, "\u2212"), GE("inventory", "I", pill, "Start", false, "Options", null, pill, "+"),
+                    GE("map", "M", pill, "L1", false, "L1", null, pill, "L"),
                     // the two buttons of a scene (EndingScene): a pad's "yes" and its "back", whatever it plays with
                     GE("next", "Space", GS("pad_green"), "A", false, "\u00D7", psCross, null, "A"), GE("skip", "Esc", GS("pad_red"), "B", false, "\u25CB", psCircle, null, "B"),
                     GE("up", "\u25B2", darkBtn, "\u25B2"), GE("down", "\u25BC", darkBtn, "\u25BC"),
@@ -276,7 +277,7 @@ namespace Gloomdelve.EditorTools
             var actions = new List<string>
             {
                 A("Move", "Value", "Vector2"), A("Jump", "Button", "Button"), A("Attack", "Button", "Button"), A("Use", "Button", "Button"),
-                A("Swap", "Button", "Button"), A("Interact", "Button", "Button"), A("Walk", "Button", "Button"), A("Pause", "Button", "Button"), A("Inventory", "Button", "Button"), A("Dash", "Button", "Button"),
+                A("Swap", "Button", "Button"), A("Interact", "Button", "Button"), A("Walk", "Button", "Button"), A("Pause", "Button", "Button"), A("Inventory", "Button", "Button"), A("Dash", "Button", "Button"), A("Map", "Button", "Button"),
             };
             var bindings = new List<string>
             {
@@ -290,6 +291,7 @@ namespace Gloomdelve.EditorTools
                 B("Interact", "<Keyboard>/e"), B("Interact", "<Gamepad>/buttonEast"),
                 B("Dash", "<Keyboard>/leftShift"), B("Dash", "<Gamepad>/buttonEast"),
                 B("Walk", "<Keyboard>/s"), B("Walk", "<Gamepad>/leftShoulder"),
+                B("Map", "<Keyboard>/m"), B("Map", "<Gamepad>/leftShoulder"),       // (held: the map, if one is carried - the same shoulder as walking slowly)
                 B("Pause", "<Keyboard>/escape"), B("Pause", "<Keyboard>/p"), B("Pause", "<Gamepad>/select"),
                 B("Inventory", "<Keyboard>/i"), B("Inventory", "<Gamepad>/start"),
                 // Pads the Input System does not know by name (it has layouts for Xbox, PlayStation and Switch pads; any
@@ -300,7 +302,7 @@ namespace Gloomdelve.EditorTools
                 B("Jump", "<Joystick>/button4"), B("Attack", "<Joystick>/trigger"),
                 B("Use", "<Joystick>/button8"), B("Swap", "<Joystick>/button6"),
                 B("Interact", "<Joystick>/button3"), B("Dash", "<Joystick>/button3"),
-                B("Walk", "<Joystick>/button5"),
+                B("Walk", "<Joystick>/button5"), B("Map", "<Joystick>/button5"),
                 B("Pause", "<Joystick>/button9"), B("Inventory", "<Joystick>/button10"),
             };
             string json = "{\n\"name\":\"GameInput\",\n\"maps\":[{\"name\":\"Player\",\"id\":\"" + Guid.NewGuid() + "\",\"actions\":[" +
@@ -556,6 +558,11 @@ namespace Gloomdelve.EditorTools
             if (shop.Find(Story.Paper) == null)
                 shop.offers.Add(new ShopOffer { id = Story.Paper, displayName = "Sheet of Paper", price = 250, resource = Story.Paper, amount = 1,
                     description = "a clean sheet and a stick of charcoal: for copying down what cannot be carried away" });
+            if (shop.Find(MapScreen.ItemId) == null)
+                shop.offers.Add(new ShopOffer { id = MapScreen.ItemId, displayName = "Map", price = 500, resource = MapScreen.ItemId, amount = 1,
+                    description = "yours for good. Hold the map button to unfold it: it draws each level as you walk it" });
+            // (a key item since it was first written: the words on the stall say so)
+            { var mo = shop.Find(MapScreen.ItemId); if (mo != null) mo.description = "yours for good. Hold the map button to unfold it: it draws each level as you walk it"; }
             if (shop.Find("pebblepouch") == null)
                 shop.offers.Add(new ShopOffer { id = "pebblepouch", displayName = "Pebble Pouch", price = 450, isUpgrade = true, slot = "charm",
                     description = "carry 10 more pebbles for the slingshot", modifiers = new StatModifiers { pebbleBonus = 10 } });
@@ -607,6 +614,7 @@ namespace Gloomdelve.EditorTools
             icons["sandstriders"] = "Sprites/Items/sandstriders"; icons["wardscarab"] = "Sprites/Items/wardscarab";
             icons["pebblepouch"] = "Sprites/Items/pebblepouch";
             icons[Story.Paper] = "Sprites/Items/paper";
+            icons[MapScreen.ItemId] = "Sprites/Items/map";
             icons["vigor"] = "Sprites/NPC/ware_vigor"; icons["lampoil"] = "Sprites/NPC/ware_lampoil";
             foreach (var o in shop.offers) if (icons.TryGetValue(o.id, out var ic)) o.icon = ArtGenerator.S(ic);
             EditorUtility.SetDirty(shop);

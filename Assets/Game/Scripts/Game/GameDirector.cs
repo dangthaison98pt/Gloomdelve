@@ -175,6 +175,7 @@ namespace Gloomdelve
                 AudioManager.Instance.PlayMusic(Stage.kind == LevelKind.Final || Stage.kind == LevelKind.Boss ? "final" : Stage.area.musicId);
 
             hud.Bind(this);
+            MapScreen.Attach(this);       // (the Mapmaker's map: a dark sheet at the start of every level)
             var gateGear = Level.gateCount > 0 ? config.FindGear(Level.gateGear) : null;
             // Area introduction: just the name of the place, and only when a new place begins - the first level
             // of an area, the camp, the final vault. Later levels and boss arenas start without a card.

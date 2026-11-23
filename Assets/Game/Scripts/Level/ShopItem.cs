@@ -182,6 +182,7 @@ namespace Gloomdelve
         {
             if (o.id == "vigor") { run.maxHealth += o.amount; run.health += o.amount; return; }       // the Healer's draught
             if (o.id == "lampoil") { run.extraTime += o.amount; return; }                              // the Lamplighter's oil: seconds
+            if (o.id == MapScreen.ItemId) { Villagers.GiveKey(MapScreen.ItemId); return; }             // the Mapmaker's map: a key item, kept for good
             if (!string.IsNullOrEmpty(o.resource)) run.AddResource(o.resource, o.amount);
             if (o.isUpgrade) run.AddUpgrade(o);
         }

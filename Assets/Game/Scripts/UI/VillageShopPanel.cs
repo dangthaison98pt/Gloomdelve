@@ -135,6 +135,7 @@ namespace Gloomdelve
                 return "MAX";
             }
             if (run == null || e.offer == null) { sentence = "Not now."; return ""; }
+            if (e.offer.id == MapScreen.ItemId && MapScreen.Carried) { sentence = "You have it already, and it is yours for good."; return "OWNED"; }
             if (e.offer.isUpgrade && run.HasUpgrade(e.offer.id)) { sentence = "That is yours already."; return "OWNED"; }
             if (e.offer.resource == Res.Health && run.HealthFull) { sentence = "Your health is full."; return "FULL"; }
             if (!string.IsNullOrEmpty(e.offer.resource) && run.CapOf(e.offer.resource) != int.MaxValue && run.RoomFor(e.offer.resource) <= 0)
@@ -174,7 +175,7 @@ namespace Gloomdelve
                     else icons[i].sprite = e.offer.icon;
                 }
                 if (names != null && i < names.Length && names[i] != null) names[i].text = e.offer.displayName;
-                if (descs != null && i < descs.Length && descs[i] != null) descs[i].text = e.offer.description ?? "";
+                if (descs != null && i < descs.Length && descs[i] != null) descs[i].text = UIUtil.Cap(e.offer.description);
                 if (prices != null && i < prices.Length && prices[i] != null)
                 {
                     prices[i].text = blocked ?? (e.price + (e.price == 1 ? " ember" : " embers"));
@@ -216,6 +217,7 @@ namespace Gloomdelve
             Sfx.PlayUI("buy");
             Say(e.offer.isUpgrade && !run.IsWorn(e.offer.id)
                 ? $"{e.offer.displayName} is in your bag (its slot is taken): wear it from the bag."
+                : e.offer.id == MapScreen.ItemId ? $"{e.offer.displayName}: yours for good. Hold the map button to unfold it."
                 : $"{e.offer.displayName}: yours for this climb.", true);
             Refresh();
             return true;

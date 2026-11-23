@@ -28,7 +28,7 @@ namespace Gloomdelve
         public InputActionAsset actions;
 
         InputActionMap map;
-        InputAction move, jump, attack, use, swap, interact, walk, pause, inventory, dash;
+        InputAction move, jump, attack, use, swap, interact, walk, pause, inventory, dash, mapKey;
         bool jumpL, attackL, useL, interactL, upL, prevUp, dashL;
 
         public InputAction PauseAction => pause;
@@ -47,6 +47,7 @@ namespace Gloomdelve
             pause = map.FindAction("Pause", true);
             inventory = map.FindAction("Inventory", false);
             dash = map.FindAction("Dash", false);
+            mapKey = map.FindAction("Map", false);
             KeyBindings.Apply(actions);             // the keyboard keys the player chose
             KeyBindings.Changed += ApplyKeys;
             map.Enable();
@@ -97,6 +98,8 @@ namespace Gloomdelve
         public bool TabRightPressed => !KeyBindings.Busy && swap != null && swap.WasPressedThisFrame();
         /// <summary>The "back" button of a gamepad (the right-hand face button): leaves a screen such as the bag.</summary>
         public bool BackPressed => !KeyBindings.Busy && InputDeviceTracker.PadBackPressed;      // (the right-hand face button; on a Nintendo pad the bottom one, B)
+        /// <summary>The map button (M / L1) is down: the map, if one is carried, is unfolded for as long (MapScreen).</summary>
+        public bool MapHeld => !KeyBindings.Busy && mapKey != null && mapKey.IsPressed();
         /// <summary>Equipment screen button (I / Start). Works while the game is frozen.</summary>
         public bool InventoryPressed => !KeyBindings.Busy && inventory != null && inventory.WasPressedThisFrame();
         /// <summary>Jump or Interact pressed this frame (menu confirm), readable while frozen.</summary>
