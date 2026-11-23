@@ -23,7 +23,7 @@ namespace Gloomdelve
         }
 
         /// <summary>What he says over his work on the bags.</summary>
-        public const string BagLine = "Bring me embers and I will let your bags out. Five more each time, and it stays so.";
+        public const string BagLine = "Bring me [ember] and I will let your bags out. Five more each time, and it stays so.";
 
         /// <summary>What he has to say once the pouch is handed over (he says it when spoken to).</summary>
         public static string Line()

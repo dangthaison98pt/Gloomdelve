@@ -40,6 +40,16 @@ namespace Gloomdelve
             var run = RunSession.Current;
             if (run == null) return;
             if (resource == Res.Health && run.HealthFull) return;   // already at full health: the heart stays for later
+            if (resource == "spark")
+            {
+                // the village's small money: into the pouch too, and kept (see Villagers)
+                int got = Villagers.AddSparks(value);
+                if (got > 0) Show(got); else Fx.Text(Center + Vector2.up * 0.4f, "NOTHING TO CARRY IT IN", textColor, 1.2f);
+                Fx.Sparks(Center, textColor, 6, 3.5f);
+                Sfx.Play(sfx, pos);
+                Despawn();
+                return;
+            }
             if (resource == "ember")
             {
                 // not part of the run at all: it goes into the Ember Pouch, for good (see Villagers)

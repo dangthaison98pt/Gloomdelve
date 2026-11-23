@@ -35,8 +35,8 @@ MonoBehaviour:
     lines: So you mean to go up. Good. Somebody must. The cold came the winter the
       Sunstone was taken from us, and it sits deeper every year. Some of ours went
       up after it and did not come back. Look for them off the beaten path. Take
-      this pouch. The great beasts of the mountain carry embers, and embers are what
-      Brindlemoor trades in.
+      this pouch. The great beasts of the mountain carry sparks, which our people
+      take for what they sell - and one ember each. Bring the embers to me.
   rewards:
   - kind: 0
     id: pouch

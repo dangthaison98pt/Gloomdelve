@@ -74,6 +74,7 @@ namespace Gloomdelve
         [Tooltip("Things picked up at least once in this save (see ItemLog): the first time gets a card, later times a line.")]
         public System.Collections.Generic.List<string> seenItems = new System.Collections.Generic.List<string>();
         [Tooltip("Embers in the Ember Pouch (the money of the village: only bosses drop it).")] public int embers;
+        [Tooltip("Sparks in the pouch (the village's other money: every boss drops a handful; the villagers take them for what they sell for one climb).")] public int sparks;
         [Tooltip("How many embers the pouch holds (0 = what it held when the elder gave it).")] public int pouchCapacity;
         [Tooltip("How many times the elder has enlarged the bomb bag, the rope bag and the pebble bag (Bags: +5 each time, for good).")]
         public int bagBombs, bagRopes, bagPebbles;

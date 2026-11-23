@@ -7,7 +7,7 @@ namespace Gloomdelve
     /// How much the player can carry of the things that are counted: bombs, ropes, pebbles, and the embers in the
     /// Ember Pouch. Each has a bag of a first size (five bombs, five ropes, ten pebbles, five embers), and the
     /// elder of Brindlemoor makes any of them larger for embers: +5 a time, three times at most, dearer each time
-    /// (2, 3, then 4 embers). What he has made larger stays so for good - it is kept with the save, like the
+    /// (1, 2, then 3 embers). What he has made larger stays so for good - it is kept with the save, like the
     /// embers themselves. A run sets out with its bags full (RunSession.FillBags), and a bag he has just let out
     /// is filled on the spot. (The Pebble Pouch bought on the mountain is something else: +10 pebbles while it is
     /// worn, for that run only.)
@@ -42,8 +42,8 @@ namespace Gloomdelve
 
         public static bool CanEnlarge(string kind) => Level(kind) < MaxLevel && (kind != Embers || Villagers.HasKey(Villagers.KeyPouch));
 
-        /// <summary>Embers the next enlarging of this bag costs: 2, then 3, then 4.</summary>
-        public static int Price(string kind) => 2 + Level(kind);
+        /// <summary>Embers the next enlarging of this bag costs: 1, then 2, then 3 (a boss leaves one ember).</summary>
+        public static int Price(string kind) => 1 + Level(kind);
 
         public static string Name(string kind)
             => kind == Bombs ? "Bomb Bag" : kind == Ropes ? "Rope Bag" : kind == Pebbles ? "Pebble Bag" : "Ember Pouch";

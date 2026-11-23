@@ -22,7 +22,7 @@ namespace Gloomdelve
         /// <summary>The player's own blows: blade, stomp, something thrown. Everything else is a bomb or a trap.</summary>
         static bool FromPlayer(DamageType t) => t == DamageType.Whip || t == DamageType.Stomp || t == DamageType.Thrown;
         [Tooltip("Gold chunks dropped on death.")] public int goldChunks = 10;
-        [Tooltip("Embers dropped on death (twice as many in the final level). Embers are the village's money: only bosses have them.")] public int emberDrop = 3;
+        [Tooltip("Not used any more: every boss leaves the same for the village - Villagers.EmbersPerBoss and SparksPerBoss.")] public int emberDrop = 3;
         [Tooltip("Prefab id dropped on death along with the gold (the max-health item). Empty = nothing.")] public string rewardId = "heartvessel";
 
         [Tooltip("Projectile prefab used by the shots of this boss (venom, embers, feathers, orbs).")] public string bossShotId = "gloomorb";
@@ -254,11 +254,17 @@ namespace Gloomdelve
                 }
             if (drops && w != null)
             {
-                int embers = emberDrop * (dir != null && dir.Stage != null && dir.Stage.kind == LevelKind.Final ? 2 : 1);
+                // for the village: one ember (rare: it pays for what lasts) and a handful of sparks (for a climb's wares)
+                int embers = Villagers.EmbersPerBoss, sparks = Villagers.SparksPerBoss;
                 for (int i = 0; i < embers; i++)
                 {
                     var e = w.SpawnById("ember", at);
-                    if (e != null) e.vel = new Vector2((i - (embers - 1) * 0.5f) * 1.6f, 8f + i % 2);
+                    if (e != null) e.vel = new Vector2((i - (embers - 1) * 0.5f) * 1.6f, 9.5f);
+                }
+                for (int i = 0; i < sparks; i++)
+                {
+                    var e = w.SpawnById("spark", at);
+                    if (e != null) e.vel = new Vector2((i - (sparks - 1) * 0.5f) * 1.5f, 7f + i % 2);
                 }
             }
             if (dir != null) dir.OnBossDefeated(this);

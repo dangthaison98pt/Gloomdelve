@@ -613,7 +613,7 @@ MonoBehaviour:
       mimicSight: 0
       pebbleBonus: 0
     icon: {fileID: 21300000, guid: 46abf169ea2c1b747bfaa48e0fef9309, type: 3}
-    description: 'yours for good. Hold the map button to unfold it: it draws each level as you walk it'
-      it'
+    description: 'yours for good. Hold the map button to unfold it: it draws each
+      level as you walk it'
   shopkeeperHealth: 6
   warningsBeforeAngry: 2

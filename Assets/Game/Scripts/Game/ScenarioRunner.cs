@@ -1860,9 +1860,16 @@ namespace Gloomdelve
                 for (int i = 0; i < shopUi.Count; i++) if (shopUi.At(i).offer.id == "vigor") row = i;
                 int hp = run.maxHealth, gold0 = run.gold, e0 = Villagers.Embers;
                 int price = Villagers.EmberPrice(c.dir.config.shop.Find("vigor"), Villagers.All[2]);
+                // a ware for one climb is paid in sparks: without them it is not sold, whatever embers there are
+                int s00 = Villagers.Sparks;
+                Villagers.SpendSparks(s00);
+                bool refusedNoSparks = row >= 0 && !shopUi.Buy(row) && run.maxHealth == hp && Villagers.Embers == e0;
+                c.Expect(refusedNoSparks, $"with no sparks the Heart Draught is not sold, embers or no embers (embers {Villagers.Embers})");
+                Villagers.AddSparks(price + 3);
+                int s0 = Villagers.Sparks;
                 bool bought = row >= 0 && shopUi.Buy(row);
-                c.Expect(bought && run.maxHealth == hp + 1 && Villagers.Embers == e0 - price && run.gold == gold0 && shopUi.IsOpen,
-                    $"buying the Heart Draught there: +1 heart for this run, {price} embers paid ({e0} -> {Villagers.Embers}), no gold, and the shop stays open");
+                c.Expect(bought && run.maxHealth == hp + 1 && Villagers.Sparks == s0 - price && Villagers.Embers == e0 && run.gold == gold0 && shopUi.IsOpen,
+                    $"buying the Heart Draught there: +1 heart for this run, {price} sparks paid ({s0} -> {Villagers.Sparks}), no embers, no gold, and the shop stays open");
                 run.maxHealth = hp; run.health = Mathf.Min(run.health, hp);
                 shopUi.Close();
                 yield return new WaitForSecondsRealtime(0.1f);
@@ -4894,24 +4901,24 @@ namespace Gloomdelve
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "elder_bags.png"));
             yield return new WaitForSecondsRealtime(0.3f);
 
-            // 2 embers, then 3, then 4: five more each time, three times; without the embers nothing happens
+            // 1 ember, then 2, then 3: five more each time, three times; without the embers nothing happens
             Villagers.AddEmbers(5);
             ui.Buy(Row(Bags.Bombs));
-            c.Expect(run.BombCap == 10 && run.bombs == 10 && Villagers.Embers == 3 && Bags.Price(Bags.Bombs) == 3, $"the first enlarging costs 2 embers, the bag holds ten - and is full at once (holds {run.BombCap}, bombs {run.bombs}, embers {Villagers.Embers}, next {Bags.Price(Bags.Bombs)})");
+            c.Expect(run.BombCap == 10 && run.bombs == 10 && Villagers.Embers == 4 && Bags.Price(Bags.Bombs) == 2, $"the first enlarging costs 1 ember, the bag holds ten - and is full at once (holds {run.BombCap}, bombs {run.bombs}, embers {Villagers.Embers}, next {Bags.Price(Bags.Bombs)})");
             ui.Buy(Row(Bags.Bombs));
-            c.Expect(run.BombCap == 15 && Villagers.Embers == 0 && Bags.Price(Bags.Bombs) == 4, $"the second costs 3 and it holds fifteen (holds {run.BombCap}, embers {Villagers.Embers})");
+            c.Expect(run.BombCap == 15 && Villagers.Embers == 2 && Bags.Price(Bags.Bombs) == 3, $"the second costs 2 and it holds fifteen (holds {run.BombCap}, embers {Villagers.Embers})");
             bool refused = !ui.Buy(Row(Bags.Bombs));
-            c.Expect(refused && run.BombCap == 15, "with no embers left nothing is enlarged");
+            c.Expect(refused && run.BombCap == 15 && Villagers.Embers == 2, "with too few embers left nothing is enlarged, and none are taken");
             Villagers.AddEmbers(5);
             ui.Buy(Row(Bags.Bombs));
             bool atMost = !ui.Buy(Row(Bags.Bombs));
-            c.Expect(run.BombCap == 20 && Villagers.Embers == 1 && !Bags.CanEnlarge(Bags.Bombs) && atMost,
-                $"the third costs 4, it holds twenty, and that is as large as it gets (holds {run.BombCap}, embers {Villagers.Embers})");
+            c.Expect(run.BombCap == 20 && Villagers.Embers == 2 && !Bags.CanEnlarge(Bags.Bombs) && atMost,
+                $"the third costs 3, it holds twenty, and that is as large as it gets (holds {run.BombCap}, embers {Villagers.Embers})");
 
             // the pouch itself, the ropes and the pebbles go the same way
             Villagers.AddEmbers(5);
             ui.Buy(Row(Bags.Embers));
-            c.Expect(Villagers.PouchCapacity == 10 && Villagers.Embers == 3, $"the Ember Pouch is let out the same way (holds {Villagers.PouchCapacity}, embers {Villagers.Embers})");
+            c.Expect(Villagers.PouchCapacity == 10 && Villagers.Embers == 4, $"the Ember Pouch is let out the same way (holds {Villagers.PouchCapacity}, embers {Villagers.Embers})");
             ui.Buy(Row(Bags.Ropes));
             Villagers.AddEmbers(9);
             ui.Buy(Row(Bags.Pebbles));

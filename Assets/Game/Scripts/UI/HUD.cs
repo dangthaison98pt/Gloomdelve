@@ -12,6 +12,9 @@ namespace Gloomdelve
         public TMPro.TMP_Text goldText;
         [Tooltip("The coin beside the gold count; in the village it becomes an ember and the count is the Ember Pouch.")] public Image goldIcon;
         public Sprite goldSprite, emberSprite;
+        public const float MountainFrameWidth = 490f, VillageFrameWidth = 690f;
+        [Tooltip("In the village: the sparks in the pouch, beside the embers (hidden on the mountain).")] public TMPro.TMP_Text sparkText;
+        public Image sparkIcon;
         public TMPro.TMP_Text stageText;
         public TMPro.TMP_Text timeText;
         public TMPro.TMP_Text totalTimeText;
@@ -405,6 +408,7 @@ namespace Gloomdelve
         [Header("Dash energy")]
         [Tooltip("The bar under the health and the gold: what is left for dashing.")] public Image energyFill;
         public float energyFillWidth = 440f;
+        float energyBaseWidth;
         public Color energyColor = new Color(0.45f, 0.9f, 1f);
         [Tooltip("The bar when there is not enough left for a dash.")] public Color energyLowColor = new Color(0.95f, 0.45f, 0.4f);
         int shownRefusals;
@@ -508,11 +512,28 @@ namespace Gloomdelve
                 bool pouch = Villagers.HasKey(Villagers.KeyPouch);
                 goldText.text = pouch ? Villagers.Embers + " / " + Villagers.PouchCapacity : "-";
                 if (goldIcon != null && emberSprite != null) goldIcon.sprite = emberSprite;
+                if (sparkText != null) sparkText.text = pouch ? Villagers.Sparks.ToString() : "-";
             }
             else
             {
                 goldText.text = "$" + Mathf.RoundToInt(shownGold);
                 if (goldIcon != null && goldSprite != null) goldIcon.sprite = goldSprite;
+            }
+            // (the village has two kinds of money in its corner, the mountain one: the frame is as wide as what it holds)
+            if (sparkText != null && sparkIcon != null && sparkText.gameObject.activeSelf != run.inVillage)
+            {
+                sparkText.gameObject.SetActive(run.inVillage);
+                sparkIcon.gameObject.SetActive(run.inVillage);
+                var frame = goldText.transform.parent as RectTransform;
+                if (frame != null) frame.sizeDelta = new Vector2(run.inVillage ? VillageFrameWidth : MountainFrameWidth, frame.sizeDelta.y);
+                // the bar under them runs the whole width of the frame, whichever it is (it stopped two thirds of the way along the wide one)
+                if (energyFill != null)
+                {
+                    if (energyBaseWidth <= 0f) energyBaseWidth = energyFillWidth;
+                    energyFillWidth = energyBaseWidth + (run.inVillage ? VillageFrameWidth - MountainFrameWidth : 0f);
+                    var back = energyFill.transform.parent as RectTransform;
+                    if (back != null) back.sizeDelta = new Vector2(energyFillWidth + 4f, back.sizeDelta.y);
+                }
             }
 
             if (dir.Stage != null)

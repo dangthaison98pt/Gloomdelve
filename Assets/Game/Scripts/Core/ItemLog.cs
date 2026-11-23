@@ -69,7 +69,8 @@ namespace Gloomdelve
                 case Res.Health: return "It mends a heart. Left where it lies while you are whole: it will keep.";
                 case Res.Bombs: return "Bombs. They open walls, floors and most things that stand in the way - you among them.";
                 case Res.Ropes: return "Rope. Thrown up, it hangs from the ceiling; let down from a ledge, it is a way back.";
-                case "ember": return "An ember off one of the mountain's great beasts. It goes in the Ember Pouch, and Brindlemoor trades in them.";
+                case "ember": return "An ember off one of the mountain's great beasts: each has one. It goes in the Ember Pouch, and pays for what lasts - the elder's work on your bags.";
+                case "spark": return "A spark off one of the mountain's great beasts: they come by the handful. Brindlemoor's people take them for what they sell for a climb.";
                 case "maxhealth": return "One more heart, for good.";
                 case Res.Pebbles: return "Pebbles: shot for your slingshot. You can only carry so many - a Pebble Pouch holds more.";
                 default: return $"Treasure. Worth ${value} to any shopkeeper on the mountain.";

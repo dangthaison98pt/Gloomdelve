@@ -77,7 +77,7 @@ namespace Gloomdelve
             if (index == 1 && dir != null && dir.villageShop != null)
             {
                 Sfx.PlayUI("menu_select", 0.8f);
-                dir.villageShop.Open($"{who.name} {who.role}", "For this climb. Paid in embers.", VillageShopPanel.WaresOf(who, World.config, RunSession.Current));
+                dir.villageShop.Open($"{who.name} {who.role}", "For this climb: [spark].   What lasts: [ember].", VillageShopPanel.WaresOf(who, World.config, RunSession.Current));
                 return;
             }
             Interact(p);

@@ -308,7 +308,7 @@ namespace Gloomdelve
                     int freed = r.rescued != null ? r.rescued.Count : 0;
                     string going = r.run != null && r.run.active ? $"   ·   <color=#FFD662>Continue: {r.run.stageName}</color>" : "";
                     // (a night in progress is named beside the slot's name: picking the slot goes on with it)
-                    slotTexts[i].text = head + going + $"\n<color=#FFFFFFCC>{freed}/{Villagers.All.Length} villagers home   ·   {r.embers} embers</color>";
+                    slotTexts[i].text = head + going + $"\n<color=#FFFFFFCC>{freed}/{Villagers.All.Length} villagers home   ·   {r.embers} embers, {r.sparks} sparks</color>";
                 }
                 if (slotErase != null && i < slotErase.Length) slotErase[i].gameObject.SetActive(used);
                 if (slotEraseLabels != null && i < slotEraseLabels.Length) slotEraseLabels[i].text = eraseArmed == i ? "SURE?" : "ERASE";

@@ -22,6 +22,8 @@ namespace Gloomdelve
             public ShopOffer offer;
             public int price;
             public string bag;
+            /// <summary>Paid in embers (what lasts: the elder's work, the map); otherwise in sparks.</summary>
+            public bool lasting;
         }
 
         public GameObject root;
@@ -62,7 +64,7 @@ namespace Gloomdelve
             var list = new List<Entry>();
             if (who == null || cfg == null || cfg.shop == null) return list;
             foreach (var o in Villagers.WaresOf(who, cfg.shop, run != null ? run.seed : 0))
-                list.Add(new Entry { offer = o, price = Villagers.EmberPrice(o, who) });
+                list.Add(new Entry { offer = o, price = Villagers.EmberPrice(o, who), lasting = Villagers.PaidInEmbers(o) });
             return list;
         }
 
@@ -85,7 +87,7 @@ namespace Gloomdelve
                     var esr = ember != null ? ember.GetComponentInChildren<SpriteRenderer>() : null;
                     if (esr != null) pic = esr.sprite;
                 }
-                list.Add(new Entry { bag = kind, offer = new ShopOffer { id = "bag:" + kind, displayName = "Larger " + Bags.Name(kind), icon = pic } });
+                list.Add(new Entry { bag = kind, lasting = true, offer = new ShopOffer { id = "bag:" + kind, displayName = "Larger " + Bags.Name(kind), icon = pic } });
             }
             return list;
         }
@@ -149,7 +151,8 @@ namespace Gloomdelve
         void Refresh()
         {
             var run = RunSession.Current;
-            if (embers != null) embers.text = Villagers.HasKey(Villagers.KeyPouch) ? $"Embers  {Villagers.Embers} / {Villagers.PouchCapacity}" : "No pouch for embers yet";
+            if (embers != null) embers.text = Villagers.HasKey(Villagers.KeyPouch)
+                ? $"[spark] {Villagers.Sparks}          [ember] {Villagers.Embers} / {Villagers.PouchCapacity}" : "No pouch for [spark] and [ember] yet";       // (a number and its picture, never the word)
             int n = entries.Count;
             var hud = GameDirector.Instance != null ? GameDirector.Instance.hud : null;
             for (int i = 0; rows != null && i < rows.Length; i++)
@@ -178,8 +181,9 @@ namespace Gloomdelve
                 if (descs != null && i < descs.Length && descs[i] != null) descs[i].text = UIUtil.Cap(e.offer.description);
                 if (prices != null && i < prices.Length && prices[i] != null)
                 {
-                    prices[i].text = blocked ?? (e.price + (e.price == 1 ? " ember" : " embers"));
-                    prices[i].color = blocked != null ? new Color(1f, 1f, 1f, 0.55f) : Villagers.Embers >= e.price ? new Color(1f, 0.72f, 0.36f) : new Color(1f, 0.45f, 0.4f);
+                    prices[i].text = blocked ?? ((e.lasting ? "[ember] " : "[spark] ") + e.price);       // (the picture first, as in the line of what is in the pouch: the number ends flush with the row)
+                    bool enough = (e.lasting ? Villagers.Embers : Villagers.Sparks) >= e.price;
+                    prices[i].color = blocked != null ? new Color(1f, 1f, 1f, 0.55f) : !enough ? new Color(1f, 0.45f, 0.4f) : e.lasting ? new Color(1f, 0.72f, 0.36f) : new Color(1f, 0.92f, 0.55f);
                 }
             }
             if (panel != null) panel.sizeDelta = new Vector2(panel.sizeDelta.x, baseHeight + rowStep * n);
@@ -201,14 +205,19 @@ namespace Gloomdelve
             if (Blocked(e, run, out string why) != null) { Sfx.PlayUI("error"); Say(why, false); return false; }
             if (e.bag != null)
             {
-                if (!Bags.Enlarge(e.bag)) { Sfx.PlayUI("error"); Say("Not enough embers.", false); return false; }
+                if (!Bags.Enlarge(e.bag)) { Sfx.PlayUI("error"); Say("Not enough [ember].", false); return false; }
                 Sfx.PlayUI("buy");
                 Say(e.bag == Bags.Embers ? $"{Bags.Name(e.bag)}: it holds {Bags.Holds(e.bag, run)} now, for good."
                                          : $"{Bags.Name(e.bag)}: it holds {Bags.Holds(e.bag, run)} now, for good - and it is full.", true);
                 Refresh();
                 return true;
             }
-            if (!Villagers.SpendEmbers(e.price)) { Sfx.PlayUI("error"); Say("Not enough embers.", false); return false; }
+            if (e.lasting ? !Villagers.SpendEmbers(e.price) : !Villagers.SpendSparks(e.price))
+            {
+                Sfx.PlayUI("error");
+                Say(e.lasting ? "Not enough [ember]." : "Not enough [spark].", false);
+                return false;
+            }
             ShopItem.Apply(run, e.offer);
             run.purchases.Add(e.offer.id);
             SaveSystem.CheckpointInVillage(run);       // bought at home: saved at once, like the embers it cost

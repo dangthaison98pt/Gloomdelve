@@ -199,6 +199,7 @@ namespace Gloomdelve.EditorTools
             MimicArt();
             VillagerArt();
             StoryArt();
+            SparkArt();
             BossArt();
             CounterFxArt();
             FxArt();
@@ -2332,6 +2333,27 @@ namespace Gloomdelve.EditorTools
 
         /// <summary>The people of Brindlemoor (one picture each, in the order of Villagers.All), the cage they are
         /// found in, and a village house with dark and with lit windows.</summary>
+        /// <summary>A spark (the village's small money): a four-pointed glint, as it lies on the ground and as the screen shows it.</summary>
+        static void SparkArt()
+        {
+            Color32 hot = C(255, 255, 240), mid = C(255, 232, 130), rim = C(236, 170, 60);
+            foreach (bool icon in new[] { false, true })
+            {
+                int n = icon ? 16 : 10, c = n / 2, arm = icon ? 6 : 3;
+                var p = new Px(n, n);
+                for (int i = -arm; i <= arm; i++)
+                {
+                    int a = Mathf.Abs(i);
+                    Color32 col = a <= 1 ? hot : a < arm ? mid : rim;
+                    p.Set(c + i, c, col); p.Set(c, c + i, col);
+                }
+                p.Set(c - 1, c - 1, mid); p.Set(c + 1, c - 1, mid); p.Set(c - 1, c + 1, mid); p.Set(c + 1, c + 1, mid);
+                if (icon) { p.Set(c - 2, c - 2, rim); p.Set(c + 2, c - 2, rim); p.Set(c - 2, c + 2, rim); p.Set(c + 2, c + 2, rim); p.Rect(c - 1, c - 1, 3, 3, hot); }
+                p.Outline(C(120, 70, 20));
+                Save(p, icon ? "UI/icon_spark" : "Sprites/Items/spark", icon ? PCenter : new Vector2(0.5f, 1f / 10f));
+            }
+        }
+
         /// <summary>
         /// What the story puts on the mountain (Story): the pillar with the old signs, the bound spirit and its
         /// chain, the paper and the copy made on it, and the hammer - its three parts and the whole of it.

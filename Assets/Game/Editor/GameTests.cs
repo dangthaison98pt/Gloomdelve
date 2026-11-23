@@ -544,6 +544,9 @@ namespace Gloomdelve.EditorTools
                         Check("map: the Mapmaker sells the compass and the map; a description is shown with a capital letter",
                             maps.Count == 2 && sheetOfMap != null && sheetOfMap.icon != null && !sheetOfMap.isUpgrade && Villagers.EmberPrice(sheetOfMap, oswin) == 2
                             && UIUtil.Cap("points to the exit") == "Points to the exit" && UIUtil.Cap("+3 bombs") == "+3 bombs" && UIUtil.Cap("Bombs.") == "Bombs." && UIUtil.Cap("[jump] up") == "[jump] up" && UIUtil.Cap("") == "");
+                        Check("money: a boss leaves one ember and five sparks; the map is paid in embers, a ware for one climb in sparks",
+                            Villagers.EmbersPerBoss == 1 && Villagers.SparksPerBoss == 5 && Villagers.PaidInEmbers(sheetOfMap) && !Villagers.PaidInEmbers(cfg.shop.Find("compass"))
+                            && !Villagers.PaidInEmbers(cfg.shop.Find(Story.Paper)) && cfg.prefabs.Get("spark") is Pickup sparkPrefab && sparkPrefab.resource == "spark");
                         var pip = Villagers.All[Villagers.IndexOf("peddler")];
                         var stall = Villagers.WaresOf(pip, cfg.shop, 777);
                         var sheet = stall.Find(o => o.id == Story.Paper);

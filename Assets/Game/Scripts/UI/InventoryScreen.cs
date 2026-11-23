@@ -241,7 +241,7 @@ namespace Gloomdelve
                     {
                         icon = pouchIcon, under = Villagers.Embers + " / " + Villagers.PouchCapacity, marked = false,
                         name = "Ember Pouch",
-                        desc = $"The Elder's gift. It holds {Villagers.Embers} of {Villagers.PouchCapacity} embers - what Brindlemoor trades in. It is never lost.",
+                        desc = $"The Elder's gift. It holds {Villagers.Embers} of {Villagers.PouchCapacity} embers, which pay for what lasts, and {Villagers.Sparks} sparks, which the villagers take for their wares. It is never lost.",
                     });
                 // the Mapmaker's map: bought once, kept for good; it is unfolded with a button of its own
                 if (MapScreen.Carried)

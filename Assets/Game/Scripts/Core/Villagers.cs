@@ -24,10 +24,12 @@ namespace Gloomdelve
     ///    their house in the village, where the player buys things for the coming run.
     ///  - Key items: the few things that are not lost when a run ends (kept in the save file). The first one is
     ///    the Ember Pouch the village elder gives.
-    ///  - Two kinds of money. GOLD is found all over the mountain and spent in the shops up there; it is gone when
-    ///    the run ends. EMBERS drop only from bosses; they go straight into the pouch (as many as it holds: five at
-    ///    first, more as the elder's errands are done), are never lost, and are what the villagers take for their
-    ///    wares. So nothing can be earned for the village by walking into the first level and dying.
+    ///  - Three kinds of money. GOLD is found all over the mountain and spent in the shops up there; it is gone
+    ///    when the run ends. The other two drop only from bosses and are never lost. EMBERS are rare - one from
+    ///    each boss - and pay for what lasts: the elder's work on the bags, the Mapmaker's map. They go in the pouch,
+    ///    as many as it holds (five at first). SPARKS come by the handful - five from each boss - and are what the
+    ///    villagers take for their wares, which are for one climb. So nothing can be earned for the village by
+    ///    walking into the first level and dying.
     /// </summary>
     public static class Villagers
     {
@@ -83,7 +85,7 @@ namespace Gloomdelve
         /// <summary>Tests: when set, this is who has been rescued (the save file is left alone and nothing is written).</summary>
         public static HashSet<string> testRescued;
         static readonly HashSet<string> testKeys = new HashSet<string>();
-        static int testPouch, testCapacity = PouchStartCapacity;
+        static int testPouch, testSparks, testCapacity = PouchStartCapacity;
 
         static bool Testing => ScenarioRunner.Active || AutoTest.Active;
         static bool TestState => testRescued != null;
@@ -91,7 +93,7 @@ namespace Gloomdelve
         /// <summary>The village and what is kept between runs belong to real runs only; automated runs keep the plain game.</summary>
         public static bool Enabled => !Testing || TestState;
 
-        public static void ResetTestState() { testKeys.Clear(); testPouch = 0; testCapacity = PouchStartCapacity; }
+        public static void ResetTestState() { testKeys.Clear(); testPouch = 0; testSparks = 0; testCapacity = PouchStartCapacity; }
 
         // ------------------------------------------------------------------ rescued villagers
 
@@ -201,7 +203,47 @@ namespace Gloomdelve
             return true;
         }
 
-        /// <summary>What a villager asks for a ware, in embers: about one for every 250 gold it would cost on the
+        // ------------------------------------------------------------------ sparks: what the villagers' wares cost
+
+        /// <summary>What a boss leaves behind for the village: one ember, and a handful of sparks.</summary>
+        public const int EmbersPerBoss = 1, SparksPerBoss = 5;
+
+        /// <summary>Sparks in the pouch (0 without the pouch). There is no limit to them.</summary>
+        public static int Sparks
+        {
+            get
+            {
+                if (!HasKey(KeyPouch)) return 0;
+                return Mathf.Max(0, TestState ? testSparks : (Testing ? 0 : SaveSystem.Records.sparks));
+            }
+        }
+
+        /// <summary>Puts sparks in the pouch and saves at once. Returns how many went in (none without the pouch).</summary>
+        public static int AddSparks(int n)
+        {
+            if (n <= 0 || !Enabled || !HasKey(KeyPouch)) return 0;
+            if (TestState) { testSparks += n; return n; }
+            SaveSystem.Records.sparks = Sparks + n;
+            SaveSystem.SaveRecords();
+            return n;
+        }
+
+        /// <summary>Pays sparks; false (and nothing taken) when there are not enough.</summary>
+        public static bool SpendSparks(int n)
+        {
+            if (n <= 0) return true;
+            int have = Sparks;
+            if (!Enabled || have < n) return false;
+            if (TestState) { testSparks = have - n; return true; }
+            SaveSystem.Records.sparks = have - n;
+            SaveSystem.SaveRecords();
+            return true;
+        }
+
+        /// <summary>What lasts is paid for in embers; what is for one climb, in sparks.</summary>
+        public static bool PaidInEmbers(ShopOffer o) => o != null && o.id == MapScreen.ItemId;
+
+        /// <summary>What a villager asks for a ware, in sparks (in embers for what lasts): about one for every 250 gold it would cost on the
         /// mountain, one less at the Peddler's (never under one).</summary>
         public static int EmberPrice(ShopOffer o, VillagerDef v)
         {

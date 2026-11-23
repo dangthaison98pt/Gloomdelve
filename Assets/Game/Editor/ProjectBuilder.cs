@@ -91,6 +91,9 @@ namespace Gloomdelve.EditorTools
                     GE("move", "\u25C4 \u25B2 \u25BC \u25BA", darkBtn, "L"),
                     // not a button: the "beaten without damage" badge, so any UI text can show it with "[flawless]"
                     new InputGlyphSet.Entry { token = "flawless", keyboard = GS("flawless"), keyboardLabel = "" },
+                    // not buttons: the village's two kinds of money, so a price is a number and a picture ("2 [spark]", "3 [ember]")
+                    new InputGlyphSet.Entry { token = "ember", keyboard = ArtGenerator.S("UI/icon_ember"), keyboardLabel = "" },
+                    new InputGlyphSet.Entry { token = "spark", keyboard = ArtGenerator.S("UI/icon_spark"), keyboardLabel = "" },
                     // not a button either: the mark in front of a list of things to do, "up / down chooses" ("[updown]")
                     new InputGlyphSet.Entry { token = "updown", keyboard = GS("updown"), keyboardLabel = "" },
                 };
@@ -1386,7 +1389,7 @@ namespace Gloomdelve.EditorTools
                         text = "Speak with Elder Aldous", trigger = QuestTrigger.Talk, target = "elder", waypoint = "elder;hall",
                         lines = "So you mean to go up. Good. Somebody must. The cold came the winter the Sunstone was taken from us, and it sits deeper every year. " +
                                 "Some of ours went up after it and did not come back. Look for them off the beaten path. " +
-                                "Take this pouch. The great beasts of the mountain carry embers, and embers are what Brindlemoor trades in.",
+                                "Take this pouch. The great beasts of the mountain carry sparks, which our people take for what they sell - and one ember each. Bring the embers to me.",
                     },
                 };
                 first.rewards = new[]
@@ -1746,6 +1749,13 @@ namespace Gloomdelve.EditorTools
             Reg("gold_small", Make<Pickup>("GoldNugget", "Items", "gold nugget", new Vector2(0.3f, 0.25f), ArtGenerator.S(I("gold_small")), null, 11, (e, g, s) => { e.itemId = "gold_small"; e.value = 10; e.flipWithFacing = false; }));
             Reg("gold_big", Make<Pickup>("GoldChunk", "Items", "gold chunk", new Vector2(0.5f, 0.35f), ArtGenerator.S(I("gold_big")), null, 11, (e, g, s) => { e.itemId = "gold_big"; e.value = 30; e.flipWithFacing = false; }));
             Reg("gem", Make<Pickup>("Gem", "Items", "emerald", new Vector2(0.4f, 0.4f), ArtGenerator.S(I("gem")), null, 11, (e, g, s) => { e.itemId = "gem"; e.value = 100; e.sfx = "gem"; e.textColor = new Color(0.5f, 1f, 0.7f); e.flipWithFacing = false; }));
+            Reg("spark", Make<Pickup>("Spark", "Items", "spark", new Vector2(0.3f, 0.3f), ArtGenerator.S("Sprites/Items/spark"), null, 11, (e, g, s) =>
+            { e.itemId = "spark";
+                e.resource = "spark"; e.value = 1; e.sfx = "coin"; e.textColor = new Color(1f, 0.92f, 0.55f); e.flipWithFacing = false;
+                s.sharedMaterial = unlitMat;
+                var gl = g.AddComponent<GlowLight>();
+                gl.color = new Color(1f, 0.9f, 0.5f); gl.radius = 1.6f; gl.intensity = 0.5f; gl.flicker = 0.4f;
+            }));
             Reg("ember", Make<Pickup>("Ember", "Items", "ember", new Vector2(0.4f, 0.4f), ArtGenerator.S("Sprites/Items/ember"), null, 11, (e, g, s) =>
             { e.itemId = "ember";
                 e.resource = "ember"; e.value = 1; e.sfx = "gem"; e.textColor = new Color(1f, 0.62f, 0.3f); e.flipWithFacing = false;
@@ -2427,6 +2437,11 @@ namespace Gloomdelve.EditorTools
             hud.goldSprite = ArtGenerator.S("UI/icon_gold"); hud.emberSprite = ArtGenerator.S("UI/icon_ember");
             hud.goldText.color = gold;
             hud.goldText.rectTransform.sizeDelta = new Vector2(180, 60);
+            // the village's second money, beside the embers: only shown there, where the frame is wider (HUD.VillageFrameWidth)
+            hud.sparkText = Stat("Spark", "UI/icon_spark", 480, out hud.sparkIcon);
+            hud.sparkText.color = new Color(1f, 0.92f, 0.55f);
+            hud.sparkText.rectTransform.sizeDelta = new Vector2(140, 60);
+            hud.sparkText.gameObject.SetActive(false); hud.sparkIcon.gameObject.SetActive(false);
             // dash energy: one plain bar along the bottom of that panel, under the health and the gold (which sit a
             // little above the middle to leave it room)
             {
@@ -2820,8 +2835,8 @@ namespace Gloomdelve.EditorTools
                     vs.icons[i] = UIBuilder.Img(wareRow.transform, "Icon", null, Color.white, new Vector2(0f, 0.5f), new Vector2(24, 0), new Vector2(60, 60));
                     vs.icons[i].preserveAspect = true;
                     vs.names[i] = UIBuilder.Label(wareRow.transform, "Name", "", 28, Color.white, TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(102, 17), new Vector2(480, 38));
-                    vs.descs[i] = UIBuilder.Label(wareRow.transform, "Desc", "", 20, new Color(1f, 1f, 1f, 0.75f), TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(102, -19), new Vector2(740, 30), false);
-                    vs.prices[i] = UIBuilder.Label(wareRow.transform, "Price", "", 24, ember, TextAnchor.MiddleRight, new Vector2(1f, 0.5f), new Vector2(-24, 17), new Vector2(240, 36), false);
+                    vs.descs[i] = UIBuilder.Label(wareRow.transform, "Desc", "", 20, new Color(1f, 1f, 1f, 0.75f), TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(102, -19), new Vector2(640, 30), false);       // (it stops short of the price, which stands in the middle of the row)
+                    vs.prices[i] = UIBuilder.Label(wareRow.transform, "Price", "", 28, ember, TextAnchor.MiddleRight, new Vector2(1f, 0.5f), new Vector2(-24, 0), new Vector2(200, 40), false);
                 }
                 vs.note = UIBuilder.Label(vp, "Note", "", 22, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0, 110), new Vector2(880, 34), false);
                 vs.closeButton = UIBuilder.Button(vp, "Close", "CLOSE", new Vector2(0.5f, 0f), new Vector2(0, 28), new Vector2(320, 66));
