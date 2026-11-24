@@ -103,26 +103,87 @@ namespace Gloomdelve
         }
         static int testRun = -1;
 
+        static bool CommandLineOwnsScreen
+        {
+            get
+            {
+                foreach (var a in System.Environment.GetCommandLineArgs())
+                    if (a == "-screen-width" || a == "-screen-height" || a == "-screen-fullscreen") return true;
+                return false;
+            }
+        }
+
         public static void ApplyDisplaySettings()
         {
             if (Application.isEditor) return;
             if (TestRun)
             {
                 // automated runs (scenarios, bot runs, picture runs) stay in a small window: the person at the
-                // desk is working on something else and a full-screen game would cover it
-                Screen.SetResolution(1280, 720, FullScreenMode.Windowed);
+                // desk is working on something else and a full-screen game would cover it - unless the command
+                // line names the screen itself (-screen-width / -screen-height / -screen-fullscreen), to look at
+                // the game at another size or on a screen of another shape
+                if (!CommandLineOwnsScreen) Screen.SetResolution(1280, 720, FullScreenMode.Windowed);
                 return;
             }
             var s = SaveSystem.Settings;
-            if (s.fullscreen)
+            var want = s.fullscreen ? NativeSize : WindowSizes[WindowSizeIndex];
+            var mode = s.fullscreen ? FullScreenMode.FullScreenWindow : FullScreenMode.Windowed;
+            if (Screen.width != want.x || Screen.height != want.y || Screen.fullScreenMode != mode)
+                Screen.SetResolution(want.x, want.y, mode);
+        }
+
+        // ---- the size of the window: fixed 16:9 sizes, picked in Settings; the window cannot be dragged to another size ----
+        public static readonly Vector2Int[] WindowSizes =
+        {
+            new Vector2Int(1280, 720), new Vector2Int(1600, 900), new Vector2Int(1920, 1080), new Vector2Int(2560, 1440), new Vector2Int(3840, 2160),
+        };
+
+        /// <summary>
+        /// The real size of the screen the game window is on (with more than one screen it need not be the main one).
+        /// Full screen always runs at this size: at a smaller one Windows stretches the picture and the words go soft.
+        /// </summary>
+        public static Vector2Int NativeSize
+        {
+            get
             {
+                var d = Screen.mainWindowDisplayInfo;
+                if (d.width > 0 && d.height > 0) return new Vector2Int(d.width, d.height);
                 var r = Screen.currentResolution;
-                Screen.SetResolution(r.width, r.height, FullScreenMode.FullScreenWindow);
+                return new Vector2Int(r.width, r.height);
             }
-            else if (Screen.fullScreen)
+        }
+
+        /// <summary>The largest window size that fits this screen, leaving room for the title bar and the taskbar.</summary>
+        public static int MaxWindowSizeIndex
+        {
+            get
             {
-                Screen.SetResolution(1280, 720, FullScreenMode.Windowed);
+                var n = NativeSize;
+                int best = 0;
+                for (int i = 0; i < WindowSizes.Length; i++)
+                    if (WindowSizes[i].x <= n.x && WindowSizes[i].y <= n.y - 100) best = i;
+                return best;
             }
+        }
+
+        /// <summary>The window size in use (Settings > Window size); the first time, the largest that fits.</summary>
+        public static int WindowSizeIndex
+        {
+            get
+            {
+                int i = SaveSystem.Settings.windowSize;
+                return i < 0 ? MaxWindowSizeIndex : Mathf.Clamp(i, 0, MaxWindowSizeIndex);
+            }
+        }
+
+        /// <summary>Goes to the next window size (round to the smallest after the largest that fits). Not in full screen.</summary>
+        public static void NextWindowSize()
+        {
+            if (SaveSystem.Settings.fullscreen) return;
+            int i = WindowSizeIndex;
+            SaveSystem.Settings.windowSize = i >= MaxWindowSizeIndex ? 0 : i + 1;
+            SaveSystem.SaveSettings();
+            ApplyDisplaySettings();
         }
 
         void Update()

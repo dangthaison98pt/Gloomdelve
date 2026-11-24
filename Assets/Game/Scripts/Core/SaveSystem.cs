@@ -11,6 +11,7 @@ namespace Gloomdelve
         public float musicVolume = 0.6f;
         public float sfxVolume = 0.8f;
         public bool fullscreen = false;
+        [Tooltip("Window size: an index into GameServices.WindowSizes (1280x720 .. 3840x2160). -1 = the largest that fits the screen.")] public int windowSize = -1;
         public bool screenShake = true;
         [Tooltip("The save slot played last (0-2): the one the menu shows records for.")] public int lastSlot = 0;
         [Tooltip("Keyboard keys the player changed (Settings > Keys). Empty = all default. See KeyBindings.")]

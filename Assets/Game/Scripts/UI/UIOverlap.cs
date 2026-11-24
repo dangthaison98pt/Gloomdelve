@@ -55,9 +55,9 @@ namespace Gloomdelve
                 }
                 items.Add(new Item { text = t, rect = r, path = Path(t.transform) });
             }
-            float k = Screen.height / 1080f;                 // tolerances are given in 1080p pixels
+            float k = ScreenFrame.H / 1080f;                 // tolerances are given in 1080p pixels (of the 16:9 frame)
             float tol = tolerance * k;
-            var screen = new Rect(0, 0, Screen.width, Screen.height);
+            var screen = ScreenFrame.PixelRect;              // the screens are laid out in the frame, not the bars around it
             for (int i = 0; i < items.Count; i++)
             {
                 var a = items[i];

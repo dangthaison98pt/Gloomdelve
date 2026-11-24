@@ -9,7 +9,7 @@ Platformer roguelike 2D pixel art, cảm giác chơi lấy cảm hứng từ Spe
 Chi tiết thiết kế: **`Docs/DESIGN.md`**.
 
 ## Chơi ngay
-`Builds/Windows/Brindlemoor.exe` (Windows 64-bit). Cửa sổ 1280×720, F11 (hoặc F4) bật/tắt toàn màn hình. Có 3 ô lưu; lượt đang chơi được lưu ở đầu mỗi màn.
+`Builds/Windows/Brindlemoor.exe` (Windows 64-bit). Cửa sổ cỡ cố định 16:9 (1280×720 → 3840×2160, chọn ở **Settings > WINDOW SIZE**, chỉ tới cỡ vừa màn hình; không kéo giãn được), F11 (hoặc F4) bật/tắt toàn màn hình. Toàn màn hình luôn chạy đúng cỡ gốc của màn hình đang chứa cửa sổ; màn hẹp hơn 16:9 (màn dọc, 16:10, 4:3) thì game và giao diện nằm trong một khung 16:9 ở giữa, trên dưới để viền tối. Có 3 ô lưu; lượt đang chơi được lưu ở đầu mỗi màn.
 
 ## Phiên bản & mở project
 - **Unity 6000.3.12f1** (cài tại `D:\Unity\6000.3.12f1`), URP 17.3 (2D Renderer), Input System 1.19, TextMesh Pro (font EB Garamond, SIL OFL, trong `Assets/Game/Fonts`).

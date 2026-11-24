@@ -134,6 +134,7 @@ namespace Gloomdelve
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920f, 1080f);
             scaler.matchWidthOrHeight = 1f;
+            ScreenFrameKeeper.Frame(canvas);          // laid out in the 16:9 frame, like every screen
 
             tex = new Texture2D(w, h, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
             px = new Color32[w * h];

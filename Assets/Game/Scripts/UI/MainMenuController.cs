@@ -226,7 +226,7 @@ namespace Gloomdelve
                 // the mouse must reach every control of the settings screen: what lies under the pointer at the
                 // middle of each one has to be that control (sliders and tick boxes included)
                 var es = UnityEngine.EventSystems.EventSystem.current;
-                var controls = new Selectable[] { settingsPanel.master, settingsPanel.music, settingsPanel.sfx, settingsPanel.fullscreen, settingsPanel.shake, settingsPanel.keys, settingsPanel.back };
+                var controls = new Selectable[] { settingsPanel.master, settingsPanel.music, settingsPanel.sfx, settingsPanel.fullscreen, settingsPanel.shake, settingsPanel.windowSize, settingsPanel.keys, settingsPanel.back };
                 var corners = new Vector3[4];
                 var hits = new System.Collections.Generic.List<UnityEngine.EventSystems.RaycastResult>();
                 string missed = "";

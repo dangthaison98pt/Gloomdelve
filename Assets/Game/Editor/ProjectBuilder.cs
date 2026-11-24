@@ -151,6 +151,17 @@ namespace Gloomdelve.EditorTools
             else Debug.LogWarning("[Build] No app icon found (Assets/Game/Art/UI/app_icon.png).");
         }
 
+        /// <summary>
+        /// The window is one of the fixed 16:9 sizes picked in Settings and cannot be dragged to another size;
+        /// full screen runs at the screen's own size (GameServices.ApplyDisplaySettings).
+        /// </summary>
+        static void SetupWindow()
+        {
+            PlayerSettings.fullScreenMode = FullScreenMode.Windowed;
+            PlayerSettings.resizableWindow = false;
+            PlayerSettings.defaultIsNativeResolution = true;
+        }
+
         static void SetupProjectSettings()
         {
             PlayerSettings.companyName = "Brindlemoor Team";
@@ -158,8 +169,7 @@ namespace Gloomdelve.EditorTools
 
             PlayerSettings.defaultScreenWidth = 1280;
             PlayerSettings.defaultScreenHeight = 720;
-            PlayerSettings.fullScreenMode = FullScreenMode.Windowed;
-            PlayerSettings.resizableWindow = true;
+            SetupWindow();
             PlayerSettings.runInBackground = true;
             PlayerSettings.visibleInBackground = true;
             PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Standalone, "com.gloomdelve.game");
@@ -2936,6 +2946,7 @@ namespace Gloomdelve.EditorTools
         {
             string outDir = Path.Combine(Directory.GetCurrentDirectory(), "Builds/Windows");
             Directory.CreateDirectory(outDir);
+            SetupWindow();
             // the game used to build as Gloomdelve.exe: that old copy goes, so only one game is left in the folder
             try
             {

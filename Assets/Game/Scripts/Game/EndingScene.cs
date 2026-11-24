@@ -628,6 +628,7 @@ namespace Gloomdelve
                 scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
                 scaler.referenceResolution = new Vector2(1920f, 1080f);
                 scaler.matchWidthOrHeight = 1f;
+                ScreenFrameKeeper.Frame(canvas);      // laid out in the 16:9 frame, like every screen
                 cover = Band("Sheet", Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), 0f);
                 cover.color = new Color(DarkSheet.r, DarkSheet.g, DarkSheet.b, 0f);
                 swirl = new GameObject("Swirl", typeof(RectTransform)).AddComponent<RawImage>();
