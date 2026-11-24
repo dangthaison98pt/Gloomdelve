@@ -108,7 +108,8 @@ namespace Gloomdelve
         System.Collections.IEnumerator ScenarioStart()
         {
             // the tests look at the screens in a normal wide window, whatever shape the desktop left the last one in
-            if (Screen.fullScreen || Screen.width < Screen.height * 1.5f || Screen.width > Screen.height * 2f)
+            // (unless the command line names the screen, to look at every screen at that size or shape)
+            if (!GameServices.CommandLineOwnsScreen && (Screen.fullScreen || Screen.width < Screen.height * 1.5f || Screen.width > Screen.height * 2f))
             {
                 Screen.SetResolution(1280, 720, FullScreenMode.Windowed);
                 yield return new WaitForSecondsRealtime(0.6f);

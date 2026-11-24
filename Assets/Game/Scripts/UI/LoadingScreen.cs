@@ -94,6 +94,7 @@ namespace Gloomdelve
                 yield return new WaitForSecondsRealtime(1.0f);
                 ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(shots, "village_street.png"));
                 yield return new WaitForSecondsRealtime(0.4f);
+                if (GameServices.ToggleShot) yield return GameServices.ToggleShots(shots);
                 Application.Quit();
             }
         }

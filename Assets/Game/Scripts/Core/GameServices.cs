@@ -84,7 +84,7 @@ namespace Gloomdelve
             Time.maximumDeltaTime = 0.1f;
             SaveSystem.EnsureLoaded();
             ApplyDisplaySettings();
-            if (TestRun) StayOutOfTheWay();
+            if (TestRun && !ToggleShot) StayOutOfTheWay();
         }
 
         /// <summary>True when the game was started by a test command (-scenarios, -autotest, -loadingShot).</summary>
@@ -103,7 +103,8 @@ namespace Gloomdelve
         }
         static int testRun = -1;
 
-        static bool CommandLineOwnsScreen
+        /// <summary>The command line names the screen (-screen-width / -screen-height / -screen-fullscreen): test runs keep it.</summary>
+        public static bool CommandLineOwnsScreen
         {
             get
             {
@@ -125,11 +126,57 @@ namespace Gloomdelve
                 if (!CommandLineOwnsScreen) Screen.SetResolution(1280, 720, FullScreenMode.Windowed);
                 return;
             }
+            ApplySize();
+        }
+
+        static void ApplySize()
+        {
             var s = SaveSystem.Settings;
             var want = s.fullscreen ? NativeSize : WindowSizes[WindowSizeIndex];
             var mode = s.fullscreen ? FullScreenMode.FullScreenWindow : FullScreenMode.Windowed;
             if (Screen.width != want.x || Screen.height != want.y || Screen.fullScreenMode != mode)
                 Screen.SetResolution(want.x, want.y, mode);
+        }
+
+        /// <summary>
+        /// "-toggleShot" with "-loadingShot dir": once the street picture is taken, the game goes window, full screen,
+        /// window again on this screen, then moves to another screen (a portrait one, say) and does the same,
+        /// with a picture after every change - the frame and the screens must fit each size without a stray dark band.
+        /// The window stays on the screen meanwhile (it is not parked out of the way), and nothing is saved.
+        /// </summary>
+        public static bool ToggleShot => System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-toggleShot") >= 0;
+
+        public static System.Collections.IEnumerator ToggleShots(string dir)
+        {
+            bool was = SaveSystem.Settings.fullscreen;
+            int step = 0;
+            System.Collections.IEnumerator Shot(bool full)
+            {
+                SaveSystem.Settings.fullscreen = full;
+                ApplySize();
+                yield return new WaitForSecondsRealtime(1.5f);
+                var d = Screen.mainWindowDisplayInfo;
+                ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(dir,
+                    $"toggle_{++step}_{(full ? "full" : "window")}_{Screen.width}x{Screen.height}_on_{d.width}x{d.height}.png"));
+                yield return new WaitForSecondsRealtime(0.5f);
+            }
+            yield return Shot(false);
+            yield return Shot(true);
+            yield return Shot(false);
+            var here = Screen.mainWindowDisplayInfo;
+            var screens = new System.Collections.Generic.List<DisplayInfo>();
+            Screen.GetDisplayLayout(screens);
+            foreach (var other in screens)
+            {
+                if (other.width == here.width && other.height == here.height && other.name == here.name) continue;
+                var move = Screen.MoveMainWindowTo(other, Vector2Int.zero);
+                while (move != null && !move.isDone) yield return null;
+                yield return Shot(false);
+                yield return Shot(true);
+                yield return Shot(false);
+                break;
+            }
+            SaveSystem.Settings.fullscreen = was;
         }
 
         // ---- the size of the window: fixed 16:9 sizes, picked in Settings; the window cannot be dragged to another size ----
@@ -188,7 +235,7 @@ namespace Gloomdelve
 
         void Update()
         {
-            if (TestRun) StayOutOfTheWay();
+            if (TestRun && !ToggleShot) StayOutOfTheWay();
             var kb = Keyboard.current;
             if (kb != null && (kb.f11Key.wasPressedThisFrame || kb.f4Key.wasPressedThisFrame))
             {
