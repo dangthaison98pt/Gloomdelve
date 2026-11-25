@@ -14,7 +14,7 @@ Game hiện có 8 khu (bốc 4 mỗi lượt), 24 màn sinh ngẫu nhiên trong 
 
 Hiện có **103 kịch bản** trong `ScenarioRunner` (25/11). Lần chạy đủ gần nhất (18/11) có 79, nên chưa có lần chạy đủ 103/103 trên bản hiện tại. Các thay đổi từ 19/11 tới 24/11 chưa có số liệu kiểm thử nào ghi vào file này. Bot chưa chạy lại từ khi có làng, ô lưu, Sandsunk, Geode, Cogwyrm, ná, Eclipse King và kết thúc thật; bot cũng chưa đi mạch truyện cây búa.
 
-Switch dòng lệnh hiện có: `-scenarios`, `-scenarioFilter a,b`, `-scenarioWatch` (chạy kịch bản ở tốc độ thật để xem bằng mắt; `Builds/Windows/Xem hieu ung.bat` dùng nó cho Wisp và cảnh người lạ), `-autotest`, `-autotestSeed`, `-autotestOut`, `-autotestShots`, `-saveDir`, `-loadingShot dir`, `-toggleShot`, `-shotEvery N dir`, `-bossTest N`, `-tutorialTest`, `-villageTest H`, `-villageX x`; khi chạy kiểm thử, game giữ cỡ màn từ `-screen-width / -screen-height / -screen-fullscreen` của Unity.
+Switch dòng lệnh hiện có: `-scenarios`, `-scenarioFilter a,b`, `-autotest`, `-autotestSeed`, `-autotestOut`, `-autotestShots`, `-saveDir`, `-loadingShot dir`, `-toggleShot`, `-shotEvery N dir`, `-bossTest N`, `-tutorialTest`, `-villageTest H`, `-villageX x`; khi chạy kiểm thử, game giữ cỡ màn từ `-screen-width / -screen-height / -screen-fullscreen` của Unity.
 
 Các mục bên dưới là báo cáo chi tiết của các đợt trước (giữ lại làm lịch sử, số liệu theo phiên bản lúc đó).
 

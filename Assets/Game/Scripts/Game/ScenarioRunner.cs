@@ -20,8 +20,7 @@ namespace Gloomdelve
     public static class ScenarioRunner
     {
         public static bool Active;
-        /// <summary>"-scenarioWatch": the scenarios run at the game's own speed (not three times as fast), and some hold a moment longer, to be watched.</summary>
-        public static bool Watch;
+
         static int index;
         static int pass, fail;
         static string[] filter;
@@ -4061,12 +4060,6 @@ namespace Gloomdelve
             run.AddUpgrade(wisp);
             yield return c.Frames(4);
             c.Expect(run.IsWorn("wisp") && run.stats.revive == 5 && c.p.wispRenderer != null && c.p.wispRenderer.enabled, "worn, the wisp flies at the shoulder");
-            if (Watch)
-            {
-                // to be watched: the wisp at the shoulder a while, the player walking a few steps each way
-                c.Bot(Seq((90, F(x: 1)), (60, F()), (90, F(x: -1)), (60, F()), (600, F())));
-                yield return new WaitForSecondsRealtime(5f);
-            }
             yield return new WaitForSecondsRealtime(0.2f);
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "wisp.png"));
             yield return c.Frames(4);
@@ -4311,7 +4304,7 @@ namespace Gloomdelve
             c.Expect(pillar.GetPrompt(c.p).Contains("Read"), "a pillar can be read from then on");
             {
                 // the copy in the bag: a short word about it, inside its frame - what the signs say is read with its button
-                // (a card still being read goes first: at the game's own speed - watched - it is up a while longer)
+                // (a card still being read goes first)
                 hud.ClearCards();
                 yield return new WaitForSecondsRealtime(0.8f);           // (the card fades out)
                 var inv = c.dir.inventory;
@@ -5442,7 +5435,7 @@ namespace Gloomdelve
             for (int i = 0; i < args.Length; i++)
             {
                 if (args[i] == "-scenarios") Active = true;
-                if (args[i] == "-scenarioWatch") Watch = true;
+
                 if (args[i] == "-autotestOut" && i + 1 < args.Length) outDir = args[i + 1];
                 if (args[i] == "-scenarioFilter" && i + 1 < args.Length)
                     filter = args[i + 1].Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);

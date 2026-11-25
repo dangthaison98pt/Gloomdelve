@@ -93,7 +93,7 @@ namespace Gloomdelve
                 Stage = config.tutorial;
                 run.health = 4; run.maxHealth = 10; run.bombs = 4; run.ropes = 4;
                 Level = ScenarioRunner.BuildLevel();
-                Time.timeScale = ScenarioRunner.Watch ? 1f : 3f;        // (watched: at the game's own speed)
+                Time.timeScale = 3f;
             }
             else Level = LevelFactory.Create(config, Stage, run.seed, run.inVillage ? 998 : run.isTutorial ? 999 : run.stageIndex);
             world.Setup(Level, Stage.area);
