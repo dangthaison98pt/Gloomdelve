@@ -47,6 +47,13 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 6e3c33e5d8099be468375a823c5e9881, type: 3}
   - {fileID: 21300000, guid: 5c1650ef07f936e4ab132950007a6586, type: 3}
   - {fileID: 21300000, guid: e634fa265c63b934e8b38308a750912d, type: 3}
+  - {fileID: 21300000, guid: c3f9e2e7cd462a04190b09456e134828, type: 3}
+  - {fileID: 21300000, guid: 1064ef038430002469e1c8aebf9c009a, type: 3}
+  - {fileID: 21300000, guid: 339581603c51d3a49bf6fb0f82ffdf25, type: 3}
+  - {fileID: 21300000, guid: 986caf74bc82d6944880a184b88528d6, type: 3}
+  - {fileID: 21300000, guid: a25524feb8c92ae458cc95848f89fdce, type: 3}
+  - {fileID: 21300000, guid: 912aae85ac4e33c49846f73811e41bc5, type: 3}
+  - {fileID: 21300000, guid: e3add5e7a32717940b24f1e5708f7460, type: 3}
   - {fileID: 21300000, guid: 8e3c8a08524e7fa4a8459cb020c5821a, type: 3}
   - {fileID: 21300000, guid: 4825ee6fbf79a034992b1d34fa556de5, type: 3}
   - {fileID: 21300000, guid: 99ef5e7d0111abf4085170abed48a040, type: 3}
@@ -314,6 +321,41 @@ MonoBehaviour:
   - serializedVersion: 2
     x: 0.1875
     y: 0
+    width: 0.75
+    height: 0.8125
+  - serializedVersion: 2
+    x: 0.0625
+    y: 0
+    width: 0.875
+    height: 0.6875
+  - serializedVersion: 2
+    x: 0.1875
+    y: 0
+    width: 0.75
+    height: 0.8125
+  - serializedVersion: 2
+    x: 0
+    y: 0.1875
+    width: 1
+    height: 0.5625
+  - serializedVersion: 2
+    x: 0.0625
+    y: 0.125
+    width: 0.875
+    height: 0.6875
+  - serializedVersion: 2
+    x: 0.25
+    y: 0
+    width: 0.5625
+    height: 0.3125
+  - serializedVersion: 2
+    x: 0.125
+    y: 0.0625
+    width: 0.75
+    height: 0.875
+  - serializedVersion: 2
+    x: 0.1875
+    y: 0
     width: 0.625
     height: 0.4375
   - serializedVersion: 2
@@ -427,9 +469,9 @@ MonoBehaviour:
     width: 0.5625
     height: 0.8125
   - serializedVersion: 2
-    x: 0.125
+    x: 0
     y: 0
-    width: 0.8125
+    width: 1
     height: 1
   - serializedVersion: 2
     x: 0.1875

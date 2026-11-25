@@ -2071,6 +2071,145 @@ namespace Gloomdelve.EditorTools
                 p.Set(6, 10, st); p.Set(8, 11, st); p.Set(9, 10, st); p.Set(7, 10, C(196, 190, 182));
                 p.Outline(ol); Save(p, d + "pebblepouch", PItem);
             }
+            // the villagers' new wares (25/11): drawn with scratch previews, one block each
+            {
+                // hobnail boots: brown leather, the sole studded with iron nails
+                var p = ItemCanvas(); Color32 b = C(112, 74, 46), bd = C(74, 46, 28), bl = C(156, 108, 66), so = C(58, 50, 52), st = C(214, 218, 230);
+                p.Rect(5, 5, 5, 7, b);
+                p.Rect(5, 3, 8, 3, b);
+                p.Rect(5, 11, 5, 1, bl);
+                p.Rect(9, 5, 1, 6, bd);
+                p.Rect(10, 4, 3, 1, bd);
+                p.Set(6, 9, bl);
+                p.Set(7, 8, bl);
+                p.Set(6, 7, bl);
+                p.Set(7, 6, bl);
+                p.Rect(4, 2, 10, 1, so);
+                p.Rect(4, 1, 10, 1, so);
+                p.Set(5, 1, st);
+                p.Set(7, 1, st);
+                p.Set(9, 1, st);
+                p.Set(11, 1, st);
+                p.Set(13, 1, st);
+                p.Outline(ol);
+                Save(p, d + "hobnailboots", PItem);
+            }
+            {
+                // iron cap: a round iron helmet with a brim and brass rivets
+                var p = ItemCanvas(); Color32 ir = C(150, 156, 174), irL = C(206, 212, 228), irD = C(96, 100, 120), riv = C(232, 200, 110), str = C(120, 80, 48);
+                p.Rect(4, 4, 8, 4, ir);
+                p.Rect(5, 8, 6, 1, ir);
+                p.Rect(6, 9, 4, 1, ir);
+                p.Rect(3, 3, 10, 1, irD);
+                p.Rect(2, 2, 12, 1, irD);
+                p.Rect(8, 4, 1, 6, irL);
+                p.Set(5, 7, irL);
+                p.Set(6, 8, irL);
+                p.Set(5, 6, irL);
+                p.Rect(11, 4, 1, 3, irD);
+                p.Set(10, 8, irD);
+                p.Set(4, 3, riv);
+                p.Set(8, 3, riv);
+                p.Set(11, 3, riv);
+                p.Rect(4, 1, 1, 1, str);
+                p.Rect(11, 1, 1, 1, str);
+                p.Outline(ol);
+                Save(p, d + "ironcap", PItem);
+            }
+            {
+                // soft-sole boots: felt boots with a fur cuff on a thick padded sole
+                var p = ItemCanvas(); Color32 b = C(176, 146, 108), bd = C(130, 104, 74), fur = C(238, 230, 212), so = C(236, 222, 190), soD = C(196, 180, 148);
+                p.Rect(5, 5, 5, 6, b);
+                p.Rect(5, 4, 8, 2, b);
+                p.Rect(9, 5, 1, 5, bd);
+                p.Rect(10, 5, 2, 1, bd);
+                p.Rect(4, 10, 7, 2, fur);
+                p.Rect(4, 11, 7, 1, fur);
+                p.Rect(4, 2, 10, 2, so);
+                p.Rect(4, 1, 10, 1, soD);
+                p.Set(6, 3, soD);
+                p.Set(9, 3, soD);
+                p.Set(12, 3, soD);
+                p.Set(6, 7, bd);
+                p.Set(7, 8, bd);
+                p.Outline(ol);
+                Save(p, d + "softsoles", PItem);
+            }
+            {
+                // spyglass: a brass telescope in three lengths, the middle one bound in leather
+                var p = ItemCanvas(); Color32 br = C(214, 168, 70), brL = C(250, 222, 140), brD = C(150, 104, 40), lea = C(120, 74, 44), leaL = C(158, 104, 64), gl = C(150, 220, 240);
+                p.Rect(1, 6, 3, 3, brD);
+                p.Rect(1, 8, 3, 1, br);
+                p.Rect(4, 5, 4, 5, lea);
+                p.Rect(4, 9, 4, 1, leaL);
+                p.Rect(4, 5, 4, 1, lea);
+                p.Rect(8, 4, 6, 7, br);
+                p.Rect(8, 10, 6, 1, brL);
+                p.Rect(8, 4, 6, 1, brD);
+                p.Rect(10, 4, 1, 7, brD);
+                p.Rect(14, 5, 1, 5, gl);
+                p.Set(14, 9, brL);
+                p.Outline(ol);
+                Save(p, d + "spyglass", PItem);
+            }
+            {
+                // the lost letter: a folded letter, sealed with red wax
+                var p = ItemCanvas(); Color32 pa = C(236, 222, 186), paD = C(196, 176, 134), paL = C(250, 242, 220), wax = C(196, 52, 52), waxL = C(240, 110, 100), ink = C(120, 96, 76);
+                p.Rect(2, 3, 12, 9, pa);
+                p.Rect(2, 3, 12, 1, paD);
+                p.Rect(2, 11, 12, 1, paL);
+                p.Line(2, 10, 7, 6, paD);
+                p.Line(13, 10, 8, 6, paD);
+                p.Disc(8f, 6f, 2.1f, wax);
+                p.Set(7, 7, waxL);
+                p.Set(8, 6, waxL);
+                p.Set(4, 4, ink);
+                p.Set(5, 4, ink);
+                p.Set(10, 4, ink);
+                p.Set(11, 4, ink);
+                p.Set(12, 4, ink);
+                p.Outline(ol);
+                Save(p, d + "lostletter", PItem);
+            }
+            {
+                // a flare lying down: a short red stick with a burning end
+                var p = ItemCanvas(); Color32 red = C(206, 52, 48), redD = C(140, 30, 34), cap = C(236, 222, 186), fire = C(255, 220, 120), fire2 = C(255, 140, 60);
+                p.Rect(5, 1, 5, 2, red);
+                p.Rect(5, 1, 5, 1, redD);
+                p.Set(5, 2, cap);
+                p.Set(5, 1, cap);
+                p.Rect(10, 1, 2, 2, fire2);
+                p.Set(10, 2, fire);
+                p.Set(11, 3, fire2);
+                p.Outline(ol);
+                Save(p, d + "flare", PItem);
+            }
+            {
+                // a bundle of three flares tied with twine
+                var p = ItemCanvas(); Color32 red = C(206, 52, 48), redD = C(140, 30, 34), redL = C(240, 110, 96), cap = C(236, 222, 186), twine = C(150, 110, 70);
+                p.Rect(4, 2, 2, 10, red);
+                p.Set(4, 2, redD);
+                p.Rect(4, 2, 1, 10, redD);
+                p.Rect(4, 12, 2, 2, cap);
+                p.Set(5, 8, redL);
+                p.Set(5, 9, redL);
+                p.Rect(7, 2, 2, 10, red);
+                p.Set(7, 2, redD);
+                p.Rect(7, 2, 1, 10, redD);
+                p.Rect(7, 12, 2, 2, cap);
+                p.Set(8, 8, redL);
+                p.Set(8, 9, redL);
+                p.Rect(10, 2, 2, 10, red);
+                p.Set(10, 2, redD);
+                p.Rect(10, 2, 1, 10, redD);
+                p.Rect(10, 12, 2, 2, cap);
+                p.Set(11, 8, redL);
+                p.Set(11, 9, redL);
+                p.Rect(3, 5, 10, 1, twine);
+                p.Rect(3, 9, 10, 1, twine);
+                p.Outline(ol);
+                Save(p, d + "flarepack", PItem);
+            }
             { var p = ItemCanvas(); p.Ellipse(8, 3.5f, 3.6f, 2.6f, C(124, 118, 112)); p.Set(6, 5, C(176, 170, 162)); p.Set(7, 5, C(176, 170, 162)); p.Set(10, 2, C(86, 82, 78)); p.Set(9, 1, C(86, 82, 78)); p.Outline(ol); Save(p, d + "rock", PItem); }
             {
                 // ice chunk left by a frost bat
@@ -2212,10 +2351,28 @@ namespace Gloomdelve.EditorTools
                 p.Outline(ol); Save(p, d + "springboots", PItem);
             }
             {
-                var p = ItemCanvas(); Color32 m = C(170, 176, 196), md = C(100, 104, 124);
-                // tempered blade (the hand upgrade; the id is still "ironwhip")
-                p.Line(6, 5, 12, 13, m); p.Line(7, 5, 13, 13, C(236, 240, 252)); p.Line(5, 5, 11, 13, md); p.Set(13, 14, C(236, 240, 252));
-                p.Line(3, 6, 8, 3, C(228, 180, 70)); p.Line(4, 2, 5, 3, C(110, 70, 40)); p.Set(3, 1, C(228, 180, 70));
+                // tempered blade (the hand upgrade; the id is still "ironwhip"): a short sword laid corner to corner,
+                // point up and right. A blade three pixels across - a bright edge, the steel, a shadowed edge - with the
+                // blue of tempering near the guard; a gold guard square across it with a stone in the middle; a grip
+                // wrapped in leather; a round gold pommel.
+                var p = ItemCanvas();
+                Color32 steel = C(198, 206, 224), edgeL = C(246, 249, 255), edgeD = C(110, 118, 142), temper = C(150, 176, 230), temperD = C(92, 110, 160);
+                Color32 gold = C(232, 186, 74), goldD = C(168, 118, 42), gem = C(90, 200, 220), grip = C(112, 70, 40), wrap = C(160, 108, 62);
+                for (int i = 6; i <= 13; i++)
+                {
+                    bool near = i <= 7;                                    // the tempered steel just above the guard
+                    p.Set(i, i, near ? temper : steel);                    // the middle of the blade
+                    if (i <= 12) p.Set(i, i + 1, edgeL);                   // the upper edge, catching the light
+                    if (i <= 12) p.Set(i + 1, i, near ? temperD : edgeD);  // the lower edge, in shadow
+                }
+                p.Set(14, 14, edgeL);                                      // the point
+                // the guard: two rows across the blade, the far ends darker, a stone where it meets the blade
+                for (int k = 0; k <= 4; k++) p.Set(3 + k, 7 - k, k == 0 || k == 4 ? goldD : gold);
+                for (int k = 0; k <= 3; k++) p.Set(4 + k, 7 - k, k == 0 || k == 3 ? goldD : gold);
+                p.Set(5, 5, gem);
+                // the grip, wrapped, and the pommel
+                p.Set(4, 4, wrap); p.Set(3, 3, grip); p.Set(4, 3, grip); p.Set(3, 4, wrap);
+                p.Set(2, 2, gold); p.Set(1, 2, goldD); p.Set(2, 1, goldD); p.Set(1, 1, gold);
                 p.Outline(ol); Save(p, d + "ironwhip", PItem);
             }
             {

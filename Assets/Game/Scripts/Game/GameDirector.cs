@@ -189,6 +189,8 @@ namespace Gloomdelve
             if (run.isTutorial) { tutorialChestOpened = false; tutorialBookRead = false; }
             if (run.isTutorial && !ScenarioRunner.Active && !AutoTest.Active)
                 hud.ShowMessage("The signs along the way say what every button does.  Know it already?  [pause], then SKIP TUTORIAL.", 9f);
+            // Oswin's lost letter: the level that holds a caged villager says so as it begins (the map marks the cage)
+            { string note = LetterNote(); if (note != null) hud.ShowMessage(note, 7f); }
             if (chestGear != null)
                 hud.ShowMessage("A chest stands by the gate. This place asks for what is in it: open it before you go on.", 7f);
             if (grantedGear)
@@ -565,6 +567,19 @@ namespace Gloomdelve
         public void OnPlayerHurt(in DamageInfo d, string description)
         {
             hud.ShowHurt(description, d.amount);
+        }
+
+        /// <summary>
+        /// Oswin's lost letter: what the level says as it begins when it holds a caged villager (null when the letter
+        /// is not in the bag, in the village, or when nobody is held here).
+        /// </summary>
+        public string LetterNote()
+        {
+            if (Run == null || Run.inVillage || !Villagers.HasKey(Villagers.KeyLetter) || world == null) return null;
+            foreach (var e in world.Entities)
+                if (e is Captive cg && !cg.Dead && cg.Who != null && !cg.Freed)
+                    return $"Oswin's letter: {cg.Who.name} {cg.Who.role} is held somewhere in this level." + (MapScreen.Carried ? " Your map marks the cage." : "");
+            return null;
         }
 
         public void ShowMessage(string msg) => hud.ShowMessage(msg);

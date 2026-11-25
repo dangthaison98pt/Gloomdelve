@@ -117,6 +117,7 @@ Lúc nó hở (bị kẹt ở dạng vỏ, mở ngực ở dạng lõi), đòn c
 - **Recall Charm**: về lại lối vào của màn, hồi 8 s, không mang được đồ nặng (tượng vàng, Sunstone).
 - **Ná** (`Gear_Slingshot`): giữ nút Dùng để kéo dây ná, thả ra để bắn. Giữ ↑ khi thả thì bắn thẳng lên; đang cúi thì viên đá bay sát sàn. Viên đá bay thẳng khoảng 8 ô (16 ô/s trong 0,5 s) rồi rơi. Thứ đầu tiên nó trúng mất 1 máu; viên đá đập vỡ bình/thùng và làm bẫy tên bắn mất phát. Bắn xong viên đá biến mất, không nhặt lại được. Hồi 0,35 s. Bị choáng hoặc đổi đồ giữa chừng thì huỷ cú kéo, không tốn đá. Bình và thùng có thể rơi ra đá. **Pebble Pouch** (shop trên núi) mặc vào thì túi đá chứa thêm 10 viên.
 - **Stonebreaker** (`Gear_Hammer`, `HammerGear.cs`): cây búa ghép từ ba mảnh (mục 1). Vung đập: 3 sát thương, tầm 1,7, lấy đà 0,13 s, nghỉ 0,5 s giữa hai lần, không bao giờ hết. Là thứ duy nhất đập vỡ được Sunstone.
+- **Flare** (`Gear_Flare`, `FlareGear.cs`, `Flare.cs`): Bera bán 3 cây một lần, mua là có đồ dùng này cho lượt đó. Ném như bom (↓ đặt dưới chân, ↑ ném cao). Cháy 30 s với ánh sáng đỏ bán kính 7,5 ô, mờ dần trong 4 s cuối; không gây sát thương. Nhặt lên được và mang theo như đuốc.
 
 **Máu:** tim (+1) từ bình (~5%), thùng (~18%), quái (5%); đầy máu thì không nhặt. Shop bày một trong ba: Heart Tonic +1 ($100), Healing Flask +3 ($250), Elixir of Dawn đầy máu ($550). Heart Vessel từ boss và Heart Draught ở làng tăng máu tối đa.
 
@@ -139,8 +140,14 @@ Lúc nó hở (bị kẹt ở dạng vỏ, mở ngực ở dạng lõi), đòn c
 | Sand Striders / Warding Scarab | $600 / $550 | feet / charm | Cát lún an toàn / xác ướp không lấy được vàng |
 | Dampener / Truth Lens | $600 / $500 | charm | Mảnh pha lê đi xuyên qua / mimic hiện màu đỏ |
 | Pebble Pouch | $450 | charm | Túi đá +10 viên khi đang mặc |
+| Hobnail Boots | $700 | feet | Giẫm đầu gây 2 sát thương (`stompBonus`) |
+| Iron Cap | $550 | body | Vật rơi trúng đầu (thạch nhũ, đá, bình rơi) bớt 1 sát thương; vật chỉ gây 1 thì không còn đau (`headGuard`) |
+| Soft-Sole Boots | $600 | feet | Rơi 12 ô mới mất máu thay vì 9 (`fallBonus`) |
+| Spyglass | $500 | charm | Giữ ↑/↓ nhìn xa gấp đôi (`lookBonus`) |
 | Sheet of Paper | ($250) | – | Chỉ Pip ở làng bán; dùng để chép chữ trên cột đá |
 | Map | ($500) | – | Chỉ Oswin ở làng bán; key item giữ mãi (mục 9) |
+| Lost Letter | ($750) | – | Chỉ Oswin ở làng bán; key item giữ mãi. Vào màn có lồng dân làng thì có câu báo; bản đồ đánh dấu lồng bằng chấm hồng nhấp nháy |
+| Flares | ($400) | – | Chỉ Bera ở làng bán; 3 cây Flare kèm đồ dùng |
 
 Giá trong ngoặc là giá gốc để quy đổi sang tiền ở làng (mục 5).
 
@@ -148,20 +155,20 @@ Giá trong ngoặc là giá gốc để quy đổi sang tiền ở làng (mục 
 Ba loại tiền (`Villagers.cs`):
 - **Vàng:** nhặt trên núi (cục nhỏ 10, cục lớn 30, ngọc 100, tượng vàng 400 phải mang ra cửa hoặc bán cho chủ shop; khoảng 1500 mỗi màn). Chỉ tiêu ở shop trên núi, mất khi hết lượt.
 - **Spark:** mỗi boss rơi 5. Không giới hạn, lưu ngay khi nhặt, không bao giờ mất. Dùng mua **hàng của dân làng**, những món chỉ có tác dụng cho một lượt leo núi.
-- **Ember:** mỗi boss rơi 1, vào **Ember Pouch** (ban đầu chứa 5; nhặt khi túi đầy thì phần dư mất). Lưu ngay, không bao giờ mất. Dùng cho **những thứ lâu dài**: trưởng làng nới túi (1 / 2 / 3 ember) và Map của Oswin.
+- **Ember:** mỗi boss rơi 1, vào **Ember Pouch** (ban đầu chứa 5; nhặt khi túi đầy thì phần dư mất). Lưu ngay, không bao giờ mất. Dùng cho **những thứ lâu dài**: trưởng làng nới túi (1 / 2 / 3 ember), Map và Lost Letter của Oswin.
 - Chưa có Ember Pouch thì không nhặt được cả spark lẫn ember. Spark/ember boss đã rơi mà không nhặt thì mất.
 - Giá ở làng = `max(1, round(giá vàng trên núi / 250))`, riêng ở Pip rẻ hơn 1. Giá và số tiền trong túi luôn ghi bằng số kèm hình đồng tiền, không ghi chữ.
 
-**Phố làng:** 8 ngôi nhà hai tầng liền nhau, 6 dân làng để cứu (mỗi lượt có một lồng). Nhà của dân chưa được cứu thì tối, khoá và không có người. Đứng cạnh một người thì lời nhắc hiện tên họ và các việc làm được (**Talk / Shop**, với trưởng làng là **Talk / Upgrade**); ↑/↓ chọn dòng, nút tương tác để làm. Shop là một màn hình danh sách (`VillageShopPanel`), game tạm dừng khi mở, mua xong lưu ngay; không còn bày hàng dưới sàn.
+**Phố làng:** 8 ngôi nhà hai tầng liền nhau, 6 dân làng để cứu (mỗi lượt có một lồng). Nhà của dân chưa được cứu thì tối, khoá và không có người. Đứng cạnh một người thì lời nhắc hiện tên họ và các việc làm được (**Talk / Shop**, với trưởng làng là **Talk / Upgrade**); ↑/↓ chọn dòng, nút tương tác để làm. Làng không bán bom hay dây, vì lượt nào cũng bắt đầu với túi đầy. Shop là một màn hình danh sách (`VillageShopPanel`), game tạm dừng khi mở, mua xong lưu ngay; không còn bày hàng dưới sàn.
 
 | Nhà | Chủ | Bán / làm |
 |---|---|---|
-| Lò rèn | Hilde the Smith | Tempered Blade 3 spark, Blast Powder 3 spark |
-| Xưởng dây | Tam the Ropemaker | Rope Pile 1 spark, Spring Boots 4 spark |
+| Lò rèn | Hilde the Smith | Tempered Blade 3 spark, Blast Powder 3 spark, Hobnail Boots 3 spark, Iron Cap 2 spark |
+| Xưởng dây | Tam the Ropemaker | Spring Boots 4 spark, Soft-Sole Boots 2 spark |
 | Nhà thuốc | Maren the Healer | Heart Draught 2 spark |
-| Phòng bản đồ | Oswin the Mapmaker | Compass 2 spark, **Map 2 ember** |
+| Phòng bản đồ | Oswin the Mapmaker | Compass 2 spark, Spyglass 2 spark, **Map 2 ember**, **Lost Letter 3 ember** |
 | Tiệm lặt vặt | Pip the Peddler | 2 trang bị ngẫu nhiên theo seed lượt (kể cả Pebble Pouch), rẻ hơn 1; **Sheet of Paper** 1 spark |
-| Nhà đèn | Bera the Lamplighter | Lamp Oil 1 spark, Bomb Bag 1 spark |
+| Nhà đèn | Bera the Lamplighter | Lamp Oil 1 spark (+120 s trước khi thần chết tới, cho mọi màn của lượt, mua nhiều lần thì cộng dồn), Flares 2 spark |
 | Hội trường | Trưởng làng **Aldous** | Nhiệm vụ; nới túi (Upgrade); chưa cứu đủ thì nói còn bao nhiêu người lạc |
 | Nhà của Brann | – | Nơi mọi lượt bắt đầu; chuồng chó bên cạnh |
 

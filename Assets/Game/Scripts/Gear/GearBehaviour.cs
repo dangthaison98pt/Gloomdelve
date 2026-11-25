@@ -53,6 +53,7 @@ namespace Gloomdelve
             Register("recall", new RecallGear());
             Register("slingshot", new SlingshotGear());
             Register(Story.HammerGear, new HammerGear());
+            Register(FlareGear.Id, new FlareGear());
             // New gear: add a Register line here.
         }
 

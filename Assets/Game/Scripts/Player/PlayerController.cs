@@ -214,7 +214,7 @@ namespace Gloomdelve
                 Fx.Dust(pos, motor.landImpact < -10f ? 6 : 2);
                 if (motor.landImpact < -7f) Sfx.Play("land", pos, Mathf.Clamp01(-motor.landImpact / 18f));
                 // Landing on a creature's head breaks the fall: the stomp (Contacts, right after this) takes the hit instead.
-                if (motor.fallDistance >= cfg.fallDamageHeight && !godMode && !StompTargetBelow())
+                if (motor.fallDistance >= cfg.fallDamageHeight + (Run != null ? Run.stats.fallBonus : 0f) && !godMode && !StompTargetBelow())      // (Soft-Sole Boots: fallBonus)
                 {
                     TakeDamage(new DamageInfo(cfg.fallDamage, DamageType.Fall, null, Vector2.zero, "a long fall"));
                     stunTimer = Mathf.Max(stunTimer, cfg.fallStunTime);
@@ -442,7 +442,7 @@ namespace Gloomdelve
                 if (en.IsStompable && falling && above && motor.mode == MotorMode.Normal)
                 {
                     if (en.CounterStomp(this)) continue;      // it punished the stomp: no damage to it, no bounce
-                    en.TakeDamage(new DamageInfo(1, DamageType.Stomp, this, new Vector2(0f, -2f), "a stomp"));
+                    en.TakeDamage(new DamageInfo(1 + (Run != null ? Run.stats.stompBonus : 0), DamageType.Stomp, this, new Vector2(0f, -2f), "a stomp"));      // (Hobnail Boots: stompBonus)
                     motor.vel.y = fi.jumpHeld ? cfg.stompBounceHeld : cfg.stompBounce;
                     motor.jumping = fi.jumpHeld;
                     motor.grounded = false;
@@ -549,8 +549,9 @@ namespace Gloomdelve
             bool still = grounded && Mathf.Abs(vel.x) < 0.1f && motor.mode == MotorMode.Normal && Prompt == null;
             int dir = fi.up ? 1 : (fi.down ? -1 : 0);
             if (still && dir != 0) lookTimer += dt; else lookTimer = 0f;
-            float target = lookTimer > cfg.lookDelay ? dir * cfg.lookDistance : 0f;
-            LookOffset = Mathf.MoveTowards(LookOffset, target, dt * 9f);
+            float far = 1f + (Run != null ? Run.stats.lookBonus : 0f);         // (a Spyglass: lookBonus 1 = twice as far, in the same time)
+            float target = lookTimer > cfg.lookDelay ? dir * cfg.lookDistance * far : 0f;
+            LookOffset = Mathf.MoveTowards(LookOffset, target, dt * 9f * far);
         }
 
         // ------------------------------------------------------------------ damage
@@ -562,8 +563,21 @@ namespace Gloomdelve
             if (DashSafe && d.type != DamageType.Wraith && d.amount < 99) return false;
             bool bypass = d.type == DamageType.Wraith || d.type == DamageType.Explosion || d.amount >= 99;
             if (invuln > 0f && !bypass) return false;
-            Run.health -= d.amount;
-            Run.damageTaken += d.amount;
+            int amount = d.amount;
+            // an Iron Cap: something falling on the head does one less (a blow it takes all of glances off with a clank)
+            if (d.type == DamageType.Falling && Run.stats.headGuard > 0f && amount < 99)
+            {
+                amount--;
+                if (amount <= 0)
+                {
+                    Sfx.Play("hit", pos, 0.8f, 1.6f);       // (high: metal)
+                    Fx.Sparks(Center + Vector2.up * 0.5f, new Color(0.85f, 0.85f, 0.9f), 6, 3f);
+                    invuln = Mathf.Max(invuln, 0.4f);
+                    return false;
+                }
+            }
+            Run.health -= amount;
+            Run.damageTaken += amount;
             Flash(0.25f);
             Fx.Blood(Center, BloodRed, 8);
             Fx.Shake(0.35f);

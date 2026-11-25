@@ -541,8 +541,11 @@ namespace Gloomdelve.EditorTools
                         var oswin = Villagers.All[Villagers.IndexOf("mapper")];
                         var maps = Villagers.WaresOf(oswin, cfg.shop, 777);
                         var sheetOfMap = maps.Find(o => o.id == MapScreen.ItemId);
-                        Check("map: the Mapmaker sells the compass and the map; a description is shown with a capital letter",
-                            maps.Count == 2 && sheetOfMap != null && sheetOfMap.icon != null && !sheetOfMap.isUpgrade && Villagers.EmberPrice(sheetOfMap, oswin) == 2
+                        var letter = maps.Find(o => o.id == Villagers.KeyLetter);
+                        Check("map: the Mapmaker sells the compass, a spyglass, the map and his lost letter; a description is shown with a capital letter",
+                            maps.Count == 4 && maps.Exists(o => o.id == "compass") && maps.Exists(o => o.id == "spyglass" && o.isUpgrade && o.icon != null)
+                            && letter != null && letter.icon != null && !letter.isUpgrade && Villagers.PaidInEmbers(letter) && Villagers.EmberPrice(letter, oswin) == 3
+                            && sheetOfMap != null && sheetOfMap.icon != null && !sheetOfMap.isUpgrade && Villagers.EmberPrice(sheetOfMap, oswin) == 2
                             && UIUtil.Cap("points to the exit") == "Points to the exit" && UIUtil.Cap("+3 bombs") == "+3 bombs" && UIUtil.Cap("Bombs.") == "Bombs." && UIUtil.Cap("[jump] up") == "[jump] up" && UIUtil.Cap("") == "");
                         Check("money: a boss leaves one ember and five sparks; the map is paid in embers, a ware for one climb in sparks",
                             Villagers.EmbersPerBoss == 1 && Villagers.SparksPerBoss == 5 && Villagers.PaidInEmbers(sheetOfMap) && !Villagers.PaidInEmbers(cfg.shop.Find("compass"))

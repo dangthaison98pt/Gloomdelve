@@ -34,6 +34,8 @@ namespace Gloomdelve
     public static class Villagers
     {
         public const string KeyPouch = "pouch";
+        /// <summary>Oswin's lost letter (a key item, kept for good): the level that holds a caged villager says so, and the map marks the cage.</summary>
+        public const string KeyLetter = "lostletter";
         /// <summary>How many embers the pouch holds when the elder first hands it over. His errands make it larger (ExpandPouch).</summary>
         public const int PouchStartCapacity = 5;
 
@@ -62,22 +64,22 @@ namespace Gloomdelve
         {
             new VillagerDef { id = "smith", name = "Hilde", role = "the Smith", place = "The forge is lit again",
                 cagedLine = "Break this open and my forge is yours!", homeLine = "Steel and powder. Nothing leaves my forge dull.",
-                wares = new[] { "ironwhip", "blastpowder" } },
+                wares = new[] { "ironwhip", "blastpowder", "hobnailboots", "ironcap" } },
             new VillagerDef { id = "roper", name = "Tam", role = "the Ropemaker", place = "The ropewalk is open again",
-                cagedLine = "I tied my own rope too short. Get me out!", homeLine = "Rope that holds, boots that spring. Climb well.",
-                wares = new[] { "ropes", "springboots" } },
+                cagedLine = "I tied my own rope too short. Get me out!", homeLine = "Boots with a spring in them. Climb well.",
+                wares = new[] { "springboots", "softsoles" } },       // (no rope: every climb sets out with its bags full)
             new VillagerDef { id = "healer", name = "Maren", role = "the Healer", place = "The apothecary is open again",
                 cagedLine = "Careful - but please hurry.", homeLine = "One draught and your heart beats stronger till you sleep.",
                 wares = new[] { "vigor" } },
             new VillagerDef { id = "mapper", name = "Oswin", role = "the Mapmaker", place = "The map room is open again",
                 cagedLine = "I drew the way in. I never drew the way out.", homeLine = "I know that mountain. Let my needle show you the way.",
-                wares = new[] { "compass", MapScreen.ItemId } },
+                wares = new[] { "compass", "spyglass", MapScreen.ItemId, KeyLetter } },
             new VillagerDef { id = "peddler", name = "Pip", role = "the Peddler", place = "The market stall is back",
                 cagedLine = "Everything I own for an open door!", homeLine = "Never the same twice, always a bargain!",
                 wares = new[] { "?", "?", Story.Paper }, priceFactor = 0.7f },       // (paper: for copying the old signs - Story)
             new VillagerDef { id = "lamplighter", name = "Bera", role = "the Lamplighter", place = "The lamp tower burns again",
                 cagedLine = "My lamp went out. Then it came for me.", homeLine = "Take oil. While your lamp burns, the dark is slow to find you.",
-                wares = new[] { "lampoil", "bombs" } },
+                wares = new[] { "lampoil", FlareGear.OfferId } },       // (no bombs: every climb sets out with its bags full)
         };
 
         // ------------------------------------------------------------------ tests keep their own state
@@ -241,7 +243,7 @@ namespace Gloomdelve
         }
 
         /// <summary>What lasts is paid for in embers; what is for one climb, in sparks.</summary>
-        public static bool PaidInEmbers(ShopOffer o) => o != null && o.id == MapScreen.ItemId;
+        public static bool PaidInEmbers(ShopOffer o) => o != null && (o.id == MapScreen.ItemId || o.id == KeyLetter);
 
         /// <summary>What a villager asks for a ware, in sparks (in embers for what lasts): about one for every 250 gold it would cost on the
         /// mountain, one less at the Peddler's (never under one).</summary>

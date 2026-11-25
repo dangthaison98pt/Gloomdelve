@@ -137,7 +137,7 @@ namespace Gloomdelve
                 return "MAX";
             }
             if (run == null || e.offer == null) { sentence = "Not now."; return ""; }
-            if (e.offer.id == MapScreen.ItemId && MapScreen.Carried) { sentence = "You have it already, and it is yours for good."; return "OWNED"; }
+            if ((e.offer.id == MapScreen.ItemId || e.offer.id == Villagers.KeyLetter) && Villagers.HasKey(e.offer.id)) { sentence = "You have it already, and it is yours for good."; return "OWNED"; }
             if (e.offer.isUpgrade && run.HasUpgrade(e.offer.id)) { sentence = "That is yours already."; return "OWNED"; }
             if (e.offer.resource == Res.Health && run.HealthFull) { sentence = "Your health is full."; return "FULL"; }
             if (!string.IsNullOrEmpty(e.offer.resource) && run.CapOf(e.offer.resource) != int.MaxValue && run.RoomFor(e.offer.resource) <= 0)
@@ -178,7 +178,18 @@ namespace Gloomdelve
                     else icons[i].sprite = e.offer.icon;
                 }
                 if (names != null && i < names.Length && names[i] != null) names[i].text = e.offer.displayName;
-                if (descs != null && i < descs.Length && descs[i] != null) descs[i].text = UIUtil.Cap(e.offer.description);
+                if (descs != null && i < descs.Length && descs[i] != null)
+                {
+                    var d = descs[i];
+                    // (the row has room for one line under the name: a longer description is set smaller, and cut short
+                    // with "..." only if even that is not enough - it never runs out of its row)
+                    if (!d.enableAutoSizing)
+                    {
+                        d.fontSizeMax = d.fontSize; d.fontSizeMin = 14f; d.enableAutoSizing = true;
+                        d.textWrappingMode = TMPro.TextWrappingModes.NoWrap; d.overflowMode = TMPro.TextOverflowModes.Ellipsis;
+                    }
+                    d.text = UIUtil.Cap(e.offer.description);
+                }
                 if (prices != null && i < prices.Length && prices[i] != null)
                 {
                     prices[i].text = blocked ?? ((e.lasting ? "[ember] " : "[spark] ") + e.price);       // (the picture first, as in the line of what is in the pouch: the number ends flush with the row)
@@ -227,6 +238,7 @@ namespace Gloomdelve
             Say(e.offer.isUpgrade && !run.IsWorn(e.offer.id)
                 ? $"{e.offer.displayName} is in your bag (its slot is taken): wear it from the bag."
                 : e.offer.id == MapScreen.ItemId ? $"{e.offer.displayName}: yours for good. Hold the map button to unfold it."
+                : e.offer.id == Villagers.KeyLetter ? $"{e.offer.displayName}: yours for good. It tells you where a villager is held."
                 : $"{e.offer.displayName}: yours for this climb.", true);
             Refresh();
             return true;

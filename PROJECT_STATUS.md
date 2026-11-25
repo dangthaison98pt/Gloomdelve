@@ -123,6 +123,7 @@ Các mục dưới "Đã xong" là nhật ký theo thời gian; mục nào đã 
 - **Map của Oswin (23/11):** key item mua bằng ember, giữ mãi; đi tới đâu vẽ tới đó, giữ M / L1 để xem.
 - **Spark và ember (23/11):** mỗi boss rơi 1 ember + 5 spark. Spark không giới hạn, mua hàng dân làng (dùng cho một lượt); ember nằm trong túi, dùng cho thứ lâu dài (nới túi 1 / 2 / 3 ember, Map). Giá ghi bằng số kèm hình đồng tiền.
 - **Màn hình (24/11):** cửa sổ cỡ cố định 16:9 (Settings > WINDOW SIZE, 1280×720 tới 3840×2160), toàn màn hình theo cỡ gốc của màn hình, màn hẹp hơn 16:9 thì có khung 16:9 ở giữa (`ScreenFrame`, `FramedCanvas`). Kịch bản kiểm thử giữ cỡ màn từ dòng lệnh; `-toggleShot` chụp khi đổi chế độ.
+- **Shop làng (25/11):** mô tả hàng luôn nằm trên một dòng (tự nhỏ chữ, quá dài thì "..."); làng không bán bom và dây nữa (lượt nào cũng bắt đầu với túi đầy); icon Tempered Blade vẽ lại. Hàng mới: Hilde bán **Hobnail Boots** (giẫm gây 2) và **Iron Cap** (vật rơi trúng đầu bớt 1); Tam bán **Soft-Sole Boots** (rơi 12 ô mới đau); Oswin bán **Spyglass** (nhìn xa gấp đôi) và **Lost Letter** (key item, 3 ember: báo màn có lồng, bản đồ đánh dấu lồng); Bera bán **Flares** (đồ dùng mới, 3 cây, cháy đỏ 30 s). Bốn món trang bị cũng vào vòng bốc của Pip và shop trên núi. Kịch bản mới "new wares" (PASS), test logic 65/65.
 - **Tài liệu (25/11):** README, DESIGN, PROJECT_STATUS, TEST_REPORT, EXTENDING cập nhật theo code hiện tại.
 
 ## Đang làm

@@ -32,6 +32,13 @@ namespace Gloomdelve
         public bool IsOpen => root != null && root.activeSelf;
         public static bool Carried => Villagers.HasKey(ItemId);
         public bool Seen(int x, int y) => seen != null && x >= 0 && y >= 0 && x < w && y < h && seen[y * w + x];
+        /// <summary>Tests: the sheet as last drawn marks a held villager's cage at this cell (Oswin's lost letter).</summary>
+        public bool MarksCage(int x, int y)
+        {
+            if (px == null || x < 0 || y < 0 || x >= w || y >= h) return false;
+            var k = px[y * w + x];
+            return (k.r == Held.r && k.g == Held.g && k.b == Held.b) || (k.r == HeldDim.r && k.g == HeldDim.g && k.b == HeldDim.b);
+        }
 
         public static MapScreen Attach(GameDirector d)
         {
@@ -80,7 +87,7 @@ namespace Gloomdelve
         static readonly Color32 Dark = new Color32(9, 9, 16, 255), Air = new Color32(44, 46, 68, 255), Rock = new Color32(150, 128, 104, 255),
             Hard = new Color32(92, 88, 104, 255), Wood = new Color32(196, 150, 86, 255), Sharp = new Color32(214, 72, 72, 255),
             Gold = new Color32(240, 200, 80, 255), Way = new Color32(110, 220, 240, 255), Start = new Color32(120, 210, 120, 255),
-            Me = new Color32(255, 255, 255, 255), MeDim = new Color32(255, 214, 98, 255);
+            Me = new Color32(255, 255, 255, 255), MeDim = new Color32(255, 214, 98, 255), Held = new Color32(255, 120, 200, 255), HeldDim = new Color32(150, 60, 120, 255);
 
         /// <summary>The sheet as it is now: one dot a tile. Dark where nobody has been.</summary>
         void Draw()
@@ -113,6 +120,14 @@ namespace Gloomdelve
             // the way in is always known; the way out only once it has been seen
             Dot(dir.Level.entrance, Start, true);
             if (Seen(dir.Level.exit.x, dir.Level.exit.y)) Dot(dir.Level.exit, Way, true);
+            // Oswin's lost letter: the cage of a villager held in this level is marked, seen or not
+            if (Villagers.HasKey(Villagers.KeyLetter))
+            {
+                bool beat = Mathf.FloorToInt(Time.unscaledTime * 2f) % 2 == 0;
+                foreach (var e in dir.world.Entities)
+                    if (e is Captive cg && !cg.Dead && !cg.Freed)
+                        Dot(new Vector2Int(Mathf.FloorToInt(cg.pos.x), Mathf.FloorToInt(cg.pos.y + 0.1f)), beat ? Held : HeldDim, true);
+            }
             var p = dir.Player;
             if (p != null)
             {

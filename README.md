@@ -31,7 +31,7 @@ Bàn phím (mặc định; đổi được ở **Settings > CONTROLS / KEYS**, c
 | Space | Nhảy (giữ lâu nhảy cao hơn) · ↓ + Space: rơi xuyên sàn gỗ |
 | Q | Chém kiếm · khi cầm đồ: ném (↑ + Q ném cao) · ↓ + Q: nhặt / đặt đồ |
 | Shift | Lướt (tốn năng lượng, xem dưới) |
-| W | Dùng đồ đang cầm: ná (giữ để kéo, thả để bắn; ↑ bắn lên, cúi thì bắn sát sàn), bom (ném; ↓ + W đặt; ↑ + W ném cao), dây (ném lên; ↓ + W ở mép: thả xuống), Recall Charm, búa Stonebreaker (vung đập) |
+| W | Dùng đồ đang cầm: ná (giữ để kéo, thả để bắn; ↑ bắn lên, cúi thì bắn sát sàn), bom (ném; ↓ + W đặt; ↑ + W ném cao), dây (ném lên; ↓ + W ở mép: thả xuống), Recall Charm, búa Stonebreaker (vung đập), Flare (ném như bom) |
 | Tab | Bấm nhanh: sang món kế tiếp · giữ: vòng chọn đồ (game dừng, ←/→ chọn, thả để cầm) |
 | E (hoặc ↑) | Vào cửa, mua đồ, nói chuyện, mở lồng |
 | S | Đi chậm |
@@ -53,7 +53,7 @@ Kết quả: `Builds/Windows/Brindlemoor.exe`. Đổi art/prefab/scene thì ch�
 ## Tinh chỉnh
 Tất cả nằm trong `Assets/Game/Data`:
 - `PlayerConfig`: tốc độ, nhảy, coyote/bộ đệm, bám mép, kiếm, lướt, ném, sát thương rơi/chông, máu/bom/dây và đồ khởi đầu.
-- `Gear_Bomb`, `Gear_Rope`, `Gear_Glider`, `Gear_Recall`, `Gear_Slingshot`, `Gear_Hammer`: tên, mô tả, câu thông báo chướng ngại, kho tiếp tế của từng món dùng được.
+- `Gear_Bomb`, `Gear_Rope`, `Gear_Glider`, `Gear_Recall`, `Gear_Slingshot`, `Gear_Hammer`, `Gear_Flare`: tên, mô tả, câu thông báo chướng ngại, kho tiếp tế của từng món dùng được.
 - `Area0_Village` (làng), `Area1_Mossroot`, `Area2_Emberdeep`, `Area4_Sunfall`, `Area5_Frost`, `Area6_Sporegloom`, `Area7_Gearworks`, `Area8_Sandsunk`, `Area9_Geode`, `Area3_Vault` (trại và hầm cuối): kẻ địch, bẫy, cơ chế riêng, mật độ, kiểu đường đi, cửa hàng, ánh sáng, nhạc.
 - `GameConfig`: danh mục chặng (`stages`), số khu mỗi lượt (`areasPerRun`), áp lực thời gian (9:00 cảnh báo / 10:00 thần chết), giới hạn nổ dây chuyền, sinh màn, ký hiệu tùy biến.
 - `ShopConfig`: giá, tài nguyên, ô mặc và chỉ số cộng thêm (`modifiers`) của từng món (giá ở làng tính từ giá vàng này, xem `Docs/DESIGN.md` mục 5).

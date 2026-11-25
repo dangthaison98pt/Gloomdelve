@@ -259,6 +259,8 @@ namespace Gloomdelve
                 run = c => StoryCase(c) },
             new Scenario { name = "map: with the Mapmaker's map in the bag the level is drawn as it is walked, and the sheet is up only while its button is held", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => MapCase(c) },
+            new Scenario { name = "new wares: soft soles, hobnail boots, an iron cap, a spyglass, flares and the lost letter each do what the stall says", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => NewWaresCase(c) },
             new Scenario { name = "villagers: a caged villager is freed with Enter, goes home for good, and helps every later run", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => VillagerCase(c) },
 
@@ -1874,6 +1876,27 @@ namespace Gloomdelve
                 shopUi.Close();
                 yield return new WaitForSecondsRealtime(0.1f);
                 c.Expect(!shopUi.IsOpen && Time.timeScale > 0f, "closed, the game goes on");
+
+                // the Peddler's paper has the longest description of any ware: it stays on its one line in its row
+                shopUi.Open(Villagers.All[4].name, "", VillageShopPanel.WaresOf(Villagers.All[4], c.dir.config, run));
+                yield return new WaitForSecondsRealtime(0.1f);
+                bool oneLine = true;
+                for (int i = 0; i < shopUi.Count && i < shopUi.descs.Length; i++)
+                {
+                    var d = shopUi.descs[i]; d.ForceMeshUpdate();
+                    if (d.textInfo.lineCount > 1 || d.isTextOverflowing) oneLine = false;
+                }
+                var pipFaults = UIOverlap.Find();
+                c.Expect(oneLine && pipFaults.Count == 0, "every description in the Peddler's shop stays on one line inside its row" + (pipFaults.Count > 0 ? " (" + pipFaults[0] + ")" : ""));
+                ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "village_shop_peddler.png"));
+                yield return new WaitForSecondsRealtime(0.3f);
+                shopUi.Close();
+                yield return new WaitForSecondsRealtime(0.1f);
+                // the ember's first-time card (picked up above) has waited behind the shop screens: let it be read and go
+                // now, so it is not on screen when the village's name comes up at the door below (in play the card stops
+                // the game until it is put away, so the two never meet)
+                float cardUntil = Time.realtimeSinceStartup + 10f;
+                while (c.dir.hud.CardUp && Time.realtimeSinceStartup < cardUntil) yield return null;
             }
             yield return c.Frames(10);
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "villager_homes.png"));
@@ -3959,6 +3982,136 @@ namespace Gloomdelve
             yield return c.Frames(4);
         }
 
+        static IEnumerator NewWaresCase(Ctx c)
+        {
+            var shop = c.dir.config.shop;
+            var run = c.run;
+            Villagers.testRescued = new HashSet<string>();       // the test keeps its own state: the save file is not touched
+            Villagers.ResetTestState();
+            // the stalls: no bombs or ropes in the village (every climb sets out with its bags full), and the new wares
+            bool bagsInVillage = false;
+            foreach (var v in Villagers.All) foreach (var w in v.wares) if (w == "bombs" || w == "ropes") bagsInVillage = true;
+            bool Sells(int who, string id) => System.Array.IndexOf(Villagers.All[who].wares, id) >= 0 && shop.Find(id) != null;
+            c.Expect(!bagsInVillage && Sells(0, "hobnailboots") && Sells(0, "ironcap") && Sells(1, "softsoles") && Sells(3, "spyglass") && Sells(3, Villagers.KeyLetter) && Sells(5, FlareGear.OfferId),
+                "no bombs or ropes in the village; Hilde has hobnail boots and an iron cap, Tam soft soles, Oswin a spyglass and his letter, Bera flares");
+            c.Expect(Villagers.PaidInEmbers(shop.Find(Villagers.KeyLetter)) && !Villagers.PaidInEmbers(shop.Find("spyglass")) && !Villagers.PaidInEmbers(shop.Find(FlareGear.OfferId)),
+                "the letter lasts and is paid in embers; the rest is for one climb, in sparks");
+
+            // soft soles: a 10-tile fall (that hurts bare-footed: 'long fall hurts and stuns') costs nothing
+            run.AddUpgrade(shop.Find("softsoles"));
+            c.Expect(run.IsWorn("softsoles") && run.stats.fallBonus >= 3f, "soft soles are worn at once (feet)");
+            c.Bot(Seq((600, F())));
+            int hp0 = run.health;
+            c.Teleport(12.5f, 1f + 10.5f);
+            yield return c.Frames(90);
+            c.Expect(run.health == hp0 && !c.p.IsStunned, $"with soft soles a 10-tile fall does not hurt (health {hp0} -> {run.health})");
+            run.RemoveUpgrade("softsoles");
+
+            // hobnail boots: a stomp does two
+            run.AddUpgrade(shop.Find("hobnailboots"));
+            c.Expect(run.IsWorn("hobnailboots") && run.stats.stompBonus == 1, "hobnail boots are worn (feet)");
+            var snake = c.Spawn<Snake>("snake", 12, 1);
+            yield return c.Frames(2);
+            if (snake != null)
+            {
+                snake.heartDropChance = 0f; snake.stunTimer = 99f;
+                snake.maxHealth = 5; snake.health = 5;
+                c.Teleport(snake.pos.x, 4.5f);
+                int first = -1;
+                for (int i = 0; i < 90 && first < 0; i++) { yield return new WaitForFixedUpdate(); if (snake.health < 5) first = 5 - snake.health; }
+                c.Expect(first == 2, $"with hobnail boots one stomp takes 2 (took {first})");
+                if (!snake.Dead) snake.Despawn();
+            }
+            run.RemoveUpgrade("hobnailboots");
+
+            // an iron cap: a stalactite on the head does one less
+            int StalDamage() { var pf = c.dir.config.prefabs.Get("stalactite") as Stalactite; return pf != null ? pf.damage : 2; }
+            IEnumerator DropOnHead()
+            {
+                c.Teleport(8.5f, 1f);
+                yield return c.Frames(80);                       // (clear of the last hurt's grace)
+                c.Spawn<Stalactite>("stalactite", 8, 6, 1);      // param 1: already falling
+                yield return c.Frames(60);
+            }
+            run.AddUpgrade(shop.Find("ironcap"));
+            c.Expect(run.IsWorn("ironcap") && run.stats.headGuard > 0f, "the iron cap is worn (body)");
+            hp0 = run.health;
+            yield return DropOnHead();
+            int capped = hp0 - run.health;
+            run.RemoveUpgrade("ironcap");
+            hp0 = run.health;
+            yield return DropOnHead();
+            int bare = hp0 - run.health;
+            c.Expect(bare == StalDamage() && capped == bare - 1, $"a stalactite costs {bare} bare-headed and {capped} under the iron cap");
+            run.health = run.maxHealth;
+
+            // the spyglass: looking up goes twice as far
+            c.Teleport(8.5f, 1f);
+            c.Bot(Seq((90, F(up: true)), (600, F())));
+            yield return c.Frames(85);
+            float plain = c.p.LookOffset;
+            c.Bot(Seq((30, F()), (90, F(up: true)), (600, F())));
+            run.AddUpgrade(shop.Find("spyglass"));
+            yield return c.Frames(30 + 85);
+            float far = c.p.LookOffset;
+            c.Expect(plain > 3f && Mathf.Abs(far - 2f * plain) < 0.3f, $"looking up: {plain:0.0} tiles bare, {far:0.0} with the spyglass (twice as far)");
+            run.RemoveUpgrade("spyglass");
+            c.Bot(Seq((600, F())));
+            yield return c.Frames(30);
+
+            // flares: bought three at a time with the gear; one thrown lights up, burns, then is gone
+            ShopItem.Apply(run, shop.Find(FlareGear.OfferId));
+            int gi = run.gear.IndexOf(FlareGear.Id);
+            c.Expect(gi >= 0 && run.GetResource(FlareGear.AmmoId) == 3, $"bought, the flares come with the gear ({run.GetResource(FlareGear.AmmoId)} to throw)");
+            if (gi >= 0)
+            {
+                run.SetEquipped(gi);
+                c.Bot(Seq((1, F(use: true)), (600, F())));
+                yield return c.Frames(40);
+                Flare lit = null;
+                foreach (var e in c.world.Entities) if (e is Flare fl && !fl.Dead) lit = fl;
+                var glow = lit != null ? lit.GetComponent<GlowLight>() : null;
+                c.Expect(lit != null && lit.Burning && glow != null && glow.IsOn && run.GetResource(FlareGear.AmmoId) == 2,
+                    $"use throws a burning flare with its light on ({run.GetResource(FlareGear.AmmoId)} left)");
+                int hpF = run.health;
+                if (lit != null)
+                {
+                    yield return new WaitForSecondsRealtime(0.2f);
+                    ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "flare_lit.png"));
+                    yield return c.Frames(5);
+                    lit.BurnFor(0.3f);
+                    yield return c.Frames(40);
+                    c.Expect(lit.Dead && run.health == hpF, "it burns out and is gone, having hurt nobody");
+                }
+            }
+
+            // the lost letter: a key item; the level with a cage says so, and the map marks it
+            ShopItem.Apply(run, shop.Find(Villagers.KeyLetter));
+            c.Expect(Villagers.HasKey(Villagers.KeyLetter) && run.GetResource(Villagers.KeyLetter) == 0, "the letter bought is a key item, kept for good");
+            c.Expect(c.dir.LetterNote() == null, "with nobody held in the level the letter says nothing");
+            var cage = c.Spawn<Captive>("captive", 18, 1);
+            yield return c.Frames(3);
+            string note = c.dir.LetterNote();
+            c.Expect(cage != null && !cage.Dead && note != null && note.Contains(cage.Who.name), $"with a villager held here the letter names them: \"{note}\"");
+            ShopItem.Apply(run, shop.Find(MapScreen.ItemId));
+            var map = c.dir.GetComponent<MapScreen>();
+            if (map != null)
+            {
+                map.forceHeld = true;
+                yield return new WaitForSecondsRealtime(0.3f);
+                c.Expect(map.IsOpen && map.MarksCage(18, 1), "on the map the cage is marked, though nobody has been near it");
+                ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "map_letter.png"));
+                yield return new WaitForSecondsRealtime(0.3f);
+                map.forceHeld = false;
+                yield return new WaitForSecondsRealtime(0.1f);
+            }
+            if (cage != null && !cage.Dead) cage.Despawn();
+            Villagers.ResetTestState();
+            Villagers.testRescued = null;
+            c.Teleport(3.5f, 1f);
+            yield return c.Frames(4);
+        }
+
         static IEnumerator StoryCase(Ctx c)
         {
             c.p.godMode = true;
@@ -5141,7 +5294,7 @@ namespace Gloomdelve
         /// <summary>Called by GameDirector instead of the normal level creation.</summary>
         public static LevelData BuildLevel()
         {
-            int height = all[index].name.StartsWith("bosses: the rot heart") ? 12 : all[index].name.StartsWith("long fall") || all[index].name.StartsWith("rope into open air") || all[index].name.StartsWith("gliding down") || all[index].name.StartsWith("rope hook visibly") ? 16 : H;
+            int height = all[index].name.StartsWith("bosses: the rot heart") ? 12 : all[index].name.StartsWith("long fall") || all[index].name.StartsWith("new wares") || all[index].name.StartsWith("rope into open air") || all[index].name.StartsWith("gliding down") || all[index].name.StartsWith("rope hook visibly") ? 16 : H;
             W = all[index].name.StartsWith("waypoint") ? 64 : 26;
             var m = new char[W, height];
             for (int y = 0; y < height; y++)

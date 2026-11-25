@@ -611,6 +611,25 @@ namespace Gloomdelve.EditorTools
             if (shop.Find("wardscarab") == null)
                 shop.offers.Add(new ShopOffer { id = "wardscarab", displayName = "Warding Scarab", price = 550, isUpgrade = true, slot = "charm",
                     description = "a mummy's grab cannot take your gold", modifiers = new StatModifiers { goldWard = 1f } });
+            // the villagers' new wares (25/11): Hilde's boots and cap, Tam's soft soles, Oswin's spyglass and letter, Bera's flares
+            if (shop.Find("hobnailboots") == null)
+                shop.offers.Add(new ShopOffer { id = "hobnailboots", displayName = "Hobnail Boots", price = 700, isUpgrade = true, slot = "feet",
+                    description = "iron-studded soles: a stomp does 2 damage", modifiers = new StatModifiers { stompBonus = 1 } });
+            if (shop.Find("ironcap") == null)
+                shop.offers.Add(new ShopOffer { id = "ironcap", displayName = "Iron Cap", price = 550, isUpgrade = true, slot = "body",
+                    description = "what falls on your head does 1 less damage", modifiers = new StatModifiers { headGuard = 1f } });
+            if (shop.Find("softsoles") == null)
+                shop.offers.Add(new ShopOffer { id = "softsoles", displayName = "Soft-Sole Boots", price = 600, isUpgrade = true, slot = "feet",
+                    description = "a fall must be 12 tiles to hurt you, not 9", modifiers = new StatModifiers { fallBonus = 3f } });
+            if (shop.Find("spyglass") == null)
+                shop.offers.Add(new ShopOffer { id = "spyglass", displayName = "Spyglass", price = 500, isUpgrade = true, slot = "charm",
+                    description = "look up or down twice as far", modifiers = new StatModifiers { lookBonus = 1f } });
+            if (shop.Find(Villagers.KeyLetter) == null)
+                shop.offers.Add(new ShopOffer { id = Villagers.KeyLetter, displayName = "Lost Letter", price = 750, resource = Villagers.KeyLetter, amount = 1,
+                    description = "yours for good. A level that holds a caged villager tells you so, and your map marks the cage" });
+            if (shop.Find(FlareGear.OfferId) == null)
+                shop.offers.Add(new ShopOffer { id = FlareGear.OfferId, displayName = "Flares", price = 400, resource = FlareGear.AmmoId, amount = 3,
+                    description = "three flares to throw: each burns red for half a minute and lights the dark" });
             foreach (var o in shop.offers)
             {
                 if (!o.isUpgrade || !string.IsNullOrEmpty(o.slot)) continue;
@@ -628,6 +647,8 @@ namespace Gloomdelve.EditorTools
             icons["pebblepouch"] = "Sprites/Items/pebblepouch";
             icons[Story.Paper] = "Sprites/Items/paper";
             icons[MapScreen.ItemId] = "Sprites/Items/map";
+            icons["hobnailboots"] = "Sprites/Items/hobnailboots"; icons["ironcap"] = "Sprites/Items/ironcap"; icons["softsoles"] = "Sprites/Items/softsoles";
+            icons["spyglass"] = "Sprites/Items/spyglass"; icons[Villagers.KeyLetter] = "Sprites/Items/lostletter"; icons[FlareGear.OfferId] = "Sprites/Items/flarepack";
             icons["vigor"] = "Sprites/NPC/ware_vigor"; icons["lampoil"] = "Sprites/NPC/ware_lampoil";
             foreach (var o in shop.offers) if (icons.TryGetValue(o.id, out var ic)) o.icon = ArtGenerator.S(ic);
             EditorUtility.SetDirty(shop);
@@ -1108,8 +1129,19 @@ namespace Gloomdelve.EditorTools
             gHammer.icon = ArtGenerator.S("Sprites/Items/hammer");
             gHammer.inHand = ArtGenerator.S("Sprites/Items/hammer_long");
             EditorUtility.SetDirty(gHammer);
+            // Bera's flares: bought in the village, three at a time (never part of the starting gear)
+            var gFlare = LoadOrCreate<EquipmentDef>(G + "Data/Gear_Flare.asset", out bool newFlare);
+            if (newFlare || string.IsNullOrEmpty(gFlare.id))
+            {
+                gFlare.id = FlareGear.Id; gFlare.displayName = "Flare";
+                gFlare.description = InputTokens("Use: throw a lit flare.  DOWN + use: set it at your feet.  UP + use: throw it high.  It burns red for half a minute.");
+                gFlare.terrainHint = "Light in the dark: throw one down a shaft before you drop.";
+                gFlare.ammoLabel = "flare(s)";
+            }
+            gFlare.icon = ArtGenerator.S("Sprites/Items/flarepack");       // (the bundle: the lying flare is too small a picture for the HUD)
+            EditorUtility.SetDirty(gFlare);
             // Built-in gear first; equipment a designer added to the list by hand is kept.
-            var gearList = new List<EquipmentDef> { gBomb, gRope, gGlide, gRecall, gSling, gHammer };
+            var gearList = new List<EquipmentDef> { gBomb, gRope, gGlide, gRecall, gSling, gHammer, gFlare };
             if (cfg.equipment != null) foreach (var extra in cfg.equipment) if (extra != null && !gearList.Contains(extra)) gearList.Add(extra);
             cfg.equipment = gearList.ToArray();
             cfg.roomTemplates = AssetDatabase.LoadAssetAtPath<TextAsset>(G + "Data/RoomTemplates.txt");
@@ -1344,6 +1376,7 @@ namespace Gloomdelve.EditorTools
             ["BounceCap"] = (new Color(0.4f, 1f, 0.9f), 5f, 1.1f, 0.25f, true, true, new Vector2(0f, 0.5f)),
             ["SporeHeart"] = (new Color(0.95f, 0.45f, 1f), 7f, 1.25f, 0.35f, true, true, new Vector2(0f, 0.8f)),
             ["FirePatch"] = (new Color(1f, 0.5f, 0.15f), 3.6f, 1.3f, 0.35f, false, true, new Vector2(0f, 0.4f)),
+            ["Flare"] = (new Color(1f, 0.42f, 0.3f), 7.5f, 1.5f, 0.35f, false, true, new Vector2(0f, 0.3f)),
         };
 
         static T Make<T>(string id, string folder, string display, Vector2 size, Sprite sprite, SpriteAnim anim, int order, Action<T, GameObject, SpriteRenderer> setup = null)
@@ -1777,6 +1810,8 @@ namespace Gloomdelve.EditorTools
             Reg("ropepile", Make<Pickup>("RopePile", "Items", "rope pile", new Vector2(0.6f, 0.45f), ArtGenerator.S(I("ropepile")), null, 11, (e, g, s) => { e.itemId = "ropes"; e.resource = Res.Ropes; e.label = "ROPES"; e.value = 3; e.sfx = "pickup"; e.textColor = Color.white; e.flipWithFacing = false; }));
             Reg("pebbles", Make<Pickup>("Pebbles", "Items", "pebbles", new Vector2(0.5f, 0.3f), ArtGenerator.S(I("pebbles")), null, 11,
                 (e, g, s) => { e.itemId = "pebbles"; e.resource = Res.Pebbles; e.label = "PEBBLES"; e.value = 3; e.sfx = "pickup"; e.textColor = new Color(0.86f, 0.84f, 0.8f); e.flipWithFacing = false; }));
+            Reg(FlareGear.Id, Make<Flare>("Flare", "Items", "flare", new Vector2(0.35f, 0.25f), ArtGenerator.S(I("flare")), null, 12,
+                (e, g, s) => { e.flipWithFacing = false; e.bounce = 0.3f; e.throwDamage = 0; e.impactSfx = "thud"; s.sharedMaterial = unlitMat; }));
             Reg("pebbleshot", Make<PebbleShot>("PebbleShot", "Items", "pebble", new Vector2(0.2f, 0.2f), ArtGenerator.S(I("pebble")), null, 12,
                 (e, g, s) => { e.flipWithFacing = false; e.throwDamage = 1; e.damageSpeed = 4f; e.bounce = 0f; e.canPickUp = false; }));
             Reg("heart", Make<Pickup>("Heart", "Items", "heart", new Vector2(0.5f, 0.45f), ArtGenerator.S(I("heart")), null, 11,

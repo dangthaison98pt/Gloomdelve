@@ -254,6 +254,17 @@ namespace Gloomdelve
                         desc = "Hold the map button (M, or L1 on a pad) to unfold it; let go to fold it away. It draws each level as you walk it. It is never lost.",
                     });
                 }
+                // the Mapmaker's lost letter: bought once, kept for good
+                if (Villagers.HasKey(Villagers.KeyLetter))
+                {
+                    var letter = director != null && director.config != null && director.config.shop != null ? director.config.shop.Find(Villagers.KeyLetter) : null;
+                    entries.Add(new Entry
+                    {
+                        icon = letter != null ? letter.icon : null, under = "", marked = false,
+                        name = letter != null ? letter.displayName : "Lost Letter",
+                        desc = "Oswin's letter from the ones who went up before you. A level that holds a caged villager tells you so as you enter, and your map marks the cage. It is never lost.",
+                    });
+                }
                 // the story's things (Story): the copy of the old signs, and the parts of the hammer this run has found
                 var gcfg = director != null ? director.config : null;
                 if (Story.HasRubbing)

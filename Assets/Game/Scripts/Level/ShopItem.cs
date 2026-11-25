@@ -183,6 +183,13 @@ namespace Gloomdelve
             if (o.id == "vigor") { run.maxHealth += o.amount; run.health += o.amount; return; }       // the Healer's draught
             if (o.id == "lampoil") { run.extraTime += o.amount; return; }                              // the Lamplighter's oil: seconds
             if (o.id == MapScreen.ItemId) { Villagers.GiveKey(MapScreen.ItemId); return; }             // the Mapmaker's map: a key item, kept for good
+            if (o.id == Villagers.KeyLetter) { Villagers.GiveKey(Villagers.KeyLetter); return; }       // his lost letter: the same
+            if (o.id == FlareGear.OfferId)                                                              // the Lamplighter's flares: the gear, and three to throw
+            {
+                run.AddResource(FlareGear.AmmoId, o.amount);
+                if (!run.gear.Contains(FlareGear.Id)) run.gear.Add(FlareGear.Id);
+                return;
+            }
             if (!string.IsNullOrEmpty(o.resource)) run.AddResource(o.resource, o.amount);
             if (o.isUpgrade) run.AddUpgrade(o);
         }

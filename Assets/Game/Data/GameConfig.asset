@@ -25,6 +25,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 3508438c56f1d724ca74e67a4e536478, type: 2}
   - {fileID: 11400000, guid: 480688e2ffaa0bf4b8a8a30210cb5bef, type: 2}
   - {fileID: 11400000, guid: 92d75f5cd2e58e14781fb9289f1d5b6b, type: 2}
+  - {fileID: 11400000, guid: b862bc21f4cacbc4c8a7054eba2cc899, type: 2}
   stages:
   - displayName: 1-1
     kind: 0
