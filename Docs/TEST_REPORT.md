@@ -1,7 +1,7 @@
-# Báo cáo kiểm thử – Brindlemoor: The Sunstone Hunt (Gloomdelve) – cập nhật 19/11/2026
+# Báo cáo kiểm thử – Brindlemoor: The Sunstone Hunt (Gloomdelve) – cập nhật 25/11/2026 (số liệu chạy thật mới nhất: 19/11)
 
 ## Số liệu mới nhất
-Game hiện có 8 khu (bốc 4 mỗi lượt), 24 màn sinh ngẫu nhiên trong danh mục, 9 boss, làng Brindlemoor, 3 ô lưu. Mỗi dòng dưới đây là một lần chạy thật; file gốc trong `Docs/TestResults/` (kịch bản chạy lẻ ghi vào `%USERPROFILE%\AppData\LocalLow\Brindlemoor Team\Brindlemoor\autotest\`).
+Game hiện có 8 khu (bốc 4 mỗi lượt), 24 màn sinh ngẫu nhiên trong danh mục, 9 boss (trùm cuối Eclipse King), làng Brindlemoor, 3 ô lưu. Mỗi dòng dưới đây là một lần chạy thật; file gốc trong `Docs/TestResults/` (kịch bản chạy lẻ ghi vào `%USERPROFILE%\AppData\LocalLow\Brindlemoor Team\Brindlemoor\autotest\`).
 
 | Kiểm tra | Kết quả | Ngày |
 |---|---|---|
@@ -11,7 +11,9 @@ Game hiện có 8 khu (bốc 4 mỗi lượt), 24 màn sinh ngẫu nhiên trong 
 | Kịch bản đổi phím (`-scenarioFilter "keyboard keys"`) sau khi đổi phím mặc định | **1/1 PASS** | 19/11 |
 | Bot chơi trọn 3 lượt (`autotest_report.txt`, seed 201–203) | **54/54 chặng PASS**, 3/3 lượt tới VICTORY, 0 rò rỉ trạng thái (bot không đánh boss) | 17/11 |
 
-Hiện có **90 kịch bản** trong `ScenarioRunner`; lần chạy đủ gần nhất (18/11) có 79, nên chưa có lần chạy đủ 90/90 trên bản hiện tại. Bot chưa chạy lại từ khi có làng, ô lưu, Sandsunk, Geode và Cogwyrm.
+Hiện có **100 kịch bản** trong `ScenarioRunner` (25/11). Lần chạy đủ gần nhất (18/11) có 79, nên chưa có lần chạy đủ 100/100 trên bản hiện tại. Các thay đổi từ 19/11 tới 24/11 chưa có số liệu kiểm thử nào ghi vào file này. Bot chưa chạy lại từ khi có làng, ô lưu, Sandsunk, Geode, Cogwyrm, ná, Eclipse King và kết thúc thật; bot cũng chưa đi mạch truyện cây búa.
+
+Switch dòng lệnh hiện có: `-scenarios`, `-scenarioFilter a,b`, `-autotest`, `-autotestSeed`, `-autotestOut`, `-autotestShots`, `-saveDir`, `-loadingShot dir`, `-toggleShot`, `-shotEvery N dir`, `-bossTest N`, `-tutorialTest`, `-villageTest H`, `-villageX x`; khi chạy kiểm thử, game giữ cỡ màn từ `-screen-width / -screen-height / -screen-fullscreen` của Unity.
 
 Các mục bên dưới là báo cáo chi tiết của các đợt trước (giữ lại làm lịch sử, số liệu theo phiên bản lúc đó).
 

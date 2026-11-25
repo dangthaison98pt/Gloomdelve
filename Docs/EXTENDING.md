@@ -73,7 +73,7 @@ Ký hiệu mới xuất hiện ngay trong tool (đóng/mở lại cửa sổ ho�
 - **Có hành vi riêng** → trong code hỏi `RunSession.Current.HasActive("id_cua_ban")` (đang mặc; `HasUpgrade` chỉ là đã sở hữu). Ví dụ có sẵn: Compass (`HUD.cs`), Tempered Blade (`PlayerController.cs`).
 - **Cần một chỉ số mới** (ví dụ tốc độ chạy): thêm 1 trường vào `StatModifiers` và vào `Add`, `Clear`, `IsZero` (`Configs.cs`), rồi đọc `Run.stats.<trường>` ở nơi dùng.
 
-Kệ shop trên núi có 5 món: bom, dây, một món hồi máu và 2 nâng cấp (món nổi bật của khu trong `AreaConfig.shopFeatured`, không có thì ngẫu nhiên); món đã sở hữu không được bày. HUD hiện biểu tượng đồ đang mặc, lượt mới tự xoá sạch. Muốn dân làng bán món đó (giá bằng ember): thêm id vào danh sách hàng của người đó trong `Villagers.cs`.
+Kệ shop trên núi có 5 món: bom, dây, một món hồi máu và 2 nâng cấp (món nổi bật của khu trong `AreaConfig.shopFeatured`, không có thì ngẫu nhiên); món đã sở hữu không được bày. HUD hiện biểu tượng đồ đang mặc, lượt mới tự xoá sạch. Muốn dân làng bán món đó: thêm id vào danh sách hàng của người đó trong `Villagers.cs`. Giá ở làng tự tính từ giá vàng (`max(1, round(giá / 250))`), trả bằng spark; món lâu dài trả bằng ember thì thêm id vào `Villagers.PaidInEmbers`.
 
 Món tiêu hao (không tick Is Upgrade): điền `Resource` + `Amount`. Resource có sẵn: `gold`, `health`, `bombs`, `ropes`, `maxhealth`…; id khác được lưu thành bộ đếm riêng (`RunState.GetResource / AddResource`), dùng làm đạn cho đồ dùng mới.
 
@@ -105,7 +105,7 @@ Ví dụ thêm "cuốc" đào đất:
    ```
 2. **Đăng ký** – thêm 1 dòng trong `GearRegistry` (`GearBehaviour.cs`): `Register("pickaxe", new PickaxeGear());`
 3. **Dữ liệu** – *Create > Brindlemoor > Equipment*, đặt `id = pickaxe`, tên, mô tả, icon; kéo vào `GameConfig > Equipment`.
-4. **Cho người chơi** – thêm id vào `PlayerConfig > Starting Gear` (hiện là bom, dây, Recall Charm), hoặc `AreaConfig > Grant Gear` để nhận khi vào khu.
+4. **Cho người chơi** – thêm id vào `PlayerConfig > Starting Gear` (hiện là ná, bom, dây, Recall Charm; món đầu tiên được cầm sẵn), hoặc `AreaConfig > Grant Gear` để nhận khi vào khu.
 
 Vòng chọn đồ, tab ITEMS của túi đồ, HUD, số đạn tự hoạt động. Các hook khác của `GearBehaviour`:
 
@@ -143,9 +143,13 @@ Một khu mới luôn đi trọn gói: **quái riêng + cơ chế riêng + ít n
 
 1. *Create > Brindlemoor > Area Config*: bộ tile, nhạc, ánh sáng, danh sách quái, mật độ bẫy, kiểu đường đi (`pathUp/Side/Down`, `pathAcross`), cơ chế (`groundGrip`, `conveyorChance`…), đồ bắt buộc, `shopFeatured`.
 2. Thêm một khối vào `GameConfig > Stages`: 3 màn kiểu Area + 1 chặng kiểu Boss trỏ tới `Levels/Boss_<Khu>.txt` (dòng `boss: id`, ký hiệu `Z` là chỗ boss). Khối mới tự vào vòng bốc 4 khu mỗi lượt và tự có trong danh sách Challenge sau *Build Everything*.
-3. Boss: class kế thừa `Boss` (`Scripts/Bosses`), chiêu chọn bằng `Boss.NextMove`, báo trước bằng `Tell`, dùng chung `FireShot / FanAt / Shockwave`. Thanh máu, phần thưởng (vàng, ember, Heart Vessel), phản đòn khi bị giẫm liên tục đã có sẵn trong `Boss`.
+3. Boss: class kế thừa `Boss` (`Scripts/Bosses`), chiêu chọn bằng `Boss.NextMove`, báo trước bằng `Tell`, dùng chung `FireShot / FanAt / Shockwave`. Thanh máu, phần thưởng (vàng, 1 ember + 5 spark, `rewardId` như Heart Vessel), phản đòn khi bị giẫm liên tục đã có sẵn trong `Boss`.
 4. Trong tool mẫu phòng, tick khu mới cho các phòng riêng của khu (không tick khu nào = dùng chung).
 5. Chạy *Seed Sweep* – báo cáo cho biết khu mới có sinh màn ổn không. Trong lúc làm có thể dựng một bản build riêng chỉ có khu đó (như `Builds/SandsunkTest`, `Builds/GeodeTest`) để chơi thử nhanh; bản này không đẩy lên repo.
+
+## Nhiệm vụ mới
+
+*Create > Brindlemoor > Quest* (`QuestDef`) rồi kéo vào `Data/QuestCatalog.asset`. Mỗi nhiệm vụ có danh sách bước; mỗi bước có kiểu kích hoạt (`talk`, `enter`, `obtain`, `kill`, `free`), id mục tiêu (`target`, để trống là bất kỳ), số lần (`count`), lời thoại cho bước `talk` (`lines`) và `waypoint` (id của thứ mà dấu chỉ nhiệm vụ trên HUD dẫn tới, nhiều id cách nhau bằng `;`). Phần thưởng: key item, ember, đồ hoặc vàng. Nhiệm vụ tự bắt đầu khi điều kiện đã đủ (`autoStart`), hoặc được code mở bằng `QuestLog.Start` (ví dụ `RunePillar` mở "The Old Signs"). Không cần viết code cho nhiệm vụ mới, trừ khi cần một kiểu kích hoạt mà game chưa báo (`QuestLog.Notify`). Xem `Data/Quests/` làm mẫu.
 
 ## 7. Phím bấm và hình nút
 
@@ -158,12 +162,12 @@ Một khu mới luôn đi trọn gói: **quái riêng + cơ chế riêng + ít n
 
 | Thư mục | Nội dung |
 |---|---|
-| `Scripts/Core` | Config (ScriptableObject), `RunState` (toàn bộ trạng thái một lượt chơi), `SaveSystem` (3 ô lưu), `Villagers` (làng, ember), âm thanh |
-| `Scripts/Gear` | `GearBehaviour` + các trang bị |
+| `Scripts/Core` | Config (ScriptableObject), `RunState` (toàn bộ trạng thái một lượt chơi), `SaveSystem` (3 ô lưu, `totals.json`, `challenge.json`), `Villagers` (làng, spark, ember, lồng), `Bags` (sức chứa túi), `QuestLog` / `QuestCatalog` (nhiệm vụ), `Codex` (Field Guide), âm thanh |
+| `Scripts/Gear` | `GearBehaviour` + các trang bị (`BuiltinGear`: bom, dây, tàu lượn, Recall Charm, ná; `HammerGear`: búa) |
 | `Scripts/Player` | `PlayerMotor` (chuyển động tất định, dùng chung cho game + validator + bot), `PlayerController` (hành động, sát thương) |
 | `Scripts/World` | `TileGrid`, va chạm, `World` (vòng mô phỏng, nổ, spawn), `Entity` |
 | `Scripts/Level` | `RoomTemplates` (đọc/ghi mẫu phòng), `RoomLegend` + `RoomLint` (ký hiệu, quy tắc), `LevelGenerator`, `LevelValidator` |
 | `Scripts/Enemies`, `Traps`, `Items` | Mỗi loại một class nhỏ |
 | `Scripts/Bosses` | `Boss` (khung chung: chiêu, phần thưởng, phản đòn) + mỗi boss một class |
-| `Scripts/Game` | `GameDirector` (luồng một màn), `RunPlan` (bốc khu cho lượt), `LevelFactory`, bot và kịch bản kiểm thử |
+| `Scripts/Game` | `GameDirector` (luồng một màn), `RunPlan` (bốc khu cho lượt), `LevelFactory`, `Story` (cột đá, mảnh búa), `EndingScene` (cảnh kết, credits), `VillageClock` (ngày/đêm), bot và kịch bản kiểm thử |
 | `Editor` | `ProjectBuilder` (sinh asset), `ArtGenerator*` (vẽ mọi hình), `RoomTemplateEditor` (tool GD), `GameTests` |

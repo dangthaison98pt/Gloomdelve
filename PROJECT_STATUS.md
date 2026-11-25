@@ -1,13 +1,15 @@
 # PROJECT_STATUS – Brindlemoor: The Sunstone Hunt (Gloomdelve)
 
-Cập nhật: 19/11/2026 · Unity 6000.3.12f1
+Cập nhật: 25/11/2026 · Unity 6000.3.12f1
 
-## Hiện trạng (19/11)
-- Lượt chơi: làng Brindlemoor → 4 khu bốc ngẫu nhiên trong 8 (Mossroot, Sporegloom, Emberdeep, Frostdeep, Sunfall, Gearworks, Sandsunk, Geode), mỗi khu 3 màn + boss → The Last Camp → The Sunken Vault (Hollow Warden, Sunstone). 18 chặng. Chi tiết: `Docs/DESIGN.md`.
-- 9 boss: Broodmother, Rot Heart, Forge Brute, Yeti King, Storm Hawk, Cogwyrm, Dune Queen, The Facet, Hollow Warden.
-- Hai loại tiền (vàng trong lượt, ember giữ lại), 8 nhà trong làng, 6 dân làng để cứu, 3 ô lưu, lưu ở đầu mỗi màn.
-- Phím mặc định: Space nhảy, Q chém, Shift lướt, W dùng đồ, Tab đổi đồ, E vào cửa/mua, S đi chậm, I túi đồ (đổi được trong game).
-- Kiểm thử mới nhất: `Docs/TEST_REPORT.md` mục "Số liệu mới nhất".
+## Hiện trạng (25/11)
+- Lượt chơi: thức dậy ở làng Brindlemoor → 4 khu bốc ngẫu nhiên trong 8 (Mossroot, Sporegloom, Emberdeep, Frostdeep, Sunfall, Gearworks, Sandsunk, Geode), mỗi khu 3 màn + boss → The Last Camp → The Sunken Vault (trùm cuối **Eclipse King**, rơi Sunstone). 18 chặng. Chi tiết: `Docs/DESIGN.md`.
+- Hai kết thúc: mang Sunstone về làng (thắng thường, cảnh kết rồi lại thức dậy cùng một ngày) hoặc đập vỡ Sunstone bằng búa Stonebreaker ghép từ 3 mảnh (kết thúc thật, credits). Mạch truyện "The Old Signs" mở khoá các mảnh búa.
+- 9 boss trong game: Broodmother, Rot Heart, Forge Brute, Yeti King, Storm Hawk, Cogwyrm, Dune Queen, The Facet, Eclipse King (Hollow Warden còn code nhưng không dùng).
+- Ba loại tiền: vàng (trong lượt), spark (mua hàng dân làng cho một lượt), ember (nới túi, Map). Túi có sức chứa, trưởng làng nới được. 8 nhà trong làng, 6 dân làng để cứu (mỗi lượt một lồng), ngày/đêm theo giờ máy, 2 nhiệm vụ, 3 ô lưu, lưu ở đầu mỗi màn.
+- Đồ khởi đầu: ná (cầm sẵn), bom, dây, Recall Charm. Field Guide (sách sinh vật), Map (bản đồ giữ M / L1).
+- Phím mặc định: Space nhảy, Q chém, Shift lướt, W dùng đồ, Tab đổi đồ, E vào cửa/mua, S đi chậm, I túi đồ, M bản đồ (đổi được trong game).
+- Kiểm thử mới nhất: `Docs/TEST_REPORT.md` mục "Số liệu mới nhất" (chưa có lần chạy đủ trên bản hiện tại).
 
 Các mục dưới "Đã xong" là nhật ký theo thời gian; mục nào đã bị thay thế được ghi chú ngay trong mục đó.
 
@@ -110,13 +112,26 @@ Các mục dưới "Đã xong" là nhật ký theo thời gian; mục nào đã 
 - **Cogwyrm thay Foreman ở Gearworks (19/11):** con rết bánh răng chạy trên ray quanh sảnh, chỉ đầu bị thương, mỗi 1/4 máu rụng một đốt thành lưỡi cưa rời. Code, hình, prefab và test của Foreman đã xoá.
 - **Phím mặc định mới (19/11):** Space nhảy, Q chém, Shift lướt, W dùng đồ, Tab đổi đồ, E vào cửa/mua, S đi chậm, I túi đồ; bỏ các phím phụ Z (nhảy), Shift phải (đi chậm), Tab (túi đồ); P vẫn tạm dừng. Tài liệu (README, DESIGN, EXTENDING, REFERENCE, TEST_REPORT) viết lại theo game hiện tại.
 
+- **Menu tạm dừng theo nơi, nút back tay cầm, Cogwyrm công bằng hơn (19/11):** trên núi có Give Up (hỏi lại, kết thúc lượt và thức dậy ở làng, không tính là chết); Challenge có Fight Again và Boss List mở ngay trong bảng tạm dừng. Nút B/○ của tay cầm làm việc của Esc. Cogwyrm: cú nảy cuối của bánh xe đập nó vào tường, choáng 3 s; sau hai quạt bu-lông hạ đầu xuống tầm nhảy; đốt rụng chỉ khi nó đã về ray trần và rơi cách xa người chơi.
+- **Làng sống động, Field Guide (20/11):** dân phố (người lớn, trẻ con), con chó và chuồng, ngày/đêm theo giờ thật của máy (`VillageClock`); Field Guide (`Codex`, `CodexScreen`) là sách trong rương cuối màn hướng dẫn, trang sinh vật mở khi giết được một con; nhiệm vụ (`QuestLog`, `QuestCatalog`) và dấu chỉ nhiệm vụ; thẻ giới thiệu lần đầu cho mỗi món đồ (`ItemLog`).
+- **Đổi tên sản phẩm (21/11):** `Brindlemoor.exe`, thư mục lưu `LocalLow\Brindlemoor Team\Brindlemoor`, menu Editor **Brindlemoor**; save cũ tự chép sang.
+- **Ná, túi có sức chứa, shop làng thành màn hình (22/11):** ná cầm sẵn khi vào lượt (giữ Dùng để kéo, thả để bắn, ~8 ô, 1 sát thương); túi chứa 5 bom, 5 dây, 10 viên đá, mỗi lượt bắt đầu với túi đầy; trưởng làng nới túi bằng ember. Ở làng không còn bày hàng dưới sàn: đứng cạnh dân làng chọn Talk / Shop, shop là danh sách.
+- **Eclipse King thay Hollow Warden (22/11):** The Sunken Vault là sảnh trống; trùm hai dạng (vỏ đá: phun lửa, lao cắm sừng vào tường, nhảy ra tường sáng; lõi ánh sáng: cột sáng + 4 cọc sáng, đập tay, vỗ tay ra vòng 16 tàn lửa, bùng sáng, biến mất). Nó rơi Sunstone; nhấc đá thì cổng mở, hầm không sập. Bom và bẫy gây 1 điểm lên boss (trước là nửa điểm), máu boss tăng vì người chơi đã có ná. Chủ shop đang hiền mua lại tượng vàng.
+- **Challenge và Records tách khỏi ô lưu (22/11):** Challenge không đọc/ghi ô lưu nào, kỷ lục trong `challenge.json`, chỉ mang ná và bom, túi ở cỡ ban đầu. Records là tổng kết toàn game (`totals.json`): số lượt, thắng, chết, thắng nhanh nhất, quái giết, boss đã hạ.
+- **Kết thúc bằng cảnh, thức dậy có lý do (22/11):** thắng thì xem cảnh ở làng (viên đá hút cả khung cảnh vào nó) rồi lại thức dậy; lần chết đầu của save có cảnh thức dậy, các lần sau là một câu. Mọi lượt đều có một lồng dân làng. Màn kết quả không còn hiện kỷ lục.
+- **The Old Signs và kết thúc thật (23/11):** cột đá ở màn 1 mỗi khu; mua giấy ở Pip, chép chữ, trưởng làng đọc. Sau đó mỗi lượt giấu 3 mảnh búa (cán ở người lạ khu 2, đầu búa trong rương khu 3, lõi từ 3 linh hồn khu 4). Đập vỡ Sunstone bằng búa: sảnh ngập sáng, làng thức dậy vào buổi sáng, "THE WINTER IS OVER", credits. Bỏ các switch dòng lệnh chỉ dùng để xem cảnh (`-endingTest`, `-wakeTest`, `-trueEndTest`, `-creditsTest`, `-storyTest`, `-breakTest`).
+- **Map của Oswin (23/11):** key item mua bằng ember, giữ mãi; đi tới đâu vẽ tới đó, giữ M / L1 để xem.
+- **Spark và ember (23/11):** mỗi boss rơi 1 ember + 5 spark. Spark không giới hạn, mua hàng dân làng (dùng cho một lượt); ember nằm trong túi, dùng cho thứ lâu dài (nới túi 1 / 2 / 3 ember, Map). Giá ghi bằng số kèm hình đồng tiền.
+- **Màn hình (24/11):** cửa sổ cỡ cố định 16:9 (Settings > WINDOW SIZE, 1280×720 tới 3840×2160), toàn màn hình theo cỡ gốc của màn hình, màn hẹp hơn 16:9 thì có khung 16:9 ở giữa (`ScreenFrame`, `FramedCanvas`). Kịch bản kiểm thử giữ cỡ màn từ dòng lệnh; `-toggleShot` chụp khi đổi chế độ.
+- **Tài liệu (25/11):** README, DESIGN, PROJECT_STATUS, TEST_REPORT, EXTENDING cập nhật theo code hiện tại.
+
 ## Đang làm
 - Không có hạng mục dở dang.
 
 ## Còn lại / đề xuất tiếp theo
-- Chạy đủ 90 kịch bản và bot 3 lượt trên bản hiện tại (lần chạy đủ gần nhất: 79 kịch bản ngày 18/11, bot ngày 17/11, trước khi có làng, ô lưu, Sandsunk, Geode, Cogwyrm).
+- Chạy đủ 100 kịch bản và bot 3 lượt trên bản hiện tại (lần chạy đủ gần nhất: 79 kịch bản ngày 18/11, bot ngày 17/11, trước khi có làng, ô lưu, Sandsunk, Geode, Cogwyrm, ná, Eclipse King và kết thúc thật). Bot chưa đi được mạch truyện cây búa.
+- Code không còn dùng: `Warden.cs` + prefab `warden` (chỉ còn kịch bản kiểm thử gọi), `Boss.emberDrop`, `PlayerConfig.startBombs / startRopes` (chỉ test dùng).
 - Dọn code còn sót: `Press.cs` (máy dập của Foreman) vẫn đăng ký `press` nhưng không còn dùng; chú thích trong `Press.cs`, `SawBlade.cs` còn nhắc Foreman; chú thích `SaveSystem` nói lượt chơi không được lưu, `VillagerHome` nói mua bằng vàng, `InventoryScreen` nói mở bằng Tab (đều đã cũ).
-- Ember Pouch chứa 5; việc mở rộng túi (`ExpandPouch`, "việc vặt của trưởng làng") chưa làm.
 - **Chơi thử bằng tay** để tinh chỉnh cảm giác và độ khó (chưa có người chơi thật — xem TEST_REPORT §7).
 - Tinh chỉnh mật độ quái/bẫy theo phản hồi; cân bằng giá cửa hàng.
 - Âm thanh: đánh giá bằng tai, có thể thay bằng âm thanh do sound designer làm.
