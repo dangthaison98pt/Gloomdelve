@@ -72,7 +72,7 @@ namespace Gloomdelve
                 wares = new[] { "springboots", "iceboots", "sandstriders" } },       // (no rope: every climb sets out with its bags full)
             new VillagerDef { id = "healer", name = "Maren", role = "the Healer", place = "The apothecary is open again",
                 cagedLine = "Careful - but please hurry.", homeLine = "One draught and your heart beats stronger till you sleep.",
-                wares = new[] { "dampener" } },
+                wares = new[] { "wisp", "dampener" } },
             new VillagerDef { id = "mapper", name = "Oswin", role = "the Mapmaker", place = "The map room is open again",
                 cagedLine = "I drew the way in. I never drew the way out.", homeLine = "I know that mountain. Let my needle show you the way.",
                 wares = new[] { "spyglass", MapScreen.ItemId, KeyLetter } },

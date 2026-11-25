@@ -150,6 +150,15 @@ namespace Gloomdelve
                     new Color(1f, R(0.45f, 0.75f), 0.15f), R(0.6f, 1.4f), -0.8f, R(1f, 2f), false, true);
         }
 
+        /// <summary>Slow glowing motes of a colour that rise and fade: something not of this world leaving it.</summary>
+        public static void Motes(Vector2 pos, Color c, int n = 6, float spreadX = 0.4f, float spreadY = 0.5f)
+        {
+            if (Instance == null) return;
+            for (int i = 0; i < n; i++)
+                Instance.Emit(pos + new Vector2(R(-spreadX, spreadX), R(-spreadY, spreadY)), new Vector2(R(-0.35f, 0.35f), R(0.9f, 2.3f)),
+                    c * R(0.85f, 1.1f), R(0.8f, 1.7f), -0.5f, R(1f, 2.2f), false, true);
+        }
+
         public static void Blood(Vector2 pos, Color c, int n = 8)
         {
             if (Instance == null) return;

@@ -140,6 +140,7 @@ Lúc nó hở (bị kẹt ở dạng vỏ, mở ngực ở dạng lõi), đòn c
 | Sand Striders / Warding Scarab | $600 / $550 | feet / charm | Cát lún an toàn / xác ướp không lấy được vàng |
 | Dampener / Truth Lens | $600 / $500 | charm | Mảnh pha lê đi xuyên qua / mimic hiện màu đỏ |
 | Pebble Pouch | $450 | charm | Túi đá +10 viên khi đang mặc |
+| Hearth Wisp | $1200 | charm | Đốm linh hồn bay cạnh vai khi mặc. Khi chết (trừ thần chết), Wisp tự hi sinh: sống lại với 5 máu, bất tử 2,5 s, Wisp mất (`revive`). Bản thiết kế ở Maren |
 | Hobnail Boots | $700 | feet | Giẫm đầu gây 2 sát thương (`stompBonus`) |
 | Iron Cap | $550 | body | Vật rơi trúng đầu (thạch nhũ, đá, bình rơi) bớt 1 sát thương; vật chỉ gây 1 thì không còn đau (`headGuard`) |
 | Soft-Sole Boots | $600 | feet | Rơi 12 ô mới mất máu thay vì 9 (`fallBonus`) |
@@ -167,7 +168,7 @@ Ba loại tiền (`Villagers.cs`):
 |---|---|---|
 | Lò rèn | Hilde the Smith | Bản thiết kế: Tempered Blade 4, Blast Powder 3, Hobnail Boots 3, Magnet Charm 2 ember |
 | Xưởng dây | Tam the Ropemaker | Bản thiết kế: Spring Boots 4, Ice Cleats 2, Sand Striders 2 ember |
-| Nhà thuốc | Maren the Healer | Bản thiết kế: Dampener 2 ember |
+| Nhà thuốc | Maren the Healer | Bản thiết kế: **Hearth Wisp** 4, Dampener 2 ember |
 | Phòng bản đồ | Oswin the Mapmaker | Bản thiết kế: Spyglass 2 ember; **Map 2 ember**, **Lost Letter 3 ember** (mua trực tiếp) |
 | Tiệm lặt vặt | Pip the Peddler | Đồ tiêu hao, bằng spark: Bomb Bag (+3) 1, Rope Pile (+3) 1, Pebble Sack (+5) 1, **Sheet of Paper** 1. Lamp Oil, Flares, Heart Draught: chưa mở thì Pip bán **bản thiết kế** (1 / 2 / 2 ember); mua xong thì chính dòng đó bán món đồ bằng spark (1 / 2 / 2) và món đó lên kệ núi. Bom, dây, đá, Flare, giấy vào kho, không mất khi chết; Lamp Oil và Heart Draught có tác dụng ngay, chỉ trong lượt đó. Tiệm nằm ngay cạnh nhà Brann (`HandcraftedLevel.StreetOrder`) |
 | Nhà đèn | Bera the Lamplighter | Bản thiết kế: Lantern 2 ember |

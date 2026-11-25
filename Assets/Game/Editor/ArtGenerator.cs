@@ -2256,6 +2256,132 @@ namespace Gloomdelve.EditorTools
                 Save(p, d + "lostletter", PItem);
             }
             {
+                // the Hearth Wisp: a little warm light with two dark eyes and a flame for a tail (Maren's blueprint; it flies beside the player while worn)
+                var p = ItemCanvas(); Color32 outer = C(255, 170, 90), mid = C(255, 214, 140), core = C(255, 248, 220), eye = C(70, 40, 40), tip = C(255, 130, 70);
+                p.Disc(8f, 5.5f, 4.4f, outer);
+                p.Disc(8f, 5.8f, 3.3f, mid);
+                p.Disc(8f, 6f, 2.1f, core);
+                p.Rect(7, 10, 3, 1, outer);
+                p.Rect(7, 11, 2, 1, outer);
+                p.Set(8, 12, tip);
+                p.Set(9, 10, mid);
+                p.Set(8, 13, tip);
+                p.Set(10, 11, tip);
+                p.Set(6, 9, outer);
+                p.Set(7, 6, eye);
+                p.Set(9, 6, eye);
+                p.Set(4, 3, outer);
+                p.Set(12, 3, outer);
+                p.Outline(C(90, 40, 30));
+                Save(p, d + "wisp", PItem);
+            }
+            // the Hearth Wisp flickering: its flame sways and pulses; the last frame is a blink (PlayerController.UpdateWisp)
+            {
+                // wisp frame 0
+                var p = ItemCanvas(); Color32 outer = C(255, 170, 90), mid = C(255, 214, 140), core = C(255, 248, 220), eye = C(70, 40, 40), tip = C(255, 130, 70);
+                p.Disc(8f, 5.5f, 4.4f, outer);
+                p.Disc(8f, 5.8f, 3.3000000000000003f, mid);
+                p.Disc(8f, 6f, 2.1f, core);
+                p.Rect(7, 10, 3, 1, outer);
+                p.Rect(7, 11, 2, 1, outer);
+                p.Set(8, 12, tip);
+                p.Set(8, 13, tip);
+                p.Set(9, 14, tip);
+                p.Set(9, 10, mid);
+                p.Set(10, 11, tip);
+                p.Set(6, 9, outer);
+                p.Set(7, 6, eye);
+                p.Set(9, 6, eye);
+                p.Set(4, 3, outer);
+                p.Set(12, 4, outer);
+                p.Outline(C(90, 40, 30));
+                Save(p, d + "wisp_0", PItem);
+            }
+            {
+                // wisp frame 1
+                var p = ItemCanvas(); Color32 outer = C(255, 170, 90), mid = C(255, 214, 140), core = C(255, 248, 220), eye = C(70, 40, 40), tip = C(255, 130, 70);
+                p.Disc(8f, 5.5f, 4.6f, outer);
+                p.Disc(8f, 5.8f, 3.4999999999999996f, mid);
+                p.Disc(8f, 6f, 2.1f, core);
+                p.Rect(8, 10, 3, 1, outer);
+                p.Rect(8, 11, 2, 1, outer);
+                p.Set(9, 12, tip);
+                p.Set(9, 13, tip);
+                p.Set(10, 10, mid);
+                p.Set(11, 11, tip);
+                p.Set(6, 9, outer);
+                p.Set(7, 6, eye);
+                p.Set(9, 6, eye);
+                p.Set(4, 4, outer);
+                p.Set(12, 3, outer);
+                p.Outline(C(90, 40, 30));
+                Save(p, d + "wisp_1", PItem);
+            }
+            {
+                // wisp frame 2
+                var p = ItemCanvas(); Color32 outer = C(255, 170, 90), mid = C(255, 214, 140), core = C(255, 248, 220), eye = C(70, 40, 40), tip = C(255, 130, 70);
+                p.Disc(8f, 5.5f, 4.4f, outer);
+                p.Disc(8f, 5.8f, 3.3000000000000003f, mid);
+                p.Disc(8f, 6f, 2.1f, core);
+                p.Rect(7, 10, 3, 1, outer);
+                p.Rect(7, 11, 2, 1, outer);
+                p.Set(8, 12, tip);
+                p.Set(8, 13, tip);
+                p.Set(9, 14, tip);
+                p.Set(9, 10, mid);
+                p.Set(10, 11, tip);
+                p.Set(6, 9, outer);
+                p.Set(7, 6, eye);
+                p.Set(9, 6, eye);
+                p.Set(4, 3, outer);
+                p.Set(12, 4, outer);
+                p.Outline(C(90, 40, 30));
+                Save(p, d + "wisp_2", PItem);
+            }
+            {
+                // wisp frame 3
+                var p = ItemCanvas(); Color32 outer = C(255, 170, 90), mid = C(255, 214, 140), core = C(255, 248, 220), eye = C(70, 40, 40), tip = C(255, 130, 70);
+                p.Disc(8f, 5.5f, 4.2f, outer);
+                p.Disc(8f, 5.8f, 3.1f, mid);
+                p.Disc(8f, 6f, 2.1f, core);
+                p.Rect(6, 10, 3, 1, outer);
+                p.Rect(6, 11, 2, 1, outer);
+                p.Set(7, 12, tip);
+                p.Set(7, 13, tip);
+                p.Set(6, 14, tip);
+                p.Set(6, 15, tip);
+                p.Set(8, 10, mid);
+                p.Set(9, 11, tip);
+                p.Set(6, 9, outer);
+                p.Set(7, 6, eye);
+                p.Set(9, 6, eye);
+                p.Set(4, 4, outer);
+                p.Set(12, 3, outer);
+                p.Outline(C(90, 40, 30));
+                Save(p, d + "wisp_3", PItem);
+            }
+            {
+                // wisp frame 4 (a blink)
+                var p = ItemCanvas(); Color32 outer = C(255, 170, 90), mid = C(255, 214, 140), core = C(255, 248, 220), eye = C(70, 40, 40), tip = C(255, 130, 70);
+                p.Disc(8f, 5.5f, 4.4f, outer);
+                p.Disc(8f, 5.8f, 3.3000000000000003f, mid);
+                p.Disc(8f, 6f, 2.1f, core);
+                p.Rect(7, 10, 3, 1, outer);
+                p.Rect(7, 11, 2, 1, outer);
+                p.Set(8, 12, tip);
+                p.Set(8, 13, tip);
+                p.Set(9, 14, tip);
+                p.Set(9, 10, mid);
+                p.Set(10, 11, tip);
+                p.Set(6, 9, outer);
+                p.Rect(6, 6, 2, 1, eye);
+                p.Rect(9, 6, 2, 1, eye);
+                p.Set(4, 3, outer);
+                p.Set(12, 4, outer);
+                p.Outline(C(90, 40, 30));
+                Save(p, d + "wisp_4", PItem);
+            }
+            {
                 // a flare lying down: a short red stick with a burning end
                 var p = ItemCanvas(); Color32 red = C(206, 52, 48), redD = C(140, 30, 34), cap = C(236, 222, 186), fire = C(255, 220, 120), fire2 = C(255, 140, 60);
                 p.Rect(5, 1, 5, 2, red);

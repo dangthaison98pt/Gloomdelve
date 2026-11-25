@@ -50,6 +50,9 @@ namespace Gloomdelve
         [Header("Blade visuals")]
         public SpriteRenderer whipRenderer;
         [Tooltip("Glider canopy shown while gliding.")] public SpriteRenderer gliderRenderer;
+        [Tooltip("The Hearth Wisp flying beside the player while it is worn (a child with its own light).")] public SpriteRenderer wispRenderer;
+        [Tooltip("Its flicker, in order; the last is a blink.")] public Sprite[] wispFrames;
+        GlowLight wispGlow;
         public Sprite whipBackSprite;
         public Sprite whipFrontSprite;
 
@@ -583,6 +586,8 @@ namespace Gloomdelve
             Fx.Shake(0.35f);
             Sfx.Play("hurt", pos);
             if (GameDirector.Instance != null) GameDirector.Instance.OnPlayerHurt(d, Describe(d, Run.health <= 0));
+            // a Hearth Wisp worn: it gives its light, and the death is turned away once (the Reaper takes whom it takes)
+            if (Run.health <= 0 && d.type != DamageType.Wraith && Run.stats.revive > 0 && Revive()) return true;
             if (Run.health <= 0)
             {
                 Run.health = 0;
@@ -731,6 +736,56 @@ namespace Gloomdelve
             }
         }
 
+        /// <summary>The Hearth Wisp spends itself: back up with its health, a moment of grace, and the piece is gone.</summary>
+        bool Revive()
+        {
+            string used = null;
+            foreach (var id in Run.worn) { var o = Run.Owned(id); if (o != null && o.modifiers != null && o.modifiers.revive > 0) { used = id; break; } }
+            if (used == null) return false;
+            int hp = Mathf.Clamp(Run.Owned(used).modifiers.revive, 1, Mathf.Max(1, Run.maxHealth));
+            Run.RemoveUpgrade(used);
+            Run.health = hp;
+            invuln = 2.5f;
+            stunTimer = 0f;
+            Vector2 at = wispRenderer != null && wispRenderer.enabled ? (Vector2)wispRenderer.transform.position : Center;
+            Fx.Sparks(at, new Color(1f, 0.86f, 0.55f), 24, 6f);
+            Fx.Sparks(Center, new Color(1f, 0.95f, 0.8f), 18, 4f);
+            LevelLighting.Flash(Center, new Color(1f, 0.85f, 0.55f), 7f, 2f, 0.7f);
+            Sfx.Play("idol", pos);
+            var gd = GameDirector.Instance;
+            if (gd != null) gd.ShowMessage("Your Hearth Wisp gave its light for you. You rise again.");
+            Revived++;
+            return true;
+        }
+
+        /// <summary>The Hearth Wisp, while one is worn: a little light bobbing at the player's shoulder, behind them.</summary>
+        void UpdateWisp()
+        {
+            if (wispRenderer == null) return;
+            bool on = Run != null && Run.stats.revive > 0 && !IsDead;
+            if (wispRenderer.enabled != on)
+            {
+                wispRenderer.enabled = on;
+                if (wispGlow == null) wispGlow = wispRenderer.GetComponent<GlowLight>();
+                if (wispGlow != null) wispGlow.SetOn(on);
+            }
+            if (!on) return;
+            float t = Time.time;
+            wispRenderer.transform.localPosition = new Vector3(-facing * 0.6f + Mathf.Sin(t * 1.7f) * 0.12f, 1.3f + Mathf.Sin(t * 3.1f) * 0.12f, 0f);
+            // the flame sways and pulses (8 frames a second); every few seconds it blinks
+            if (wispFrames != null && wispFrames.Length >= 2)
+            {
+                int flick = wispFrames.Length - 1;
+                bool blink = (t % 3.3f) < 0.14f;
+                var f = blink ? wispFrames[flick] : wispFrames[Mathf.FloorToInt(t * 8f) % flick];
+                if (f != null && wispRenderer.sprite != f) wispRenderer.sprite = f;
+            }
+            wispRenderer.flipX = facing < 0;
+        }
+
+        /// <summary>How many times a Hearth Wisp has turned death away from this player (tests).</summary>
+        public int Revived { get; private set; }
+
         void Die(in DamageInfo d)
         {
             IsDead = true;
@@ -761,6 +816,7 @@ namespace Gloomdelve
         protected override void LateUpdate()
         {
             base.LateUpdate();
+            UpdateWisp();
             for (int i = 0; i < ghosts.Count; i++)
             {
                 if (ghosts[i] == null || ghostLife[i] <= 0f) continue;

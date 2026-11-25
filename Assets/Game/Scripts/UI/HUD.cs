@@ -7,6 +7,28 @@ namespace Gloomdelve
     public class HUD : MonoBehaviour
     {
         public TMPro.TMP_Text healthText;
+
+        Canvas statsCanvas;
+        /// <summary>
+        /// The corner with health and money is drawn over a screen that dims the game (a village stall): what is in
+        /// the pouch is read there, so it must not be dimmed with the rest. up = false puts it back in its place.
+        /// </summary>
+        public void RaiseStats(bool up)
+        {
+            var t = transform.Find("TopLeft");
+            if (t == null) return;
+            if (statsCanvas == null)
+            {
+                statsCanvas = t.GetComponent<Canvas>();
+                if (statsCanvas == null) statsCanvas = t.gameObject.AddComponent<Canvas>();
+            }
+            var root = statsCanvas.rootCanvas;
+            statsCanvas.overrideSorting = up;
+            statsCanvas.sortingOrder = up ? (root != null && root != statsCanvas ? root.sortingOrder : 0) + 5 : 0;
+        }
+
+        /// <summary>Tests: the corner with health and money is drawn over the screens just now.</summary>
+        public bool StatsRaised => statsCanvas != null && statsCanvas.overrideSorting;
         public TMPro.TMP_Text bombText;
         public TMPro.TMP_Text ropeText;
         public TMPro.TMP_Text goldText;
@@ -59,6 +81,14 @@ namespace Gloomdelve
         readonly System.Collections.Generic.Queue<Gained> cards = new System.Collections.Generic.Queue<Gained>();
         Gained card;
         float cardA;
+
+        /// <summary>Tests: every card shown or waiting is put away at once (what a player reads and dismisses).</summary>
+        public void ClearCards()
+        {
+            cards.Clear();
+            if (card != null && cardWaits) Time.timeScale = cardSavedScale;
+            card = null; cardWaits = false;
+        }
 
         /// <summary>A card is up (or waiting) / lines in the list at the left (tests).</summary>
         public bool CardUp => card != null || cards.Count > 0;

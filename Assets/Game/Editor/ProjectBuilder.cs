@@ -627,6 +627,10 @@ namespace Gloomdelve.EditorTools
             if (shop.Find("spyglass") == null)
                 shop.offers.Add(new ShopOffer { id = "spyglass", displayName = "Spyglass", price = 500, isUpgrade = true, slot = "charm",
                     description = "look up or down twice as far", modifiers = new StatModifiers { lookBonus = 1f } });
+            // Maren's spirit: worn, it turns a death away once
+            if (shop.Find("wisp") == null)
+                shop.offers.Add(new ShopOffer { id = "wisp", displayName = "Hearth Wisp", price = 1200, isUpgrade = true, slot = "charm",
+                    description = "once, a death is turned away: you rise with 5 health", modifiers = new StatModifiers { revive = 5 } });
             if (shop.Find(Villagers.KeyLetter) == null)
                 shop.offers.Add(new ShopOffer { id = Villagers.KeyLetter, displayName = "Lost Letter", price = 750, resource = Villagers.KeyLetter, amount = 1,
                     description = "yours for good. A level that holds a caged villager tells you so, and your map marks the cage" });
@@ -652,7 +656,7 @@ namespace Gloomdelve.EditorTools
             icons[MapScreen.ItemId] = "Sprites/Items/map";
             icons["pebbles"] = "Sprites/Items/pebbles";
             icons["hobnailboots"] = "Sprites/Items/hobnailboots"; icons["ironcap"] = "Sprites/Items/ironcap"; icons["softsoles"] = "Sprites/Items/softsoles";
-            icons["spyglass"] = "Sprites/Items/spyglass"; icons[Villagers.KeyLetter] = "Sprites/Items/lostletter"; icons[FlareGear.OfferId] = "Sprites/Items/flarepack";
+            icons["spyglass"] = "Sprites/Items/spyglass"; icons["wisp"] = "Sprites/Items/wisp"; icons[Villagers.KeyLetter] = "Sprites/Items/lostletter"; icons[FlareGear.OfferId] = "Sprites/Items/flarepack";
             icons["vigor"] = "Sprites/NPC/ware_vigor"; icons["lampoil"] = "Sprites/NPC/ware_lampoil";
             foreach (var o in shop.offers) if (icons.TryGetValue(o.id, out var ic)) o.icon = ArtGenerator.S(ic);
             // what the villagers ask for the blueprints (Blueprints), in embers: the strong pieces for every area dearer,
@@ -661,7 +665,7 @@ namespace Gloomdelve.EditorTools
             {
                 ["ironwhip"] = 4, ["springboots"] = 4, ["blastpowder"] = 3, ["hobnailboots"] = 3, ["spyglass"] = 2,
                 ["iceboots"] = 2, ["lantern"] = 2, ["magnetcharm"] = 2, ["sandstriders"] = 2, ["dampener"] = 2,
-                ["lampoil"] = 1, [FlareGear.OfferId] = 2, ["vigor"] = 2,
+                ["lampoil"] = 1, [FlareGear.OfferId] = 2, ["vigor"] = 2, ["wisp"] = 4,
             };
             foreach (var o in shop.offers) if (o.blueprintPrice <= 0 && plans.TryGetValue(o.id, out var bp)) o.blueprintPrice = bp;
             EditorUtility.SetDirty(shop);
@@ -1548,6 +1552,17 @@ namespace Gloomdelve.EditorTools
                 var gsr = glider.AddComponent<SpriteRenderer>();
                 gsr.sprite = ArtGenerator.S("Sprites/Player/glider"); gsr.sharedMaterial = spriteMat; gsr.sortingOrder = 21; gsr.enabled = false;
                 p.gliderRenderer = gsr;
+                // the Hearth Wisp: a little light at the shoulder while one is worn (PlayerController.UpdateWisp)
+                var wisp = new GameObject("Wisp");
+                wisp.transform.SetParent(root.transform, false);
+                var wspr = wisp.AddComponent<SpriteRenderer>();
+                wspr.sprite = ArtGenerator.S("Sprites/Items/wisp"); wspr.sharedMaterial = unlitMat; wspr.sortingOrder = 22; wspr.enabled = false;
+                wisp.transform.localScale = new Vector3(0.7f, 0.7f, 1f);
+                var wgl = wisp.AddComponent<GlowLight>();
+                wgl.color = new Color(1f, 0.75f, 0.45f); wgl.radius = 3.2f; wgl.intensity = 0.9f; wgl.flicker = 0.25f; wgl.pulse = true; wgl.startOn = false; wgl.offset = Vector2.zero;
+                p.wispRenderer = wspr;
+                p.wispFrames = new[] { ArtGenerator.S("Sprites/Items/wisp_0"), ArtGenerator.S("Sprites/Items/wisp_1"), ArtGenerator.S("Sprites/Items/wisp_2"),
+                                       ArtGenerator.S("Sprites/Items/wisp_3"), ArtGenerator.S("Sprites/Items/wisp_4") };
                 p.whipBackSprite = ArtGenerator.S("Sprites/Player/whip_back");
                 p.whipFrontSprite = ArtGenerator.S("Sprites/Player/whip_front");
                 reg.player = SavePrefab<PlayerController>(root, "");
@@ -2886,11 +2901,11 @@ namespace Gloomdelve.EditorTools
                 // (UIBuilder.Place: a thing's position is that of its own anchor corner - top edge for what hangs from the top)
                 vs.title = UIBuilder.Label(vp, "Title", "", 46, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -30), new Vector2(880, 64), true, FontStyle.Bold);
                 vs.line = UIBuilder.Label(vp, "Line", "", 24, new Color(1f, 1f, 1f, 0.85f), TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -100), new Vector2(880, 66));
-                vs.embers = UIBuilder.Label(vp, "Embers", "", 24, ember, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -172), new Vector2(880, 34), false);
+                vs.embers = null;          // (what is in the pouch is on the HUD above: not written again on the screen)
                 const int vsRows = 7;          // (Pip sells every consumable: seven rows)
                 vs.rows = new Button[vsRows]; vs.icons = new Image[vsRows]; vs.planSheets = new Image[vsRows];
                 vs.names = new TMPro.TMP_Text[vsRows]; vs.descs = new TMPro.TMP_Text[vsRows]; vs.prices = new TMPro.TMP_Text[vsRows];
-                vs.firstRowY = -222f; vs.rowStep = 82f; vs.baseHeight = 368f;
+                vs.firstRowY = -176f; vs.rowStep = 82f; vs.baseHeight = 322f;
                 for (int i = 0; i < vsRows; i++)
                 {
                     var wareRow = UIBuilder.Button(vp, "Row_" + i, "", new Vector2(0.5f, 1f), new Vector2(0, vs.firstRowY - vs.rowStep * i), new Vector2(880, 76));
@@ -2905,7 +2920,7 @@ namespace Gloomdelve.EditorTools
                     vs.icons[i].rectTransform.pivot = new Vector2(0.5f, 0.5f);
                     vs.icons[i].preserveAspect = true;
                     vs.names[i] = UIBuilder.Label(wareRow.transform, "Name", "", 28, Color.white, TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(102, 17), new Vector2(480, 38));
-                    vs.descs[i] = UIBuilder.Label(wareRow.transform, "Desc", "", 20, new Color(1f, 1f, 1f, 0.75f), TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(102, -19), new Vector2(640, 30), false);       // (it stops short of the price, which stands in the middle of the row)
+                    vs.descs[i] = UIBuilder.Label(wareRow.transform, "Desc", "", 20, new Color(1f, 1f, 1f, 0.75f), TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(102, -19), new Vector2(560, 30), false);       // (it stops well short of the price, which stands in the middle of the row: "Bag full" and the like need room)
                     vs.prices[i] = UIBuilder.Label(wareRow.transform, "Price", "", 28, ember, TextAnchor.MiddleRight, new Vector2(1f, 0.5f), new Vector2(-24, 0), new Vector2(200, 40), false);
                 }
                 vs.note = UIBuilder.Label(vp, "Note", "", 22, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0, 110), new Vector2(880, 34), false);

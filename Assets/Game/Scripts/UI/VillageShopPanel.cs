@@ -54,6 +54,27 @@ namespace Gloomdelve
         float savedScale = 1f;
 
         public bool IsOpen => open;
+        float openedAt = -10f;
+
+        /// <summary>
+        /// A row pressed on the screen. Not in the first moments after the screen opens: the very press that opened
+        /// it (the interact button, which is also the confirm button) must not buy the row that is in focus.
+        /// </summary>
+        void Click(int k)
+        {
+            if (Time.unscaledTime - openedAt < OpenGrace) return;
+            Buy(k);
+        }
+
+        /// <summary>Seconds after opening in which a press on a row does nothing (Click).</summary>
+        public const float OpenGrace = 0.35f;
+        /// <summary>Tests: the screen opened just now - a press on a row would be the one that opened it.</summary>
+        public bool InGrace => Time.unscaledTime - openedAt < OpenGrace;
+        /// <summary>Tests: how bright a row is drawn (its name), 1 = as it is, less = greyed out.</summary>
+        public float RowBrightness(int i) => names != null && i >= 0 && i < names.Length && names[i] != null ? names[i].color.a : -1f;
+
+        /// <summary>Tests: a row pressed as the player would press it.</summary>
+        public void Press(int k) => Click(k);
         public int Count => entries.Count;
         public Entry At(int i) => i >= 0 && i < entries.Count ? entries[i] : null;
         public string Note => note != null ? note.text : "";
@@ -61,7 +82,7 @@ namespace Gloomdelve
         void Awake()
         {
             if (rows != null)
-                for (int i = 0; i < rows.Length; i++) { int k = i; UIUtil.Wire(rows[i], () => Buy(k)); }
+                for (int i = 0; i < rows.Length; i++) { int k = i; UIUtil.Wire(rows[i], () => Click(k)); }
             UIUtil.Wire(closeButton, Close);
             if (root != null) root.SetActive(false);
         }
@@ -118,9 +139,11 @@ namespace Gloomdelve
             if (title != null) title.text = who ?? "";
             if (line != null) line.text = say ?? "";
             if (note != null) note.text = "";
-            if (!open) { savedScale = Time.timeScale > 0f ? Time.timeScale : 1f; Time.timeScale = 0f; }
+            if (!open) { savedScale = Time.timeScale > 0f ? Time.timeScale : 1f; Time.timeScale = 0f; openedAt = Time.unscaledTime; }
             open = true;
             root.SetActive(true);
+            var hudUp = GameDirector.Instance != null ? GameDirector.Instance.hud : null;
+            if (hudUp != null) hudUp.RaiseStats(true);          // (health and money stay bright above the dimmed game)
             Refresh();
             Selectable first = closeButton;
             if (rows != null) for (int i = 0; i < entries.Count && i < rows.Length; i++) if (rows[i].interactable) { first = rows[i]; break; }
@@ -135,6 +158,8 @@ namespace Gloomdelve
             if (!open) return;
             open = false;
             if (root != null) root.SetActive(false);
+            var hudDown = GameDirector.Instance != null ? GameDirector.Instance.hud : null;
+            if (hudDown != null) hudDown.RaiseStats(false);
             Time.timeScale = savedScale;
             var dir = GameDirector.Instance;
             if (dir != null && dir.input != null) dir.input.ClearLatches();      // (the press that shut it is not also a jump)
@@ -151,31 +176,44 @@ namespace Gloomdelve
             {
                 if (Bags.CanEnlarge(e.bag)) return null;
                 sentence = e.bag == Bags.Embers && !Villagers.HasKey(Villagers.KeyPouch) ? "There is no pouch to let out yet." : "It is as large as it gets.";
-                return "MAX";
+                return "Max";
             }
             if (e.blueprint)
             {
-                if (e.ware != null && Blueprints.Known(e.ware.id)) { sentence = "You know how it is made already: the shops on the mountain carry it."; return "KNOWN"; }
+                if (e.ware != null && Blueprints.Known(e.ware.id)) { sentence = "You know how it is made already: the shops on the mountain carry it."; return "Known"; }
                 if (!Villagers.HasKey(Villagers.KeyPouch)) { sentence = "There is no pouch for embers yet."; return ""; }
                 return null;
             }
             if (run == null || e.offer == null) { sentence = "Not now."; return ""; }
-            if ((e.offer.id == MapScreen.ItemId || e.offer.id == Villagers.KeyLetter) && Villagers.HasKey(e.offer.id)) { sentence = "You have it already, and it is yours for good."; return "OWNED"; }
-            if (e.offer.isUpgrade && run.HasUpgrade(e.offer.id)) { sentence = "That is yours already."; return "OWNED"; }
-            if (e.offer.resource == Res.Health && run.HealthFull) { sentence = "Your health is full."; return "FULL"; }
+            if ((e.offer.id == MapScreen.ItemId || e.offer.id == Villagers.KeyLetter) && Villagers.HasKey(e.offer.id)) { sentence = "You have it already, and it is yours for good."; return "Owned"; }
+            if (e.offer.isUpgrade && run.HasUpgrade(e.offer.id)) { sentence = "That is yours already."; return "Owned"; }
+            if (e.offer.resource == Res.Health && run.HealthFull) { sentence = "Your health is full."; return "Full"; }
             if (!string.IsNullOrEmpty(e.offer.resource) && run.CapOf(e.offer.resource) != int.MaxValue && run.RoomFor(e.offer.resource) <= 0)
             {
                 sentence = $"Your bag is full: it holds {run.CapOf(e.offer.resource)}.";
-                return "BAG FULL";
+                return "Bag full";
             }
             return null;
+        }
+
+        /// <summary>Bought already: a blueprint known, a thing owned, a bag as large as it gets (not "full for now").</summary>
+        bool Done(Entry e, RunState run)
+        {
+            string b = Blocked(e, run, out _);
+            return b == "Known" || b == "Owned" || b == "Max";
         }
 
         void Refresh()
         {
             var run = RunSession.Current;
-            if (embers != null) embers.text = Villagers.HasKey(Villagers.KeyPouch)
-                ? $"[spark] {Villagers.Sparks}          [ember] {Villagers.Embers} / {Villagers.PouchCapacity}" : "No pouch for [spark] and [ember] yet";       // (a number and its picture, never the word)
+            // (what is in the pouch is on the HUD above the screen: it is not written again here)
+            if (embers != null) embers.gameObject.SetActive(false);
+            // what is bought already - a blueprint known, a thing owned, a bag as large as it gets - goes to the
+            // bottom of the list; what can still be had stays on top (in the order the stall sets it out)
+            var order = new List<Entry>(entries);
+            var top = order.FindAll(x => !Done(x, run));
+            top.AddRange(order.FindAll(x => Done(x, run)));
+            entries.Clear(); entries.AddRange(top);
             int n = entries.Count;
             var hud = GameDirector.Instance != null ? GameDirector.Instance.hud : null;
             for (int i = 0; rows != null && i < rows.Length; i++)
@@ -221,7 +259,14 @@ namespace Gloomdelve
                 {
                     prices[i].text = blocked ?? ((e.lasting ? "[ember] " : "[spark] ") + e.price);       // (the picture first, as in the line of what is in the pouch: the number ends flush with the row)
                     bool enough = (e.lasting ? Villagers.Embers : Villagers.Sparks) >= e.price;
-                    prices[i].color = blocked != null ? new Color(1f, 1f, 1f, 0.55f) : !enough ? new Color(1f, 0.45f, 0.4f) : e.lasting ? new Color(1f, 0.72f, 0.36f) : new Color(1f, 0.92f, 0.55f);
+                    // bought already, or not enough to pay: the whole row is greyed out
+                    bool grey = blocked != null || !enough;
+                    prices[i].color = grey ? new Color(0.75f, 0.75f, 0.78f, 0.5f) : e.lasting ? new Color(1f, 0.72f, 0.36f) : new Color(1f, 0.92f, 0.55f);
+                    float a = grey ? 0.45f : 1f;
+                    if (names != null && i < names.Length && names[i] != null) names[i].color = new Color(1f, 1f, 1f, a);
+                    if (descs != null && i < descs.Length && descs[i] != null) descs[i].color = new Color(1f, 1f, 1f, 0.75f * a);          // (the description is drawn a little dimmer than the name)
+                    if (icons != null && i < icons.Length && icons[i] != null) { var ic = icons[i].color; ic.a *= a; icons[i].color = ic; }
+                    if (planSheets != null && i < planSheets.Length && planSheets[i] != null) planSheets[i].color = new Color(1f, 1f, 1f, a);
                 }
             }
             if (panel != null) panel.sizeDelta = new Vector2(panel.sizeDelta.x, baseHeight + rowStep * n);
@@ -246,7 +291,7 @@ namespace Gloomdelve
                 if (!Bags.Enlarge(e.bag)) { Sfx.PlayUI("error"); Say("Not enough [ember].", false); return false; }
                 Sfx.PlayUI("buy");
                 Say(e.bag == Bags.Embers ? $"{Bags.Name(e.bag)}: it holds {Bags.Holds(e.bag, run)} now, for good."
-                                         : $"{Bags.Name(e.bag)}: it holds {Bags.Holds(e.bag, run)} now, for good - and it is full.", true);
+                                         : $"{Bags.Name(e.bag)}: it holds {Bags.Holds(e.bag, run)} now, for good. Pip sells what goes in it.", true);
                 Refresh();
                 return true;
             }

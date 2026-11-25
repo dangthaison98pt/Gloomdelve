@@ -40,6 +40,7 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 0
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: 22c0851038970d04dafd99a51a258b04, type: 3}
     description: +3 bombs
     blueprintPrice: 0
@@ -70,6 +71,7 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 0
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: 9ad97bda8a453844594bc92a37ef73fe, type: 3}
     description: +3 ropes
     blueprintPrice: 0
@@ -100,6 +102,7 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 0
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: 4e142a90c5a0dca4b8d8592ac12cf2cc, type: 3}
     description: +3 health
     blueprintPrice: 0
@@ -130,6 +133,7 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 0
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: fbfb0a5b4cca04347be78c091c9351b0, type: 3}
     description: jump about 40% higher
     blueprintPrice: 4
@@ -160,6 +164,7 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 0
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: 9573d34ca403fd644976448e13e6c829, type: 3}
     description: blade deals 2 damage and reaches further
     blueprintPrice: 4
@@ -190,6 +195,7 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 0
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: 3a271a22a3e72734c97e1cdc2f00c1e2, type: 3}
     description: points to the exit
     blueprintPrice: 0
@@ -220,6 +226,7 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 0
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: 8e652c6ec7e4b604e8044920b34b166f, type: 3}
     description: bigger bomb blasts
     blueprintPrice: 3
@@ -250,6 +257,7 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 0
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: ca46dee40c33a8d45b4551af47ab9e06, type: 3}
     description: 'spiked soles: no sliding on ice'
     blueprintPrice: 2
@@ -280,6 +288,7 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 0
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: 4654bf18d521cf74b8ce7b23a5c922b3, type: 3}
     description: snowballs only slow you instead of freezing you
     blueprintPrice: 0
@@ -310,6 +319,7 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 0
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: 9340f5070bb37f6478a92d082c8369b0, type: 3}
     description: spore clouds cannot make you dizzy
     blueprintPrice: 0
@@ -340,6 +350,7 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 0
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: e5e874b40a3fadb4bbbdd1bfefb5cd1a, type: 3}
     description: your light reaches much further in the dark
     blueprintPrice: 2
@@ -370,6 +381,7 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 0
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: 5da6b8788c5e8724cb64142550351deb, type: 3}
     description: 'iron soles: conveyor belts cannot carry you'
     blueprintPrice: 0
@@ -400,6 +412,7 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 0
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: b550b21fb08ea5244b4becf24b7dc124, type: 3}
     description: 'pulls shields aside: your blade cuts through a sentry''s guard'
     blueprintPrice: 2
@@ -430,6 +443,7 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 0
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: 224db3d531f0f1349a712722ab21b76e, type: 3}
     description: +1 heart until you sleep
     blueprintPrice: 2
@@ -460,6 +474,7 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 0
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: ad0e3be8950c79540b1308dbbb2486e7, type: 3}
     description: the Reaper comes 2 minutes later
     blueprintPrice: 1
@@ -490,6 +505,7 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 0
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: 43264eb6072d88b4b8806e1d670c878b, type: 3}
     description: +5 health
     blueprintPrice: 0
@@ -520,6 +536,7 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 0
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: 282641eb9f93d6b46a91db7069a21564, type: 3}
     description: back to full health
     blueprintPrice: 0
@@ -550,6 +567,7 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 0
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: 74335e29e4b4d6743bf29ee379bac5b3, type: 3}
     description: 'wide woven soles: quicksand holds like stone'
     blueprintPrice: 2
@@ -580,6 +598,7 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 0
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: 53d54b952e5c6864d915244c5345eb02, type: 3}
     description: a mummy's grab cannot take your gold
     blueprintPrice: 0
@@ -610,6 +629,7 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 0
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: e826c5242a69a8343b89f012a624c816, type: 3}
     description: the shards of a bursting crystal pass through you
     blueprintPrice: 2
@@ -640,6 +660,7 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 0
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: ca5369188bbe9d34d880822575775227, type: 3}
     description: a mimic in disguise shows red
     blueprintPrice: 0
@@ -670,6 +691,7 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 0
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: e634fa265c63b934e8b38308a750912d, type: 3}
     description: carry 10 more pebbles for the slingshot
     blueprintPrice: 0
@@ -700,6 +722,7 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 0
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: cb5b7c75254e0f343a487d85cb48ca5e, type: 3}
     description: 'a clean sheet and a stick of charcoal: for copying down what cannot
       be carried away'
@@ -731,6 +754,7 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 0
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: 46abf169ea2c1b747bfaa48e0fef9309, type: 3}
     description: 'yours for good. Hold the map button to unfold it: it draws each
       level as you walk it'
@@ -762,6 +786,7 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 0
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: c3f9e2e7cd462a04190b09456e134828, type: 3}
     description: 'iron-studded soles: a stomp does 2 damage'
     blueprintPrice: 3
@@ -792,6 +817,7 @@ MonoBehaviour:
       headGuard: 1
       fallBonus: 0
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: 1064ef038430002469e1c8aebf9c009a, type: 3}
     description: what falls on your head does 1 less damage
     blueprintPrice: 0
@@ -822,6 +848,7 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 3
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: 339581603c51d3a49bf6fb0f82ffdf25, type: 3}
     description: a fall must be 12 tiles to hurt you, not 9
     blueprintPrice: 0
@@ -852,6 +879,7 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 0
       lookBonus: 1
+      revive: 0
     icon: {fileID: 21300000, guid: 986caf74bc82d6944880a184b88528d6, type: 3}
     description: look up or down twice as far
     blueprintPrice: 2
@@ -882,6 +910,7 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 0
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: a25524feb8c92ae458cc95848f89fdce, type: 3}
     description: yours for good. A level that holds a caged villager tells you so,
       and your map marks the cage
@@ -913,6 +942,7 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 0
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: e3add5e7a32717940b24f1e5708f7460, type: 3}
     description: 'three flares to throw: each burns red for half a minute and lights
       the dark'
@@ -944,8 +974,40 @@ MonoBehaviour:
       headGuard: 0
       fallBonus: 0
       lookBonus: 0
+      revive: 0
     icon: {fileID: 21300000, guid: 6e3c33e5d8099be468375a823c5e9881, type: 3}
     description: +5 pebbles for the slingshot
     blueprintPrice: 0
+  - id: wisp
+    displayName: Hearth Wisp
+    price: 1200
+    resource: 
+    amount: 1
+    isUpgrade: 1
+    slot: charm
+    modifiers:
+      jumpBonus: 0
+      whipDamageBonus: 0
+      whipRangeBonus: 0
+      blastRadiusBonus: 0
+      iceGrip: 0
+      coldResist: 0
+      sporeResist: 0
+      lightBonus: 0
+      beltGrip: 0
+      shieldPierce: 0
+      sandGrip: 0
+      goldWard: 0
+      shardWard: 0
+      mimicSight: 0
+      pebbleBonus: 0
+      stompBonus: 0
+      headGuard: 0
+      fallBonus: 0
+      lookBonus: 0
+      revive: 5
+    icon: {fileID: 21300000, guid: 71a5a20d2028f30428f9831d35e506b1, type: 3}
+    description: 'once, a death is turned away: you rise with 5 health'
+    blueprintPrice: 4
   shopkeeperHealth: 6
   warningsBeforeAngry: 2

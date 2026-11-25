@@ -574,7 +574,7 @@ namespace Gloomdelve.EditorTools
                     {
                         // what is open from the start and what wants a blueprint: of each area's pair the lesser piece is open
                         string[] open = { "compass", "ironcap", "softsoles", "pebblepouch", "warmcoat", "sporemask", "heavyboots", "wardscarab", "truthlens" };
-                        string[] plans = { "ironwhip", "blastpowder", "springboots", "hobnailboots", "spyglass", "iceboots", "lantern", "magnetcharm", "sandstriders", "dampener", "lampoil", FlareGear.OfferId, "vigor" };
+                        string[] plans = { "ironwhip", "blastpowder", "springboots", "hobnailboots", "spyglass", "iceboots", "lantern", "magnetcharm", "sandstriders", "dampener", "lampoil", FlareGear.OfferId, "vigor", "wisp" };
                         bool ok = true; string why = "";
                         foreach (var id in open) if (Blueprints.VillageWares.Contains(id)) { ok = false; why += id + " has a stall; "; }
                         foreach (var id in plans)

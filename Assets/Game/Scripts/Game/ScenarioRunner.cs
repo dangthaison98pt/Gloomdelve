@@ -20,6 +20,8 @@ namespace Gloomdelve
     public static class ScenarioRunner
     {
         public static bool Active;
+        /// <summary>"-scenarioWatch": the scenarios run at the game's own speed (not three times as fast), and some hold a moment longer, to be watched.</summary>
+        public static bool Watch;
         static int index;
         static int pass, fail;
         static string[] filter;
@@ -263,6 +265,8 @@ namespace Gloomdelve
                 run = c => NewWaresCase(c) },
             new Scenario { name = "loot chest: a plain chest throws out three things, and now and then a free piece of equipment beside it", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => LootChestCase(c) },
+            new Scenario { name = "hearth wisp: worn, it flies at the shoulder; a death is turned away once - up with 5 health - and the wisp is gone", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => WispCase(c) },
             new Scenario { name = "villagers: a caged villager is freed with Enter, goes home for good, and helps every later run", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => VillagerCase(c) },
 
@@ -1887,6 +1891,31 @@ namespace Gloomdelve
                 // Pip: a consumable whose blueprint is not known is offered as its blueprint; bought, the same row sells the thing itself, in sparks
                 var pip = Villagers.All[Villagers.IndexOf("peddler")];
                 shopUi.Open(pip.name, "", VillageShopPanel.WaresOf(pip, c.dir.config, run));
+                c.Expect(c.dir.hud.StatsRaised, "while a stall's screen is open, health and money in the corner stay bright above it");
+                // a row that cannot be paid for is greyed out, the whole of it; one that can is not
+                {
+                    int lr0 = -1, br0 = -1;
+                    for (int i = 0; i < shopUi.Count; i++) { if (shopUi.At(i).ware.id == "lampoil") lr0 = i; if (shopUi.At(i).ware.id == "bombs") br0 = i; }
+                    Villagers.SpendEmbers(Villagers.Embers);
+                    Villagers.AddSparks(5);
+                    shopUi.Open(pip.name, "", VillageShopPanel.WaresOf(pip, c.dir.config, run));      // (drawn again with no embers)
+                    for (int i = 0; i < shopUi.Count; i++) { if (shopUi.At(i).ware.id == "lampoil") lr0 = i; if (shopUi.At(i).ware.id == "bombs") br0 = i; }
+                    float poor = shopUi.RowBrightness(lr0), rich = shopUi.RowBrightness(br0);
+                    bool bagRoom = run.RoomFor(Res.Bombs) > 0;
+                    c.Expect(poor > 0f && poor < 0.6f && (!bagRoom || rich > 0.95f),
+                        $"with no embers the Lamp Oil blueprint row is greyed out ({poor:0.00}); bombs, paid for in sparks, are not ({rich:0.00}, room in the bag {bagRoom})");
+                }
+                // the press that opened the screen must not buy what is in focus: a press in its first moments does nothing
+                {
+                    int lr = -1;
+                    for (int i = 0; i < shopUi.Count; i++) if (shopUi.At(i).ware.id == "lampoil") lr = i;
+                    Villagers.AddEmbers(3);
+                    int emb = Villagers.Embers;
+                    bool inGrace = shopUi.InGrace;
+                    if (lr >= 0) shopUi.Press(lr);
+                    c.Expect(inGrace && lr >= 0 && !Blueprints.Known("lampoil") && Villagers.Embers == emb,
+                        $"a press the moment the screen opens buys nothing (the Lamp Oil blueprint unknown, embers {emb} -> {Villagers.Embers})");
+                }
                 yield return new WaitForSecondsRealtime(0.1f);
                 int vr = -1, br = -1;
                 for (int i = 0; i < shopUi.Count; i++) { if (shopUi.At(i).ware.id == "vigor") vr = i; if (shopUi.At(i).ware.id == "bombs") br = i; }
@@ -1908,7 +1937,7 @@ namespace Gloomdelve
                 run.maxHealth = hp; run.health = Mathf.Min(run.health, hp);
                 shopUi.Close();
                 yield return new WaitForSecondsRealtime(0.1f);
-                c.Expect(!shopUi.IsOpen && Time.timeScale > 0f, "closed, the game goes on");
+                c.Expect(!shopUi.IsOpen && Time.timeScale > 0f && !c.dir.hud.StatsRaised, "closed, the game goes on (and the corner is back in its place)");
 
                 // the Peddler's paper has the longest description of any ware: it stays on its one line in its row
                 shopUi.Open(Villagers.All[4].name, "", VillageShopPanel.WaresOf(Villagers.All[4], c.dir.config, run));
@@ -4016,6 +4045,41 @@ namespace Gloomdelve
             yield return c.Frames(4);
         }
 
+        static IEnumerator WispCase(Ctx c)
+        {
+            var run = c.run;
+            var shop = c.dir.config.shop;
+            var wisp = shop.Find("wisp");
+            c.Expect(wisp != null && wisp.isUpgrade && wisp.slot == "charm" && wisp.modifiers.revive == 5 && wisp.icon != null && System.Array.IndexOf(Villagers.All[2].wares, "wisp") >= 0,
+                "the Hearth Wisp is a charm that turns a death away with 5 health, and Maren draws its blueprint");
+            if (wisp == null) yield break;
+            c.p.godMode = false;
+            c.Bot(Seq((600, F())));
+            c.Teleport(8.5f, 1f);
+            yield return c.Frames(4);
+            c.Expect(c.p.wispRenderer != null && !c.p.wispRenderer.enabled, "no wisp at the shoulder while none is worn");
+            run.AddUpgrade(wisp);
+            yield return c.Frames(4);
+            c.Expect(run.IsWorn("wisp") && run.stats.revive == 5 && c.p.wispRenderer != null && c.p.wispRenderer.enabled, "worn, the wisp flies at the shoulder");
+            if (Watch)
+            {
+                // to be watched: the wisp at the shoulder a while, the player walking a few steps each way
+                c.Bot(Seq((90, F(x: 1)), (60, F()), (90, F(x: -1)), (60, F()), (600, F())));
+                yield return new WaitForSecondsRealtime(5f);
+            }
+            yield return new WaitForSecondsRealtime(0.2f);
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "wisp.png"));
+            yield return c.Frames(4);
+            run.maxHealth = 10; run.health = 2;
+            c.p.TakeDamage(new DamageInfo(3, DamageType.Generic, null, Vector2.zero, "a test"));
+            yield return c.Frames(4);
+            c.Expect(!c.p.IsDead && run.health == 5 && !run.HasUpgrade("wisp") && c.p.Revived == 1 && !c.p.wispRenderer.enabled,
+                $"a blow that would kill: up again with 5 health (health {run.health}), the wisp spent and gone");
+            // the Reaper is not turned away (not tried here: it would end the scenario) - nor a second death without a wisp
+            run.health = run.maxHealth;
+            c.p.godMode = true;
+        }
+
         static IEnumerator LootChestCase(Ctx c)
         {
             c.p.godMode = true;
@@ -4247,6 +4311,9 @@ namespace Gloomdelve
             c.Expect(pillar.GetPrompt(c.p).Contains("Read"), "a pillar can be read from then on");
             {
                 // the copy in the bag: a short word about it, inside its frame - what the signs say is read with its button
+                // (a card still being read goes first: at the game's own speed - watched - it is up a while longer)
+                hud.ClearCards();
+                yield return new WaitForSecondsRealtime(0.8f);           // (the card fades out)
                 var inv = c.dir.inventory;
                 inv.Open();
                 inv.SetTab(InventoryScreen.TabKeys);
@@ -4279,6 +4346,13 @@ namespace Gloomdelve
             for (int i = 0; i < 60 && hud.TalkUp; i++) { hud.AdvanceTalk(); yield return c.Frames(2); }
             yield return c.Frames(6);
             c.Expect(run.hammerHandle && hud.CardUp && !run.gear.Contains(Story.HammerGear), "heard out, he hands over the haft - one of three");
+            // and goes: a moment's stillness, then he comes apart into motes of light, and nothing is left of him
+            yield return c.Frames(Mathf.CeilToInt((Stranger.HoldTime + Stranger.FadeTime * 0.45f) / GameConst.Dt));
+            var ssr = stranger.GetComponentInChildren<SpriteRenderer>();
+            bool fading = !stranger.Dead && ssr != null && ssr.color.a < 0.95f;
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "stranger_leaving.png"));
+            for (int i = 0; i < 300 && !stranger.Dead; i++) yield return c.Frames(1);
+            c.Expect(fading && stranger.Dead, "he fades into motes of light as he goes, and is gone");
             yield return PutAway();
             // the chest: the head
             var chest = c.Spawn<Chest>("gearchest", 12, 1, 0, Story.HeadChest);
@@ -5368,6 +5442,7 @@ namespace Gloomdelve
             for (int i = 0; i < args.Length; i++)
             {
                 if (args[i] == "-scenarios") Active = true;
+                if (args[i] == "-scenarioWatch") Watch = true;
                 if (args[i] == "-autotestOut" && i + 1 < args.Length) outDir = args[i + 1];
                 if (args[i] == "-scenarioFilter" && i + 1 < args.Length)
                     filter = args[i + 1].Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
