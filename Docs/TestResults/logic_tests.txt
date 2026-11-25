@@ -35,7 +35,7 @@ PASS  challenge: the Field Guide is in the bag with every page open, and nothing
 PASS  challenge: a win is put down in the Challenge list and nowhere else  
 PASS  challenge: out of the fight the save is as it was  
 PASS  challenge: the list is the same whichever save is played  
-PASS  story: a pillar and a part of the hammer find a place to stand in every level  24/24 places, 0 bad, slowest search 65 ms
+PASS  story: a pillar and a part of the hammer find a place to stand in every level  24/24 places, 0 bad, slowest search 59 ms
 PASS  story: what leads to the hammer stands in a side room, off the main path  12/12 levels: 12 walked into, 0 behind a wall (bomb or rope), 0 on the path for want of a side room
 PASS  map: the Mapmaker sells a spyglass, the map and his lost letter (the compass is open from the start); a description is shown with a capital letter  
 PASS  money: a boss leaves one ember and five sparks; the map and the blueprints are paid in embers, paper in sparks  

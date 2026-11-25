@@ -135,6 +135,8 @@ Các mục dưới "Đã xong" là nhật ký theo thời gian; mục nào đã 
 - **Hearth Wisp (26/11):** trang bị charm mới (bản thiết kế ở Maren, 4 ember; $1200 trên núi): đốm sáng bay cạnh vai, đỡ một lần chết (trừ thần chết), sống lại với 5 máu rồi mất. Khi shop làng mở, góc máu và tiền trên HUD không bị làm mờ.
 - **Hiệu ứng (26/11):** người lạ trao cán búa xong thì tan dần từ dưới lên thành hạt sáng tím bay lên, kết thúc bằng một chớp sáng (`Stranger.cs`, `Fx.Motes`). Hearth Wisp có hoạt ảnh 5 khung (lửa lay động, chớp mắt).
 - **Thêm 5 bản thiết kế (26/11):** Mending Charm và Antidote Vial (Maren), Grappling Hook và Climbing Gloves (Tam), Fire Cloak (Bera, bày nổi bật ở Emberdeep). Kịch bản mới "more wares", test logic cho Mending Charm.
+- **Nội thất làng (26/11):** cả 8 căn nhà vẽ lại có chiều sâu: tường theo nghề, đồ đạc dày hơn, ánh sáng tập trung, vệt trăng có bụi, lớp tiền cảnh, tàn lửa; nhà thuốc của Maren làm kỹ nhất (tủ thuốc, nồi thuốc có lửa và hơi). Chủ nhà và trưởng làng thở nhẹ và quay mặt về phía người chơi. Kịch bản "village rooms" chụp cả 8 căn.
+- **Sửa lỗi leo thang (26/11):** sau khi đứng cạnh chủ nhà hoặc trưởng làng (↑/↓ chọn Talk/Shop), đi khỏi rồi ↑ không leo thang được nữa cho tới khi gặp thứ khác; giờ đi khỏi là ↑/↓ trở lại bình thường. Đứng chạm mép thang cũng bám được (không cần điểm giữa người nằm trên thang). Xưởng dây có bánh xe se dây, bảng nút thắt, lưới; hội trường có bảng khắc tên trên lò sưởi thay gạc hươu.
 - **Tài liệu (25/11):** README, DESIGN, PROJECT_STATUS, TEST_REPORT, EXTENDING cập nhật theo code hiện tại.
 
 ## Đang làm

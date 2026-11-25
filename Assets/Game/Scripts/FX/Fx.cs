@@ -159,6 +159,13 @@ namespace Gloomdelve
                     c * R(0.85f, 1.1f), R(0.8f, 1.7f), -0.5f, R(1f, 2.2f), false, true);
         }
 
+        /// <summary>Dust hanging in a shaft of light: tiny glowing specks that barely move, and fade.</summary>
+        public static void Drift(Vector2 pos, Color c)
+        {
+            if (Instance == null) return;
+            Instance.Emit(pos, new Vector2(R(-0.12f, 0.12f), R(-0.1f, 0.08f)), c, R(1.6f, 3f), 0f, R(0.8f, 1.2f), false, true);
+        }
+
         public static void Blood(Vector2 pos, Color c, int n = 8)
         {
             if (Instance == null) return;

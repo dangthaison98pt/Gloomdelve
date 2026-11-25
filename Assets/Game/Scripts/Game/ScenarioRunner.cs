@@ -267,6 +267,11 @@ namespace Gloomdelve
             new Scenario { name = "more wares: the fire cloak, the antidote vial, the climbing gloves and the grappling hook each do what the stall says",
                 map = m => { Set(m, 3, 1, 'S'); for (int y = 1; y <= 7; y++) Set(m, 16, y, 'H'); },
                 run = c => MoreWaresCase(c) },
+            new Scenario { name = "village rooms: the apothecary has its foreground, its little fire under the cauldron, and Maren behind the counter; every room has its foreground", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => ApothecaryCase(c) },
+            new Scenario { name = "ladder grab: standing half beside a ladder, up climbs it; a step away, up only looks up",
+                map = m => { Set(m, 3, 1, 'S'); for (int y = 1; y <= 7; y++) Set(m, 10, y, 'H'); },
+                run = c => LadderGrabCase(c) },
             new Scenario { name = "hearth wisp: worn, it flies at the shoulder; a death is turned away once - up with 5 health - and the wisp is gone", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => WispCase(c) },
             new Scenario { name = "villagers: a caged villager is freed with Enter, goes home for good, and helps every later run", map = m => { Set(m, 3, 1, 'S'); },
@@ -4129,6 +4134,83 @@ namespace Gloomdelve
             run.RemoveUpgrade("grapplinghook");
             c.p.godMode = true;
             yield return c.Frames(4);
+        }
+
+        static IEnumerator ApothecaryCase(Ctx c)
+        {
+            c.p.godMode = true;
+            Villagers.testRescued = new HashSet<string> { Villagers.All[2].id };
+            Villagers.ResetTestState();
+            var room = c.Spawn<VillageInterior>("interior", 4, 1, 2);
+            yield return c.Frames(4);
+            if (room == null) { c.Expect(false, "the apothecary is there"); yield break; }
+            room.Enter(c.p);
+            yield return c.Frames(4);
+            VillagerHome keeper = null;
+            foreach (var e in c.world.Entities) if (e is VillagerHome vh && !vh.Dead && vh.Who == Villagers.All[2]) keeper = vh;
+            c.Expect(room.foreground != null && room.foreground.enabled && room.foreground.sprite != null, "the apothecary has a foreground: herbs hanging close to the eye");
+            c.Expect(room.fire != null && room.fire.gameObject.activeSelf && room.fire.localScale.x < 0.9f, "a little fire burns under the cauldron");
+            c.Expect(keeper != null, "Maren stands behind her counter");
+            yield return new WaitForSecondsRealtime(1.5f);          // (the steam rising, the dust in the moonlight)
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "room_apothecary.png"));
+            yield return new WaitForSecondsRealtime(0.3f);
+            foreach (var e in c.world.Entities) if (!e.Dead && (e is VillagerHome || e is Curio || e is VillageInterior)) e.Despawn();
+            // every other room has its foreground too; a picture of each
+            for (int k = 0; k < 8; k++)
+            {
+                if (k == 2) continue;
+                Villagers.testRescued = new HashSet<string>(); foreach (var v in Villagers.All) Villagers.testRescued.Add(v.id);
+                yield return c.Frames(2);
+                var r = c.Spawn<VillageInterior>("interior", 4, 1, k);
+                yield return c.Frames(4);
+                if (r == null) { c.Expect(false, $"room {k} is there"); continue; }
+                r.Enter(c.p);
+                yield return new WaitForSecondsRealtime(0.8f);
+                c.Expect(r.foreground != null && r.foreground.enabled, $"room {k} has its foreground");
+                ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, $"room_{k}.png"));
+                yield return new WaitForSecondsRealtime(0.3f);
+                foreach (var e in c.world.Entities) if (!e.Dead && (e is VillagerHome || e is Curio || e is VillageInterior || e is Elder)) e.Despawn();
+            }
+            Villagers.ResetTestState();
+            Villagers.testRescued = null;
+            c.dir.cameraFollow.SetBounds(new Rect(0, 0, c.world.Grid.Width, c.world.Grid.Height));
+            yield return c.Frames(4);
+        }
+
+        static IEnumerator LadderGrabCase(Ctx c)
+        {
+            c.p.godMode = true;
+            IEnumerator Try(float x, System.Action<float, float> got)
+            {
+                c.Bot(Seq((600, F())));
+                c.Teleport(x, 1f);
+                yield return c.Frames(10);
+                c.Bot(Seq((40, F(up: true)), (600, F())));
+                yield return c.Frames(30);
+                got(c.p.pos.y, c.p.pos.x);
+                c.Bot(Seq((600, F())));
+                c.Teleport(4.5f, 1f);
+                yield return c.Frames(20);
+            }
+            float yTouch = 0f, xTouch = 0f, yAway = 0f;
+            yield return Try(10.5f + 0.68f, (y, x) => { yTouch = y; xTouch = x; });      // the body overlaps the ladder by a little
+            yield return Try(10.5f + 1.1f, (y, x) => { yAway = y; });                   // a step away: not touching it
+            c.Expect(yTouch > 2f && Mathf.Abs(xTouch - 10.5f) < 0.05f, $"half beside the ladder, up climbs it (up to {yTouch:0.00}, drawn onto it at x {xTouch:0.00})");
+            c.Expect(yAway < 1.2f, $"a step away from it, up does not climb (height {yAway:0.00})");
+            // a word with a keeper first (up and down choose the row while beside them): walked away, up climbs again
+            Villagers.testRescued = new HashSet<string> { Villagers.All[2].id };
+            Villagers.ResetTestState();
+            var keeper = c.Spawn<VillagerHome>("villagerhome", 6, 1, 2);
+            yield return c.Frames(4);
+            c.Bot(Seq((600, F())));
+            c.Teleport(6.5f, 1f);
+            yield return c.Frames(10);
+            float yAfter = 0f;
+            yield return Try(10.5f, (y, x) => { yAfter = y; });
+            c.Expect(keeper != null && yAfter > 2f, $"after standing by a keeper (up and down choose Talk or Shop there), up climbs the ladder again (up to {yAfter:0.00})");
+            if (keeper != null && !keeper.Dead) keeper.Despawn();
+            Villagers.ResetTestState();
+            Villagers.testRescued = null;
         }
 
         static IEnumerator WispCase(Ctx c)

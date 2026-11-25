@@ -497,6 +497,9 @@ namespace Gloomdelve
                 float d = Mathf.Abs(e.pos.x - pos.x);
                 if (d < bd) { bd = d; best = (IInteractable)e; }
             }
+            // nobody in reach any more: up and down are the player's again (they were moving the chosen row of whoever
+            // was here - left set, up would not climb a ladder until something else came in reach)
+            if (best == null) { choiceOf = null; choiceIndex = 0; }
             if (best != null)
             {
                 interactable = true;

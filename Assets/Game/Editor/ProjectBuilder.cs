@@ -2019,6 +2019,16 @@ namespace Gloomdelve.EditorTools
                 Reg("interior", Make<VillageInterior>("VillageInterior", "Level", "door", new Vector2(1.2f, 1.7f), rooms[0], null, 2, (e, g, s) =>
                 {
                     e.flipWithFacing = false; e.rooms = rooms; e.roomsByHour = roomsByHour;
+                    // what hangs close to the eye in a room: in front of everyone (only the rooms that have one)
+                    var fgs = new Sprite[8];
+                    for (int k = 0; k < 8; k++) fgs[k] = AssetDatabase.LoadAssetAtPath<Sprite>(G + "Art/Sprites/Village/room_fg_" + k + ".png");
+                    e.foregrounds = fgs;
+                    var fgGo = new GameObject("Foreground");
+                    fgGo.transform.SetParent(g.transform, false);
+                    fgGo.transform.localPosition = new Vector3(5.5f, 6.5f, -1f);
+                    var fgsr = fgGo.AddComponent<SpriteRenderer>();
+                    fgsr.sharedMaterial = unlitMat; fgsr.sortingOrder = 40; fgsr.enabled = false;
+                    e.foreground = fgsr;
                     s.transform.localPosition = new Vector3(5.5f, 6.5f, 0f);      // the picture is the whole house, both storeys; the entity stands at its door
                     s.sharedMaterial = unlitMat;                                  // its light and shadow are painted in (ArtGenerator.Village, Room): the lamps here light only who is in it
                     // the dark round the house (the room pictures are the house alone): one plain sprite stretched to the

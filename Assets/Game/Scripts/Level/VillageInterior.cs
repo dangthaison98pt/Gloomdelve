@@ -17,6 +17,8 @@ namespace Gloomdelve
         [Tooltip("Rooms by building number.")] public Sprite[] rooms;
         [Tooltip("The same rooms at the other hours of the village clock: all at dawn, then all by day, then all at dusk ('rooms' is the night).")] public Sprite[] roomsByHour;
         [Tooltip("The fire (a child object with its flames and light): put in the hearth of the rooms that have one.")] public Transform fire;
+        [Tooltip("What hangs close to the eye in a room, by building number (null = nothing): drawn in front of the people in it.")] public Sprite[] foregrounds;
+        [Tooltip("The renderer of that foreground (a child, in front of everyone).")] public SpriteRenderer foreground;
 
         /// <summary>Where the fire burns in each room, in floor-space pixels of the picture (-1 = no fire): the forge's
         /// furnace, the hearths of the hall and of the player's house. Same numbers as ArtGenerator.Village, Room.</summary>
@@ -88,8 +90,10 @@ namespace Gloomdelve
             },
         };
 
-        static readonly int[] FireX = { 193, -1, -1, -1, -1, -1, 196, 198 };
-        static readonly int[] FireY = { 8, 0, 0, 0, 0, 0, 4, 4 };
+        static readonly int[] FireX = { 193, -1, 200, -1, -1, -1, 196, 198 };
+        static readonly int[] FireY = { 8, 0, 5, 0, 0, 0, 4, 4 };
+        /// <summary>How big each fire burns (the apothecary's is a little flame under the cauldron).</summary>
+        static readonly float[] FireScale = { 1f, 1f, 0.5f, 1f, 1f, 1f, 1f, 1f };
 
         public int Index { get; private set; }
         bool cameraHere;
@@ -157,6 +161,13 @@ namespace Gloomdelve
                 fire.gameObject.SetActive(lit);
                 // floor-space pixel 24 is the middle of the door cell, where this entity stands
                 if (lit) fire.localPosition = new Vector3((FireX[Index] - 24f) / 16f, FireY[Index] / 16f, 0f);
+                if (lit) fire.localScale = Vector3.one * FireScale[Index];
+            }
+            if (foreground != null)
+            {
+                var fg = foregrounds != null && Index >= 0 && Index < foregrounds.Length ? foregrounds[Index] : null;
+                foreground.sprite = fg;
+                foreground.enabled = fg != null;
             }
             var cfg = World.config;
             if (cfg == null || cfg.prefabs == null) return;
@@ -183,6 +194,53 @@ namespace Gloomdelve
                 if (prefab != null) World.Spawn(prefab, new Vector2(cell.x + 0.5f, cell.y), new SpawnPoint("elder", cell, -1));
             }
         }
+
+        // ------------------------------------------------------------------ a room that lives
+
+        float steamT, moteT, bubbleT;
+
+        /// <summary>A spot of the room picture (floor-space pixels: x across, y up from the ground floor) in the world.</summary>
+        Vector2 At(float x, float y) => new Vector2(transform.position.x + (x - 24f) / 16f, transform.position.y + y / 16f);
+
+        /// <summary>
+        /// What moves in a room while the player is in it (purely to be looked at): in the apothecary the brew
+        /// steams and bubbles, and dust hangs in the moonlight from the upstairs window.
+        /// </summary>
+        protected override void LateUpdate()
+        {
+            base.LateUpdate();
+            if (!cameraHere || Index < 0 || Index >= WinW.Length) return;
+            float dt = Time.deltaTime;
+            steamT -= dt; bubbleT -= dt; moteT -= dt; emberT -= dt;
+            if (Index == 2)
+            {
+                // the apothecary's brew steams and bubbles
+                if (steamT <= 0f) { steamT = Random.Range(0.25f, 0.45f); Fx.Smoke(At(200f + Random.Range(-8f, 8f), 33f), 1); }
+                if (bubbleT <= 0f) { bubbleT = Random.Range(0.3f, 0.7f); Fx.Motes(At(200f + Random.Range(-9f, 9f), 30f), new Color(0.6f, 1f, 0.7f, 0.9f), 1, 0.05f, 0.02f); }
+            }
+            else if (FireX[Index] >= 0 && emberT <= 0f)
+            {
+                // a furnace or a hearth: now and then an ember goes up the chimney
+                emberT = Random.Range(0.35f, 0.8f);
+                Fx.Embers(At(FireX[Index] + Random.Range(-6f, 6f), FireY[Index] + 10f), 1);
+            }
+            if (WinW[Index] > 0 && moteT <= 0f)
+            {
+                // dust hanging in the light that falls in through the upstairs window
+                moteT = Random.Range(0.12f, 0.25f);
+                float down = Random.Range(3f, WinY[Index] - 2f);
+                float x = WinX[Index] + down * 0.55f + Random.Range(1f, WinW[Index] - 1f), y = UpperYPx + WinY[Index] - down;
+                Fx.Drift(At(x, y), new Color(0.82f, 0.88f, 1f, 0.7f));
+            }
+        }
+
+        float emberT;
+        /// <summary>The upstairs window of each room, in floor-space pixels of its storey (x, foot, width; 0 wide = none): where the light falls in.
+        /// Same numbers as ArtGenerator.Village, Room (NightWindow).</summary>
+        static readonly int[] WinX = { 100, 118, 120, 160, 128, 0, 124, 128 }, WinY = { 46, 46, 46, 40, 50, 0, 50, 46 }, WinW = { 18, 18, 18, 28, 16, 0, 16, 22 };
+
+        /// <summary>Height of the upstairs floor in the room picture (pixels; ArtGenerator.Village, UpperY).</summary>
+        const float UpperYPx = 112f;
 
         public string GetPrompt(PlayerController p) => "[enter]  Leave";
 

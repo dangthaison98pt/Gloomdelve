@@ -189,6 +189,7 @@ Ba loại tiền (`Villagers.cs`):
 - **Ngày và đêm** (`VillageClock`) theo giờ thật của máy, chốt một lần lúc vào làng: rạng sáng 5–6 giờ, ngày 7–16, hoàng hôn 17–18, đêm 19–4. Giờ đổi bầu trời, ánh sáng nền, độ sáng đèn nhân vật và hình phòng trong nhà. Thiết lập trong `Area0_Village` là ban đêm.
 - **Dân phố** (`Townsfolk`, sinh bằng code): người lớn đi dạo, nói chuyện; trẻ con chơi đuổi bắt. Ban ngày 8 người lớn + 4 trẻ, rạng sáng/hoàng hôn 5 + 2, ban đêm 2 + 0.
 - **Con chó** (`VillageDog`, `Kennel`): ngày thì chạy quanh trong 16 ô quanh chuồng, người chơi tới gần (4,5 ô) thì chạy lại ngồi cạnh; đêm thì ngủ trước chuồng.
+- **Nội thất** (`ArtGenerator.Village`, `Room`, `RoomForeground`; `VillageInterior`): tường theo nghề (đá ở lò rèn và hội trường, giấy dán tường ở phòng bản đồ, ván ở xưởng dây, thạch cao loang ở các nhà khác); đồ đạc theo nghề; quầng sáng ấm quanh đèn, nến và lửa, góc phòng tối dần; vệt trăng/nắng xiên qua cửa sổ tầng trên kèm bụi lơ lửng; lớp tiền cảnh tối vẽ đè trước nhân vật (bó thảo dược, xích, cuộn dây, đèn lồng, cờ); lửa lò bắn tàn lửa; nồi thuốc của Maren có lửa nhỏ, hơi và bong bóng. Chủ nhà và trưởng làng thở nhẹ và quay mặt về phía người chơi khi ở gần cùng tầng.
 - **Đồ vật để xem** (`Curio`): 35 món trong 8 phòng ("[enter] Look"), kể về chủ nhà và gợi ý về vòng lặp thời gian.
 
 ### Rương (`Chest.cs`)

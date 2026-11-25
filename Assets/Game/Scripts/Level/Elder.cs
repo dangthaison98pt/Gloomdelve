@@ -13,6 +13,13 @@ namespace Gloomdelve
     /// </summary>
     public class Elder : Entity, IInteractChoices, IQuestTarget
     {
+        /// <summary>He looks at the player when they are near (VillagerHome.FacePlayer).</summary>
+        protected override void LateUpdate()
+        {
+            base.LateUpdate();
+            VillagerHome.FacePlayer(this, sr);
+        }
+
         public const string ElderName = "Elder Aldous";
         public string QuestId => "elder";
 

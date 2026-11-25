@@ -28,6 +28,35 @@ namespace Gloomdelve
             index = sp.param;
         }
 
+        float breathPhase = -1f;
+
+        /// <summary>The keeper is alive behind the counter: a slow breath, a rise and fall of a pixel or so.</summary>
+        protected override void LateUpdate()
+        {
+            base.LateUpdate();
+            if (sr == null) return;
+            if (breathPhase < 0f) breathPhase = Random.value * 6f;
+            float b = Mathf.Sin(Time.time * 1.9f + breathPhase);
+            sr.transform.localScale = new Vector3(1f - b * 0.012f, 1f + b * 0.025f, 1f);
+            FacePlayer(this, sr);
+        }
+
+        /// <summary>
+        /// Someone of the village looks at the player when they are near, on the same floor: turned their way
+        /// (the pictures face right). A step of slack keeps them from turning to and fro when the player stands
+        /// right in front of them.
+        /// </summary>
+        public static void FacePlayer(Entity who, SpriteRenderer sr)
+        {
+            var w = who != null ? who.World : null;
+            var p = w != null ? w.Player : null;
+            if (sr == null || p == null || p.IsDead) return;
+            float dx = p.pos.x - who.pos.x, dy = p.pos.y - who.pos.y;
+            if (Mathf.Abs(dy) > 2.5f || Mathf.Abs(dx) > 10f) return;
+            if (dx < -0.3f) sr.flipX = true;
+            else if (dx > 0.3f) sr.flipX = false;
+        }
+
         public override void OnSpawn()
         {
             base.OnSpawn();
