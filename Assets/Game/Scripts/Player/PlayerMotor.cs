@@ -52,6 +52,8 @@ namespace Gloomdelve
         public int dash;
         public float dashSpeed;
         public float speedMult, jumpMult;
+        /// <summary>Climbing speed on ladders and ropes: 1 (or 0 = not set) as usual.</summary>
+        public float climbMult;
         /// <summary>Ground grip: 1 (or 0 = not set) is normal footing, lower is ice - slow to get going, slow to stop.</summary>
         public float grip;
     }
@@ -410,7 +412,8 @@ namespace Gloomdelve
                 return;
             }
 
-            float vy = i.up ? st.climbSpeed : (i.down ? -st.climbSpeed : 0f);
+            float climb = st.climbSpeed * (i.climbMult > 0f ? i.climbMult : 1f);
+            float vy = i.up ? climb : (i.down ? -climb : 0f);
             s.vel.y = vy;
             if (vy == 0f) return;
 

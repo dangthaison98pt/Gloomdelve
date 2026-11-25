@@ -631,6 +631,22 @@ namespace Gloomdelve.EditorTools
             if (shop.Find("wisp") == null)
                 shop.offers.Add(new ShopOffer { id = "wisp", displayName = "Hearth Wisp", price = 1200, isUpgrade = true, slot = "charm",
                     description = "once, a death is turned away: you rise with 5 health", modifiers = new StatModifiers { revive = 5 } });
+            // five more blueprints (26/11): Maren's charm and vial, Tam's hook and gloves, Bera's cloak
+            if (shop.Find("mendingcharm") == null)
+                shop.offers.Add(new ShopOffer { id = "mendingcharm", displayName = "Mending Charm", price = 900, isUpgrade = true, slot = "charm",
+                    description = "1 health back at the start of every level", modifiers = new StatModifiers { mend = 1 } });
+            if (shop.Find("antidote") == null)
+                shop.offers.Add(new ShopOffer { id = "antidote", displayName = "Antidote Vial", price = 500, isUpgrade = true, slot = "charm",
+                    description = "webs do not hold you, and venom does 1 less damage", modifiers = new StatModifiers { venomGuard = 1f } });
+            if (shop.Find("grapplinghook") == null)
+                shop.offers.Add(new ShopOffer { id = "grapplinghook", displayName = "Grappling Hook", price = 750, isUpgrade = true, slot = "charm",
+                    description = "ropes fly 3 tiles higher and hang 3 tiles longer", modifiers = new StatModifiers { ropeBonus = 3 } });
+            if (shop.Find("climbgloves") == null)
+                shop.offers.Add(new ShopOffer { id = "climbgloves", displayName = "Climbing Gloves", price = 550, isUpgrade = true, slot = "hand",
+                    description = "climb ladders and ropes half as fast again", modifiers = new StatModifiers { climbBonus = 0.5f } });
+            if (shop.Find("firecloak") == null)
+                shop.offers.Add(new ShopOffer { id = "firecloak", displayName = "Fire Cloak", price = 700, isUpgrade = true, slot = "body",
+                    description = "flame vents and burning ground do not hurt you", modifiers = new StatModifiers { fireGuard = 1f } });
             if (shop.Find(Villagers.KeyLetter) == null)
                 shop.offers.Add(new ShopOffer { id = Villagers.KeyLetter, displayName = "Lost Letter", price = 750, resource = Villagers.KeyLetter, amount = 1,
                     description = "yours for good. A level that holds a caged villager tells you so, and your map marks the cage" });
@@ -656,7 +672,9 @@ namespace Gloomdelve.EditorTools
             icons[MapScreen.ItemId] = "Sprites/Items/map";
             icons["pebbles"] = "Sprites/Items/pebbles";
             icons["hobnailboots"] = "Sprites/Items/hobnailboots"; icons["ironcap"] = "Sprites/Items/ironcap"; icons["softsoles"] = "Sprites/Items/softsoles";
-            icons["spyglass"] = "Sprites/Items/spyglass"; icons["wisp"] = "Sprites/Items/wisp"; icons[Villagers.KeyLetter] = "Sprites/Items/lostletter"; icons[FlareGear.OfferId] = "Sprites/Items/flarepack";
+            icons["spyglass"] = "Sprites/Items/spyglass"; icons["wisp"] = "Sprites/Items/wisp";
+            icons["mendingcharm"] = "Sprites/Items/mendingcharm"; icons["antidote"] = "Sprites/Items/antidote"; icons["grapplinghook"] = "Sprites/Items/grapplinghook";
+            icons["climbgloves"] = "Sprites/Items/climbgloves"; icons["firecloak"] = "Sprites/Items/firecloak"; icons[Villagers.KeyLetter] = "Sprites/Items/lostletter"; icons[FlareGear.OfferId] = "Sprites/Items/flarepack";
             icons["vigor"] = "Sprites/NPC/ware_vigor"; icons["lampoil"] = "Sprites/NPC/ware_lampoil";
             foreach (var o in shop.offers) if (icons.TryGetValue(o.id, out var ic)) o.icon = ArtGenerator.S(ic);
             // what the villagers ask for the blueprints (Blueprints), in embers: the strong pieces for every area dearer,
@@ -666,6 +684,7 @@ namespace Gloomdelve.EditorTools
                 ["ironwhip"] = 4, ["springboots"] = 4, ["blastpowder"] = 3, ["hobnailboots"] = 3, ["spyglass"] = 2,
                 ["iceboots"] = 2, ["lantern"] = 2, ["magnetcharm"] = 2, ["sandstriders"] = 2, ["dampener"] = 2,
                 ["lampoil"] = 1, [FlareGear.OfferId] = 2, ["vigor"] = 2, ["wisp"] = 4,
+                ["mendingcharm"] = 3, ["antidote"] = 2, ["grapplinghook"] = 3, ["climbgloves"] = 2, ["firecloak"] = 3,
             };
             foreach (var o in shop.offers) if (o.blueprintPrice <= 0 && plans.TryGetValue(o.id, out var bp)) o.blueprintPrice = bp;
             EditorUtility.SetDirty(shop);

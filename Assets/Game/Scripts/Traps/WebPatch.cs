@@ -26,7 +26,9 @@ namespace Gloomdelve
             life -= dt;
             if (life <= 0f) { Despawn(); return; }
             var p = World.Player;
-            if (p != null && !p.IsDead && p.grounded && Overlaps(p)) p.Slow(slow, 0.25f);
+            var run = RunSession.Current;
+            bool immune = run != null && run.stats.venomGuard > 0f;          // (the Antidote Vial: webs do not hold)
+            if (p != null && !p.IsDead && p.grounded && !immune && Overlaps(p)) p.Slow(slow, 0.25f);
         }
 
         protected override void LateUpdate()

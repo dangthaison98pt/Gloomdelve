@@ -30,6 +30,20 @@ namespace Gloomdelve
         public bool villagerFreed;
         /// <summary>Position in the run of the boss level whose boss has fallen, -1 = none: entered again, that arena is empty.</summary>
         public int bossDownStage = -1;
+        [Tooltip("The level a Mending Charm last gave its health back in (so a level entered again from a save gives none).")] public int mendedStage = -1;
+
+        /// <summary>
+        /// A Mending Charm worn: at the start of a level on the mountain a little health comes back - once a level
+        /// (a level started again from the save gives none). True when health was given.
+        /// </summary>
+        public bool Mend()
+        {
+            if (inVillage || isTutorial || bossPractice || stats.mend <= 0 || mendedStage == stageIndex) return false;
+            mendedStage = stageIndex;
+            if (health >= maxHealth) return false;
+            health = Mathf.Min(maxHealth, health + stats.mend);
+            return true;
+        }
         /// <summary>Health lost in this run (shown on the boss test result).</summary>
         public int damageTaken;
 
@@ -320,7 +334,7 @@ namespace Gloomdelve
                 health = r.health, maxHealth = r.maxHealth, bombs = r.bombs, ropes = r.ropes, gold = r.gold, totalTime = r.totalTime,
                 equipped = r.equipped, previousEquipped = r.previousEquipped,
                 shopkeeperWanted = r.shopkeeperWanted, shopkeeperDead = r.shopkeeperDead, kills = r.kills, bossKills = r.bossKills, levelsCompleted = r.levelsCompleted,
-                villagerFreed = r.villagerFreed, bossDownStage = r.bossDownStage, stageName = stageName ?? "",
+                villagerFreed = r.villagerFreed, bossDownStage = r.bossDownStage, mendedStage = r.mendedStage, stageName = stageName ?? "",
                 hammerHandle = r.hammerHandle, hammerHead = r.hammerHead, hammerCore = r.hammerCore, ghostMask = r.ghostMask,
             };
             s.upgrades.AddRange(r.upgrades); s.worn.AddRange(r.worn); s.purchases.AddRange(r.purchases); s.gear.AddRange(r.gear);
@@ -339,7 +353,7 @@ namespace Gloomdelve
                 inVillage = s.inVillage, extraTime = s.extraTime, lootMisses = s.lootMisses, damageTaken = s.damageTaken, perksApplied = true,
                 health = s.health, maxHealth = s.maxHealth, bombs = s.bombs, ropes = s.ropes, gold = s.gold, totalTime = s.totalTime,
                 shopkeeperWanted = s.shopkeeperWanted, shopkeeperDead = s.shopkeeperDead, kills = s.kills, bossKills = s.bossKills, levelsCompleted = s.levelsCompleted,
-                villagerFreed = s.villagerFreed, bossDownStage = s.bossDownStage,
+                villagerFreed = s.villagerFreed, bossDownStage = s.bossDownStage, mendedStage = s.mendedStage,
                 hammerHandle = s.hammerHandle, hammerHead = s.hammerHead, hammerCore = s.hammerCore, ghostMask = s.ghostMask,
             };
             if (s.gear != null) r.gear.AddRange(s.gear);

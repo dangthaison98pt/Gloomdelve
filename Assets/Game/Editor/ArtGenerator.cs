@@ -2381,6 +2381,125 @@ namespace Gloomdelve.EditorTools
                 p.Outline(C(90, 40, 30));
                 Save(p, d + "wisp_4", PItem);
             }
+            // five more of the villagers' blueprints (26/11)
+            {
+                // the Mending Charm: a round wooden charm with a heart and green sprigs, on a cord
+                var p = ItemCanvas(); Color32 wood = C(150, 104, 62), woodD = C(104, 70, 40), leaf = C(110, 190, 90), leafD = C(64, 130, 60), heart = C(220, 60, 70), heartL = C(255, 150, 160), cord = C(214, 190, 120);
+                p.Disc(8f, 6f, 5f, wood);
+                p.Disc(8f, 6f, 3.9f, woodD);
+                p.Disc(8f, 6f, 3.2f, wood);
+                p.Set(7, 7, heart);
+                p.Set(9, 7, heart);
+                p.Rect(6, 6, 5, 1, heart);
+                p.Rect(7, 5, 3, 1, heart);
+                p.Set(8, 4, heart);
+                p.Set(6, 7, heart);
+                p.Set(10, 7, heart);
+                p.Set(7, 7, heartL);
+                p.Set(4, 9, leaf);
+                p.Set(5, 10, leaf);
+                p.Set(3, 10, leafD);
+                p.Set(11, 10, leaf);
+                p.Set(12, 9, leaf);
+                p.Set(12, 10, leafD);
+                p.Set(8, 11, cord);
+                p.Set(8, 12, cord);
+                p.Set(7, 13, cord);
+                p.Set(9, 13, cord);
+                p.Outline(ol);
+                Save(p, d + "mendingcharm", PItem);
+            }
+            {
+                // the Antidote Vial: a little green vial, a cork, a leaf on its label
+                var p = ItemCanvas(); Color32 glass = C(200, 230, 220), glassD = C(120, 160, 150), liq = C(90, 200, 110), liqL = C(180, 250, 170), liqD = C(40, 130, 70), cork = C(150, 104, 62), label = C(236, 222, 186);
+                p.Rect(7, 11, 3, 2, cork);
+                p.Rect(7, 9, 3, 2, glass);
+                p.Rect(5, 2, 7, 7, glass);
+                p.Rect(5, 2, 1, 7, glassD);
+                p.Rect(5, 2, 7, 1, glassD);
+                p.Rect(6, 3, 5, 4, liq);
+                p.Rect(6, 3, 5, 1, liqD);
+                p.Rect(6, 6, 5, 1, liqL);
+                p.Rect(7, 4, 3, 2, label);
+                p.Set(8, 5, liqD);
+                p.Set(10, 7, glass);
+                p.Outline(ol);
+                Save(p, d + "antidote", PItem);
+            }
+            {
+                // the Grappling Hook: three iron prongs and a coil of rope
+                var p = ItemCanvas(); Color32 iron = C(168, 172, 188), ironD = C(100, 104, 122), ironL = C(226, 230, 240), rope = C(196, 160, 100), ropeD = C(140, 108, 62);
+                p.Rect(8, 6, 1, 8, iron);
+                p.Set(8, 13, ironL);
+                p.Rect(7, 13, 3, 1, iron);
+                p.Line(8, 6, 4, 9, iron);
+                p.Line(8, 6, 12, 9, iron);
+                p.Set(4, 10, iron);
+                p.Set(12, 10, iron);
+                p.Set(5, 8, ironL);
+                p.Set(11, 8, ironD);
+                p.Ellipse(5f, 3f, 3.4f, 2.2f, rope);
+                p.Ellipse(5f, 3f, 2f, 1f, ropeD);
+                p.Line(8, 4, 8, 6, ropeD);
+                p.Outline(ol);
+                Save(p, d + "grapplinghook", PItem);
+            }
+            {
+                // the Climbing Gloves: a pair of leather gloves with dark grip pads
+                var p = ItemCanvas(); Color32 lea = C(150, 98, 58), leaD = C(104, 66, 38), pad = C(70, 60, 58), cuff = C(214, 190, 120);
+                p.Rect(2, 2, 5, 6, lea);
+                p.Rect(2, 8, 1, 3, lea);
+                p.Rect(3, 8, 1, 4, lea);
+                p.Rect(4, 8, 1, 4, lea);
+                p.Rect(5, 8, 1, 3, lea);
+                p.Rect(6, 5, 1, 3, lea);
+                p.Rect(2, 2, 5, 1, cuff);
+                p.Rect(3, 4, 3, 2, pad);
+                p.Rect(6, 2, 1, 3, leaD);
+                p.Set(3, 9, leaD);
+                p.Set(3, 10, leaD);
+                p.Set(4, 11, leaD);
+                p.Set(5, 9, leaD);
+                p.Set(5, 10, leaD);
+                p.Set(2, 10, leaD);
+                p.Rect(8, 2, 5, 6, lea);
+                p.Rect(8, 8, 1, 3, lea);
+                p.Rect(9, 8, 1, 4, lea);
+                p.Rect(10, 8, 1, 4, lea);
+                p.Rect(11, 8, 1, 3, lea);
+                p.Rect(12, 5, 1, 3, lea);
+                p.Rect(8, 2, 5, 1, cuff);
+                p.Rect(9, 4, 3, 2, pad);
+                p.Rect(12, 2, 1, 3, leaD);
+                p.Set(9, 9, leaD);
+                p.Set(9, 10, leaD);
+                p.Set(10, 11, leaD);
+                p.Set(11, 9, leaD);
+                p.Set(11, 10, leaD);
+                p.Set(8, 10, leaD);
+                p.Outline(ol);
+                Save(p, d + "climbgloves", PItem);
+            }
+            {
+                // the Fire Cloak: a hooded cloak the colour of embers, its hem trimmed with flame
+                var p = ItemCanvas(); Color32 cloak = C(176, 62, 40), cloakD = C(120, 36, 28), cloakL = C(214, 98, 60), flame = C(255, 190, 70), flame2 = C(255, 130, 50);
+                p.Rect(5, 11, 6, 3, cloak);
+                p.Rect(6, 13, 4, 1, cloakL);
+                p.Rect(4, 3, 8, 8, cloak);
+                p.Rect(3, 1, 10, 3, cloak);
+                p.Rect(7, 4, 2, 7, cloakD);
+                p.Rect(4, 10, 8, 1, cloakL);
+                p.Rect(3, 1, 10, 1, flame2);
+                p.Set(4, 2, flame);
+                p.Set(7, 2, flame);
+                p.Set(10, 2, flame);
+                p.Set(12, 2, flame2);
+                p.Set(3, 2, flame2);
+                p.Set(6, 12, cloakD);
+                p.Set(9, 12, cloakD);
+                p.Outline(ol);
+                Save(p, d + "firecloak", PItem);
+            }
             {
                 // a flare lying down: a short red stick with a burning end
                 var p = ItemCanvas(); Color32 red = C(206, 52, 48), redD = C(140, 30, 34), cap = C(236, 222, 186), fire = C(255, 220, 120), fire2 = C(255, 140, 60);

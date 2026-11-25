@@ -134,6 +134,7 @@ Các mục dưới "Đã xong" là nhật ký theo thời gian; mục nào đã 
 - **Màn hình shop làng (26/11):** bỏ dòng số tiền (đã có trên HUD); dòng không đủ tiền hoặc đã mua thì xám cả dòng; món đã mua, đã biết, đã sở hữu, túi đã nới tối đa dồn xuống cuối; chữ trạng thái viết hoa chữ đầu (Known, Owned, Max, Full, Bag full); mô tả hẹp lại để không chạm giá; bấm trong 0,35 s đầu sau khi mở shop không mua gì (cú bấm mở shop từng mua nhầm dòng đầu).
 - **Hearth Wisp (26/11):** trang bị charm mới (bản thiết kế ở Maren, 4 ember; $1200 trên núi): đốm sáng bay cạnh vai, đỡ một lần chết (trừ thần chết), sống lại với 5 máu rồi mất. Khi shop làng mở, góc máu và tiền trên HUD không bị làm mờ.
 - **Hiệu ứng (26/11):** người lạ trao cán búa xong thì tan dần từ dưới lên thành hạt sáng tím bay lên, kết thúc bằng một chớp sáng (`Stranger.cs`, `Fx.Motes`). Hearth Wisp có hoạt ảnh 5 khung (lửa lay động, chớp mắt).
+- **Thêm 5 bản thiết kế (26/11):** Mending Charm và Antidote Vial (Maren), Grappling Hook và Climbing Gloves (Tam), Fire Cloak (Bera, bày nổi bật ở Emberdeep). Kịch bản mới "more wares", test logic cho Mending Charm.
 - **Tài liệu (25/11):** README, DESIGN, PROJECT_STATUS, TEST_REPORT, EXTENDING cập nhật theo code hiện tại.
 
 ## Đang làm

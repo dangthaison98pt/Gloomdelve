@@ -12,7 +12,7 @@ Game hiện có 8 khu (bốc 4 mỗi lượt), 24 màn sinh ngẫu nhiên trong 
 | Kịch bản chạy lẻ sau khi sửa shop làng và thêm hàng mới (`-scenarioFilter "new wares,village,map:,long fall,stomp,stalactite,story,shop"`) | **16/16 PASS** | 25/11 |
 | Bot chơi trọn 3 lượt (`autotest_report.txt`, seed 201–203) | **54/54 chặng PASS**, 3/3 lượt tới VICTORY, 0 rò rỉ trạng thái (bot không đánh boss) | 17/11 |
 
-Hiện có **103 kịch bản** trong `ScenarioRunner` (25/11). Lần chạy đủ gần nhất (18/11) có 79, nên chưa có lần chạy đủ 103/103 trên bản hiện tại. Các thay đổi từ 19/11 tới 24/11 chưa có số liệu kiểm thử nào ghi vào file này. Bot chưa chạy lại từ khi có làng, ô lưu, Sandsunk, Geode, Cogwyrm, ná, Eclipse King và kết thúc thật; bot cũng chưa đi mạch truyện cây búa.
+Hiện có **104 kịch bản** trong `ScenarioRunner` (25/11). Lần chạy đủ gần nhất (18/11) có 79, nên chưa có lần chạy đủ 104/104 trên bản hiện tại. Các thay đổi từ 19/11 tới 24/11 chưa có số liệu kiểm thử nào ghi vào file này. Bot chưa chạy lại từ khi có làng, ô lưu, Sandsunk, Geode, Cogwyrm, ná, Eclipse King và kết thúc thật; bot cũng chưa đi mạch truyện cây búa.
 
 Switch dòng lệnh hiện có: `-scenarios`, `-scenarioFilter a,b`, `-autotest`, `-autotestSeed`, `-autotestOut`, `-autotestShots`, `-saveDir`, `-loadingShot dir`, `-toggleShot`, `-shotEvery N dir`, `-bossTest N`, `-tutorialTest`, `-villageTest H`, `-villageX x`; khi chạy kiểm thử, game giữ cỡ màn từ `-screen-width / -screen-height / -screen-fullscreen` của Unity.
 

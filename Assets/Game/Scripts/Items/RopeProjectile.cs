@@ -121,6 +121,8 @@ namespace Gloomdelve
             base.OnSpawn();
             var cfg = World.config.player;
             if (cfg != null) { maxRise = cfg.ropeThrowHeight; length = cfg.ropeLength; lifetime = cfg.ropeLifetime; }
+            var run = RunSession.Current;
+            if (run != null && run.stats.ropeBonus > 0) { maxRise += run.stats.ropeBonus; length += run.stats.ropeBonus; }      // (the Grappling Hook)
         }
 
         public void LaunchUp()

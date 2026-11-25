@@ -35,13 +35,14 @@ PASS  challenge: the Field Guide is in the bag with every page open, and nothing
 PASS  challenge: a win is put down in the Challenge list and nowhere else  
 PASS  challenge: out of the fight the save is as it was  
 PASS  challenge: the list is the same whichever save is played  
-PASS  story: a pillar and a part of the hammer find a place to stand in every level  24/24 places, 0 bad, slowest search 62 ms
+PASS  story: a pillar and a part of the hammer find a place to stand in every level  24/24 places, 0 bad, slowest search 65 ms
 PASS  story: what leads to the hammer stands in a side room, off the main path  12/12 levels: 12 walked into, 0 behind a wall (bomb or rope), 0 on the path for want of a side room
 PASS  map: the Mapmaker sells a spyglass, the map and his lost letter (the compass is open from the start); a description is shown with a capital letter  
 PASS  money: a boss leaves one ember and five sparks; the map and the blueprints are paid in embers, paper in sparks  
 PASS  story: the Peddler sells paper for an ember, and the mountain's own shelves and chests never carry it  
 PASS  chests: the mountain's loot chest is plain wood; the camp's, the Field Guide's and the special gear's are fine ones  
 PASS  blueprints: the lesser piece of each area is open, the stronger has a stall; every blueprint has its price  
+PASS  mending charm: +1 health at the start of a level, once a level, never past the limit, nothing without it  4->5 (again 5), next level 6, full 10
 PASS  village: Pip's Oddments (every consumable for a climb) is the door next to the player's own house  
 PASS  blueprints: with none known a shelf draws its two consumables from bombs, ropes and pebbles, and has no villager's equipment; known ones join the draw  consumables seen bombs,pebbles,ropes then ropes,lampoil,bombs,pebbles; locked on a shelf: - / -; blade True
 PASS  the loop: a waking after a win has its line, after a death one of several in turn, and any other waking none  
@@ -68,4 +69,4 @@ PASS  forced template is placed in generated levels  6 rooms in 6 levels, 6 vali
 PASS  custom marker spawns its prefab  6 rocks in 6 forced rooms
 PASS  same seed -> identical level  
 
-69 passed, 0 failed
+70 passed, 0 failed

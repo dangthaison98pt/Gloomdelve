@@ -122,6 +122,9 @@ namespace Gloomdelve
             // a saved game that goes on in an arena whose boss has already fallen: the arena is empty, the gate open
             if (Stage.kind == LevelKind.Boss && run.bossDownStage == run.stageIndex && !run.bossPractice)
                 Level.spawns.RemoveAll(sp => config.prefabs.Get(sp.id) is Boss);
+            // a Mending Charm: a little health back at the start of a level on the mountain - once a level (before the
+            // save, so a level started again from the save gives none)
+            bool mended = !ScenarioRunner.Active && run.Mend();
             SaveSystem.Checkpoint(run, Stage.displayName);      // the game is saved at the start of every level
             LevelFactory.SpawnAll(world, Level, config.prefabs);
             Story.Populate(world, Level, Stage, run, config);       // the old pillars, and - once they are read - the parts of the hammer
@@ -192,6 +195,7 @@ namespace Gloomdelve
                 hud.ShowMessage("The signs along the way say what every button does.  Know it already?  [pause], then SKIP TUTORIAL.", 9f);
             // Oswin's lost letter: the level that holds a caged villager says so as it begins (the map marks the cage)
             { string note = LetterNote(); if (note != null) hud.ShowMessage(note, 7f); }
+            if (mended) hud.ShowMessage($"Your Mending Charm: +{run.stats.mend} health.", 3f);
             if (chestGear != null)
                 hud.ShowMessage("A chest stands by the gate. This place asks for what is in it: open it before you go on.", 7f);
             if (grantedGear)

@@ -264,6 +264,9 @@ namespace Gloomdelve
                 run = c => NewWaresCase(c) },
             new Scenario { name = "loot chest: a plain chest throws out three things, and now and then a free piece of equipment beside it", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => LootChestCase(c) },
+            new Scenario { name = "more wares: the fire cloak, the antidote vial, the climbing gloves and the grappling hook each do what the stall says",
+                map = m => { Set(m, 3, 1, 'S'); for (int y = 1; y <= 7; y++) Set(m, 16, y, 'H'); },
+                run = c => MoreWaresCase(c) },
             new Scenario { name = "hearth wisp: worn, it flies at the shoulder; a death is turned away once - up with 5 health - and the wisp is gone", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => WispCase(c) },
             new Scenario { name = "villagers: a caged villager is freed with Enter, goes home for good, and helps every later run", map = m => { Set(m, 3, 1, 'S'); },
@@ -4041,6 +4044,90 @@ namespace Gloomdelve
             Villagers.ResetTestState();
             Villagers.testRescued = null;
             c.Teleport(3.5f, 1f);
+            yield return c.Frames(4);
+        }
+
+        static IEnumerator MoreWaresCase(Ctx c)
+        {
+            var run = c.run;
+            var shop = c.dir.config.shop;
+            c.p.godMode = false;
+            c.Bot(Seq((2000, F())));
+            run.maxHealth = 10; run.health = 10;
+
+            // the Fire Cloak: burning ground does nothing to the wearer; without it, it burns
+            IEnumerator Burn()
+            {
+                c.Teleport(8.5f, 1f);
+                yield return c.Frames(90);                         // (clear of the last hurt's grace)
+                c.Spawn<FirePatch>("firepatch", 8, 1);
+                yield return c.Frames(40);
+            }
+            run.AddUpgrade(shop.Find("firecloak"));
+            int hp0 = run.health;
+            yield return Burn();
+            int cloaked = hp0 - run.health;
+            run.RemoveUpgrade("firecloak");
+            hp0 = run.health;
+            yield return Burn();
+            int bare = hp0 - run.health;
+            c.Expect(cloaked == 0 && bare > 0, $"burning ground: nothing through the fire cloak, {bare} without it");
+            run.health = run.maxHealth;
+            yield return c.Frames(60);
+
+            // the Antidote Vial: a web does not hold the wearer
+            IEnumerator Web(bool vial)
+            {
+                if (vial) run.AddUpgrade(shop.Find("antidote")); else run.RemoveUpgrade("antidote");
+                c.Teleport(10.5f, 1f);
+                var w = c.Spawn<WebPatch>("webpatch", 10, 1);
+                yield return c.Frames(10);
+                bool slowed = c.p.Slowed;
+                if (w != null && !w.Dead) w.Despawn();
+                yield return c.Frames(20);
+                c.Expect(vial ? !slowed : slowed, vial ? "with the antidote vial a web does not hold you" : "without it, the web holds you");
+            }
+            yield return Web(true);
+            yield return Web(false);
+
+            // the Climbing Gloves: up a ladder half as fast again
+            IEnumerator Climb(bool gloves, System.Action<float> got)
+            {
+                if (gloves) run.AddUpgrade(shop.Find("climbgloves")); else run.RemoveUpgrade("climbgloves");
+                c.Teleport(16.5f, 1f);
+                yield return c.Frames(10);                       // (standing at the foot of the ladder first)
+                c.Bot(Seq((600, F(up: true))));
+                // measured once the player is on the ladder and going up (not while getting hold of it)
+                for (int i = 0; i < 60 && !(c.p.pos.y > 1.6f && c.p.vel.y > 0.1f); i++) yield return c.Frames(1);
+                float y0 = c.p.pos.y;
+                yield return c.Frames(15);
+                got(c.p.pos.y - y0);
+                c.Bot(Seq((2000, F())));
+                c.Teleport(8.5f, 1f);
+                yield return c.Frames(10);
+            }
+            float bareUp = 0f, glovedUp = 0f;
+            yield return Climb(false, v => bareUp = v);
+            yield return Climb(true, v => glovedUp = v);
+            run.RemoveUpgrade("climbgloves");
+            c.Expect(bareUp > 0.5f && glovedUp > bareUp * 1.35f, $"up the ladder in the same time: {bareUp:0.00} bare-handed, {glovedUp:0.00} with the gloves");
+
+            // the Grappling Hook: a rope thrown flies higher and hangs longer
+            run.AddUpgrade(shop.Find("grapplinghook"));
+            int ri = run.gear.IndexOf("rope");
+            if (ri >= 0) run.SetEquipped(ri);
+            run.ropes = Mathf.Max(run.ropes, 2);
+            c.Teleport(8.5f, 1f);
+            yield return c.Frames(4);
+            c.Bot(Seq((1, F(use: true)), (2000, F())));
+            yield return c.Frames(6);
+            RopeProjectile rope = null;
+            foreach (var e in c.world.Entities) if (e is RopeProjectile r && !r.Dead) rope = r;
+            var pc = c.dir.config.player;
+            c.Expect(rope != null && rope.maxRise == pc.ropeThrowHeight + 3 && rope.length == pc.ropeLength + 3,
+                $"with the grappling hook a rope rises {rope?.maxRise} (not {pc.ropeThrowHeight}) and hangs {rope?.length} (not {pc.ropeLength})");
+            run.RemoveUpgrade("grapplinghook");
+            c.p.godMode = true;
             yield return c.Frames(4);
         }
 

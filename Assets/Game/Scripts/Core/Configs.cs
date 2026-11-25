@@ -83,6 +83,11 @@ namespace Gloomdelve
         [Tooltip("Added to the height of a fall before it hurts (tiles; 3 = a fall must be 12 tiles instead of 9).")] public float fallBonus;
         [Tooltip("Added to how far the view moves when looking up or down (1 = twice as far).")] public float lookBonus;
         [Tooltip("Above 0: a death is turned away once - the wearer rises with this much health and the piece is gone (the Hearth Wisp).")] public int revive;
+        [Tooltip("Health given back at the start of every level on the mountain (the Mending Charm).")] public int mend;
+        [Tooltip("Above 0: webs do not hold the wearer, and venom does 1 less damage (the Antidote Vial).")] public float venomGuard;
+        [Tooltip("Added to how high a rope is thrown and how long it hangs, in tiles (the Grappling Hook).")] public int ropeBonus;
+        [Tooltip("Added to the climbing speed on ladders and ropes (0.5 = half as fast again: the Climbing Gloves).")] public float climbBonus;
+        [Tooltip("Above 0: flame vents and burning ground do not hurt the wearer (the Fire Cloak).")] public float fireGuard;
 
         public void Add(StatModifiers o)
         {
@@ -91,14 +96,15 @@ namespace Gloomdelve
             whipRangeBonus += o.whipRangeBonus; blastRadiusBonus += o.blastRadiusBonus;
             iceGrip = Mathf.Max(iceGrip, o.iceGrip); coldResist += o.coldResist; sporeResist += o.sporeResist; lightBonus += o.lightBonus; beltGrip += o.beltGrip; shieldPierce += o.shieldPierce; sandGrip += o.sandGrip; goldWard += o.goldWard; shardWard += o.shardWard; mimicSight += o.mimicSight; pebbleBonus += o.pebbleBonus;
             stompBonus += o.stompBonus; headGuard += o.headGuard; fallBonus += o.fallBonus; lookBonus += o.lookBonus; revive = Mathf.Max(revive, o.revive);
+            mend += o.mend; venomGuard += o.venomGuard; ropeBonus += o.ropeBonus; climbBonus += o.climbBonus; fireGuard += o.fireGuard;
         }
 
         public void Clear()
         {
-            jumpBonus = 0f; whipDamageBonus = 0; whipRangeBonus = 0f; blastRadiusBonus = 0f; iceGrip = 0f; coldResist = 0f; sporeResist = 0f; lightBonus = 0f; beltGrip = 0f; shieldPierce = 0f; sandGrip = 0f; goldWard = 0f; shardWard = 0f; mimicSight = 0f; pebbleBonus = 0; stompBonus = 0; headGuard = 0f; fallBonus = 0f; lookBonus = 0f; revive = 0;
+            jumpBonus = 0f; whipDamageBonus = 0; whipRangeBonus = 0f; blastRadiusBonus = 0f; iceGrip = 0f; coldResist = 0f; sporeResist = 0f; lightBonus = 0f; beltGrip = 0f; shieldPierce = 0f; sandGrip = 0f; goldWard = 0f; shardWard = 0f; mimicSight = 0f; pebbleBonus = 0; stompBonus = 0; headGuard = 0f; fallBonus = 0f; lookBonus = 0f; revive = 0; mend = 0; venomGuard = 0f; ropeBonus = 0; climbBonus = 0f; fireGuard = 0f;
         }
 
-        public bool IsZero => jumpBonus == 0f && whipDamageBonus == 0 && whipRangeBonus == 0f && blastRadiusBonus == 0f && iceGrip == 0f && coldResist == 0f && sporeResist == 0f && lightBonus == 0f && beltGrip == 0f && shieldPierce == 0f && sandGrip == 0f && goldWard == 0f && shardWard == 0f && mimicSight == 0f && pebbleBonus == 0 && stompBonus == 0 && headGuard == 0f && fallBonus == 0f && lookBonus == 0f && revive == 0;
+        public bool IsZero => jumpBonus == 0f && whipDamageBonus == 0 && whipRangeBonus == 0f && blastRadiusBonus == 0f && iceGrip == 0f && coldResist == 0f && sporeResist == 0f && lightBonus == 0f && beltGrip == 0f && shieldPierce == 0f && sandGrip == 0f && goldWard == 0f && shardWard == 0f && mimicSight == 0f && pebbleBonus == 0 && stompBonus == 0 && headGuard == 0f && fallBonus == 0f && lookBonus == 0f && revive == 0 && mend == 0 && venomGuard == 0f && ropeBonus == 0 && climbBonus == 0f && fireGuard == 0f;
     }
 
     /// <summary>

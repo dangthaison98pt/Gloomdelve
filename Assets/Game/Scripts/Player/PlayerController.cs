@@ -169,6 +169,7 @@ namespace Gloomdelve
                 dash = dashTimer > 0f ? dashDir : 0, dashSpeed = cfg.dashSpeed,
                 speedMult = (held != null && held.heavy ? cfg.heavyCarrySpeed : 1f) * (slowTimer > 0f ? 1f - slowAmount : 1f),
                 jumpMult = Run != null ? 1f + Run.stats.jumpBonus : 1f,
+                climbMult = Run != null ? 1f + Run.stats.climbBonus : 1f,          // (the Climbing Gloves)
                 grip = Mathf.Max(World.Level != null ? World.Level.grip : 1f, Run != null ? Run.stats.iceGrip : 0f),
             };
             EquippedGear?.ModifyMotor(this, ref mi);
@@ -567,6 +568,18 @@ namespace Gloomdelve
             bool bypass = d.type == DamageType.Wraith || d.type == DamageType.Explosion || d.amount >= 99;
             if (invuln > 0f && !bypass) return false;
             int amount = d.amount;
+            // a Fire Cloak: a flame vent or burning ground does nothing (a beam of light is not fire)
+            if (d.type == DamageType.Fire && Run.stats.fireGuard > 0f && (d.source is FlameVent || d.source is FirePatch))
+            {
+                Fx.Smoke(Center, 2);
+                return false;
+            }
+            // an Antidote Vial: venom does one less
+            if (Run.stats.venomGuard > 0f && d.source is BossShot vs && vs.displayName == "venom" && amount < 99)
+            {
+                amount--;
+                if (amount <= 0) { Fx.Sparks(Center, new Color(0.6f, 1f, 0.5f), 6, 3f); invuln = Mathf.Max(invuln, 0.4f); return false; }
+            }
             // an Iron Cap: something falling on the head does one less (a blow it takes all of glances off with a clank)
             if (d.type == DamageType.Falling && Run.stats.headGuard > 0f && amount < 99)
             {

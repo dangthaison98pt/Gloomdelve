@@ -574,7 +574,7 @@ namespace Gloomdelve.EditorTools
                     {
                         // what is open from the start and what wants a blueprint: of each area's pair the lesser piece is open
                         string[] open = { "compass", "ironcap", "softsoles", "pebblepouch", "warmcoat", "sporemask", "heavyboots", "wardscarab", "truthlens" };
-                        string[] plans = { "ironwhip", "blastpowder", "springboots", "hobnailboots", "spyglass", "iceboots", "lantern", "magnetcharm", "sandstriders", "dampener", "lampoil", FlareGear.OfferId, "vigor", "wisp" };
+                        string[] plans = { "ironwhip", "blastpowder", "springboots", "hobnailboots", "spyglass", "iceboots", "lantern", "magnetcharm", "sandstriders", "dampener", "lampoil", FlareGear.OfferId, "vigor", "wisp", "mendingcharm", "antidote", "grapplinghook", "climbgloves", "firecloak" };
                         bool ok = true; string why = "";
                         foreach (var id in open) if (Blueprints.VillageWares.Contains(id)) { ok = false; why += id + " has a stall; "; }
                         foreach (var id in plans)
@@ -584,6 +584,19 @@ namespace Gloomdelve.EditorTools
                             if (o == null || o.blueprintPrice <= 0) { ok = false; why += id + " has no price; "; }
                         }
                         Check("blueprints: the lesser piece of each area is open, the stronger has a stall; every blueprint has its price", ok, why);
+                    }
+                    {
+                        // the Mending Charm: a little health back at the start of a level, once a level
+                        var mr = new RunState { health = 4, maxHealth = 10, stageIndex = 2 };
+                        mr.AddUpgrade(cfg.shop.Find("mendingcharm"));
+                        bool first = mr.Mend(); int h1 = mr.health;
+                        bool again = mr.Mend(); int h2 = mr.health;
+                        mr.stageIndex = 3; bool next = mr.Mend(); int h3 = mr.health;
+                        mr.health = 10; mr.stageIndex = 4; bool full = mr.Mend();
+                        var plain = new RunState { health = 4, maxHealth = 10, stageIndex = 2 };
+                        Check("mending charm: +1 health at the start of a level, once a level, never past the limit, nothing without it",
+                            first && h1 == 5 && !again && h2 == 5 && next && h3 == 6 && !full && mr.health == 10 && !plain.Mend() && plain.health == 4,
+                            $"{4}->{h1} (again {h2}), next level {h3}, full {mr.health}");
                     }
                     Check("village: Pip's Oddments (every consumable for a climb) is the door next to the player's own house",
                         HandcraftedLevel.StreetOrder.Length == 6 && HandcraftedLevel.StreetOrder[5] == Villagers.IndexOf("peddler"));
