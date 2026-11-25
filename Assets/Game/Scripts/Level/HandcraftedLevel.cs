@@ -118,6 +118,7 @@ namespace Gloomdelve
                         case 'z': d.spawns.Add(new SpawnPoint("snowbush", cell)); break;
                         case '&': d.spawns.Add(new SpawnPoint("codexchest", cell, 0, 0, Codex.Key)); break;      // the chest that holds the Field Guide (end of the tutorial)
                         case 'd': d.spawns.Add(new SpawnPoint("kennel", cell)); break;             // the kennel (it keeps the village dog)
+                        case 'n': d.spawns.Add(new SpawnPoint("kennelroom", cell)); break;         // the room inside the kennel (in the first cell of its floor, by its little door)
                         default:
                             if (ch >= '1' && ch <= '9')
                             {

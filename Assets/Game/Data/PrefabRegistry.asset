@@ -266,10 +266,16 @@ MonoBehaviour:
     prefab: {fileID: 3292022294281736224, guid: a5268a36252c864498255ca8775e9cdf, type: 3}
   - id: ocarina
     prefab: {fileID: 5531563528195445306, guid: d0dc5c5480e663d439ff9c1cf6d8abeb, type: 3}
+  - id: dolls
+    prefab: {fileID: 72281688789013152, guid: f14b9f44e77e26c4a881dcf7b1df70c4, type: 3}
+  - id: dollschest
+    prefab: {fileID: 8783956233057124323, guid: d0d18b6f75ae60f49bda590b4e6d1b08, type: 3}
   - id: kennel
     prefab: {fileID: 8452434925105755567, guid: 810f38a2aa4846e498e7a94596343cd0, type: 3}
   - id: villagedog
     prefab: {fileID: 4054281624694805782, guid: 1631dae9a48d3ce4583264b85dcf7e39, type: 3}
+  - id: kennelroom
+    prefab: {fileID: 5591513276535829195, guid: 50d5f8be072a0ce4490b16812ef7fc32, type: 3}
   - id: pavement
     prefab: {fileID: 5763537643693690132, guid: d94c870365b41dc4f970706d499209dc, type: 3}
   - id: interior

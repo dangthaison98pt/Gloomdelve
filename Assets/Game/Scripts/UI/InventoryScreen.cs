@@ -33,6 +33,7 @@ namespace Gloomdelve
         [Tooltip("Picture of the Ember Pouch (KEY ITEMS tab).")] public Sprite pouchIcon;
         [Tooltip("Picture of the Field Guide (KEY ITEMS tab): confirm opens it.")] public Sprite bookIcon;
         [Tooltip("Picture of the Blue Ocarina (KEY ITEMS tab): confirm plays it.")] public Sprite ocarinaIcon;
+        [Tooltip("Picture of the two little dolls (KEY ITEMS tab).")] public Sprite dollsIcon;
         public PlayerInputReader input;
         public GameDirector director;
         public int columns = 7;
@@ -275,6 +276,14 @@ namespace Gloomdelve
                         desc = "A little blue ocarina, shaken out of the fir by the village hall. It plays a tune nobody taught you. It is never lost.",
                         act = "Play",
                         run = () => Sfx.PlayUI("ocarina", 0.9f),
+                    });
+                // the two little dolls from the dog's basket: kept for good
+                if (Villagers.HasKey(Villagers.KeyDolls))
+                    entries.Add(new Entry
+                    {
+                        icon = dollsIcon, under = "", marked = false,
+                        name = "Two Little Dolls",
+                        desc = "A clay doll and a wooden doll, stitched hand in hand. The village dog kept them in a chest in its kennel. However far apart the world pulls them, neither lets go. It is never lost.",
                     });
                 // the story's things (Story): the copy of the old signs, and the parts of the hammer this run has found
                 var gcfg = director != null ? director.config : null;

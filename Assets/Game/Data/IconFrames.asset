@@ -118,6 +118,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: a7e856a5cdd75174e95b62605ec4c7b1, type: 3}
   - {fileID: 21300000, guid: 6dd6da6a1e02f2d438f8968cf48ca279, type: 3}
   - {fileID: 21300000, guid: d335e0498f1403e4d9ddfa0a792934b6, type: 3}
+  - {fileID: 21300000, guid: 2fbc6fa3bd980214aa675c0662c5ef42, type: 3}
   - {fileID: 21300000, guid: 24b9c6f8b1d5b1547b349467995fd0a8, type: 3}
   - {fileID: 21300000, guid: 86b17ca765e469242b17519fa3d84e41, type: 3}
   - {fileID: 21300000, guid: 6522680e57a775e49b4419ad7d3ab205, type: 3}
@@ -627,6 +628,11 @@ MonoBehaviour:
     y: 0.1875
     width: 1
     height: 0.8125
+  - serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
   - serializedVersion: 2
     x: 0
     y: 0

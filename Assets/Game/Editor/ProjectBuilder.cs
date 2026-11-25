@@ -2064,7 +2064,23 @@ namespace Gloomdelve.EditorTools
                     e.glow = InReachGlow(g, unlitMat);
                     e.glow.sortingOrder = 23;
                 }));
-                Reg("kennel", Make<Kennel>("Kennel", "Level", "kennel", new Vector2(1f, 1f), ArtGenerator.S("Sprites/Village/kennel"), null, 3, (e, g, s) =>
+                Reg("dolls", Make<DollsPickup>("Dolls", "Items", "two little dolls", new Vector2(0.6f, 0.5f), ArtGenerator.S("Sprites/Village/dolls"), null, 22, (e, g, s) =>
+                {
+                    e.flipWithFacing = false;
+                    e.outline = ArtGenerator.S("Sprites/Village/dolls_hl");
+                    e.glow = InReachGlow(g, unlitMat);
+                    e.glow.sortingOrder = 23;
+                }));
+                Reg("dollschest", Make<DollsChest>("DollsChest", "Level", "little chest", new Vector2(1.4f, 1.2f), ArtGenerator.S("Sprites/Village/read_chest"), null, 6, (e, g, s) =>
+                {
+                    e.flipWithFacing = false;
+                    s.sharedMaterial = unlitMat;          // painted in the light of the room, like the room itself
+                    e.closed = ArtGenerator.S("Sprites/Village/read_chest");
+                    e.open = ArtGenerator.S("Sprites/Village/read_chest_open");
+                    e.outline = ArtGenerator.S("Sprites/Village/read_chest_hl");
+                    e.glow = InReachGlow(g, unlitMat);
+                }));
+                Reg("kennel", Make<Kennel>("Kennel", "Level", "kennel", new Vector2(1.8f, 1f), ArtGenerator.S("Sprites/Village/kennel"), null, 3, (e, g, s) =>
                 {
                     e.flipWithFacing = false;
                     GroundShadow(g, Vector2.zero, 2f, 2);
@@ -2075,6 +2091,22 @@ namespace Gloomdelve.EditorTools
                     for (int i = 0; i < 5; i++) fr[i] = ArtGenerator.S("Sprites/Village/dog_" + i);
                     e.frames = fr;
                     GroundShadow(g, Vector2.zero, 1f, 2);
+                }));
+                Reg("kennelroom", Make<KennelRoom>("KennelRoom", "Level", "kennel door", new Vector2(1.2f, 1f), ArtGenerator.S("Sprites/Village/kennel_room"), null, 2, (e, g, s) =>
+                {
+                    e.flipWithFacing = false;
+                    s.transform.localPosition = new Vector3(4.5f, 2.5f, 0f);      // the picture is the whole room with its walls; the entity stands in the first cell of the floor
+                    s.sharedMaterial = unlitMat;                                  // its light is painted in (ArtGenerator.Kennel); the lamps here light the dog and the player
+                    var darkGo = new GameObject("Surround");
+                    darkGo.transform.SetParent(g.transform, false);
+                    darkGo.transform.localPosition = new Vector3(4.5f, 2.5f, 1f);
+                    darkGo.transform.localScale = new Vector3(544f / 4f, 304f / 4f, 1f);
+                    var dsr = darkGo.AddComponent<SpriteRenderer>();
+                    dsr.sprite = ArtGenerator.S("Sprites/Village/room_dark"); dsr.sharedMaterial = unlitMat;
+                    dsr.sortingLayerID = s.sortingLayerID; dsr.sortingOrder = s.sortingOrder - 1;
+                    Lamp(g, "Lantern", new Vector2(5.5f, 4.6f), 7f, 0.6f, 0.05f);
+                    var stove = Lamp(g, "Stove", new Vector2(9.5f, 1.4f), 4.5f, 0.7f, 0.15f); stove.pulse = true;
+                    stove.color = new Color(1f, 0.62f, 0.3f);
                 }));
                 Reg("pavement", Make<Prop>("Pavement", "Level", "street", new Vector2(1f, 0.2f), ArtGenerator.S("Sprites/Village/street_ground"), null, 1, (e, g, s) =>
                 {
@@ -2966,6 +2998,7 @@ namespace Gloomdelve.EditorTools
             inv.pouchIcon = ArtGenerator.S("UI/icon_pouch");
             inv.bookIcon = ArtGenerator.S("UI/icon_book");
             inv.ocarinaIcon = ArtGenerator.S("Sprites/Village/ocarina");
+            inv.dollsIcon = ArtGenerator.S("Sprites/Village/dolls");
             var igrid = UIBuilder.Node(ipanel.transform, "Grid");
             UIBuilder.Place(UIBuilder.Rect(igrid), new Vector2(0.5f, 1f), new Vector2(0, -412), new Vector2(900, 10), new Vector2(0.5f, 0.5f));
             inv.grid = (RectTransform)igrid.transform;

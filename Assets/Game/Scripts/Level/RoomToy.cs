@@ -9,7 +9,7 @@ namespace Gloomdelve
     /// it; it never ends well) and Maren's cauldron (stir it). Whoever keeps the house has something to say about it.
     /// VillageInterior puts them out (param = Kind).
     /// </summary>
-    public partial class RoomToy : Entity, IInteractable
+    public partial class RoomToy : Entity, IInteractable, IHoldsPlayer
     {
         public enum Kind { Cat, Wheel, Cauldron, Hammock, Lamps, Bellows, Anvil, Globe, Telescope, Owl, Clock, Birdcage, LampRow, GreatLamp, Candles, Cup, Banner, Bed, Coil }
 

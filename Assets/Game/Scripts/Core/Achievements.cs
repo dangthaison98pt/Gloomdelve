@@ -46,6 +46,7 @@ namespace Gloomdelve
     public static class Achievements
     {
         public const string OcarinaOfGoat = "ocarina_of_goat";
+        public const string ItTakesTwo = "it_takes_two";
         public const string FirstVictory = "first_victory";
 
         /// <summary>
@@ -101,6 +102,12 @@ namespace Gloomdelve
                 id = OcarinaOfGoat, steamId = "ACH_OCARINA_OF_GOAT", title = "Ocarina of GOAT", hidden = true,
                 description = "Found a little blue ocarina. Whoever carved it was the greatest of all time. Probably.",
                 hint = "Somewhere in Brindlemoor, something wants a good shake.",
+            },
+            new AchievementDef
+            {
+                id = ItTakesTwo, steamId = "ACH_IT_TAKES_TWO", title = "It Takes Two", hidden = true,
+                description = "Found two little dolls, hand in hand, in a chest in the dog's kennel. One of clay, one of wood. Neither lets go.",
+                hint = "Somebody in Brindlemoor keeps a secret in their house. Get down low.",
             },
         };
 

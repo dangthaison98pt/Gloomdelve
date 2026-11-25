@@ -57,6 +57,8 @@ namespace Gloomdelve.EditorTools
                 Save(p, d + "room_dark", PCenter);
             }
             StreetArt(d);
+            KennelRoomArt(d);
+            DollsArt(d);
             {
                 // the glint that marks something worth a closer look
                 var p = new Px(7, 7);

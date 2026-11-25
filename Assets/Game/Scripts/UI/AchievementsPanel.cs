@@ -72,7 +72,9 @@ namespace Gloomdelve
             tipText.text = (secret ? a.hint : a.description) + (on != null ? $"\n<size=80%><color=#FFFFFF80>Earned {on}</color></size>" : got ? "" : "\n<size=80%><color=#FFFFFF80>Not yet earned</color></size>");
             // its height follows the words; it sits beside the tile with a gap, to its right (or its left, near the right edge)
             float w = tip.sizeDelta.x;
-            float h = 26f + tipTitle.GetPreferredValues(tipTitle.text, w - 36f, 0f).y + 8f + tipText.GetPreferredValues(tipText.text, w - 36f, 0f).y + 24f;
+            // (from the top of the box to where the words begin, the words, then the same margin under them as over the name)
+            float textTop = -tipText.rectTransform.anchoredPosition.y, textW = tipText.rectTransform.rect.width;
+            float h = textTop + tipText.GetPreferredValues(tipText.text, textW, 0f).y + (-tipTitle.rectTransform.anchoredPosition.y);
             tip.sizeDelta = new Vector2(w, h);
             var t = (RectTransform)tiles[i].transform;
             var parent = (RectTransform)tip.parent;

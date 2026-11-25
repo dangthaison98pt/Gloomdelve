@@ -275,6 +275,9 @@ namespace Gloomdelve
             new Scenario { name = "room toys 2: bellows and anvil, globe and telescope, Pip's owl, clock and bird, Bera's lamps, the hall's candles, cup and banner, a nap in the bed at home, Tam's coil",
                 map = m => { Set(m, 3, 1, 'S'); for (int x = 4; x <= 20; x++) Set(m, x, 7, '#'); },
                 run = c => RoomToys2Case(c) },
+            new Scenario { name = "kennel: standing at its door, nothing; crouched there, Crawl in leads into the warm room inside, the dog asleep in its basket (petted, it grumbles), a little chest holds two dolls that earn It Takes Two; at its little door, Crawl out",
+                map = m => { Set(m, 3, 1, 'S'); },
+                run = c => KennelCase(c) },
             new Scenario { name = "achievements: shaking the fir by the hall five times running drops the Blue Ocarina; picked up, it goes into KEY ITEMS and earns Ocarina of GOAT once, and the toast slides down",
                 map = m => { Set(m, 3, 1, 'S'); },
                 run = c => OcarinaCase(c) },
@@ -4469,6 +4472,82 @@ namespace Gloomdelve
             Villagers.testRescued = null;
             c.dir.cameraFollow.SetBounds(new Rect(0, 0, c.world.Grid.Width, c.world.Grid.Height));
             yield return c.Frames(4);
+        }
+
+        static IEnumerator KennelCase(Ctx c)
+        {
+            c.p.godMode = true;
+            Achievements.ResetTestState();
+            Villagers.testRescued = new HashSet<string>();          // (the keys of a save, kept in memory for the test)
+            Villagers.ResetTestState();
+            var k = c.Spawn<Kennel>("kennel", 12, 1);
+            var room = c.Spawn<KennelRoom>("kennelroom", 30, 1);
+            yield return c.Frames(4);
+            if (k == null || room == null) { c.Expect(false, "the kennel and the room inside it are there"); yield break; }
+            var dog = VillageDog.Find(c.world);
+            IEnumerator Shot(string n) { yield return new WaitForSecondsRealtime(0.25f); ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, n)); yield return new WaitForSecondsRealtime(0.2f); }
+            c.Teleport(k.pos.x + 0.6f, 1f);
+            yield return c.Frames(30);
+            c.Expect(k.GetPrompt(c.p) == null && c.p.Focus != (IInteractable)k, "standing at the door: no button, nothing to do");
+            c.Bot(Seq((1, F(act: true)), (20, F())));
+            yield return c.Frames(25);
+            c.Expect(c.p.restingIn == null && !room.PlayerHere, "and pressed standing up, the player stays out");
+            // crouched at the door, the button shows
+            c.Bot(Seq((120, F(down: true))));
+            yield return c.Frames(30);
+            c.Expect(c.p.Crouching && c.p.Focus == (IInteractable)k && c.p.Prompt != null && c.p.Prompt.Contains("Crawl in"), "crouched at the door: Crawl in shows (" + c.p.Prompt + ")");
+            yield return Shot("kennel_prompt.png");
+            c.Bot(Seq((1, F(down: true, act: true)), (20, F(down: true)), (200, F())));
+            for (int i = 0; i < 200 && !room.PlayerHere; i++) yield return c.Frames(1);
+            yield return c.Frames(40);
+            c.Expect(room.PlayerHere && c.p.restingIn == null, "in: the player crawls through the door into the room inside");
+            if (VillageDog.NightNow) c.Expect(dog != null && dog.InBasket && dog.Asleep && room.Contains(dog.pos + Vector2.up * 0.3f), "by night the dog is asleep in its basket in there");
+            else c.Expect(dog != null && !dog.InBasket && !room.Contains(dog.pos + Vector2.up * 0.3f), "by day the dog is out in the street: the basket is empty");
+            if (dog != null && !dog.InBasket) dog.GoToBed(room);         // (the night, for the rest of the test)
+            yield return Shot("kennel_room.png");
+            // the dog in its basket can be petted: it grumbles to be let alone
+            DollsChest chest = null;
+            foreach (var e in c.world.Entities) if (e is DollsChest dc && !dc.Dead) chest = dc;
+            c.Expect(chest != null && !chest.Opened && room.Contains(chest.pos + Vector2.up * 0.2f), "a little chest stands shut by the door");
+            c.Teleport(dog.pos.x - 0.35f, room.pos.y);
+            yield return c.Frames(30);
+            c.Expect(c.p.Focus == (IInteractable)dog && c.p.Prompt != null && c.p.Prompt.Contains("Pet the dog"), "by the basket: Pet the dog (" + c.p.Prompt + ")");
+            c.Bot(Seq((1, F(act: true)), (10, F())));
+            yield return c.Frames(20);
+            c.Expect(!string.IsNullOrEmpty(dog.LastGrumble) && dog.Asleep && dog.InBasket, "petted, it grumbles to be let alone and sleeps on: " + dog.LastGrumble);
+            yield return Shot("kennel_dog.png");
+            // the chest: opened, the two little dolls come out and are held up; a key item and It Takes Two
+            if (chest != null)
+            {
+                c.Teleport(chest.pos.x + 0.2f, room.pos.y);
+                yield return c.Frames(30);
+                c.Expect(c.p.Focus == (IInteractable)chest && c.p.Prompt != null && c.p.Prompt.Contains("Open the chest"), "by the chest: Open the chest (" + c.p.Prompt + ")");
+                c.Expect(!Achievements.IsEarned(Achievements.ItTakesTwo) && !Villagers.HasKey(Villagers.KeyDolls), "not earned before it is opened");
+                c.Bot(Seq((1, F(act: true)), (10, F())));
+                yield return c.Frames(30);
+                DollsPickup dolls = null;
+                foreach (var e in c.world.Entities) if (e is DollsPickup dp && !dp.Dead) dolls = dp;
+                c.Expect(chest.Opened && dolls != null && dolls.Held && c.p.restingIn == dolls, "opened: the two little dolls come out, held up over the head");
+                yield return Shot("kennel_dolls.png");
+                for (int i = 0; i < 200 && dolls != null && !dolls.Dead; i++) yield return c.Frames(1);
+                yield return c.Frames(10);
+                c.Expect(c.p.restingIn == null && Villagers.HasKey(Villagers.KeyDolls) && Achievements.IsEarned(Achievements.ItTakesTwo), "found: the dolls go into KEY ITEMS and It Takes Two is earned");
+                c.Expect(chest.Opened && chest.GetPrompt(c.p) == null, "and the chest stays open and empty");
+            }
+            // out: at the little door, standing, Crawl out
+            c.Teleport(room.pos.x + 0.4f, room.pos.y);
+            yield return c.Frames(40);
+            c.Expect(!c.p.Crouching && c.p.Prompt != null && c.p.Prompt.Contains("Crawl out"), "standing at the room's little door: Crawl out, no need to get down (" + c.p.Prompt + ")");
+            yield return Shot("kennel_room_door.png");
+            c.Bot(Seq((1, F(act: true)), (200, F())));
+            for (int i = 0; i < 200 && (room.PlayerHere || c.p.restingIn != null || Mathf.Abs(c.p.pos.x - k.pos.x) < 0.5f); i++) yield return c.Frames(1);
+            c.Expect(!room.PlayerHere && c.p.restingIn == null && Mathf.Abs(c.p.pos.x - k.pos.x) < 1.6f && Mathf.Abs(c.p.pos.x - k.pos.x) > 0.5f, "out again: the player crawls out beside the kennel");
+            yield return c.Frames(40);
+            c.Expect(!room.PlayerHere && c.p.restingIn == null && !k.Busy, "and the same press does not send them back in");
+            if (dog != null) c.Expect(VillageDog.NightNow ? dog.InBasket : !dog.InBasket, VillageDog.NightNow ? "by night the dog stays in its basket" : "by day the dog is out in the street again");
+            c.Bot(Seq((1, F())));
+            Achievements.ResetTestState();
+            Villagers.ResetTestState();
         }
 
         static IEnumerator OcarinaCase(Ctx c)

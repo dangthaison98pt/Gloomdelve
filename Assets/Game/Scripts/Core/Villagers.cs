@@ -40,6 +40,8 @@ namespace Gloomdelve
         public const string KeyLetter = "lostletter";
         /// <summary>The Blue Ocarina, shaken out of the fir by the hall (ShakeTree): kept in KEY ITEMS, it can be played.</summary>
         public const string KeyOcarina = "ocarina";
+        /// <summary>Two little dolls, found in the dog's basket (DollsPickup).</summary>
+        public const string KeyDolls = "dolls";
         /// <summary>How many embers the pouch holds when the elder first hands it over. His errands make it larger (ExpandPouch).</summary>
         public const int PouchStartCapacity = 5;
 

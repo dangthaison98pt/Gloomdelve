@@ -17,6 +17,16 @@ namespace Gloomdelve
     /// is, one row each; the row with the button on it is what the interact button does, and up / down moves
     /// that row (PlayerController.Interactions). While the list is up, up and down do nothing else.
     /// </summary>
+    /// <summary>
+    /// Something that holds the player still for a while (restingIn) and can be asked to let go: interact or jump
+    /// asks it. While it holds them it may say what the button does (the kennel: crawl out); null for nothing.
+    /// </summary>
+    public interface IHoldsPlayer
+    {
+        void LetGo(PlayerController p);
+        string HeldPrompt(PlayerController p);
+    }
+
     public interface IInteractChoices : IInteractable
     {
         /// <summary>What can be done, by name, the usual one first. Null (or one) when there is nothing to choose: Interact is used.</summary>
@@ -62,6 +72,8 @@ namespace Gloomdelve
         /// <summary>Lying in something (Tam's hammock): it holds the player where it likes and lays them down at restAngle; no control meanwhile.</summary>
         [NonSerialized] public Entity restingIn;
         [NonSerialized] public float restAngle;
+        /// <summary>While held (restingIn): on all fours, crawling (into the kennel and out).</summary>
+        [NonSerialized] public bool restCrawl;
         [NonSerialized] public IFrameInputSource bot;
 
         public bool IsDead { get; private set; }
@@ -153,8 +165,11 @@ namespace Gloomdelve
                     // what is pressed meanwhile is not kept for later (it would act the moment they are let go); interact
                     // or jump asks what holds them to let go, where it can (the telescope)
                     FrameInput held = bot != null ? bot.Next() : (input != null ? input.Consume() : default);
-                    if ((held.interactPressed || held.jumpPressed) && restingIn is RoomToy toy) toy.LetGo(this);
-                    vel = Vector2.zero; Prompt = null; Focus = null; interactable = false; return;      // (whatever holds them moves them)
+                    var holder = restingIn as IHoldsPlayer;
+                    if ((held.interactPressed || held.jumpPressed) && holder != null) holder.LetGo(this);
+                    vel = Vector2.zero; Focus = null; interactable = false;
+                    Prompt = holder != null ? holder.HeldPrompt(this) : null; PromptIsSign = false;
+                    return;      // (whatever holds them moves them)
                 }
             }
 
@@ -874,7 +889,7 @@ namespace Gloomdelve
             SpriteAnim a;
             anim.speed = 1f;
             if (IsDead) a = animDead;
-            else if (restingIn != null) a = animIdle;
+            else if (restingIn != null) a = restCrawl && animCrawl != null ? animCrawl : animIdle;
             else if (stunTimer > 0f) a = animStunned;
             else if (motor.mode == MotorMode.Hang) a = animHang;
             else if (motor.mode == MotorMode.PullUp) a = animClimb;
@@ -891,7 +906,7 @@ namespace Gloomdelve
                 anim.SetFrame(animWhip, whipTimer < cfg.whipBackEnd ? 0 : 1);
             else anim.Play(a);
 
-            if (sr != null) sr.enabled = IsDead || invuln <= 0f || ((int)(Time.time * 18f) % 2 == 0);
+            if (sr != null) sr.enabled = (IsDead || invuln <= 0f || ((int)(Time.time * 18f) % 2 == 0));
 
             if (gliderRenderer != null)
             {

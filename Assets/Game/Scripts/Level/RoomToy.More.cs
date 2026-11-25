@@ -275,6 +275,8 @@ namespace Gloomdelve
         [System.NonSerialized] public int nextSight = -1;
 
         /// <summary>The player asks to stop (interact or jump): the telescope's view fades out at once.</summary>
+        public string HeldPrompt(PlayerController p) => null;
+
         public void LetGo(PlayerController p)
         {
             if (kind == Kind.Telescope && scopeT > ScopeFade && scopeHolder == p) scopeT = ScopeFade;
