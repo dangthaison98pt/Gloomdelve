@@ -1856,28 +1856,112 @@ namespace Gloomdelve.EditorTools
                 p.Rect(6, 10, 2, 1, wD); p.Rect(12, 10, 2, 1, wD);                       // splinters hanging
                 Save(p, "Sprites/Traps/crumble", new Vector2(0.5f, 0f));
             }
-            for (int f = 0; f < 2; f++)
+            // chests: a plain wooden one bound in iron (the loot chests of the mountain), and a fine one in red
+            // lacquer and gold for what is special - the Field Guide, the hammer's head, the gear by a gate, the camp's chest
             {
-                // treasure chest: closed / open
-                var p = new Px(18, 16);
-                Color32 wood = C(150, 96, 50), woodD = C(100, 62, 32), woodL = C(190, 132, 74), gold = C(246, 204, 80), goldD = C(176, 126, 36);
-                p.Rect(2, 0, 14, 7, wood); p.Rect(2, 0, 14, 1, woodD); p.Rect(2, 0, 1, 7, woodD); p.Rect(15, 0, 1, 7, woodD);
-                p.Rect(5, 0, 1, 7, goldD); p.Rect(12, 0, 1, 7, goldD);
-                if (f == 0)
-                {
-                    p.Rect(2, 7, 14, 4, woodL); p.Rect(2, 10, 14, 1, wood); p.Rect(3, 11, 12, 1, wood);
-                    p.Rect(5, 7, 1, 4, goldD); p.Rect(12, 7, 1, 4, goldD);
-                    p.Rect(8, 5, 2, 3, gold); p.Set(8, 6, goldD);
-                }
-                else
-                {
-                    p.Rect(3, 7, 12, 2, C(40, 26, 16));                                        // dark inside
-                    p.Rect(4, 7, 3, 1, gold); p.Rect(9, 7, 2, 2, gold); p.Set(12, 7, C(120, 230, 160)); // loot glinting
-                    p.Rect(2, 9, 14, 2, woodD);                                                // lid thrown back
-                    p.Rect(2, 11, 14, 3, woodL); p.Rect(5, 11, 1, 3, goldD); p.Rect(12, 11, 1, 3, goldD);
-                }
+                // wooden chest: closed
+                var p = new Px(18, 16); Color32 wood = C(150, 96, 50), woodD = C(100, 62, 32), woodL = C(186, 128, 72), iron = C(112, 112, 126), ironL = C(168, 170, 186), inside = C(40, 26, 16);
+                p.Rect(2, 0, 14, 7, wood);
+                p.Rect(2, 0, 14, 1, woodD);
+                p.Rect(2, 0, 1, 7, woodD);
+                p.Rect(15, 0, 1, 7, woodD);
+                p.Rect(2, 3, 14, 1, woodD);
+                p.Rect(5, 0, 1, 7, iron);
+                p.Rect(12, 0, 1, 7, iron);
+                p.Rect(2, 7, 14, 4, woodL);
+                p.Rect(2, 10, 14, 1, wood);
+                p.Rect(3, 11, 12, 1, wood);
+                p.Rect(5, 7, 1, 4, iron);
+                p.Rect(12, 7, 1, 4, iron);
+                p.Set(5, 10, ironL);
+                p.Set(12, 10, ironL);
+                p.Rect(8, 5, 2, 3, iron);
+                p.Set(8, 7, ironL);
+                p.Set(9, 5, woodD);
                 p.Outline(C(40, 24, 12));
-                Save(p, $"Sprites/Props/chest_{f}", new Vector2(0.5f, 1f / 16f));
+                Save(p, "Sprites/Props/chest_0", new Vector2(0.5f, 1f / 16f));
+            }
+            {
+                // wooden chest: open
+                var p = new Px(18, 16); Color32 wood = C(150, 96, 50), woodD = C(100, 62, 32), woodL = C(186, 128, 72), iron = C(112, 112, 126), ironL = C(168, 170, 186), inside = C(40, 26, 16);
+                p.Rect(2, 0, 14, 7, wood);
+                p.Rect(2, 0, 14, 1, woodD);
+                p.Rect(2, 0, 1, 7, woodD);
+                p.Rect(15, 0, 1, 7, woodD);
+                p.Rect(2, 3, 14, 1, woodD);
+                p.Rect(5, 0, 1, 7, iron);
+                p.Rect(12, 0, 1, 7, iron);
+                p.Rect(3, 7, 12, 2, inside);
+                p.Set(7, 7, woodL);
+                p.Rect(2, 9, 14, 2, woodD);
+                p.Rect(2, 11, 14, 3, woodL);
+                p.Rect(5, 11, 1, 3, iron);
+                p.Rect(12, 11, 1, 3, iron);
+                p.Outline(C(40, 24, 12));
+                Save(p, "Sprites/Props/chest_1", new Vector2(0.5f, 1f / 16f));
+            }
+            {
+                // fine chest (Field Guide, the hammer's head, gear by a gate, the camp's chest): closed
+                var p = new Px(18, 16); Color32 red = C(150, 40, 46), redD = C(98, 24, 34), redL = C(190, 70, 70), gold = C(246, 204, 80), goldD = C(176, 126, 36), goldL = C(255, 240, 170), gem = C(90, 210, 230), inside = C(36, 20, 24), shine = C(255, 250, 210);
+                p.Rect(2, 0, 14, 7, red);
+                p.Rect(2, 0, 14, 1, goldD);
+                p.Rect(2, 1, 14, 1, redD);
+                p.Rect(2, 0, 1, 7, gold);
+                p.Rect(15, 0, 1, 7, goldD);
+                p.Rect(2, 6, 14, 1, gold);
+                p.Rect(2, 0, 2, 2, gold);
+                p.Rect(14, 0, 2, 2, gold);
+                p.Rect(6, 0, 1, 6, goldD);
+                p.Rect(11, 0, 1, 6, goldD);
+                p.Rect(2, 7, 14, 3, redL);
+                p.Rect(3, 10, 12, 1, redL);
+                p.Rect(4, 11, 10, 1, red);
+                p.Rect(2, 7, 14, 1, goldD);
+                p.Rect(3, 10, 1, 1, gold);
+                p.Rect(14, 10, 1, 1, goldD);
+                p.Rect(4, 11, 1, 1, gold);
+                p.Rect(13, 11, 1, 1, goldD);
+                p.Rect(5, 12, 8, 1, gold);
+                p.Rect(6, 7, 1, 5, gold);
+                p.Rect(11, 7, 1, 5, gold);
+                p.Rect(8, 3, 2, 5, gold);
+                p.Rect(7, 4, 4, 3, gold);
+                p.Set(8, 5, gem);
+                p.Set(9, 5, gem);
+                p.Set(8, 6, shine);
+                p.Rect(8, 3, 2, 1, goldD);
+                p.Outline(C(40, 24, 12));
+                Save(p, "Sprites/Props/chestfine_0", new Vector2(0.5f, 1f / 16f));
+            }
+            {
+                // fine chest (Field Guide, the hammer's head, gear by a gate, the camp's chest): open
+                var p = new Px(18, 16); Color32 red = C(150, 40, 46), redD = C(98, 24, 34), redL = C(190, 70, 70), gold = C(246, 204, 80), goldD = C(176, 126, 36), goldL = C(255, 240, 170), gem = C(90, 210, 230), inside = C(36, 20, 24), shine = C(255, 250, 210);
+                p.Rect(2, 0, 14, 7, red);
+                p.Rect(2, 0, 14, 1, goldD);
+                p.Rect(2, 1, 14, 1, redD);
+                p.Rect(2, 0, 1, 7, gold);
+                p.Rect(15, 0, 1, 7, goldD);
+                p.Rect(2, 6, 14, 1, gold);
+                p.Rect(2, 0, 2, 2, gold);
+                p.Rect(14, 0, 2, 2, gold);
+                p.Rect(6, 0, 1, 6, goldD);
+                p.Rect(11, 0, 1, 6, goldD);
+                p.Rect(3, 7, 12, 2, inside);
+                p.Rect(4, 7, 2, 1, gold);
+                p.Rect(8, 7, 3, 2, goldL);
+                p.Set(12, 7, gem);
+                p.Set(9, 8, shine);
+                p.Rect(2, 9, 14, 2, redD);
+                p.Rect(2, 9, 14, 1, gold);
+                p.Rect(2, 11, 14, 3, redL);
+                p.Rect(2, 13, 14, 1, red);
+                p.Rect(2, 11, 2, 1, gold);
+                p.Rect(14, 11, 2, 1, gold);
+                p.Rect(6, 11, 1, 3, gold);
+                p.Rect(11, 11, 1, 3, gold);
+                p.Rect(3, 14, 12, 1, goldD);
+                p.Outline(C(40, 24, 12));
+                Save(p, "Sprites/Props/chestfine_1", new Vector2(0.5f, 1f / 16f));
             }
         }
 

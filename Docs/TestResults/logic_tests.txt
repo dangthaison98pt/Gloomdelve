@@ -35,11 +35,12 @@ PASS  challenge: the Field Guide is in the bag with every page open, and nothing
 PASS  challenge: a win is put down in the Challenge list and nowhere else  
 PASS  challenge: out of the fight the save is as it was  
 PASS  challenge: the list is the same whichever save is played  
-PASS  story: a pillar and a part of the hammer find a place to stand in every level  24/24 places, 0 bad, slowest search 58 ms
+PASS  story: a pillar and a part of the hammer find a place to stand in every level  24/24 places, 0 bad, slowest search 63 ms
 PASS  story: what leads to the hammer stands in a side room, off the main path  12/12 levels: 12 walked into, 0 behind a wall (bomb or rope), 0 on the path for want of a side room
 PASS  map: the Mapmaker sells the compass, a spyglass, the map and his lost letter; a description is shown with a capital letter  
 PASS  money: a boss leaves one ember and five sparks; the map is paid in embers, a ware for one climb in sparks  
 PASS  story: the Peddler sells paper for an ember, and the mountain's own shelves and chests never carry it  
+PASS  chests: the mountain's loot chest is plain wood; the camp's, the Field Guide's and the special gear's are fine ones  
 PASS  the loop: a waking after a win has its line, after a death one of several in turn, and any other waking none  
 PASS  the loop: the first death of a save gets its scene - once, and never a win  
 PASS  records: what the saves used to keep is added up - counts summed, the fastest of the wins  
@@ -50,7 +51,7 @@ PASS  records: kills from before bosses were counted apart go with the creatures
 PASS  saved run: everything carried comes back (seed, level, health, gold, gear, upgrades and what is worn)  
 PASS  saved run: the level it was in is built again exactly as it was  
 PASS  shop effects apply  jump +0.17 whip +1/+0.45 blast +0.9
-PASS  healing: tonic +1, flask +3, elixir to full; a bigger bottle costs less per point  health 1 -> 2 -> 5 -> 10; prices 100 / 250 / 550
+PASS  healing: tonic +3, flask +5, elixir to full - 50 gold a heart (the elixir as ten)  health 1 -> 4 -> 9 -> 10; prices 150 / 250 / 500
 PASS  healing: shelves carry all three sizes over time  heart,heart3,heartfull
 PASS  an upgrade applies its modifiers only once  
 PASS  custom resources are counted  
@@ -64,4 +65,4 @@ PASS  forced template is placed in generated levels  6 rooms in 6 levels, 6 vali
 PASS  custom marker spawns its prefab  6 rocks in 6 forced rooms
 PASS  same seed -> identical level  
 
-65 passed, 0 failed
+66 passed, 0 failed

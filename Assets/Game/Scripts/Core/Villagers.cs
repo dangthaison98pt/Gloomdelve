@@ -75,8 +75,8 @@ namespace Gloomdelve
                 cagedLine = "I drew the way in. I never drew the way out.", homeLine = "I know that mountain. Let my needle show you the way.",
                 wares = new[] { "compass", "spyglass", MapScreen.ItemId, KeyLetter } },
             new VillagerDef { id = "peddler", name = "Pip", role = "the Peddler", place = "The market stall is back",
-                cagedLine = "Everything I own for an open door!", homeLine = "Never the same twice, always a bargain!",
-                wares = new[] { "?", "?", Story.Paper }, priceFactor = 0.7f },       // (paper: for copying the old signs - Story)
+                cagedLine = "Everything I own for an open door!", homeLine = "Paper and charcoal, cheap as anything. What else would you need?",
+                wares = new[] { Story.Paper }, priceFactor = 0.7f },       // (paper: for copying the old signs - Story; no random equipment any more)
             new VillagerDef { id = "lamplighter", name = "Bera", role = "the Lamplighter", place = "The lamp tower burns again",
                 cagedLine = "My lamp went out. Then it came for me.", homeLine = "Take oil. While your lamp burns, the dark is slow to find you.",
                 wares = new[] { "lampoil", FlareGear.OfferId } },       // (no bombs: every climb sets out with its bags full)

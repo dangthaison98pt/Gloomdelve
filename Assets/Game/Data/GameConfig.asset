@@ -262,6 +262,8 @@ MonoBehaviour:
     placement: 1
     tile: 0
     color: {r: 1, g: 0.85, b: 0.5, a: 1}
+  lootChestsPerLevel: 1
+  lootChestChance: 0.75
   pressureEnabled: 1
   pressureWarnTime: 540
   pressureSpawnTime: 600

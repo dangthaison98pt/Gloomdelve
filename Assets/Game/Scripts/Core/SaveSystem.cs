@@ -95,6 +95,7 @@ namespace Gloomdelve
         public string[] stageNames;
         public bool inVillage;
         public float extraTime;
+        public int lootMisses;
         public int damageTaken;
         public int health, maxHealth, bombs, ropes, gold;
         public float totalTime;

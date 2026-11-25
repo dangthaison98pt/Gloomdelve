@@ -554,9 +554,21 @@ namespace Gloomdelve.EditorTools
                         var stall = Villagers.WaresOf(pip, cfg.shop, 777);
                         var sheet = stall.Find(o => o.id == Story.Paper);
                         Check("story: the Peddler sells paper for an ember, and the mountain's own shelves and chests never carry it",
-                            sheet != null && sheet.icon != null && !sheet.isUpgrade && Villagers.EmberPrice(sheet, pip) == 1 && stall.Count == 3 && cfg.FindGear(Story.HammerGear) != null
+                            sheet != null && sheet.icon != null && !sheet.isUpgrade && Villagers.EmberPrice(sheet, pip) == 1 && stall.Count == 1 && cfg.FindGear(Story.HammerGear) != null
                             && cfg.prefabs.Get(Story.PillarId) is RunePillar && cfg.prefabs.Get(Story.StrangerId) is Stranger && cfg.prefabs.Get(Story.GhostId) is Ghost
                             && cfg.quests != null && cfg.quests.Find(Story.QuestSigns) != null && System.Array.IndexOf(cfg.player.startingGear, Story.HammerGear) < 0);
+                    }
+
+                    {
+                        // chests: a plain wooden loot chest for the mountain; the special ones (camp, Field Guide, gear by a gate, the hammer's head) are fine
+                        var lootPf = cfg.prefabs.Get("lootchest") as Chest;
+                        var fine = new[] { "chest", "codexchest", "gearchest" };
+                        bool allFine = true;
+                        foreach (var id in fine) { var ch = cfg.prefabs.Get(id) as Chest; var sr = ch != null ? ch.GetComponentInChildren<SpriteRenderer>() : null; if (ch == null || ch.loot || sr == null || sr.sprite == null || !sr.sprite.name.StartsWith("chestfine")) allFine = false; }
+                        var lsr = lootPf != null ? lootPf.GetComponentInChildren<SpriteRenderer>() : null;
+                        Check("chests: the mountain's loot chest is plain wood; the camp's, the Field Guide's and the special gear's are fine ones",
+                            lootPf != null && lootPf.loot && lootPf.lootRolls > 0 && lsr != null && lsr.sprite != null && lsr.sprite.name == "chest_0" && allFine
+                            && cfg.lootChestsPerLevel >= 1 && cfg.lootChestChance > 0f);
                     }
 
                     // waking in bed after a night that ended: a line for it, and a scene for a save's first death
@@ -645,7 +657,7 @@ namespace Gloomdelve.EditorTools
                     ShopItem.Apply(hurt, cfg.shop.Find("heart3")); int a2 = hurt.health;
                     ShopItem.Apply(hurt, cfg.shop.Find("heartfull")); int a3 = hurt.health;
                     int pt = cfg.shop.Find("heart").price, pf = cfg.shop.Find("heart3").price, pe = cfg.shop.Find("heartfull").price;
-                    Check("healing: tonic +1, flask +3, elixir to full; a bigger bottle costs less per point", a1 == 2 && a2 == 5 && a3 == 10 && pt <= 200 && pf < pt * 3 && pe > pf,
+                    Check("healing: tonic +3, flask +5, elixir to full - 50 gold a heart (the elixir as ten)", a1 == 4 && a2 == 9 && a3 == 10 && pt == 3 * 50 && pf == 5 * 50 && pe == 10 * 50,
                           $"health 1 -> {a1} -> {a2} -> {a3}; prices {pt} / {pf} / {pe}");
                     var seenHeal = new HashSet<string>();
                     for (int r = 0; r < 100; r++) seenHeal.Add(cfg.shop.HealOffer(r));

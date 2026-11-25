@@ -156,6 +156,8 @@ MonoBehaviour:
     prefab: {fileID: 514392490230669108, guid: 425020e92eee46643b279d0d54adc3f3, type: 3}
   - id: chest
     prefab: {fileID: 8579868136437712267, guid: 25883a24c04f43d459b04156c7a984b5, type: 3}
+  - id: lootchest
+    prefab: {fileID: 5124168571135941400, guid: 3c10f9504b0b0754db32037b94954792, type: 3}
   - id: codexchest
     prefab: {fileID: 1112100235056901730, guid: 91cfd3b09974d0d40900be970addca2b, type: 3}
   - id: gearchest

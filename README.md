@@ -55,7 +55,7 @@ Tất cả nằm trong `Assets/Game/Data`:
 - `PlayerConfig`: tốc độ, nhảy, coyote/bộ đệm, bám mép, kiếm, lướt, ném, sát thương rơi/chông, máu/bom/dây và đồ khởi đầu.
 - `Gear_Bomb`, `Gear_Rope`, `Gear_Glider`, `Gear_Recall`, `Gear_Slingshot`, `Gear_Hammer`, `Gear_Flare`: tên, mô tả, câu thông báo chướng ngại, kho tiếp tế của từng món dùng được.
 - `Area0_Village` (làng), `Area1_Mossroot`, `Area2_Emberdeep`, `Area4_Sunfall`, `Area5_Frost`, `Area6_Sporegloom`, `Area7_Gearworks`, `Area8_Sandsunk`, `Area9_Geode`, `Area3_Vault` (trại và hầm cuối): kẻ địch, bẫy, cơ chế riêng, mật độ, kiểu đường đi, cửa hàng, ánh sáng, nhạc.
-- `GameConfig`: danh mục chặng (`stages`), số khu mỗi lượt (`areasPerRun`), áp lực thời gian (9:00 cảnh báo / 10:00 thần chết), giới hạn nổ dây chuyền, sinh màn, ký hiệu tùy biến.
+- `GameConfig`: danh mục chặng (`stages`), số khu mỗi lượt (`areasPerRun`), rương gỗ mỗi màn (`lootChestsPerLevel`, `lootChestChance`), áp lực thời gian (9:00 cảnh báo / 10:00 thần chết), giới hạn nổ dây chuyền, sinh màn, ký hiệu tùy biến.
 - `ShopConfig`: giá, tài nguyên, ô mặc và chỉ số cộng thêm (`modifiers`) của từng món (giá ở làng tính từ giá vàng này, xem `Docs/DESIGN.md` mục 5).
 - `QuestCatalog`, `Quests/*`: nhiệm vụ (bước, điểm dẫn đường, phần thưởng).
 - `RoomTemplates.txt`: 124 mẫu phòng (sửa bằng **Room Template Editor** hoặc sửa tay). `Levels/*.txt`: màn làm tay (Tutorial, Village, Camp, FinalVault của Eclipse King, các đấu trường `Boss_*`).

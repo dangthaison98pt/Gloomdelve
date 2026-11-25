@@ -119,7 +119,7 @@ Lúc nó hở (bị kẹt ở dạng vỏ, mở ngực ở dạng lõi), đòn c
 - **Stonebreaker** (`Gear_Hammer`, `HammerGear.cs`): cây búa ghép từ ba mảnh (mục 1). Vung đập: 3 sát thương, tầm 1,7, lấy đà 0,13 s, nghỉ 0,5 s giữa hai lần, không bao giờ hết. Là thứ duy nhất đập vỡ được Sunstone.
 - **Flare** (`Gear_Flare`, `FlareGear.cs`, `Flare.cs`): Bera bán 3 cây một lần, mua là có đồ dùng này cho lượt đó. Ném như bom (↓ đặt dưới chân, ↑ ném cao). Cháy 30 s với ánh sáng đỏ bán kính 7,5 ô, mờ dần trong 4 s cuối; không gây sát thương. Nhặt lên được và mang theo như đuốc.
 
-**Máu:** tim (+1) từ bình (~5%), thùng (~18%), quái (5%); đầy máu thì không nhặt. Shop bày một trong ba: Heart Tonic +1 ($100), Healing Flask +3 ($250), Elixir of Dawn đầy máu ($550). Heart Vessel từ boss và Heart Draught ở làng tăng máu tối đa.
+**Máu:** tim (+1) từ bình (~5%), thùng (~18%), quái (5%); đầy máu thì không nhặt. Shop bày một trong ba: Heart Tonic +3 ($150), Healing Flask +5 ($250), Elixir of Dawn đầy máu ($500), tức 50 vàng mỗi tim (Elixir tính như 10 tim). Heart Vessel từ boss và Heart Draught ở làng tăng máu tối đa.
 
 **Túi đồ** (I / Select): tab **WEAR** (ô feet, body, hand và 2 ô charm; chỉ món đang mặc mới có tác dụng; món mới tự mặc nếu ô trống), **ITEMS** (đồ dùng và số còn lại), **KEY ITEMS** (Ember Pouch, Field Guide, Map, bản chép chữ cổ, lời giải của trưởng làng; mục nào đọc được thì có nút Read). LB/RB (S/Tab) chuyển tab.
 
@@ -157,7 +157,7 @@ Ba loại tiền (`Villagers.cs`):
 - **Spark:** mỗi boss rơi 5. Không giới hạn, lưu ngay khi nhặt, không bao giờ mất. Dùng mua **hàng của dân làng**, những món chỉ có tác dụng cho một lượt leo núi.
 - **Ember:** mỗi boss rơi 1, vào **Ember Pouch** (ban đầu chứa 5; nhặt khi túi đầy thì phần dư mất). Lưu ngay, không bao giờ mất. Dùng cho **những thứ lâu dài**: trưởng làng nới túi (1 / 2 / 3 ember), Map và Lost Letter của Oswin.
 - Chưa có Ember Pouch thì không nhặt được cả spark lẫn ember. Spark/ember boss đã rơi mà không nhặt thì mất.
-- Giá ở làng = `max(1, round(giá vàng trên núi / 250))`, riêng ở Pip rẻ hơn 1. Giá và số tiền trong túi luôn ghi bằng số kèm hình đồng tiền, không ghi chữ.
+- Giá ở làng = `max(1, round(giá vàng trên núi / 250))`, riêng ở Pip rẻ hơn 1 (giờ Pip chỉ bán giấy). Giá và số tiền trong túi luôn ghi bằng số kèm hình đồng tiền, không ghi chữ.
 
 **Phố làng:** 8 ngôi nhà hai tầng liền nhau, 6 dân làng để cứu (mỗi lượt có một lồng). Nhà của dân chưa được cứu thì tối, khoá và không có người. Đứng cạnh một người thì lời nhắc hiện tên họ và các việc làm được (**Talk / Shop**, với trưởng làng là **Talk / Upgrade**); ↑/↓ chọn dòng, nút tương tác để làm. Làng không bán bom hay dây, vì lượt nào cũng bắt đầu với túi đầy. Shop là một màn hình danh sách (`VillageShopPanel`), game tạm dừng khi mở, mua xong lưu ngay; không còn bày hàng dưới sàn.
 
@@ -167,7 +167,7 @@ Ba loại tiền (`Villagers.cs`):
 | Xưởng dây | Tam the Ropemaker | Spring Boots 4 spark, Soft-Sole Boots 2 spark |
 | Nhà thuốc | Maren the Healer | Heart Draught 2 spark |
 | Phòng bản đồ | Oswin the Mapmaker | Compass 2 spark, Spyglass 2 spark, **Map 2 ember**, **Lost Letter 3 ember** |
-| Tiệm lặt vặt | Pip the Peddler | 2 trang bị ngẫu nhiên theo seed lượt (kể cả Pebble Pouch), rẻ hơn 1; **Sheet of Paper** 1 spark |
+| Tiệm lặt vặt | Pip the Peddler | **Sheet of Paper** 1 spark |
 | Nhà đèn | Bera the Lamplighter | Lamp Oil 1 spark (+120 s trước khi thần chết tới, cho mọi màn của lượt, mua nhiều lần thì cộng dồn), Flares 2 spark |
 | Hội trường | Trưởng làng **Aldous** | Nhiệm vụ; nới túi (Upgrade); chưa cứu đủ thì nói còn bao nhiêu người lạc |
 | Nhà của Brann | – | Nơi mọi lượt bắt đầu; chuồng chó bên cạnh |
@@ -182,6 +182,10 @@ Ba loại tiền (`Villagers.cs`):
 - **Dân phố** (`Townsfolk`, sinh bằng code): người lớn đi dạo, nói chuyện; trẻ con chơi đuổi bắt. Ban ngày 8 người lớn + 4 trẻ, rạng sáng/hoàng hôn 5 + 2, ban đêm 2 + 0.
 - **Con chó** (`VillageDog`, `Kennel`): ngày thì chạy quanh trong 16 ô quanh chuồng, người chơi tới gần (4,5 ô) thì chạy lại ngồi cạnh; đêm thì ngủ trước chuồng.
 - **Đồ vật để xem** (`Curio`): 35 món trong 8 phòng ("[enter] Look"), kể về chủ nhà và gợi ý về vòng lặp thời gian.
+
+### Rương (`Chest.cs`)
+- **Rương gỗ** (đai sắt, `lootchest`): mỗi màn sinh ngẫu nhiên của khu có 75% khả năng có một rương (`GameConfig.lootChestsPerLevel` = 1, `lootChestChance` = 0,75; theo seed màn), đặt trong phòng phụ ngoài đường chính, chỗ đi tới được (`Story.Spots`). Không có ở làng, hướng dẫn, đấu trường boss, trại, hầm cuối, Challenge. Mở ra thì bung 3 thứ (`lootContents`: cục vàng lớn, ngọc, túi bom, cuộn dây, đá, tim) và có thể kèm một trang bị chưa có nằm cạnh, lấy miễn phí. Tỉ lệ ra trang bị bắt đầu ở 25% (`lootGearChance`); mỗi rương không ra thì rương sau +10% (`lootGearStep`, đếm trong `RunState.lootMisses`, lưu cùng lượt), ra rồi thì về lại 25%. Như vậy không bao giờ quá 8 rương liền không có trang bị. Rương có viền sáng nhẹ và mũi tên gợi ý khi tới gần.
+- **Rương xịn** (sơn đỏ, bọc vàng, khoá gắn ngọc): những rương đặc biệt, gồm rương 3 trang bị ở The Last Camp, rương Field Guide cuối hướng dẫn, rương trang bị ở cổng khu (tàu lượn) và rương đầu búa.
 
 ## 6. Hệ thống & sát thương
 Mọi thực thể kế thừa `Entity` và chạy trong `World.FixedUpdate`. Quái chỉ gây sát thương khi đang ra đòn (`Enemy.Attacking`), chạm vào không mất máu. Bị thương: bật lùi, choáng 0,45 s, bất tử 1,2 s.

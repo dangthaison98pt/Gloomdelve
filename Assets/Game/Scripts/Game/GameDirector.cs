@@ -125,6 +125,7 @@ namespace Gloomdelve
             SaveSystem.Checkpoint(run, Stage.displayName);      // the game is saved at the start of every level
             LevelFactory.SpawnAll(world, Level, config.prefabs);
             Story.Populate(world, Level, Stage, run, config);       // the old pillars, and - once they are read - the parts of the hammer
+            Chest.PlaceLoot(world, Level, Stage, run, config);      // a plain wooden chest or so, in a side room
             QuestLog.Use(config.quests, !run.isTutorial && !run.bossPractice);      // (quests begin once the tutorial is behind; a Challenge fight is not part of the story)
             if (run.inVillage)
             {

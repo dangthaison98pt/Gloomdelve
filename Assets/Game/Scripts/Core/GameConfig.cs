@@ -28,6 +28,10 @@ namespace Gloomdelve
         [Tooltip("Extra room-template symbols: place any PrefabRegistry id in rooms without code (see Docs/EXTENDING.md).")]
         public List<MarkerDef> customMarkers = new List<MarkerDef>();
 
+        [Header("Loot chests (plain wooden chests in the side rooms of generated levels)")]
+        [Tooltip("At most this many in a level.")] public int lootChestsPerLevel = 1;
+        [Tooltip("Chance for each of them to be there (seeded by the level).")] [Range(0, 1)] public float lootChestChance = 0.75f;
+
         [Header("Time pressure (the Reaper)")]
         public bool pressureEnabled = true;
         [Tooltip("Seconds in a level before the warning.")] public float pressureWarnTime = 270f;

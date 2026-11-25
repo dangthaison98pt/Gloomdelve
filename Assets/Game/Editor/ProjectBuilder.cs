@@ -533,7 +533,7 @@ namespace Gloomdelve.EditorTools
                 {
                     new ShopOffer { id = "bombs", displayName = "Bomb Bag", price = 350, resource = Res.Bombs, amount = 3, description = "+3 bombs" },
                     new ShopOffer { id = "ropes", displayName = "Rope Pile", price = 250, resource = Res.Ropes, amount = 3, description = "+3 ropes" },
-                    new ShopOffer { id = "heart", displayName = "Heart Tonic", price = 100, resource = Res.Health, amount = 1, description = "+1 health" },
+                    new ShopOffer { id = "heart", displayName = "Heart Tonic", price = 150, resource = Res.Health, amount = 3, description = "+3 health" },
                     new ShopOffer { id = "springboots", displayName = "Spring Boots", price = 900, isUpgrade = true, description = "jump about 40% higher" },
                     new ShopOffer { id = "ironwhip", displayName = "Tempered Blade", price = 750, isUpgrade = true, description = "blade deals 2 damage and reaches further" },
                     new ShopOffer { id = "compass", displayName = "Compass", price = 450, isUpgrade = true, description = "marks the exit on screen" },
@@ -563,9 +563,9 @@ namespace Gloomdelve.EditorTools
             { var flask = shop.Find("heart3"); if (flask != null && flask.price == 400) flask.price = 250; }
             { var elixir = shop.Find("heartfull"); if (elixir != null && elixir.price == 800) elixir.price = 550; }
             if (shop.Find("heart3") == null)
-                shop.offers.Add(new ShopOffer { id = "heart3", displayName = "Healing Flask", price = 250, resource = Res.Health, amount = 3, description = "+3 health" });
+                shop.offers.Add(new ShopOffer { id = "heart3", displayName = "Healing Flask", price = 250, resource = Res.Health, amount = 5, description = "+5 health" });
             if (shop.Find("heartfull") == null)
-                shop.offers.Add(new ShopOffer { id = "heartfull", displayName = "Elixir of Dawn", price = 550, resource = Res.Health, amount = 99, description = "back to full health" });
+                shop.offers.Add(new ShopOffer { id = "heartfull", displayName = "Elixir of Dawn", price = 500, resource = Res.Health, amount = 99, description = "back to full health" });
             if (shop.Find("lampoil") == null)
                 shop.offers.Add(new ShopOffer { id = "lampoil", displayName = "Lamp Oil", price = 200, resource = "lampoil", amount = 120, description = "the Reaper comes 2 minutes later" });
             if (shop.Find(Story.Paper) == null)
@@ -1331,6 +1331,7 @@ namespace Gloomdelve.EditorTools
             ["RunePillar"] = (new Color(0.5f, 0.9f, 1f, 0.7f), false, true),          // the story's things (Story): none of them must be walked past
             ["Stranger"] = (new Color(0.8f, 0.6f, 1f, 0.7f), false, true),
             ["Ghost"] = (new Color(0.7f, 0.92f, 1f, 0.7f), false, true),
+            ["LootChest"] = (new Color(1f, 0.82f, 0.55f, 0.55f), false, true),       // a plain chest in a side room: a soft glow, found by looking
             ["CodexChest"] = (new Color(1f, 0.85f, 0.3f, 0.8f), false, true),       // the chest by an area's gate: it must not be walked past
             ["Heartstone"] = (new Color(1f, 0.82f, 0.35f, 0.85f), false, true),        // the Sunstone (the prefab keeps its old name)
             ["GoldNugget"] = (new Color(1f, 0.85f, 0.3f, 0.85f), true, false),
@@ -1733,14 +1734,17 @@ namespace Gloomdelve.EditorTools
                 (e, g, s) => { e.flipWithFacing = false; }));
             Reg("crumble", Make<CrumblePlatform>("CrumblePlatform", "Traps", "rotten platform", new Vector2(1f, 0.3f), ArtGenerator.S("Sprites/Traps/crumble"), null, 2,
                 (e, g, s) => { e.flipWithFacing = false; }));
-            Reg("chest", Make<Chest>("Chest", "Level", "chest", new Vector2(1.0f, 0.8f), ArtGenerator.S("Sprites/Props/chest_0"), null, 4,
-                (e, g, s) => { e.flipWithFacing = false; e.openSprite = ArtGenerator.S("Sprites/Props/chest_1"); }));
+            // the camp's chest (three pieces of equipment): a fine one - the plain wooden chest is the mountain's loot chest
+            Reg("chest", Make<Chest>("Chest", "Level", "chest", new Vector2(1.0f, 0.8f), ArtGenerator.S("Sprites/Props/chestfine_0"), null, 4,
+                (e, g, s) => { e.flipWithFacing = false; e.openSprite = ArtGenerator.S("Sprites/Props/chestfine_1"); }));
+            Reg("lootchest", Make<Chest>("LootChest", "Level", "chest", new Vector2(1.0f, 0.8f), ArtGenerator.S("Sprites/Props/chest_0"), null, 4,
+                (e, g, s) => { e.flipWithFacing = false; e.openSprite = ArtGenerator.S("Sprites/Props/chest_1"); e.loot = true; }));
             // the chest at the end of the tutorial: the Field Guide
-            Reg("codexchest", Make<Chest>("CodexChest", "Level", "chest", new Vector2(1.0f, 0.8f), ArtGenerator.S("Sprites/Props/chest_0"), null, 4,
-                (e, g, s) => { e.flipWithFacing = false; e.openSprite = ArtGenerator.S("Sprites/Props/chest_1"); e.gearId = Codex.Key; e.bookIcon = ArtGenerator.S("UI/icon_book"); }));
+            Reg("codexchest", Make<Chest>("CodexChest", "Level", "chest", new Vector2(1.0f, 0.8f), ArtGenerator.S("Sprites/Props/chestfine_0"), null, 4,
+                (e, g, s) => { e.flipWithFacing = false; e.openSprite = ArtGenerator.S("Sprites/Props/chestfine_1"); e.gearId = Codex.Key; e.bookIcon = ArtGenerator.S("UI/icon_book"); }));
             // the chest by the gate of an area that asks for a piece of gear (it glows and is pointed at)
-            Reg("gearchest", Make<Chest>("GearChest", "Level", "chest", new Vector2(1.0f, 0.8f), ArtGenerator.S("Sprites/Props/chest_0"), null, 4,
-                (e, g, s) => { e.flipWithFacing = false; e.openSprite = ArtGenerator.S("Sprites/Props/chest_1"); e.hammerHeadIcon = ArtGenerator.S("Sprites/Items/hammer_head"); }));
+            Reg("gearchest", Make<Chest>("GearChest", "Level", "chest", new Vector2(1.0f, 0.8f), ArtGenerator.S("Sprites/Props/chestfine_0"), null, 4,
+                (e, g, s) => { e.flipWithFacing = false; e.openSprite = ArtGenerator.S("Sprites/Props/chestfine_1"); e.hammerHeadIcon = ArtGenerator.S("Sprites/Items/hammer_head"); }));
             // the story's things on the mountain (Story): the pillar with the old signs, the stranger, the bound spirit
             Reg(Story.PillarId, Make<RunePillar>("RunePillar", "Level", "stone pillar", new Vector2(0.9f, 1.9f), ArtGenerator.S("Sprites/Props/runepillar"), null, 3,
                 (e, g, s) => { e.flipWithFacing = false; e.rubbingIcon = ArtGenerator.S("Sprites/Items/rubbing"); }));

@@ -25,6 +25,7 @@ namespace Gloomdelve
         public bool wakeInBed;
         [Tooltip("The rescued villagers' gifts have been handed out for this run.")] public bool perksApplied;
         [Tooltip("Extra seconds in every level before the Reaper comes (the Lamplighter's lamp oil).")] public float extraTime;
+        [Tooltip("Loot chests opened in a row without a piece of equipment (each one raises the chance of the next: Chest.lootGearStep).")] public int lootMisses;
         /// <summary>The caged villager of this run has been freed (the cage is not filled again if the level is entered again).</summary>
         public bool villagerFreed;
         /// <summary>Position in the run of the boss level whose boss has fallen, -1 = none: entered again, that arena is empty.</summary>
@@ -313,7 +314,7 @@ namespace Gloomdelve
             var s = new RunSave
             {
                 active = true, seed = r.seed, stageIndex = r.stageIndex, stageOrder = r.stageOrder, stageNames = r.stageNames,
-                inVillage = r.inVillage, extraTime = r.extraTime, damageTaken = r.damageTaken,
+                inVillage = r.inVillage, extraTime = r.extraTime, lootMisses = r.lootMisses, damageTaken = r.damageTaken,
                 health = r.health, maxHealth = r.maxHealth, bombs = r.bombs, ropes = r.ropes, gold = r.gold, totalTime = r.totalTime,
                 equipped = r.equipped, previousEquipped = r.previousEquipped,
                 shopkeeperWanted = r.shopkeeperWanted, shopkeeperDead = r.shopkeeperDead, kills = r.kills, bossKills = r.bossKills, levelsCompleted = r.levelsCompleted,
@@ -333,7 +334,7 @@ namespace Gloomdelve
             var r = new RunState
             {
                 seed = s.seed, stageIndex = s.stageIndex, stageOrder = s.stageOrder, stageNames = s.stageNames,
-                inVillage = s.inVillage, extraTime = s.extraTime, damageTaken = s.damageTaken, perksApplied = true,
+                inVillage = s.inVillage, extraTime = s.extraTime, lootMisses = s.lootMisses, damageTaken = s.damageTaken, perksApplied = true,
                 health = s.health, maxHealth = s.maxHealth, bombs = s.bombs, ropes = s.ropes, gold = s.gold, totalTime = s.totalTime,
                 shopkeeperWanted = s.shopkeeperWanted, shopkeeperDead = s.shopkeeperDead, kills = s.kills, bossKills = s.bossKills, levelsCompleted = s.levelsCompleted,
                 villagerFreed = s.villagerFreed, bossDownStage = s.bossDownStage,

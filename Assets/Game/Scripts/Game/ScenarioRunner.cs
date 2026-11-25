@@ -261,6 +261,8 @@ namespace Gloomdelve
                 run = c => MapCase(c) },
             new Scenario { name = "new wares: soft soles, hobnail boots, an iron cap, a spyglass, flares and the lost letter each do what the stall says", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => NewWaresCase(c) },
+            new Scenario { name = "loot chest: a plain chest throws out three things, and now and then a free piece of equipment beside it", map = m => { Set(m, 3, 1, 'S'); },
+                run = c => LootChestCase(c) },
             new Scenario { name = "villagers: a caged villager is freed with Enter, goes home for good, and helps every later run", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => VillagerCase(c) },
 
@@ -2230,6 +2232,7 @@ namespace Gloomdelve
             {
                 var bat = c.Spawn<Bat>("bat", 18, 4);
                 bat.heartDropChance = pass == 0 ? 1f : 0f;
+                bat.goldChance = 1f;           // (a kill does not always pay: the second pass must, to tell gold from a heart)
                 yield return c.Frames(2);
                 bat.TakeDamage(new DamageInfo(99, DamageType.Whip, c.p, Vector2.zero, "test"));
                 yield return c.Frames(2);
@@ -3980,6 +3983,52 @@ namespace Gloomdelve
             Villagers.testRescued = null;
             c.Teleport(3.5f, 1f);
             yield return c.Frames(4);
+        }
+
+        static IEnumerator LootChestCase(Ctx c)
+        {
+            c.p.godMode = true;
+            c.Bot(Seq((600, F())));
+            var chest = c.Spawn<Chest>("lootchest", 10, 1);
+            yield return c.Frames(3);
+            c.Expect(chest != null && chest.loot && !chest.Opened && chest.GetPrompt(c.p) != null, "a loot chest stands there, closed, and can be opened");
+            if (chest == null) yield break;
+            // eight chests in a row without equipment: 25% + 8 x 10% - this one surely has a piece
+            c.run.lootMisses = 8;
+            c.Expect(Mathf.Approximately(chest.GearChanceFor(c.run), 1f) && Mathf.Approximately(chest.GearChanceFor(null), chest.lootGearChance),
+                $"the chance of equipment grows by a step for every chest without one ({chest.GearChanceFor(null):0.00} at first, {chest.GearChanceFor(c.run):0.00} after eight)");
+            int pickups0 = 0;
+            foreach (var e in c.world.Entities) if (e is Pickup pk && !pk.Dead) pickups0++;
+            chest.Interact(c.p);
+            yield return c.Frames(90);
+            int pickups = 0; bool allDown = true;
+            foreach (var e in c.world.Entities)
+                if (e is Pickup pk && !pk.Dead) { pickups++; if (pk.pos.y > 1.6f) allDown = false; }
+            c.Expect(chest.Opened && Chest.lastLoot.Count == chest.lootRolls && pickups - pickups0 == chest.lootRolls && allDown,
+                $"opened, it throws out {Chest.lastLoot.Count} things ({string.Join(", ", Chest.lastLoot)}) that land on the floor ({pickups - pickups0} lying there)");
+            ShopItem gear = null;
+            foreach (var e in c.world.Entities) if (e is ShopItem si && !si.Dead && si.offer != null && si.offer.id == Chest.lastLootGear) gear = si;
+            string prompt = gear != null ? gear.GetPrompt(c.p) : null;
+            c.Expect(Chest.lastLootGear != null && gear != null && gear.offer.isUpgrade && !c.run.HasUpgrade(gear.offer.id) && c.run.lootMisses == 0,
+                $"beside it lies a piece of equipment the run does not own yet ({Chest.lastLootGear}), and the chance is back to the base ({c.run.lootMisses} misses)");
+            c.Teleport(gear != null ? gear.pos.x : 10.5f, 1f);
+            yield return c.Frames(4);
+            prompt = gear != null ? gear.GetPrompt(c.p) : null;
+            c.Expect(prompt != null && prompt.Contains("free"), $"and it is free to take: \"{prompt}\"");
+            c.Expect(chest.GetPrompt(c.p) == null, "an opened chest asks nothing more");
+            // a chest without equipment counts a miss for the next one
+            var second = c.Spawn<Chest>("lootchest", 18, 1);
+            yield return c.Frames(3);
+            if (second != null)
+            {
+                second.lootGearChance = 0f; second.lootGearStep = 0f;
+                second.Interact(c.p);
+                yield return c.Frames(10);
+                c.Expect(Chest.lastLootGear == null && c.run.lootMisses == 1, $"a chest with no equipment raises the count by one ({c.run.lootMisses})");
+            }
+            yield return new WaitForSecondsRealtime(0.2f);
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "loot_chest.png"));
+            yield return new WaitForSecondsRealtime(0.3f);
         }
 
         static IEnumerator NewWaresCase(Ctx c)
