@@ -150,7 +150,7 @@ namespace Gloomdelve
             if (shop == null || prefab == null) return;
             // equipment not owned yet first, in a seeded order; topped up with supplies
             var pool = new List<string>();
-            foreach (var o in shop.offers) if (o.isUpgrade && (run == null || !run.HasUpgrade(o.id))) pool.Add(o.id);
+            foreach (var o in shop.offers) if (o.isUpgrade && !Blueprints.Locked(o.id) && (run == null || !run.HasUpgrade(o.id))) pool.Add(o.id);
             var rng = new Rng(World.Level != null ? World.Level.seed + 77 : 77);
             var picks = new List<string>();
             while (picks.Count < itemCount && pool.Count > 0)
@@ -209,7 +209,7 @@ namespace Gloomdelve
             var prefab = World.config.prefabs.Get("shopitem");
             if (shop == null || prefab == null) return;
             var pool = new List<string>();
-            foreach (var o in shop.offers) if (o.isUpgrade && (run == null || !run.HasUpgrade(o.id))) pool.Add(o.id);
+            foreach (var o in shop.offers) if (o.isUpgrade && !Blueprints.Locked(o.id) && (run == null || !run.HasUpgrade(o.id))) pool.Add(o.id);
             if (pool.Count == 0) return;                       // (everything is owned: nothing missed either)
             // no piece this time: the next chest is a step likelier to have one
             if (!rng.Chance(GearChanceFor(run))) { if (run != null) run.lootMisses++; return; }

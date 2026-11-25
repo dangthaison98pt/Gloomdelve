@@ -57,9 +57,8 @@ namespace Gloomdelve
         }
 
         /// <summary>
-        /// The elder enlarges the bag: the embers are paid, the bag holds five more for good - and, for the run in
-        /// hand, it is full at once (bombs, ropes, pebbles; the pouch holds what it held). False when it cannot be
-        /// done or paid.
+        /// The elder enlarges the bag: the embers are paid, the bag holds five more for good. It is not filled:
+        /// what goes in it is bought (Supplies). False when it cannot be done or paid.
         /// </summary>
         public static bool Enlarge(string kind)
         {
@@ -75,14 +74,7 @@ namespace Gloomdelve
                 else if (kind == Pebbles) r.bagPebbles = Level(kind) + 1;
                 SaveSystem.SaveRecords();
             }
-            var run = RunSession.Current;
-            if (run != null)
-            {
-                if (kind == Bombs) run.bombs = Mathf.Max(run.bombs, run.BombCap);
-                else if (kind == Ropes) run.ropes = Mathf.Max(run.ropes, run.RopeCap);
-                else if (kind == Pebbles) run.AddResource(Res.Pebbles, run.PebbleCap);
-                if (!Testing) SaveSystem.CheckpointInVillage(run);      // (what the run carries is saved with what was paid for it)
-            }
+            // (the bag only holds more: what goes in it is bought - Supplies, Pip)
             return true;
         }
     }

@@ -1861,19 +1861,50 @@ namespace Gloomdelve
                 ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "village_shop.png"));
                 yield return new WaitForSecondsRealtime(0.3f);
                 int row = -1;
-                for (int i = 0; i < shopUi.Count; i++) if (shopUi.At(i).offer.id == "vigor") row = i;
-                int hp = run.maxHealth, gold0 = run.gold, e0 = Villagers.Embers;
-                int price = Villagers.EmberPrice(c.dir.config.shop.Find("vigor"), Villagers.All[2]);
-                // a ware for one climb is paid in sparks: without them it is not sold, whatever embers there are
-                int s00 = Villagers.Sparks;
-                Villagers.SpendSparks(s00);
-                bool refusedNoSparks = row >= 0 && !shopUi.Buy(row) && run.maxHealth == hp && Villagers.Embers == e0;
-                c.Expect(refusedNoSparks, $"with no sparks the Heart Draught is not sold, embers or no embers (embers {Villagers.Embers})");
-                Villagers.AddSparks(price + 3);
+                for (int i = 0; i < shopUi.Count; i++) if (shopUi.At(i).blueprint && shopUi.At(i).ware.id == "dampener") row = i;
+                int hp = run.maxHealth, gold0 = run.gold;
+                int price = Villagers.EmberPrice(c.dir.config.shop.Find("dampener"), Villagers.All[2]);
+                Blueprints.Refresh();
+                c.Expect(row >= 0 && !Blueprints.Known("dampener") && Blueprints.Locked("dampener") && Blueprints.Locked("ironwhip") && Blueprints.Locked("iceboots")
+                         && !Blueprints.Locked("truthlens") && !Blueprints.Locked("compass") && !Blueprints.Locked("ironcap"),
+                    "her stall sells the Dampener's blueprint; until it is bought the mountain does not carry it (nor the smith's blade, nor an area's stronger piece) - what is open from the start is never locked");
+                // a blueprint lasts and is paid in embers: without them it is not sold, whatever sparks there are
+                Villagers.SpendEmbers(Villagers.Embers);
+                Villagers.AddSparks(20);
                 int s0 = Villagers.Sparks;
+                bool refused = row >= 0 && !shopUi.Buy(row) && !Blueprints.Known("dampener");
+                c.Expect(refused, $"with no embers the blueprint is not sold, sparks or no sparks (sparks {Villagers.Sparks})");
+                Villagers.AddEmbers(price + 1);
+                int e0 = Villagers.Embers;
                 bool bought = row >= 0 && shopUi.Buy(row);
-                c.Expect(bought && run.maxHealth == hp + 1 && Villagers.Sparks == s0 - price && Villagers.Embers == e0 && run.gold == gold0 && shopUi.IsOpen,
-                    $"buying the Heart Draught there: +1 heart for this run, {price} sparks paid ({s0} -> {Villagers.Sparks}), no embers, no gold, and the shop stays open");
+                c.Expect(bought && Blueprints.Known("dampener") && !Blueprints.Locked("dampener") && Villagers.Embers == e0 - price && Villagers.Sparks == s0
+                         && run.gold == gold0 && !run.HasUpgrade("dampener") && shopUi.IsOpen,
+                    $"buying the blueprint: {price} embers paid ({e0} -> {Villagers.Embers}), no sparks, nothing in the bag - the mountain carries it from now on");
+                c.Expect(row >= 0 && !shopUi.Buy(row) && Villagers.Embers == e0 - price, "a blueprint is bought once: the row says it is known");
+                shopUi.Close();
+                yield return new WaitForSecondsRealtime(0.1f);
+
+                // Pip: a consumable whose blueprint is not known is offered as its blueprint; bought, the same row sells the thing itself, in sparks
+                var pip = Villagers.All[Villagers.IndexOf("peddler")];
+                shopUi.Open(pip.name, "", VillageShopPanel.WaresOf(pip, c.dir.config, run));
+                yield return new WaitForSecondsRealtime(0.1f);
+                int vr = -1, br = -1;
+                for (int i = 0; i < shopUi.Count; i++) { if (shopUi.At(i).ware.id == "vigor") vr = i; if (shopUi.At(i).ware.id == "bombs") br = i; }
+                var vEntry = shopUi.At(vr);
+                c.Expect(vEntry != null && vEntry.blueprint && vEntry.lasting && br >= 0 && !shopUi.At(br).blueprint && !shopUi.At(br).lasting,
+                    "at Pip's the Heart Draught is a blueprint (embers) until it is known; bombs, open from the start, are sold as they are (sparks)");
+                int vPlan = vEntry != null ? vEntry.price : 0;
+                Villagers.AddEmbers(vPlan);
+                int e1 = Villagers.Embers;
+                bool plan = vr >= 0 && shopUi.Buy(vr);
+                var after = shopUi.At(vr);
+                c.Expect(plan && Blueprints.Known("vigor") && Villagers.Embers == e1 - vPlan && run.maxHealth == hp && after != null && !after.blueprint && !after.lasting && after.ware.id == "vigor",
+                    $"its blueprint bought ({vPlan} embers), the row now sells the Heart Draught itself, for sparks ({(after != null ? after.price : -1)})");
+                Villagers.AddSparks(5);
+                int s1 = Villagers.Sparks, draught = after != null ? after.price : 0;
+                bool drunk = vr >= 0 && shopUi.Buy(vr);
+                c.Expect(drunk && run.maxHealth == hp + 1 && Villagers.Sparks == s1 - draught,
+                    $"bought there: +1 heart for this run, {draught} sparks paid ({s1} -> {Villagers.Sparks})");
                 run.maxHealth = hp; run.health = Mathf.Min(run.health, hp);
                 shopUi.Close();
                 yield return new WaitForSecondsRealtime(0.1f);
@@ -4039,12 +4070,12 @@ namespace Gloomdelve
             Villagers.ResetTestState();
             // the stalls: no bombs or ropes in the village (every climb sets out with its bags full), and the new wares
             bool bagsInVillage = false;
-            foreach (var v in Villagers.All) foreach (var w in v.wares) if (w == "bombs" || w == "ropes") bagsInVillage = true;
+            foreach (var v in Villagers.All) if (v.id != "peddler") foreach (var w in v.wares) if (w == "bombs" || w == "ropes") bagsInVillage = true;
             bool Sells(int who, string id) => System.Array.IndexOf(Villagers.All[who].wares, id) >= 0 && shop.Find(id) != null;
-            c.Expect(!bagsInVillage && Sells(0, "hobnailboots") && Sells(0, "ironcap") && Sells(1, "softsoles") && Sells(3, "spyglass") && Sells(3, Villagers.KeyLetter) && Sells(5, FlareGear.OfferId),
-                "no bombs or ropes in the village; Hilde has hobnail boots and an iron cap, Tam soft soles, Oswin a spyglass and his letter, Bera flares");
-            c.Expect(Villagers.PaidInEmbers(shop.Find(Villagers.KeyLetter)) && !Villagers.PaidInEmbers(shop.Find("spyglass")) && !Villagers.PaidInEmbers(shop.Find(FlareGear.OfferId)),
-                "the letter lasts and is paid in embers; the rest is for one climb, in sparks");
+            c.Expect(!bagsInVillage && Sells(4, "bombs") && Sells(4, "ropes") && Sells(4, "pebbles") && Sells(0, "hobnailboots") && !Blueprints.VillageWares.Contains("ironcap") && !Blueprints.VillageWares.Contains("softsoles") && !Blueprints.VillageWares.Contains("compass") && Sells(3, "spyglass") && Sells(3, Villagers.KeyLetter) && Sells(4, FlareGear.OfferId),
+                "bombs, ropes and pebbles only at Pip's; Hilde has hobnail boots, Oswin a spyglass and his letter, Pip flares; the iron cap, soft soles and compass are open from the start (no stall)");
+            c.Expect(Villagers.PaidInEmbers(shop.Find(Villagers.KeyLetter)) && Villagers.PaidInEmbers(shop.Find("spyglass")) && Villagers.PaidInEmbers(shop.Find(FlareGear.OfferId)),
+                "the letter and the blueprints of the rest last, and are paid in embers");
 
             // soft soles: a 10-tile fall (that hurts bare-footed: 'long fall hurts and stuns') costs nothing
             run.AddUpgrade(shop.Find("softsoles"));
@@ -5105,8 +5136,9 @@ namespace Gloomdelve
 
             // 1 ember, then 2, then 3: five more each time, three times; without the embers nothing happens
             Villagers.AddEmbers(5);
+            int bombs0 = run.bombs, ropes0 = run.ropes, pebbles0 = run.Pebbles;
             ui.Buy(Row(Bags.Bombs));
-            c.Expect(run.BombCap == 10 && run.bombs == 10 && Villagers.Embers == 4 && Bags.Price(Bags.Bombs) == 2, $"the first enlarging costs 1 ember, the bag holds ten - and is full at once (holds {run.BombCap}, bombs {run.bombs}, embers {Villagers.Embers}, next {Bags.Price(Bags.Bombs)})");
+            c.Expect(run.BombCap == 10 && run.bombs == bombs0 && Villagers.Embers == 4 && Bags.Price(Bags.Bombs) == 2, $"the first enlarging costs 1 ember and the bag holds ten - but nothing is put in it (holds {run.BombCap}, bombs {bombs0} -> {run.bombs}, embers {Villagers.Embers}, next {Bags.Price(Bags.Bombs)})");
             ui.Buy(Row(Bags.Bombs));
             c.Expect(run.BombCap == 15 && Villagers.Embers == 2 && Bags.Price(Bags.Bombs) == 3, $"the second costs 2 and it holds fifteen (holds {run.BombCap}, embers {Villagers.Embers})");
             bool refused = !ui.Buy(Row(Bags.Bombs));
@@ -5133,12 +5165,25 @@ namespace Gloomdelve
             ui.Close();
             yield return c.Frames(3);
 
-            // a bag that was let out is full at once; and a run sets out with every bag full
-            c.Expect(run.bombs == 20 && run.ropes == 10 && run.Pebbles == 15, $"each bag he let out was filled on the spot (bombs {run.bombs}, ropes {run.ropes}, pebbles {run.Pebbles})");
-            run.bombs = 1; run.ropes = 0; run.AddResource(Res.Pebbles, -run.Pebbles);
-            RunSession.FillBags(run);
-            c.Expect(run.bombs == run.BombCap && run.ropes == run.RopeCap && run.Pebbles == run.PebbleCap && run.Pebbles == 25,
-                $"a run sets out with its bags full: bombs, ropes and pebbles as many as they hold (bombs {run.bombs}/{run.BombCap}, ropes {run.ropes}/{run.RopeCap}, pebbles {run.Pebbles}/{run.PebbleCap})");
+            // a bag let out is not filled: what goes in it is bought (Pip) or found
+            c.Expect(run.bombs == bombs0 && run.ropes == ropes0 && run.Pebbles == pebbles0, $"no bag he let out was filled on the spot (bombs {run.bombs}, ropes {run.ropes}, pebbles {run.Pebbles})");
+            // what a run ends with is kept for the next one; a save's very first run sets out with full bags
+            {
+                Supplies.ResetTestState();
+                RunState Fresh() => new RunState { bombBase = 5, ropeBase = 5, pebbleBase = 10 };
+                var first = Fresh();
+                Supplies.TakeInto(first);
+                bool firstFull = first.bombs == first.BombCap && first.ropes == first.RopeCap && first.Pebbles == first.PebbleCap;
+                var ended = Fresh();
+                ended.bombs = 3; ended.ropes = 1; ended.AddResource(Res.Pebbles, 7); ended.AddResource(FlareGear.AmmoId, 2); ended.AddResource(Story.Paper, 1);
+                Supplies.KeepFrom(ended);
+                var next = Fresh();
+                Supplies.TakeInto(next);
+                c.Expect(firstFull && next.bombs == 3 && next.ropes == 1 && next.Pebbles == 7 && next.GetResource(FlareGear.AmmoId) == 2 && next.gear.Contains(FlareGear.Id)
+                         && next.GetResource(Story.Paper) == 1,
+                    $"a save's first run has full bags ({first.bombs}/{first.ropes}/{first.Pebbles}); after that a run takes what the last one ended with - bombs {next.bombs}, ropes {next.ropes}, pebbles {next.Pebbles}, flares {next.GetResource(FlareGear.AmmoId)}, paper {next.GetResource(Story.Paper)}");
+                Supplies.ResetTestState();
+            }
             // and with room again, what was left lying is picked up
             run.bombs = 18; run.ropes = 7;
             c.Teleport(6.5f, 1f);

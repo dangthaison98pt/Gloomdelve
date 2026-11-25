@@ -542,19 +542,19 @@ namespace Gloomdelve.EditorTools
                         var maps = Villagers.WaresOf(oswin, cfg.shop, 777);
                         var sheetOfMap = maps.Find(o => o.id == MapScreen.ItemId);
                         var letter = maps.Find(o => o.id == Villagers.KeyLetter);
-                        Check("map: the Mapmaker sells the compass, a spyglass, the map and his lost letter; a description is shown with a capital letter",
-                            maps.Count == 4 && maps.Exists(o => o.id == "compass") && maps.Exists(o => o.id == "spyglass" && o.isUpgrade && o.icon != null)
+                        Check("map: the Mapmaker sells a spyglass, the map and his lost letter (the compass is open from the start); a description is shown with a capital letter",
+                            maps.Count == 3 && !maps.Exists(o => o.id == "compass") && maps.Exists(o => o.id == "spyglass" && o.isUpgrade && o.icon != null)
                             && letter != null && letter.icon != null && !letter.isUpgrade && Villagers.PaidInEmbers(letter) && Villagers.EmberPrice(letter, oswin) == 3
                             && sheetOfMap != null && sheetOfMap.icon != null && !sheetOfMap.isUpgrade && Villagers.EmberPrice(sheetOfMap, oswin) == 2
                             && UIUtil.Cap("points to the exit") == "Points to the exit" && UIUtil.Cap("+3 bombs") == "+3 bombs" && UIUtil.Cap("Bombs.") == "Bombs." && UIUtil.Cap("[jump] up") == "[jump] up" && UIUtil.Cap("") == "");
-                        Check("money: a boss leaves one ember and five sparks; the map is paid in embers, a ware for one climb in sparks",
-                            Villagers.EmbersPerBoss == 1 && Villagers.SparksPerBoss == 5 && Villagers.PaidInEmbers(sheetOfMap) && !Villagers.PaidInEmbers(cfg.shop.Find("compass"))
+                        Check("money: a boss leaves one ember and five sparks; the map and the blueprints are paid in embers, paper in sparks",
+                            Villagers.EmbersPerBoss == 1 && Villagers.SparksPerBoss == 5 && Villagers.PaidInEmbers(sheetOfMap) && Villagers.PaidInEmbers(cfg.shop.Find("spyglass")) && !Villagers.PaidInEmbers(cfg.shop.Find("compass"))
                             && !Villagers.PaidInEmbers(cfg.shop.Find(Story.Paper)) && cfg.prefabs.Get("spark") is Pickup sparkPrefab && sparkPrefab.resource == "spark");
                         var pip = Villagers.All[Villagers.IndexOf("peddler")];
                         var stall = Villagers.WaresOf(pip, cfg.shop, 777);
                         var sheet = stall.Find(o => o.id == Story.Paper);
                         Check("story: the Peddler sells paper for an ember, and the mountain's own shelves and chests never carry it",
-                            sheet != null && sheet.icon != null && !sheet.isUpgrade && Villagers.EmberPrice(sheet, pip) == 1 && stall.Count == 1 && cfg.FindGear(Story.HammerGear) != null
+                            sheet != null && sheet.icon != null && !sheet.isUpgrade && Villagers.EmberPrice(sheet, pip) == 1 && stall.Count == 7 && !pip.blueprints && stall.Exists(o => o.id == "bombs") && stall.Exists(o => o.id == "pebbles") && stall.Exists(o => o.id == "lampoil") && stall.Exists(o => o.id == FlareGear.OfferId) && stall.Exists(o => o.id == "vigor") && cfg.FindGear(Story.HammerGear) != null
                             && cfg.prefabs.Get(Story.PillarId) is RunePillar && cfg.prefabs.Get(Story.StrangerId) is Stranger && cfg.prefabs.Get(Story.GhostId) is Ghost
                             && cfg.quests != null && cfg.quests.Find(Story.QuestSigns) != null && System.Array.IndexOf(cfg.player.startingGear, Story.HammerGear) < 0);
                     }
@@ -569,6 +569,60 @@ namespace Gloomdelve.EditorTools
                         Check("chests: the mountain's loot chest is plain wood; the camp's, the Field Guide's and the special gear's are fine ones",
                             lootPf != null && lootPf.loot && lootPf.lootRolls > 0 && lsr != null && lsr.sprite != null && lsr.sprite.name == "chest_0" && allFine
                             && cfg.lootChestsPerLevel >= 1 && cfg.lootChestChance > 0f);
+                    }
+
+                    {
+                        // what is open from the start and what wants a blueprint: of each area's pair the lesser piece is open
+                        string[] open = { "compass", "ironcap", "softsoles", "pebblepouch", "warmcoat", "sporemask", "heavyboots", "wardscarab", "truthlens" };
+                        string[] plans = { "ironwhip", "blastpowder", "springboots", "hobnailboots", "spyglass", "iceboots", "lantern", "magnetcharm", "sandstriders", "dampener", "lampoil", FlareGear.OfferId, "vigor" };
+                        bool ok = true; string why = "";
+                        foreach (var id in open) if (Blueprints.VillageWares.Contains(id)) { ok = false; why += id + " has a stall; "; }
+                        foreach (var id in plans)
+                        {
+                            var o = cfg.shop.Find(id);
+                            if (!Blueprints.VillageWares.Contains(id)) { ok = false; why += id + " has no stall; "; }
+                            if (o == null || o.blueprintPrice <= 0) { ok = false; why += id + " has no price; "; }
+                        }
+                        Check("blueprints: the lesser piece of each area is open, the stronger has a stall; every blueprint has its price", ok, why);
+                    }
+                    Check("village: Pip's Oddments (every consumable for a climb) is the door next to the player's own house",
+                        HandcraftedLevel.StreetOrder.Length == 6 && HandcraftedLevel.StreetOrder[5] == Villagers.IndexOf("peddler"));
+                    {
+                        // blueprints: the mountain's shelves carry a villager's ware only once its blueprint is bought;
+                        // their two consumables are drawn from bombs, ropes and the known consumable blueprints
+                        Villagers.testRescued = new HashSet<string>();
+                        Villagers.ResetTestState();
+                        Blueprints.Refresh();
+                        bool OnlyAllowed(out string bad)
+                        {
+                            bad = null;
+                            for (int sd = 0; sd < 300; sd++)
+                            {
+                                var shelf = LevelGenerator.BuildShopOffers(cfg, new Rng(sd), null);
+                                foreach (var id in shelf) if (Blueprints.Locked(id)) { bad = id; return false; }
+                            }
+                            return true;
+                        }
+                        var seen = new HashSet<string>();
+                        for (int sd = 0; sd < 300; sd++) { var shelf = LevelGenerator.BuildShopOffers(cfg, new Rng(sd), null); seen.Add(shelf[0]); seen.Add(shelf[1]); }
+                        bool plainOk = OnlyAllowed(out string bad0);
+                        bool plainTwo = seen.SetEquals(new[] { "bombs", "ropes", "pebbles" }) && cfg.shop.Find("pebbles") != null;
+                        Blueprints.Learn("lampoil"); Blueprints.Learn("ironwhip");
+                        var seen2 = new HashSet<string>(); bool blade = false;
+                        for (int sd = 0; sd < 300; sd++)
+                        {
+                            var shelf = LevelGenerator.BuildShopOffers(cfg, new Rng(sd), null);
+                            seen2.Add(shelf[0]); seen2.Add(shelf[1]);
+                            if (shelf.Contains("ironwhip")) blade = true;
+                        }
+                        bool learnedOk = OnlyAllowed(out string bad1);
+                        Check("blueprints: with none known a shelf draws its two consumables from bombs, ropes and pebbles, and has no villager's equipment; known ones join the draw",
+                            plainOk && plainTwo && learnedOk && seen2.Contains("lampoil") && !seen2.Contains(FlareGear.OfferId) && blade && Blueprints.VillageWares.Contains("ironwhip")
+                            && !Blueprints.VillageWares.Contains(MapScreen.ItemId) && !Blueprints.VillageWares.Contains(Story.Paper),
+                            $"consumables seen {string.Join(",", seen)} then {string.Join(",", seen2)}; locked on a shelf: {bad0 ?? "-"} / {bad1 ?? "-"}; blade {blade}");
+                        Villagers.ResetTestState();
+                        Villagers.testRescued = null;
+                        Blueprints.Refresh();
                     }
 
                     // waking in bed after a night that ended: a line for it, and a scene for a save's first death

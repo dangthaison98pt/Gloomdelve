@@ -559,7 +559,7 @@ namespace Gloomdelve.EditorTools
                 shop.offers.Add(new ShopOffer { id = "vigor", displayName = "Heart Draught", price = 400, resource = "vigor", amount = 1, description = "+1 heart until you sleep" });
             // Healing: a sip is cheap, and there is more than one size of bottle. (The tonic used to cost 500 for a
             // single point of health - a third of what a whole level pays.) A shelf carries one of the three.
-            { var tonic = shop.Find("heart"); if (tonic != null && (tonic.price == 500 || tonic.price == 150)) tonic.price = 100; }
+            { var tonic = shop.Find("heart"); if (tonic != null && tonic.price == 500) tonic.price = 150; }       // (150 is the price now: +3 health, 50 a heart)
             { var flask = shop.Find("heart3"); if (flask != null && flask.price == 400) flask.price = 250; }
             { var elixir = shop.Find("heartfull"); if (elixir != null && elixir.price == 800) elixir.price = 550; }
             if (shop.Find("heart3") == null)
@@ -612,6 +612,9 @@ namespace Gloomdelve.EditorTools
                 shop.offers.Add(new ShopOffer { id = "wardscarab", displayName = "Warding Scarab", price = 550, isUpgrade = true, slot = "charm",
                     description = "a mummy's grab cannot take your gold", modifiers = new StatModifiers { goldWard = 1f } });
             // the villagers' new wares (25/11): Hilde's boots and cap, Tam's soft soles, Oswin's spyglass and letter, Bera's flares
+            // shot for the slingshot: one of the three consumables every mountain shelf may carry from the start (Blueprints)
+            if (shop.Find("pebbles") == null)
+                shop.offers.Add(new ShopOffer { id = "pebbles", displayName = "Pebble Sack", price = 100, resource = Res.Pebbles, amount = 5, description = "+5 pebbles for the slingshot" });
             if (shop.Find("hobnailboots") == null)
                 shop.offers.Add(new ShopOffer { id = "hobnailboots", displayName = "Hobnail Boots", price = 700, isUpgrade = true, slot = "feet",
                     description = "iron-studded soles: a stomp does 2 damage", modifiers = new StatModifiers { stompBonus = 1 } });
@@ -647,10 +650,20 @@ namespace Gloomdelve.EditorTools
             icons["pebblepouch"] = "Sprites/Items/pebblepouch";
             icons[Story.Paper] = "Sprites/Items/paper";
             icons[MapScreen.ItemId] = "Sprites/Items/map";
+            icons["pebbles"] = "Sprites/Items/pebbles";
             icons["hobnailboots"] = "Sprites/Items/hobnailboots"; icons["ironcap"] = "Sprites/Items/ironcap"; icons["softsoles"] = "Sprites/Items/softsoles";
             icons["spyglass"] = "Sprites/Items/spyglass"; icons[Villagers.KeyLetter] = "Sprites/Items/lostletter"; icons[FlareGear.OfferId] = "Sprites/Items/flarepack";
             icons["vigor"] = "Sprites/NPC/ware_vigor"; icons["lampoil"] = "Sprites/NPC/ware_lampoil";
             foreach (var o in shop.offers) if (icons.TryGetValue(o.id, out var ic)) o.icon = ArtGenerator.S(ic);
+            // what the villagers ask for the blueprints (Blueprints), in embers: the strong pieces for every area dearer,
+            // an area's own piece and the consumables cheaper (a value set in the asset is kept)
+            var plans = new Dictionary<string, int>
+            {
+                ["ironwhip"] = 4, ["springboots"] = 4, ["blastpowder"] = 3, ["hobnailboots"] = 3, ["spyglass"] = 2,
+                ["iceboots"] = 2, ["lantern"] = 2, ["magnetcharm"] = 2, ["sandstriders"] = 2, ["dampener"] = 2,
+                ["lampoil"] = 1, [FlareGear.OfferId] = 2, ["vigor"] = 2,
+            };
+            foreach (var o in shop.offers) if (o.blueprintPrice <= 0 && plans.TryGetValue(o.id, out var bp)) o.blueprintPrice = bp;
             EditorUtility.SetDirty(shop);
 
             var moss = LoadOrCreate<AreaConfig>(G + "Data/Area1_Mossroot.asset", out bool newMoss);
@@ -2757,6 +2770,7 @@ namespace Gloomdelve.EditorTools
             inv.bagLabel = UIBuilder.Label(ipanel.transform, "BagLabel", "In the bag", 20, new Color(1f, 1f, 1f, 0.5f), TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -324), new Vector2(600, 28), false);
             inv.pouchIcon = ArtGenerator.S("UI/icon_pouch");
             inv.bookIcon = ArtGenerator.S("UI/icon_book");
+            inv.planIcon = ArtGenerator.S("UI/blueprint_sheet");
             var igrid = UIBuilder.Node(ipanel.transform, "Grid");
             UIBuilder.Place(UIBuilder.Rect(igrid), new Vector2(0.5f, 1f), new Vector2(0, -412), new Vector2(900, 10), new Vector2(0.5f, 0.5f));
             inv.grid = (RectTransform)igrid.transform;
@@ -2873,15 +2887,22 @@ namespace Gloomdelve.EditorTools
                 vs.title = UIBuilder.Label(vp, "Title", "", 46, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -30), new Vector2(880, 64), true, FontStyle.Bold);
                 vs.line = UIBuilder.Label(vp, "Line", "", 24, new Color(1f, 1f, 1f, 0.85f), TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -100), new Vector2(880, 66));
                 vs.embers = UIBuilder.Label(vp, "Embers", "", 24, ember, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -172), new Vector2(880, 34), false);
-                const int vsRows = 4;
-                vs.rows = new Button[vsRows]; vs.icons = new Image[vsRows];
+                const int vsRows = 7;          // (Pip sells every consumable: seven rows)
+                vs.rows = new Button[vsRows]; vs.icons = new Image[vsRows]; vs.planSheets = new Image[vsRows];
                 vs.names = new TMPro.TMP_Text[vsRows]; vs.descs = new TMPro.TMP_Text[vsRows]; vs.prices = new TMPro.TMP_Text[vsRows];
-                vs.firstRowY = -222f; vs.rowStep = 96f; vs.baseHeight = 368f;
+                vs.firstRowY = -222f; vs.rowStep = 82f; vs.baseHeight = 368f;
                 for (int i = 0; i < vsRows; i++)
                 {
-                    var wareRow = UIBuilder.Button(vp, "Row_" + i, "", new Vector2(0.5f, 1f), new Vector2(0, vs.firstRowY - vs.rowStep * i), new Vector2(880, 84));
+                    var wareRow = UIBuilder.Button(vp, "Row_" + i, "", new Vector2(0.5f, 1f), new Vector2(0, vs.firstRowY - vs.rowStep * i), new Vector2(880, 76));
                     vs.rows[i] = wareRow;
-                    vs.icons[i] = UIBuilder.Img(wareRow.transform, "Icon", null, Color.white, new Vector2(0f, 0.5f), new Vector2(24, 0), new Vector2(60, 60));
+                    // (the blueprint paper first, so the picture is drawn on it)
+                    // the paper and the picture share one middle, 54 from the row's left edge (HUD.FitIcon places a picture
+                    // by its middle, so both are pivoted there: a smaller picture stays in the middle of the paper)
+                    vs.planSheets[i] = UIBuilder.Img(wareRow.transform, "PlanSheet", ArtGenerator.S("UI/blueprint_sheet"), Color.white, new Vector2(0f, 0.5f), new Vector2(54, 0), new Vector2(68, 68));
+                    vs.planSheets[i].rectTransform.pivot = new Vector2(0.5f, 0.5f);
+                    vs.planSheets[i].enabled = false;
+                    vs.icons[i] = UIBuilder.Img(wareRow.transform, "Icon", null, Color.white, new Vector2(0f, 0.5f), new Vector2(54, 0), new Vector2(60, 60));
+                    vs.icons[i].rectTransform.pivot = new Vector2(0.5f, 0.5f);
                     vs.icons[i].preserveAspect = true;
                     vs.names[i] = UIBuilder.Label(wareRow.transform, "Name", "", 28, Color.white, TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(102, 17), new Vector2(480, 38));
                     vs.descs[i] = UIBuilder.Label(wareRow.transform, "Desc", "", 20, new Color(1f, 1f, 1f, 0.75f), TextAnchor.MiddleLeft, new Vector2(0f, 0.5f), new Vector2(102, -19), new Vector2(640, 30), false);       // (it stops short of the price, which stands in the middle of the row)

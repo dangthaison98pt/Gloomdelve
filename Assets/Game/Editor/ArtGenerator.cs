@@ -3019,6 +3019,31 @@ namespace Gloomdelve.EditorTools
                 Save(p, d + "icon_book", PCenter);
             }
             {
+                // a blueprint: blue paper with a grid, a pale edge and a curled corner (village stalls, the bag)
+                var p = new Px(20, 20); Color32 blue = C(46, 92, 160), blueD = C(30, 64, 120), grid = C(80, 130, 200), edge = C(214, 232, 250), curl = C(150, 186, 226);
+                p.Rect(1, 1, 18, 18, blue);
+                p.Rect(2, 5, 16, 1, grid);
+                p.Rect(5, 2, 1, 16, grid);
+                p.Rect(2, 9, 16, 1, grid);
+                p.Rect(9, 2, 1, 16, grid);
+                p.Rect(2, 13, 16, 1, grid);
+                p.Rect(13, 2, 1, 16, grid);
+                p.Rect(1, 1, 18, 1, edge);
+                p.Rect(1, 18, 18, 1, edge);
+                p.Rect(1, 1, 1, 18, edge);
+                p.Rect(18, 1, 1, 18, edge);
+                p.Rect(16, 1, 2, 2, blueD);
+                p.Set(17, 2, curl);
+                p.Set(16, 1, curl);
+                p.Set(18, 3, edge);
+                p.Set(15, 1, edge);
+                p.Set(3, 16, edge);
+                p.Set(4, 16, edge);
+                p.Set(3, 15, edge);
+                p.Outline(C(30, 22, 22));
+                Save(p, "UI/blueprint_sheet", PCenter);
+            }
+            {
                 // the strip behind a prompt tag: solid, then fading out to the right
                 var p = new Px(64, 4);
                 for (int x = 0; x < 64; x++)

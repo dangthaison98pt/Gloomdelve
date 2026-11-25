@@ -15,6 +15,8 @@ namespace Gloomdelve
         public string[] wares;
         /// <summary>Price of their wares compared with the shops on the mountain (1 = the same).</summary>
         public float priceFactor = 1f;
+        /// <summary>What they sell are blueprints (Blueprints): bought once, the mountain's shops carry it. False: the thing itself, for one climb, in sparks (Pip) - though a consumable whose blueprint is not known yet is offered as its blueprint first.</summary>
+        public bool blueprints = true;
     }
 
     /// <summary>
@@ -64,22 +66,22 @@ namespace Gloomdelve
         {
             new VillagerDef { id = "smith", name = "Hilde", role = "the Smith", place = "The forge is lit again",
                 cagedLine = "Break this open and my forge is yours!", homeLine = "Steel and powder. Nothing leaves my forge dull.",
-                wares = new[] { "ironwhip", "blastpowder", "hobnailboots", "ironcap" } },
+                wares = new[] { "ironwhip", "blastpowder", "hobnailboots", "magnetcharm" } },
             new VillagerDef { id = "roper", name = "Tam", role = "the Ropemaker", place = "The ropewalk is open again",
                 cagedLine = "I tied my own rope too short. Get me out!", homeLine = "Boots with a spring in them. Climb well.",
-                wares = new[] { "springboots", "softsoles" } },       // (no rope: every climb sets out with its bags full)
+                wares = new[] { "springboots", "iceboots", "sandstriders" } },       // (no rope: every climb sets out with its bags full)
             new VillagerDef { id = "healer", name = "Maren", role = "the Healer", place = "The apothecary is open again",
                 cagedLine = "Careful - but please hurry.", homeLine = "One draught and your heart beats stronger till you sleep.",
-                wares = new[] { "vigor" } },
+                wares = new[] { "dampener" } },
             new VillagerDef { id = "mapper", name = "Oswin", role = "the Mapmaker", place = "The map room is open again",
                 cagedLine = "I drew the way in. I never drew the way out.", homeLine = "I know that mountain. Let my needle show you the way.",
-                wares = new[] { "compass", "spyglass", MapScreen.ItemId, KeyLetter } },
+                wares = new[] { "spyglass", MapScreen.ItemId, KeyLetter } },
             new VillagerDef { id = "peddler", name = "Pip", role = "the Peddler", place = "The market stall is back",
-                cagedLine = "Everything I own for an open door!", homeLine = "Paper and charcoal, cheap as anything. What else would you need?",
-                wares = new[] { Story.Paper }, priceFactor = 0.7f },       // (paper: for copying the old signs - Story; no random equipment any more)
+                cagedLine = "Everything I own for an open door!", homeLine = "Oil, flares, a draught for the heart, paper. All you need for one climb!",
+                wares = new[] { "bombs", "ropes", "pebbles", "lampoil", FlareGear.OfferId, "vigor", Story.Paper }, blueprints = false },       // every consumable for a climb, in sparks (and paper for the old signs - Story)
             new VillagerDef { id = "lamplighter", name = "Bera", role = "the Lamplighter", place = "The lamp tower burns again",
                 cagedLine = "My lamp went out. Then it came for me.", homeLine = "Take oil. While your lamp burns, the dark is slow to find you.",
-                wares = new[] { "lampoil", FlareGear.OfferId } },       // (no bombs: every climb sets out with its bags full)
+                wares = new[] { "lantern" } },       // (no bombs: every climb sets out with its bags full)
         };
 
         // ------------------------------------------------------------------ tests keep their own state
@@ -243,13 +245,14 @@ namespace Gloomdelve
         }
 
         /// <summary>What lasts is paid for in embers; what is for one climb, in sparks.</summary>
-        public static bool PaidInEmbers(ShopOffer o) => o != null && (o.id == MapScreen.ItemId || o.id == KeyLetter);
+        public static bool PaidInEmbers(ShopOffer o) => o != null && (o.id == MapScreen.ItemId || o.id == KeyLetter || Blueprints.IsBlueprintWare(o.id) && Blueprints.VillageWares.Contains(o.id));
 
         /// <summary>What a villager asks for a ware, in sparks (in embers for what lasts): about one for every 250 gold it would cost on the
         /// mountain, one less at the Peddler's (never under one).</summary>
         public static int EmberPrice(ShopOffer o, VillagerDef v)
         {
             if (o == null) return 1;
+            if (o.blueprintPrice > 0 && (v == null || v.blueprints) && Blueprints.VillageWares.Contains(o.id)) return o.blueprintPrice;      // a blueprint's own price (v = null: priced as a blueprint)
             int e = Mathf.RoundToInt(o.price / 250f);
             if (v != null && v.priceFactor < 1f) e--;
             return Mathf.Max(1, e);

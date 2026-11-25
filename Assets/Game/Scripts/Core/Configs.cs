@@ -120,6 +120,8 @@ namespace Gloomdelve
         public StatModifiers modifiers = new StatModifiers();
         public Sprite icon;
         [TextArea] public string description;
+        [Tooltip("What its blueprint costs at a villager's stall, in embers (Blueprints). 0 = worked out from the gold price (about one ember for 250 gold).")]
+        public int blueprintPrice;
     }
 
     public enum MarkerPlacement { Anywhere, OnFloor, UnderCeiling }

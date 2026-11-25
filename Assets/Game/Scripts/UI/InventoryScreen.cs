@@ -32,6 +32,7 @@ namespace Gloomdelve
         public Image[] tabFrames;
         [Tooltip("Picture of the Ember Pouch (KEY ITEMS tab).")] public Sprite pouchIcon;
         [Tooltip("Picture of the Field Guide (KEY ITEMS tab): confirm opens it.")] public Sprite bookIcon;
+        [Tooltip("Picture of the blueprints bought from the villagers (KEY ITEMS tab).")] public Sprite planIcon;
         public PlayerInputReader input;
         public GameDirector director;
         public int columns = 7;
@@ -264,6 +265,29 @@ namespace Gloomdelve
                         name = letter != null ? letter.displayName : "Lost Letter",
                         desc = "Oswin's letter from the ones who went up before you. A level that holds a caged villager tells you so as you enter, and your map marks the cage. It is never lost.",
                     });
+                }
+                // the blueprints bought from the villagers: what the shops on the mountain carry because of them
+                {
+                    var shopCfg = director != null && director.config != null ? director.config.shop : null;
+                    var names = new List<string>();
+                    Sprite firstIcon = null;
+                    foreach (var id in Blueprints.VillageWares)
+                        if (Blueprints.Known(id))
+                        {
+                            var o = shopCfg != null ? shopCfg.Find(id) : null;
+                            names.Add(o != null ? o.displayName : id);
+                            if (firstIcon == null && o != null) firstIcon = o.icon;
+                        }
+                    if (names.Count > 0)
+                    {
+                        names.Sort(System.StringComparer.Ordinal);
+                        entries.Add(new Entry
+                        {
+                            icon = planIcon != null ? planIcon : firstIcon, under = names.Count + " / " + Blueprints.VillageWares.Count, marked = false,
+                            name = "Blueprints",
+                            desc = "The shops on the mountain carry these, bought from the villagers: " + string.Join(", ", names) + ". The rest of their wares are not seen up there until you buy how they are made.",
+                        });
+                    }
                 }
                 // the story's things (Story): the copy of the old signs, and the parts of the hammer this run has found
                 var gcfg = director != null ? director.config : null;

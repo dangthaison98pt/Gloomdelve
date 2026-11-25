@@ -71,6 +71,7 @@ MonoBehaviour:
     weight: 1.5
   lootRolls: 3
   lootGearChance: 0.25
+  lootGearStep: 0.1
 --- !u!1 &8125760893837448902
 GameObject:
   m_ObjectHideFlags: 0

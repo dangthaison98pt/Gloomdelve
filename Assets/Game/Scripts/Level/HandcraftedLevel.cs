@@ -15,6 +15,12 @@ namespace Gloomdelve
     /// </summary>
     public static class HandcraftedLevel
     {
+        /// <summary>
+        /// Which villager's house each 'V' door of the village street is, from left to right (numbers of Villagers.All).
+        /// Pip's Oddments - every consumable for a climb - stands next to the player's own house, the last door.
+        /// </summary>
+        public static readonly int[] StreetOrder = { 0, 1, 2, 3, 5, 4 };
+
         public static LevelData Parse(string text, string name, LevelKind kind, int seed, IList<MarkerDef> customMarkers = null)
         {
             var custom = RoomLegend.CustomMap(customMarkers);
@@ -41,7 +47,7 @@ namespace Gloomdelve
             var d = new LevelData { name = name, kind = kind, seed = seed, grid = g };
             var rng = new Rng(seed);
             bool hasEntrance = false, hasExit = false;
-            int houses = 0, rooms = 0;
+            int houses = 0, rooms = 0;      // (the villagers' doors are numbered along the street by StreetOrder)
 
             for (int ry = 0; ry < H; ry++)
             {
@@ -89,7 +95,7 @@ namespace Gloomdelve
                         // Brindlemoor: the doors of the street (V = the villagers' houses in the order of Villagers.All,
                         // W = the village hall, Q = the player's house) and the rooms behind them (I, in the order
                         // forge, ropewalk, apothecary, map room, oddments, lamp house, hall, home: the door of each room)
-                        case 'V': d.spawns.Add(new SpawnPoint("building", cell, 0, houses++)); break;
+                        case 'V': d.spawns.Add(new SpawnPoint("building", cell, 0, houses < StreetOrder.Length ? StreetOrder[houses++] : houses++)); break;
                         case 'W': d.spawns.Add(new SpawnPoint("building", cell, 0, 6)); break;
                         case 'Q': d.spawns.Add(new SpawnPoint("building", cell, 0, 7)); break;
                         case 'I': d.spawns.Add(new SpawnPoint("interior", cell, 0, rooms++)); break;

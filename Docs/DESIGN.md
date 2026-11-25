@@ -24,7 +24,7 @@ Tổng 18 chặng. **Hướng dẫn:** game mới luôn bắt đầu bằng màn
 
 **Chết:** màn kết quả (nguyên nhân, chặng tới được, vàng, thời gian, số quái giết, số màn, seed) với **NEW RUN** (seed mới, vào thẳng màn đầu) hoặc **BACK TO VILLAGE**. Màn kết quả không còn hiện kỷ lục. **Bỏ cuộc** (menu tạm dừng > GIVE UP, có hỏi lại): kết thúc lượt và thức dậy ở làng; tính là một lượt đã chơi nhưng không tính là một lần chết.
 
-**Mất / giữ:** mất mọi thứ của lượt (vàng, đồ, đồ mua cho lượt đó, các mảnh búa). Giữ lại ember, spark, dân làng đã cứu, key item (Ember Pouch, Field Guide, Map, bản chép, lời giải của trưởng làng…), cỡ túi đã nới, nhiệm vụ và số quái đã giết.
+**Mất / giữ:** mất vàng, trang bị, các mảnh búa và tác dụng đã mua cho lượt đó (Lamp Oil, Heart Draught). Giữ lại bom, dây, đá, Flare, giấy còn trong túi (kho của save), ember, spark, dân làng đã cứu, key item (Ember Pouch, Field Guide, Map, bản chép, lời giải của trưởng làng…), cỡ túi đã nới, nhiệm vụ và số quái đã giết.
 
 **Lưu:** 3 ô lưu (`slot1..3.json`), mỗi ô có làng, tiền, key item, nhiệm vụ và Field Guide riêng. Cài đặt (`settings.json`), tổng kết (`totals.json`) và kỷ lục Challenge (`challenge.json`) dùng chung cho cả game. Lượt đang chơi được lưu ở **đầu mỗi màn** (seed, vị trí, máu, vàng, đồ); tiếp tục thì chơi lại từ đầu màn đó. Dân làng được cứu, boss đã hạ và tiền nhặt được ghi ngay. Tutorial và Challenge không lưu vào ô.
 
@@ -102,9 +102,9 @@ Lúc nó hở (bị kẹt ở dạng vỏ, mở ngực ở dạng lõi), đòn c
 **Hollow Warden** (`Warden.cs`) vẫn còn code, prefab và kịch bản kiểm thử, nhưng không màn nào dùng và không có trong Challenge.
 
 ## 4. Nhân vật & đồ
-**Khởi đầu:** 10 máu (cũng là máu tối đa), 0 vàng, **túi đầy** (`RunSession.FillBags`): ban đầu là 5 bom, 5 dây, 10 viên đá, cộng phần trưởng làng đã nới. Đồ dùng: ná (cầm sẵn trên tay), bom, dây, Recall Charm (`PlayerConfig.startingGear`). `startBombs` / `startRopes` (4) chỉ còn dùng cho các bài test, lượt chơi thật không dùng.
+**Khởi đầu:** 10 máu (cũng là máu tối đa), 0 vàng. Đồ tiêu hao lấy từ **kho của save** (`Supplies.cs`): bom, dây, đá, Flare và giấy mà lượt trước còn lại khi kết thúc (chết, bỏ cuộc hay thắng đều giữ). Túi **không tự đổ đầy**; muốn thêm thì mua ở Pip bằng spark hoặc nhặt, mua trên núi. Lượt đầu tiên của một save được một túi đầy (5 bom, 5 dây, 10 đá). Màn hướng dẫn, Challenge và các lượt test tự động vẫn đổ đầy túi như cũ. Đồ dùng: ná (cầm sẵn trên tay), bom, dây, Recall Charm (`PlayerConfig.startingGear`). `startBombs` / `startRopes` (4) chỉ còn dùng cho các bài test, lượt chơi thật không dùng.
 
-**Túi** (`Bags.cs`): bom 5, dây 5, viên đá 10, Ember Pouch 5. Trưởng làng Aldous nới mỗi túi +5, giá 1, rồi 2, rồi 3 ember, tối đa 3 lần (mỗi túi tối đa 20 / 20 / 25 / 20). Nới xong là vĩnh viễn và túi đó được đổ đầy ngay. Đồ nhặt chỉ lấy phần vừa túi, phần dư nằm lại dưới đất; túi đầy thì shop không bán món đó.
+**Túi** (`Bags.cs`): bom 5, dây 5, viên đá 10, Ember Pouch 5. Trưởng làng Aldous nới mỗi túi +5, giá 1, rồi 2, rồi 3 ember, tối đa 3 lần (mỗi túi tối đa 20 / 20 / 25 / 20). Nới xong là vĩnh viễn; túi không được đổ thêm gì. Đồ nhặt chỉ lấy phần vừa túi, phần dư nằm lại dưới đất; túi đầy thì shop không bán món đó.
 
 **Kiếm** (trường `whip*` trong code giữ tên cũ): 1 sát thương, vung 0,3 s, có hitbox phía sau lúc vung. Tempered Blade: +1 sát thương, tầm +0,45.
 
@@ -123,7 +123,7 @@ Lúc nó hở (bị kẹt ở dạng vỏ, mở ngực ở dạng lõi), đòn c
 
 **Túi đồ** (I / Select): tab **WEAR** (ô feet, body, hand và 2 ô charm; chỉ món đang mặc mới có tác dụng; món mới tự mặc nếu ô trống), **ITEMS** (đồ dùng và số còn lại), **KEY ITEMS** (Ember Pouch, Field Guide, Map, bản chép chữ cổ, lời giải của trưởng làng; mục nào đọc được thì có nút Read). LB/RB (S/Tab) chuyển tab.
 
-**Cửa hàng** (`ShopConfig`): kệ 5 món = bom, dây, một món hồi máu (Heart Tonic 45%, Healing Flask 40%, Elixir of Dawn 15%), 2 món nổi bật của khu (hoặc ngẫu nhiên). Trang bị chỉ mua một lần. Chủ shop đang hiền thì mua lại **tượng vàng** tại chỗ ("[enter] Sell", trả đúng giá trị vàng; không áp dụng cho Sunstone). Chủ shop: 2 lần bị đánh chỉ cảnh báo, lần 3 nổi giận; còn sống thì mọi shop sau đóng cửa và ông ta phục kích cùng 2 người anh em, chết thì các shop sau trống.
+**Cửa hàng** (`ShopConfig`): kệ 5 món = 2 món tiêu hao khác nhau bốc từ bom, dây, đá ná (Pebble Sack: +5 đá, $100) và các đồ tiêu hao đã mở bản thiết kế (Lamp Oil, Flares, Heart Draught; chưa mở thì chỉ có ba món đầu), một món hồi máu (Heart Tonic 45%, Healing Flask 40%, Elixir of Dawn 15%), 2 trang bị (món nổi bật của khu, hoặc ngẫu nhiên trong số không bị khoá). Trang bị có bản thiết kế bị khoá trên núi tới khi mua (mục 5); những món mở sẵn thì không bao giờ bị khoá. Rương gỗ và rương ở The Last Camp cũng theo luật này. Trang bị chỉ mua một lần. Chủ shop đang hiền thì mua lại **tượng vàng** tại chỗ ("[enter] Sell", trả đúng giá trị vàng; không áp dụng cho Sunstone). Chủ shop: 2 lần bị đánh chỉ cảnh báo, lần 3 nổi giận; còn sống thì mọi shop sau đóng cửa và ông ta phục kích cùng 2 người anh em, chết thì các shop sau trống.
 
 | Món | Giá | Ô | Tác dụng |
 |---|---|---|---|
@@ -154,21 +154,23 @@ Giá trong ngoặc là giá gốc để quy đổi sang tiền ở làng (mục 
 ## 5. Làng Brindlemoor & tiền tệ
 Ba loại tiền (`Villagers.cs`):
 - **Vàng:** nhặt trên núi (cục nhỏ 10, cục lớn 30, ngọc 100, tượng vàng 400 phải mang ra cửa hoặc bán cho chủ shop; khoảng 1500 mỗi màn). Chỉ tiêu ở shop trên núi, mất khi hết lượt.
-- **Spark:** mỗi boss rơi 5. Không giới hạn, lưu ngay khi nhặt, không bao giờ mất. Dùng mua **hàng của dân làng**, những món chỉ có tác dụng cho một lượt leo núi.
-- **Ember:** mỗi boss rơi 1, vào **Ember Pouch** (ban đầu chứa 5; nhặt khi túi đầy thì phần dư mất). Lưu ngay, không bao giờ mất. Dùng cho **những thứ lâu dài**: trưởng làng nới túi (1 / 2 / 3 ember), Map và Lost Letter của Oswin.
+- **Spark:** mỗi boss rơi 5. Không giới hạn, lưu ngay khi nhặt, không bao giờ mất. Dùng mua **đồ tiêu hao cho một lượt** ở tiệm của Pip.
+- **Ember:** mỗi boss rơi 1, vào **Ember Pouch** (ban đầu chứa 5; nhặt khi túi đầy thì phần dư mất). Lưu ngay, không bao giờ mất. Dùng cho **những thứ lâu dài**: trưởng làng nới túi (1 / 2 / 3 ember), Map và Lost Letter của Oswin, và **bản thiết kế**.
 - Chưa có Ember Pouch thì không nhặt được cả spark lẫn ember. Spark/ember boss đã rơi mà không nhặt thì mất.
-- Giá ở làng = `max(1, round(giá vàng trên núi / 250))`, riêng ở Pip rẻ hơn 1 (giờ Pip chỉ bán giấy). Giá và số tiền trong túi luôn ghi bằng số kèm hình đồng tiền, không ghi chữ.
+- Giá ở làng = `max(1, round(giá vàng trên núi / 250))`. Giá và số tiền trong túi luôn ghi bằng số kèm hình đồng tiền, không ghi chữ.
+
+**Bản thiết kế** (`Blueprints.cs`): dân làng không bán đồ cho một lượt nữa mà bán **bản thiết kế**. Mua một lần (bằng ember, giá theo công thức trên) là giữ mãi theo save (key item `bp:<id>`); từ đó shop trên núi mới bày món đó (mua bằng vàng), rương gỗ và rương ở trại mới có thể ra món đó. Chưa mua thì món đó không xuất hiện trên núi. Map, Lost Letter và giấy không phải bản thiết kế, vẫn mua trực tiếp. **Mở sẵn từ đầu** (không cần bản thiết kế, không có quầy): Compass, Iron Cap, Soft-Sole Boots, Pebble Pouch, bom, dây, đá, và món nhẹ hơn trong cặp đồ riêng của mỗi khu (Fur Coat, Spore Mask, Heavy Boots, Warding Scarab, Truth Lens); món mạnh hơn của mỗi khu (Ice Cleats, Lantern, Magnet Charm, Sand Striders, Dampener) cần bản thiết kế. Giá bản thiết kế đặt riêng ở `ShopOffer.blueprintPrice` (món mạnh dùng mọi khu 3–4, đồ riêng khu và Spyglass 2, đồ tiêu hao 1–2; mở hết tốn 31 ember). Pip không bán bản thiết kế (`VillagerDef.blueprints = false`). Túi đồ có mục **Blueprints** ở KEY ITEMS liệt kê những bản đã mở.
 
 **Phố làng:** 8 ngôi nhà hai tầng liền nhau, 6 dân làng để cứu (mỗi lượt có một lồng). Nhà của dân chưa được cứu thì tối, khoá và không có người. Đứng cạnh một người thì lời nhắc hiện tên họ và các việc làm được (**Talk / Shop**, với trưởng làng là **Talk / Upgrade**); ↑/↓ chọn dòng, nút tương tác để làm. Làng không bán bom hay dây, vì lượt nào cũng bắt đầu với túi đầy. Shop là một màn hình danh sách (`VillageShopPanel`), game tạm dừng khi mở, mua xong lưu ngay; không còn bày hàng dưới sàn.
 
 | Nhà | Chủ | Bán / làm |
 |---|---|---|
-| Lò rèn | Hilde the Smith | Tempered Blade 3 spark, Blast Powder 3 spark, Hobnail Boots 3 spark, Iron Cap 2 spark |
-| Xưởng dây | Tam the Ropemaker | Spring Boots 4 spark, Soft-Sole Boots 2 spark |
-| Nhà thuốc | Maren the Healer | Heart Draught 2 spark |
-| Phòng bản đồ | Oswin the Mapmaker | Compass 2 spark, Spyglass 2 spark, **Map 2 ember**, **Lost Letter 3 ember** |
-| Tiệm lặt vặt | Pip the Peddler | **Sheet of Paper** 1 spark |
-| Nhà đèn | Bera the Lamplighter | Lamp Oil 1 spark (+120 s trước khi thần chết tới, cho mọi màn của lượt, mua nhiều lần thì cộng dồn), Flares 2 spark |
+| Lò rèn | Hilde the Smith | Bản thiết kế: Tempered Blade 4, Blast Powder 3, Hobnail Boots 3, Magnet Charm 2 ember |
+| Xưởng dây | Tam the Ropemaker | Bản thiết kế: Spring Boots 4, Ice Cleats 2, Sand Striders 2 ember |
+| Nhà thuốc | Maren the Healer | Bản thiết kế: Dampener 2 ember |
+| Phòng bản đồ | Oswin the Mapmaker | Bản thiết kế: Spyglass 2 ember; **Map 2 ember**, **Lost Letter 3 ember** (mua trực tiếp) |
+| Tiệm lặt vặt | Pip the Peddler | Đồ tiêu hao, bằng spark: Bomb Bag (+3) 1, Rope Pile (+3) 1, Pebble Sack (+5) 1, **Sheet of Paper** 1. Lamp Oil, Flares, Heart Draught: chưa mở thì Pip bán **bản thiết kế** (1 / 2 / 2 ember); mua xong thì chính dòng đó bán món đồ bằng spark (1 / 2 / 2) và món đó lên kệ núi. Bom, dây, đá, Flare, giấy vào kho, không mất khi chết; Lamp Oil và Heart Draught có tác dụng ngay, chỉ trong lượt đó. Tiệm nằm ngay cạnh nhà Brann (`HandcraftedLevel.StreetOrder`) |
+| Nhà đèn | Bera the Lamplighter | Bản thiết kế: Lantern 2 ember |
 | Hội trường | Trưởng làng **Aldous** | Nhiệm vụ; nới túi (Upgrade); chưa cứu đủ thì nói còn bao nhiêu người lạc |
 | Nhà của Brann | – | Nơi mọi lượt bắt đầu; chuồng chó bên cạnh |
 

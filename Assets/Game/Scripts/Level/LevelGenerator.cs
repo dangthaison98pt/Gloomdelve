@@ -979,11 +979,13 @@ namespace Gloomdelve
             return false;
         }
 
-        static List<string> BuildShopOffers(GameConfig cfg, Rng rng, AreaConfig area)
+        public static List<string> BuildShopOffers(GameConfig cfg, Rng rng, AreaConfig area)
         {
-            var list = new List<string> { "bombs", "ropes", cfg.shop != null ? cfg.shop.HealOffer(rng.Range(0, 100)) : "heart" };
+            // two consumables (bombs, ropes and those whose blueprint is known), one healing, two pieces of equipment
+            var list = Blueprints.ShelfConsumables(cfg.shop, rng);
+            list.Add(cfg.shop != null ? cfg.shop.HealOffer(rng.Range(0, 100)) : "heart");
             var ups = new List<string>();
-            if (cfg.shop != null) foreach (var o in cfg.shop.offers) if (o.isUpgrade) ups.Add(o.id);
+            if (cfg.shop != null) foreach (var o in cfg.shop.offers) if (o.isUpgrade && !Blueprints.Locked(o.id)) ups.Add(o.id);
             int want = 2;
             if (area != null && area.shopFeatured != null)
                 foreach (var f in area.shopFeatured)

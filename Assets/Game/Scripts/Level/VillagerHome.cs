@@ -77,7 +77,12 @@ namespace Gloomdelve
             if (index == 1 && dir != null && dir.villageShop != null)
             {
                 Sfx.PlayUI("menu_select", 0.8f);
-                dir.villageShop.Open($"{who.name} {who.role}", "For this climb: [spark].   What lasts: [ember].", VillageShopPanel.WaresOf(who, World.config, RunSession.Current));
+                var wares = VillageShopPanel.WaresOf(who, World.config, RunSession.Current);
+                bool anyPlan = wares.Exists(w => w.blueprint), anySpark = wares.Exists(w => !w.lasting);
+                // what the stall is: blueprints for the mountain's shelves (embers), and what is bought as it is
+                string say = anyPlan && anySpark ? "For this climb: [spark].   Blueprints: [ember]."
+                           : anyPlan ? "Blueprints: once bought, the shops on the mountain sell it.   [ember]" : anySpark ? "For this climb: [spark]." : "What lasts: [ember].";
+                dir.villageShop.Open($"{who.name} {who.role}", say, wares);
                 return;
             }
             Interact(p);

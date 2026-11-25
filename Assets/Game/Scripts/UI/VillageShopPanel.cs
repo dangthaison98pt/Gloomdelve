@@ -22,14 +22,22 @@ namespace Gloomdelve
             public ShopOffer offer;
             public int price;
             public string bag;
-            /// <summary>Paid in embers (what lasts: the elder's work, the map); otherwise in sparks.</summary>
+            /// <summary>Paid in embers (what lasts: the elder's work, the map, blueprints); otherwise in sparks.</summary>
             public bool lasting;
+            /// <summary>A blueprint (Blueprints): bought, the shops on the mountain carry 'ware' from then on.</summary>
+            public bool blueprint;
+            /// <summary>The thing itself (for a blueprint, 'offer' is the row as shown).</summary>
+            public ShopOffer ware;
+            /// <summary>Who sells it (a blueprint at Pip's turns into the thing itself, in sparks, once bought).</summary>
+            public VillagerDef seller;
         }
 
         public GameObject root;
         public TMPro.TMP_Text title, line, embers, note;
         [Tooltip("One button per ware (the rows that are not needed are hidden).")] public Button[] rows;
         public Image[] icons;
+        [Tooltip("A sheet of blueprint paper behind the picture of a row that sells a blueprint (so it is not taken for the thing itself).")]
+        public Image[] planSheets;
         public TMPro.TMP_Text[] names, descs, prices;
         public Button closeButton;
         [Header("Layout")]
@@ -64,7 +72,16 @@ namespace Gloomdelve
             var list = new List<Entry>();
             if (who == null || cfg == null || cfg.shop == null) return list;
             foreach (var o in Villagers.WaresOf(who, cfg.shop, run != null ? run.seed : 0))
-                list.Add(new Entry { offer = o, price = Villagers.EmberPrice(o, who), lasting = Villagers.PaidInEmbers(o) });
+            {
+                if (Blueprints.VillageWares.Contains(o.id) && (who.blueprints || !Blueprints.Known(o.id)))
+                {
+                    // not the thing: how it is made - the shops on the mountain carry it once this is bought
+                    var row = new ShopOffer { id = Blueprints.Prefix + o.id, displayName = o.displayName + " Blueprint", icon = o.icon,
+                                              description = "Sold on the mountain after this: " + o.description };
+                    list.Add(new Entry { offer = row, ware = o, seller = who, blueprint = true, price = Villagers.EmberPrice(o, null), lasting = true });
+                }
+                else list.Add(new Entry { offer = o, ware = o, seller = who, price = Villagers.EmberPrice(o, who), lasting = o.id == MapScreen.ItemId || o.id == Villagers.KeyLetter });
+            }
             return list;
         }
 
@@ -136,6 +153,12 @@ namespace Gloomdelve
                 sentence = e.bag == Bags.Embers && !Villagers.HasKey(Villagers.KeyPouch) ? "There is no pouch to let out yet." : "It is as large as it gets.";
                 return "MAX";
             }
+            if (e.blueprint)
+            {
+                if (e.ware != null && Blueprints.Known(e.ware.id)) { sentence = "You know how it is made already: the shops on the mountain carry it."; return "KNOWN"; }
+                if (!Villagers.HasKey(Villagers.KeyPouch)) { sentence = "There is no pouch for embers yet."; return ""; }
+                return null;
+            }
             if (run == null || e.offer == null) { sentence = "Not now."; return ""; }
             if ((e.offer.id == MapScreen.ItemId || e.offer.id == Villagers.KeyLetter) && Villagers.HasKey(e.offer.id)) { sentence = "You have it already, and it is yours for good."; return "OWNED"; }
             if (e.offer.isUpgrade && run.HasUpgrade(e.offer.id)) { sentence = "That is yours already."; return "OWNED"; }
@@ -174,8 +197,12 @@ namespace Gloomdelve
                 {
                     // every picture at the same size of pixel, in the middle of its square
                     icons[i].enabled = e.offer.icon != null;
-                    if (hud != null) hud.FitIcon(icons[i], e.offer.icon, iconBox, iconScale);
+                    // a blueprint: the picture smaller and paler, drawn on a sheet of blue paper
+                    float k = e.blueprint ? 0.7f : 1f;
+                    if (hud != null) hud.FitIcon(icons[i], e.offer.icon, iconBox * k, iconScale * k);
                     else icons[i].sprite = e.offer.icon;
+                    icons[i].color = e.blueprint ? new Color(0.86f, 0.94f, 1f, 0.95f) : Color.white;
+                    if (planSheets != null && i < planSheets.Length && planSheets[i] != null) planSheets[i].enabled = e.blueprint;
                 }
                 if (names != null && i < names.Length && names[i] != null) names[i].text = e.offer.displayName;
                 if (descs != null && i < descs.Length && descs[i] != null)
@@ -220,6 +247,21 @@ namespace Gloomdelve
                 Sfx.PlayUI("buy");
                 Say(e.bag == Bags.Embers ? $"{Bags.Name(e.bag)}: it holds {Bags.Holds(e.bag, run)} now, for good."
                                          : $"{Bags.Name(e.bag)}: it holds {Bags.Holds(e.bag, run)} now, for good - and it is full.", true);
+                Refresh();
+                return true;
+            }
+            if (e.blueprint)
+            {
+                if (!Villagers.SpendEmbers(e.price)) { Sfx.PlayUI("error"); Say("Not enough [ember].", false); return false; }
+                Blueprints.Learn(e.ware.id);
+                ItemLog.FirstTime(e.ware.id);
+                QuestLog.Notify(QuestTrigger.Obtain, e.offer.id, 1);
+                Sfx.PlayUI("buy");
+                bool sellsIt = e.seller != null && !e.seller.blueprints;
+                if (sellsIt)        // at Pip's the row is the thing itself from now on, in sparks
+                    entries[i] = new Entry { offer = e.ware, ware = e.ware, seller = e.seller, price = Villagers.EmberPrice(e.ware, e.seller), lasting = false };
+                Say(sellsIt ? $"{e.ware.displayName}: sold here from now on, for [spark] - and on the mountain."
+                            : $"{e.ware.displayName}: the shops on the mountain will carry it from now on.", true);
                 Refresh();
                 return true;
             }

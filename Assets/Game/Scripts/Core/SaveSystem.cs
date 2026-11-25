@@ -79,6 +79,9 @@ namespace Gloomdelve
         [Tooltip("How many embers the pouch holds (0 = what it held when the elder gave it).")] public int pouchCapacity;
         [Tooltip("How many times the elder has enlarged the bomb bag, the rope bag and the pebble bag (Bags: +5 each time, for good).")]
         public int bagBombs, bagRopes, bagPebbles;
+        [Tooltip("The consumables kept between climbs (Supplies): what the last run ended with. False until a run of this save has ended - its first run sets out with full bags.")]
+        public bool stockKept;
+        public int stockBombs, stockRopes, stockPebbles, stockFlares, stockPaper;
     }
 
     /// <summary>
@@ -407,6 +410,7 @@ namespace Gloomdelve
             var r = Records;
             var t = Totals;
             string news = "";
+            Supplies.KeepFrom(run);         // what the run carried is there for the next one (written with the records below)
             t.runs++;
             t.bossKills += run.bossKills;
             t.kills += Mathf.Max(0, run.kills - run.bossKills);

@@ -23,6 +23,7 @@ namespace Gloomdelve
         public static void Pregenerate(GameConfig cfg, StageDef stage, int runSeed, int stageIndex)
         {
             if (cfg == null || stage == null || stage.kind != LevelKind.Area || stage.area == null || EditorPlaytest.Active) return;
+            Blueprints.Refresh();           // (what the shelves may carry, read here on the main thread for the worker)
             string key = Key(stage, runSeed, stageIndex);
             if (ahead != null && aheadKey == key) return;
             var req = new GenRequest
@@ -35,8 +36,12 @@ namespace Gloomdelve
             ahead = System.Threading.Tasks.Task.Run(() => LevelGenerator.Generate(req));
         }
 
+        /// <summary>A level built ahead is let go (a blueprint was bought meanwhile: its shelves may differ now).</summary>
+        public static void ForgetAhead() { ahead = null; aheadKey = null; }
+
         public static LevelData Create(GameConfig cfg, StageDef stage, int runSeed, int stageIndex)
         {
+            Blueprints.Refresh();
             int seed = LevelSeed(runSeed, stageIndex);
             if (stage.kind == LevelKind.Area)
             {
@@ -77,9 +82,10 @@ namespace Gloomdelve
             if (idx.Count == 0 || cfg.shop == null) return;
             idx.Sort((a, b) => d.spawns[a].cell.x.CompareTo(d.spawns[b].cell.x));
             var rng = new Rng(seed + 5);
-            var offers = new System.Collections.Generic.List<string> { "bombs", "ropes", cfg.shop.HealOffer(rng.Range(0, 100)) };
+            var offers = Blueprints.ShelfConsumables(cfg.shop, rng);          // two consumables (bombs, ropes and the known blueprints)
+            offers.Add(cfg.shop.HealOffer(rng.Range(0, 100)));
             var ups = new System.Collections.Generic.List<string>();
-            foreach (var o in cfg.shop.offers) if (o.isUpgrade) ups.Add(o.id);
+            foreach (var o in cfg.shop.offers) if (o.isUpgrade && !Blueprints.Locked(o.id)) ups.Add(o.id);
             while (offers.Count < idx.Count && ups.Count > 0)
             {
                 int k = rng.Range(0, ups.Count);

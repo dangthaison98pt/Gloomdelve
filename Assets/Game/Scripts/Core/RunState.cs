@@ -272,9 +272,11 @@ namespace Gloomdelve
             // A Challenge fight is fought with the slingshot and the bombs, and nothing else: no rope to hang out
             // of reach on, no Recall Charm to leave by.
             if (challenge) Current.gear.RemoveAll(g => g != "slingshot" && g != "bomb");
-            // A run sets out with its bags full: as many bombs, ropes and pebbles as they hold (Bags). The tutorial
-            // hands out its own few.
+            // A run of a save sets out with what the last one ended with (Supplies; a save's first run: full bags) -
+            // nothing fills the bags by itself. The tutorial hands out its own few; a Challenge fight and the plain
+            // test runs set out with their bags full.
             if (tutorial) { Current.bombs = 3; Current.ropes = 3; }
+            else if (Supplies.Applies(Current)) Supplies.TakeInto(Current);
             else FillBags(Current);
             if (challenge) Current.ropes = 0;       // (no rope in the bag, so none counted on the screen)
             // A run begins with the first of its gear in hand: the slingshot. The tutorial teaches the bombs first
