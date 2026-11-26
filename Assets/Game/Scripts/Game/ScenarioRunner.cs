@@ -4544,6 +4544,7 @@ namespace Gloomdelve
             Achievements.Unlock(Achievements.TrueEnding);
             var order = new List<string>();
             string last = null; float lastK = 0f, maxStep = 0f, stepDt = 0f;
+            var sizes = new List<Vector2>();
             bool sawGap = false, cutIn = false, shotTaken = false;
             float clock = 0f;
             while (clock < 14f)
@@ -4555,6 +4556,7 @@ namespace Gloomdelve
                 if (now != null && now != last)
                 {
                     order.Add(now);
+                    sizes.Add(toast.Size);
                     if (last != null && lastK > 0.02f) cutIn = true;              // (a new one while the last was still in view)
                 }
                 if (now != null && now == last && Mathf.Abs(k - lastK) > maxStep) { maxStep = Mathf.Abs(k - lastK); stepDt = Time.unscaledDeltaTime; }
@@ -4570,6 +4572,8 @@ namespace Gloomdelve
             c.Expect(order.Count == 2 && order[0] == "First Light" && order[1] == "Daybreak", "they come one after the other: " + string.Join(", ", order));
             c.Expect(!cutIn, "the second comes down only once the first is out of sight");
             c.Expect(sawGap, "with a breath between them, nothing on the screen");
+            c.Expect(sizes.Count == 2 && sizes[0].x < 700f && sizes[1].x < 760f && sizes[0].x >= 440f && sizes[1].y < 150f,
+                "each board fits its words, not a fixed size: " + string.Join(", ", sizes.ConvertAll(v => $"{v.x:0} x {v.y:0}")));
             c.Expect(maxStep < 0.25f, $"it slides smoothly, never jumping (at most {maxStep:0.00} of the way in one frame, a frame of {stepDt * 1000f:0} ms)");
             Achievements.ResetTestState();
         }

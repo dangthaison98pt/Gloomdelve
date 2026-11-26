@@ -3287,6 +3287,7 @@ namespace Gloomdelve.EditorTools
                 toast.icon.rectTransform.pivot = new Vector2(0.5f, 0.5f); toast.icon.preserveAspect = true;
                 var head = UIBuilder.Label(board.transform, "Head", "ACHIEVEMENT UNLOCKED", 18, new Color(1f, 1f, 1f, 0.6f), TextAnchor.MiddleLeft, new Vector2(0f, 1f), new Vector2(136, -24), new Vector2(630, 26), true, FontStyle.Bold);
                 head.rectTransform.pivot = new Vector2(0f, 0.5f);
+                toast.head = head;
                 toast.title = UIBuilder.Label(board.transform, "Name", "", 30, gold, TextAnchor.MiddleLeft, new Vector2(0f, 1f), new Vector2(136, -52), new Vector2(630, 36), true, FontStyle.Bold);
                 toast.title.rectTransform.pivot = new Vector2(0f, 0.5f); toast.title.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
                 toast.line = UIBuilder.Label(board.transform, "Line", "", 20, new Color(1f, 1f, 1f, 0.9f), TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(136, -72), new Vector2(630, 50), true, FontStyle.Italic);
