@@ -48,6 +48,8 @@ namespace Gloomdelve
         public const string OcarinaOfGoat = "ocarina_of_goat";
         public const string ItTakesTwo = "it_takes_two";
         public const string FirstVictory = "first_victory";
+        /// <summary>The true ending: the Sunstone broken with the hammer of the old signs (GameDirector.BreakSunstone).</summary>
+        public const string TrueEnding = "true_ending";
 
         /// <summary>
         /// The bosses that have an achievement of their own (the first time each falls on a run - a Challenge fight
@@ -83,6 +85,12 @@ namespace Gloomdelve
                     id = FirstVictory, steamId = "ACH_FIRST_VICTORY", title = "First Light",
                     description = "Win a run for the first time.",
                 },
+                new AchievementDef
+                {
+                    id = TrueEnding, steamId = "ACH_TRUE_ENDING", title = "Daybreak", hidden = true,
+                    description = "Break the Sunstone and let the morning come at last.",
+                    hint = "Carrying the stone home is not the only way to end it. The old signs speak of a hammer.",
+                },
             };
             foreach (var b in BossList)
                 list.Add(new AchievementDef
@@ -113,6 +121,12 @@ namespace Gloomdelve
 
         /// <summary>Every achievement, in the order the menu lists them (after Extras: static fields are set in order).</summary>
         public static readonly AchievementDef[] All = BuildList();
+
+        /// <summary>The Sunstone is broken (the true ending): Daybreak (never in a Challenge fight or the tutorial).</summary>
+        public static void TrueEnded(RunState run)
+        {
+            if (run != null && !run.bossPractice && !run.isTutorial) Unlock(TrueEnding);
+        }
 
         /// <summary>A run has ended: one won (not a Challenge fight, not the tutorial) earns First Light.</summary>
         public static void RunEnded(RunState run)

@@ -1560,7 +1560,7 @@ namespace Gloomdelve.EditorTools
                 // First Light and the bosses' achievements: their pictures are files of their own (UI/ach_<id>.png,
                 // a symbol for each, drawn by hand); a plain tile stands in only for one that is missing
                 {
-                    var ids = new List<string> { Achievements.FirstVictory };
+                    var ids = new List<string> { Achievements.FirstVictory, Achievements.TrueEnding };
                     foreach (var bl in Achievements.BossList) ids.Add(bl.id);
                     foreach (var id in ids)
                     {

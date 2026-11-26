@@ -732,6 +732,7 @@ namespace Gloomdelve
             string news = SaveSystem.RecordRunEnd(run);
             SaveSystem.AppendRunLog($"seed {run.seed} TRUE END time {run.totalTime:0.0}");
             Villagers.GiveKey(Story.KeyTrueEnd);
+            Achievements.TrueEnded(run);
             if (EndingScene.BeginTrue(this, run, news, stone)) return;
             world.enabled = false;
             results.ShowTrueEnd(run, news);

@@ -278,6 +278,9 @@ namespace Gloomdelve
             new Scenario { name = "ocarina: played from the bag (the press that opened it plays nothing), a held key sounds its note at its pitch, a second slurs and letting go goes back, Shift a half step up, Ctrl an octave down; the notes are written on the staff; the music falls silent while it is out; Pause puts it away",
                 map = m => { Set(m, 3, 1, 'S'); },
                 run = c => OcarinaPlayCase(c) },
+            new Scenario { name = "achievement toasts: two earned at once come one after the other - the second only once the first is out of sight, a breath between, sliding smoothly",
+                map = m => { Set(m, 3, 1, 'S'); },
+                run = c => ToastQueueCase(c) },
             new Scenario { name = "audio: the listener makes the whole mix louder (about +13 dB: 75% on the sliders is the old 2.5 times at 100%), and the limiter keeps the loudest sounds under full scale",
                 map = m => { Set(m, 3, 1, 'S'); },
                 run = c => AudioBoostCase(c) },
@@ -1257,6 +1260,14 @@ namespace Gloomdelve
                 c.run.bossPractice = wasPractice;
                 Achievements.RunEnded(c.run);
                 c.Expect(Achievements.IsEarned(Achievements.FirstVictory), "a run won earns First Light");
+                // the true ending (the Sunstone broken): Daybreak - not from a Challenge fight or the tutorial
+                c.Expect(!Achievements.IsEarned(Achievements.TrueEnding), "carrying the stone home is not Daybreak");
+                c.run.bossPractice = true; Achievements.TrueEnded(c.run); c.run.bossPractice = wasPractice;
+                c.Expect(!Achievements.IsEarned(Achievements.TrueEnding), "nor is anything in a Challenge fight");
+                c.run.isTutorial = true; Achievements.TrueEnded(c.run); c.run.isTutorial = false;
+                c.Expect(!Achievements.IsEarned(Achievements.TrueEnding), "nor in the tutorial");
+                Achievements.TrueEnded(c.run);
+                c.Expect(Achievements.IsEarned(Achievements.TrueEnding), "the Sunstone broken on a run: Daybreak");
                 c.run.victory = won;
                 ClearFight(c);
             }
@@ -4519,6 +4530,48 @@ namespace Gloomdelve
             oc.Close();
             yield return Wait(2);
             c.Expect(!oc.IsOpen && Time.timeScale > 0f && AudioManager.Instance != null && !AudioManager.Instance.MusicHushed, "put away: the game goes on, and the music comes back");
+        }
+
+        static IEnumerator ToastQueueCase(Ctx c)
+        {
+            var toast = AchievementToast.Instance;
+            c.Expect(toast != null, "the toast is there");
+            if (toast == null) yield break;
+            Achievements.ResetTestState();
+            yield return null;
+            // as at the true ending: First Light and Daybreak in the same moment
+            Achievements.Unlock(Achievements.FirstVictory);
+            Achievements.Unlock(Achievements.TrueEnding);
+            var order = new List<string>();
+            string last = null; float lastK = 0f, maxStep = 0f, stepDt = 0f;
+            bool sawGap = false, cutIn = false, shotTaken = false;
+            float clock = 0f;
+            while (clock < 14f)
+            {
+                yield return null;
+                clock += Time.unscaledDeltaTime;
+                string now = toast.ShowingTitle;
+                float k = toast.Shown01;
+                if (now != null && now != last)
+                {
+                    order.Add(now);
+                    if (last != null && lastK > 0.02f) cutIn = true;              // (a new one while the last was still in view)
+                }
+                if (now != null && now == last && Mathf.Abs(k - lastK) > maxStep) { maxStep = Mathf.Abs(k - lastK); stepDt = Time.unscaledDeltaTime; }
+                if (now == null && order.Count == 1) sawGap = true;
+                if (!shotTaken && order.Count == 2 && k > 0.99f)
+                {
+                    shotTaken = true;
+                    ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "toast_second.png"));
+                }
+                last = now ?? last; lastK = now != null ? k : 0f;
+                if (now == null && toast.Waiting == 0 && order.Count >= 2) break;
+            }
+            c.Expect(order.Count == 2 && order[0] == "First Light" && order[1] == "Daybreak", "they come one after the other: " + string.Join(", ", order));
+            c.Expect(!cutIn, "the second comes down only once the first is out of sight");
+            c.Expect(sawGap, "with a breath between them, nothing on the screen");
+            c.Expect(maxStep < 0.25f, $"it slides smoothly, never jumping (at most {maxStep:0.00} of the way in one frame, a frame of {stepDt * 1000f:0} ms)");
+            Achievements.ResetTestState();
         }
 
         static IEnumerator AudioBoostCase(Ctx c)
