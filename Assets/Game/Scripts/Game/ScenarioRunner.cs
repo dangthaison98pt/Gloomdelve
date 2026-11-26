@@ -4469,6 +4469,16 @@ namespace Gloomdelve
             var toast = AchievementToast.Instance;
             c.Expect(Achievements.IsEarned(Achievements.OcarinaOfGoat) && c.p.restingIn == null, "picked up: Ocarina of GOAT is earned, and the player is free again");
             c.Expect(Villagers.HasKey(Villagers.KeyOcarina), "the Blue Ocarina is in the bag, among the key items");
+            var bag = c.dir.inventory;
+            if (bag != null)
+            {
+                bag.Open(); bag.SetTab(InventoryScreen.TabKeys);
+                yield return new WaitForSecondsRealtime(0.4f);
+                ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "ocarina_in_bag.png"));
+                yield return new WaitForSecondsRealtime(0.3f);
+                bag.Close();
+                yield return c.Frames(5);
+            }
             c.Expect(toast != null && toast.Showing && toast.ShowingTitle == "Ocarina of GOAT", "the toast slides down with its name");
             yield return new WaitForSecondsRealtime(0.5f);
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "achievement_toast.png"));

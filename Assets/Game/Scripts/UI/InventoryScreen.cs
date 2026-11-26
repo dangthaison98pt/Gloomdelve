@@ -310,11 +310,13 @@ namespace Gloomdelve
             int index = bodySlot ? slotCells.Count : cells.Count;
             if (bodySlot) PointerRelay.On(go, null, () => ClickSlot(index));
             else PointerRelay.On(go, () => PointAt(index), () => ClickOn(index));
+            var pic = go.transform.Find("Icon").GetComponent<Image>();
+            pic.preserveAspect = true;          // (a picture that is not square - the Blue Ocarina - keeps its shape)
             return new Cell
             {
                 rt = (RectTransform)go.transform,
                 frame = go.GetComponent<Image>(),
-                icon = go.transform.Find("Icon").GetComponent<Image>(),
+                icon = pic,
                 slot = go.transform.Find("Slot").GetComponent<TMPro.TMP_Text>(),
                 worn = go.transform.Find("Worn").gameObject,
             };
