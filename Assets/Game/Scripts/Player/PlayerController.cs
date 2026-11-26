@@ -148,7 +148,14 @@ namespace Gloomdelve
             if (restingIn != null)
             {
                 if (restingIn.Dead) { restingIn = null; restAngle = 0f; }
-                else { vel = Vector2.zero; Prompt = null; Focus = null; interactable = false; return; }      // (whatever holds them moves them)
+                else
+                {
+                    // what is pressed meanwhile is not kept for later (it would act the moment they are let go); interact
+                    // or jump asks what holds them to let go, where it can (the telescope)
+                    FrameInput held = bot != null ? bot.Next() : (input != null ? input.Consume() : default);
+                    if ((held.interactPressed || held.jumpPressed) && restingIn is RoomToy toy) toy.LetGo(this);
+                    vel = Vector2.zero; Prompt = null; Focus = null; interactable = false; return;      // (whatever holds them moves them)
+                }
             }
 
             FrameInput fi = bot != null ? bot.Next() : (input != null ? input.Consume() : default);

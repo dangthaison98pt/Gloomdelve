@@ -159,9 +159,11 @@ namespace Gloomdelve
                     {
                         var now = System.DateTime.Now;
                         float min = now.Minute + now.Second / 60f, hr = (VillageClock.Hour % 12) + min / 60f;
-                        float back = clockT >= 0f ? 1080f * EaseOut(clockT / ClockSpin) : 0f;       // three turns backwards, and back where it was
-                        if (minuteHand != null) minuteHand.transform.localRotation = Quaternion.Euler(0f, 0f, -min * 6f + back);
-                        if (hourHand != null) hourHand.transform.localRotation = Quaternion.Euler(0f, 0f, -hr * 30f + back / 12f);
+                        // whole turns backwards - three for the minute hand, one for the hour hand - so both stop just where
+                        // they were (a part of a turn would leave a hand off and make it jump back at the end)
+                        float back = clockT >= 0f ? EaseOut(clockT / ClockSpin) : 0f;
+                        if (minuteHand != null) minuteHand.transform.localRotation = Quaternion.Euler(0f, 0f, -min * 6f + 1080f * back);
+                        if (hourHand != null) hourHand.transform.localRotation = Quaternion.Euler(0f, 0f, -hr * 30f + 360f * back);
                         break;
                     }
                 case Kind.GreatLamp:
@@ -264,8 +266,19 @@ namespace Gloomdelve
         PlayerController scopeHolder;
         GameObject scopeRoot;
         SpriteRenderer scopeBack, scopeView, scopeLight, scopeClimber;
-        const float ScopeTime = 4.2f;
+        const float ScopeTime = 4.2f, ScopeFade = 0.25f;
         public bool Viewing => scopeT > 0f;
+        bool showLight, showClimber;
+        /// <summary>Tests: what this look shows ("light", "climber", "both").</summary>
+        public string Sight => showLight && showClimber ? "both" : showClimber ? "climber" : "light";
+        /// <summary>Tests: the sight the next look shows (0 the light on the peak, 1 the climber, 2 both); -1 = by chance.</summary>
+        [System.NonSerialized] public int nextSight = -1;
+
+        /// <summary>The player asks to stop (interact or jump): the telescope's view fades out at once.</summary>
+        public void LetGo(PlayerController p)
+        {
+            if (kind == Kind.Telescope && scopeT > ScopeFade && scopeHolder == p) scopeT = ScopeFade;
+        }
 
         void LookThrough(PlayerController p)
         {
@@ -290,7 +303,12 @@ namespace Gloomdelve
                 scopeClimber = Layer("Climber", Art("scope_climber"), 302);
             }
             scopeRoot.SetActive(true);
-            scopeClimber.enabled = scopeLooks % 2 == 0;      // now and then, someone on the slope: a lantern, climbing
+            // what is out there this time, by chance: the light on the peak, someone climbing with a lantern, or both
+            int sight = nextSight >= 0 ? nextSight : Random.Range(0, 5) switch { 0 or 1 => 0, 2 or 3 => 1, _ => 2 };
+            nextSight = -1;
+            showLight = sight != 1; showClimber = sight != 0;
+            scopeLight.enabled = showLight;
+            scopeClimber.enabled = showClimber;
         }
 
         void TickScope(float dt)
@@ -314,7 +332,7 @@ namespace Gloomdelve
             float s = h * 0.86f / 8f;                         // the view is 128 px, 8 units: most of the screen's height
             scopeView.transform.localScale = new Vector3(s, s, 1f);
             scopeBack.transform.localScale = new Vector3(w * 1.2f / 0.25f, h * 1.2f / 0.25f, 1f);
-            float a = Mathf.Clamp01(Mathf.Min(ScopeTime - scopeT, scopeT) / 0.25f);
+            float a = Mathf.Clamp01(Mathf.Min(ScopeTime - scopeT, scopeT) / ScopeFade);
             scopeBack.color = new Color(0f, 0f, 0f, a);
             scopeView.color = new Color(1f, 1f, 1f, a);
             // the light on the peak, breathing; the climber a little higher every moment
@@ -362,6 +380,9 @@ namespace Gloomdelve
         float clockT = -1f, tickT;
         const float ClockSpin = 1.8f;
         SpriteRenderer minuteHand, hourHand;
+
+        /// <summary>Tests: where the clock's hands point (the minute hand's angle, the hour hand's).</summary>
+        public Vector2 HandAngles => new Vector2(minuteHand != null ? minuteHand.transform.localEulerAngles.z : 0f, hourHand != null ? hourHand.transform.localEulerAngles.z : 0f);
 
         void WindClock() { clockT = 0f; KeeperSays(new[] { "It does that. Don't ask." }, 0.9f); }
 
@@ -479,7 +500,7 @@ namespace Gloomdelve
         {
             Drunk++;
             Sfx.Play("gulp", pos, 0.8f);
-            Fx.Text(new Vector2(p.pos.x, p.pos.y + 1.5f), "Warm. Still warm.", new Color(1f, 0.94f, 0.82f), 2f);
+            Fx.Say(p, "Warm. Still warm.", new Color(1f, 0.94f, 0.82f), 2f);
             KeeperSays(CupLines, 0.85f);
         }
 
@@ -510,7 +531,7 @@ namespace Gloomdelve
             napper = p;
             p.restingIn = this; p.restAngle = 0f;
             napT = 2.2f;
-            Fx.Text(new Vector2(p.pos.x, p.pos.y + 1.4f), "Zzz...", new Color(0.85f, 0.9f, 1f), 1.4f);
+            Fx.Say(p, "Zzz...", new Color(0.85f, 0.9f, 1f), 1.4f);
             ScreenFade.Through(null, 0.6f, 1f, 0.6f);
         }
 

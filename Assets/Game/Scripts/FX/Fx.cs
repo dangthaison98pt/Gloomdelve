@@ -242,6 +242,27 @@ namespace Gloomdelve
             inst.texts.Add((pt, life, new Vector2(0f, 1.6f)));
         }
 
+        /// <summary>Somebody says something: the words just over their head, drifting up only a little.</summary>
+        public static void Say(Entity who, string text, Color c, float life = 1.8f)
+        {
+            if (who == null) return;
+            // what they said before goes at once, so two lines never sit on top of each other
+            if (Instance != null)
+                for (int i = 0; i < Instance.texts.Count; i++)
+                {
+                    var (t, l, v) = Instance.texts[i];
+                    Vector2 at = t.transform.position;
+                    if (Mathf.Abs(at.x - who.Center.x) < 0.6f && at.y > who.pos.y && at.y < who.pos.y + who.size.y + 2f && l > 0.12f)
+                        Instance.texts[i] = (t, 0.12f, v);
+                }
+            Text(new Vector2(who.Center.x, who.pos.y + who.size.y + 0.3f), text, c, life);
+            if (Instance != null && Instance.texts.Count > 0)
+            {
+                var last = Instance.texts[Instance.texts.Count - 1];
+                Instance.texts[Instance.texts.Count - 1] = (last.t, last.life, new Vector2(0f, 0.5f));
+            }
+        }
+
         public static void Shake(float amount)
         {
             if (Instance != null && Instance.cameraFollow != null && SaveSystem.Settings.screenShake)

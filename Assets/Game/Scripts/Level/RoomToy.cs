@@ -160,7 +160,7 @@ namespace Gloomdelve
                 if ((e is VillagerHome || e is Elder) && !e.Dead && VillageInterior.RoomAt(World, new Vector2(e.pos.x, e.pos.y + 0.3f)) == room)
                 {
                     sayCool = 4f;
-                    Fx.Text(new Vector2(e.pos.x, e.pos.y + 2.3f), lines[Random.Range(0, lines.Length)], new Color(1f, 0.9f, 0.68f), 2.4f);
+                    Fx.Say(e, lines[Random.Range(0, lines.Length)], new Color(1f, 0.9f, 0.68f), 2.4f);
                     return;
                 }
         }
@@ -361,7 +361,7 @@ namespace Gloomdelve
             VillageInterior.Place(p, Hooks + new Vector2(0.35f, -0.75f));
             p.motor.vel = new Vector2(1.2f, 1.5f);
             Sfx.Play("thud", p.pos, 0.8f);
-            Fx.Text(new Vector2(p.pos.x, p.pos.y + 1.3f), "Oof!", new Color(1f, 0.92f, 0.8f), 1.4f);
+            Fx.Say(p, "Oof!", new Color(1f, 0.92f, 0.8f), 1.4f);
             hamRest = 0.6f;
             KeeperSays(HammockLines, 0.85f);
         }

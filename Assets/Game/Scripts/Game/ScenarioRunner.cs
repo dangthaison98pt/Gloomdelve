@@ -4361,15 +4361,32 @@ namespace Gloomdelve
             }
             if (scope != null)
             {
-                yield return StandBy(scope); scope.Interact(c.p); yield return c.Frames(40);
+                yield return StandBy(scope); scope.nextSight = 0; scope.Interact(c.p); yield return c.Frames(40);
                 c.Expect(scope.Viewing && c.p.restingIn == scope, "looking through the telescope: the view, the player still");
                 yield return Shot("toys2_telescope.png");
                 for (int i = 0; i < 400 && scope.Viewing; i++) yield return c.Frames(1);
                 c.Expect(!scope.Viewing && c.p.restingIn == null, "and then back to the room");
                 yield return c.Frames(10);
-                scope.Interact(c.p); yield return c.Frames(40);
+                scope.nextSight = 1; scope.Interact(c.p); yield return c.Frames(40);
                 yield return Shot("toys2_telescope_climber.png");
-                for (int i = 0; i < 400 && scope.Viewing; i++) yield return c.Frames(1);
+                // interact while looking: out at once, and the press does not start another look
+                c.Bot(Seq((1, F(act: true)), (120, F())));
+                int outIn = 0;
+                for (; outIn < 60 && scope.Viewing; outIn++) yield return c.Frames(1);
+                c.Expect(!scope.Viewing && c.p.restingIn == null && outIn < 30, $"interact while looking leaves the telescope at once ({outIn} frames)");
+                yield return c.Frames(30);
+                c.Expect(!scope.Viewing && c.p.restingIn == null, "and the same press does not look through it again");
+                // what is seen comes by chance
+                var seen = new HashSet<string>();
+                for (int k = 0; k < 12; k++)
+                {
+                    scope.Interact(c.p); yield return c.Frames(2);
+                    seen.Add(scope.Sight);
+                    scope.LetGo(c.p);
+                    for (int i = 0; i < 60 && scope.Viewing; i++) yield return c.Frames(1);
+                    yield return c.Frames(2);
+                }
+                c.Expect(seen.Count >= 2, "the sight differs from look to look, by chance: " + string.Join(", ", seen));
             }
 
             // Pip's
@@ -4378,7 +4395,13 @@ namespace Gloomdelve
             c.Expect(owl != null && clk != null && cage != null, "Pip's has an owl, a clock and a birdcage");
             yield return Shot("toys2_pip.png");
             if (owl != null) { yield return StandBy(owl); for (int i = 0; i < 5; i++) { owl.Interact(c.p); for (int j = 0; j < 80 && owl.Busy; j++) yield return c.Frames(1); } c.Expect(owl.Hooed, "the fifth poke: the stuffed owl hoots"); }
-            if (clk != null) { yield return StandBy(clk); clk.Interact(c.p); yield return c.Frames(10); c.Expect(clk.Busy, "the clock's hands run backwards"); for (int i = 0; i < 200 && clk.Busy; i++) yield return c.Frames(1); c.Expect(!clk.Busy, "and stop where they were"); }
+            if (clk != null) { yield return StandBy(clk); clk.Interact(c.p); yield return c.Frames(10); c.Expect(clk.Busy, "the clock's hands run backwards");
+                Vector2 last = clk.HandAngles;
+                for (int i = 0; i < 200 && clk.Busy; i++) { last = clk.HandAngles; yield return c.Frames(1); }
+                yield return c.Frames(2);
+                var after = clk.HandAngles;
+                float jump = Mathf.Max(Mathf.Abs(Mathf.DeltaAngle(last.x, after.x)), Mathf.Abs(Mathf.DeltaAngle(last.y, after.y)));
+                c.Expect(!clk.Busy && jump < 3f, $"and stop where they were, with no jump at the end ({jump:0.0} degrees)"); }
             if (cage != null)
             {
                 yield return StandBy(cage); cage.Interact(c.p); yield return c.Frames(60);
