@@ -2025,8 +2025,20 @@ namespace Gloomdelve.EditorTools
                     e.catOutline = new[] { "sleep", "stretch", "sit", "walk_0", "walk_1" }.Select(n => ArtGenerator.S("Sprites/Village/toy_cat_" + n + "_hl")).ToArray();
                     e.wheelOutline = ArtGenerator.S("Sprites/Village/toy_wheel_hl");
                     e.hammockOutline = ArtGenerator.S("Sprites/Village/toy_hammock_rolled_hl");
-                    e.cauldronOutline = ArtGenerator.S("Sprites/Village/toy_hl_cauldron");
-                    e.lampOutline = ArtGenerator.S("Sprites/Village/toy_hl_lamp");
+                    // outlines of things painted into the room picture, by RoomToy.Kind
+                    var kinds = Enum.GetNames(typeof(RoomToy.Kind));
+                    var baked = new Dictionary<string, string> { { "Cauldron", "cauldron" }, { "Lamps", "lamp" }, { "Bellows", "bellows" }, { "Anvil", "anvil" }, { "Telescope", "telescope" },
+                        { "Birdcage", "cage" }, { "LampRow", "lamprow" }, { "GreatLamp", "greatlamp" }, { "Cup", "cup" }, { "Candles", "candles" }, { "Bed", "bed" } };
+                    e.kindOutline = kinds.Select(k => baked.TryGetValue(k, out var id) ? ArtGenerator.S("Sprites/Village/toy_hl_" + id) : null).ToArray();
+                    // the other pictures, by name; the outlined ones have an outline
+                    var names = new List<string>(); var ringed = new HashSet<string>();
+                    for (int i = 0; i < 8; i++) { names.Add("globe_" + i); ringed.Add("globe_" + i); }
+                    for (int i = 0; i < 3; i++) { names.Add("owl_" + i); ringed.Add("owl_" + i); names.Add("banner_" + i); ringed.Add("banner_" + i); }
+                    names.AddRange(new[] { "clock", "coil" }); ringed.Add("clock"); ringed.Add("coil");
+                    names.AddRange(new[] { "hand_min", "hand_hour", "bird_0", "bird_1", "lamp_off", "flame_0", "flame_1", "white", "scope_view", "scope_light", "scope_climber" });
+                    e.artNames = names.ToArray();
+                    e.art = names.Select(n => ArtGenerator.S("Sprites/Village/toy_" + n)).ToArray();
+                    e.artOutline = names.Select(n => ringed.Contains(n) ? ArtGenerator.S("Sprites/Village/toy_" + n + "_hl") : null).ToArray();
                     e.glow = InReachGlow(g, unlitMat);
                     var xg = new GameObject("Extra");
                     xg.transform.SetParent(g.transform, false);

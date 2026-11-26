@@ -137,6 +137,12 @@ namespace Gloomdelve.EditorTools
             Sfx("bubble", 0.42f, b => { float[] st = { 0f, 0.07f, 0.15f, 0.22f, 0.31f }; for (int i = 0; i < st.Length; i++) Tone(b, st[i], 0.07f, 240 + i * 60, 520 + i * 80, Sin, 0.5f); }, 0.6f);
             Sfx("creak", 0.28f, b => { Tone(b, 0, 0.28f, 170, 128, p => Saw(p) * (0.6f + 0.4f * Sq(p * 0.11f)), 0.45f, 0.03f, 0.06f, 35f); NoiseBurst(b, 0, 0.1f, 0.15f, 0.2f, 0.1f); }, 0.45f);
             Sfx("switch", 0.07f, b => { NoiseBurst(b, 0, 0.02f, 0.6f, 0.9f, 0.7f); Tone(b, 0.01f, 0.05f, 1400, 900, p => Sq(p), 0.25f); }, 0.5f);
+            Sfx("bellows", 0.55f, b => { NoiseBurst(b, 0, 0.5f, 0.8f, 0.05f, 0.22f, 0.8f); Tone(b, 0, 0.4f, 90, 70, Sin, 0.3f); }, 0.6f);
+            Sfx("clang", 0.7f, b => { Tone(b, 0, 0.65f, 1320, 1310, Sin, 0.5f); Tone(b, 0, 0.5f, 1980, 1965, Sin, 0.3f); Tone(b, 0, 0.35f, 2640, 2620, Sin, 0.15f); NoiseBurst(b, 0, 0.03f, 0.5f, 0.9f, 0.6f); }, 0.55f);
+            Sfx("hoo", 0.7f, b => { Tone(b, 0, 0.25f, 420, 380, Sin, 0.6f, 0.05f); Tone(b, 0.3f, 0.35f, 400, 350, Sin, 0.6f, 0.05f); }, 0.55f);
+            Sfx("chirp", 0.2f, b => { Tone(b, 0, 0.06f, 2400, 3200, Sin, 0.4f); Tone(b, 0.09f, 0.07f, 2600, 3500, Sin, 0.4f); }, 0.45f);
+            Sfx("gulp", 0.32f, b => { Tone(b, 0, 0.12f, 190, 120, Sin, 0.7f); Tone(b, 0.18f, 0.12f, 170, 105, Sin, 0.6f); }, 0.6f);
+            Sfx("tick", 0.04f, b => { Tone(b, 0, 0.02f, 3000, 2800, p => Sq(p), 0.3f); NoiseBurst(b, 0, 0.012f, 0.3f, 0.9f, 0.8f); }, 0.4f);
             Sfx("pot_break", 0.22f, b => { NoiseBurst(b, 0, 0.18f, 0.8f, 0.7f, 0.3f); for (int i = 0; i < 3; i++) Tone(b, 0.02f + i * 0.04f, 0.03f, 1800 - i * 300, 1500, Tri, 0.2f); });
             Sfx("crate_break", 0.25f, b => { NoiseBurst(b, 0, 0.2f, 0.8f, 0.4f, 0.1f); Tone(b, 0, 0.12f, 160, 90, Sin, 0.5f); });
 

@@ -143,6 +143,110 @@ MonoBehaviour:
   maxHealth: 1
   flipWithFacing: 0
   artFacesLeft: 0
+  art:
+  - {fileID: 21300000, guid: 7a9a3faebc27ad849939e9841b2e84d7, type: 3}
+  - {fileID: 21300000, guid: 5362b9dba72abfc49970cc6152bd7580, type: 3}
+  - {fileID: 21300000, guid: 4c1772918ae8a164daa99a8293663959, type: 3}
+  - {fileID: 21300000, guid: 2b630752d6d339d4ea486ae37760bf28, type: 3}
+  - {fileID: 21300000, guid: 0abfd542a80b15645a9ad9774086a1e2, type: 3}
+  - {fileID: 21300000, guid: 7df0f3a5bc0da6544b797876155d683d, type: 3}
+  - {fileID: 21300000, guid: 01a5f2f46e012ae43b9dbe101d0c0be2, type: 3}
+  - {fileID: 21300000, guid: 280df6d7ce5fef044b7d8398e4656420, type: 3}
+  - {fileID: 21300000, guid: ebe918195b16523449346e33a0928fdc, type: 3}
+  - {fileID: 21300000, guid: 0a1fb368a6990674fad9dd459d22dd39, type: 3}
+  - {fileID: 21300000, guid: cdfa71b5a7b21804da91e85cc7f22c6d, type: 3}
+  - {fileID: 21300000, guid: b4334d0c59ab3b242b5546bc8a7a3bfb, type: 3}
+  - {fileID: 21300000, guid: 18a52d1f85595134a90124a4cde03856, type: 3}
+  - {fileID: 21300000, guid: 6a524e88884391344b576fce79159cc3, type: 3}
+  - {fileID: 21300000, guid: 94d2daa65fc68e54a80b16e96c9fe3cb, type: 3}
+  - {fileID: 21300000, guid: 9001aebf1fad43f4a8ab113aa9633f07, type: 3}
+  - {fileID: 21300000, guid: 438e560a3f0563c449a776f725c995bb, type: 3}
+  - {fileID: 21300000, guid: 4a30a80935aaab44aa6919eba571d81a, type: 3}
+  - {fileID: 21300000, guid: 08acebcc6640e3c4087de33ee07eb5fc, type: 3}
+  - {fileID: 21300000, guid: f560a10a0f46d534982b6e539eb76c3a, type: 3}
+  - {fileID: 21300000, guid: cfbebfe21fc35e44b97225a003c90a0b, type: 3}
+  - {fileID: 21300000, guid: 77f311f02e6279a40809e2659828970c, type: 3}
+  - {fileID: 21300000, guid: 6a72b278d6356734daef601f7781ccd5, type: 3}
+  - {fileID: 21300000, guid: 8c129c7be9c1f864dab11a5273eae40d, type: 3}
+  - {fileID: 21300000, guid: c5f755d4f7da61d41a9feafface8a100, type: 3}
+  - {fileID: 21300000, guid: 7a97db673ec81604f945e6c2435133fa, type: 3}
+  - {fileID: 21300000, guid: 0addbd4ba82414c448c89ce0739b6ddb, type: 3}
+  artOutline:
+  - {fileID: 21300000, guid: 3042c34744645c74f8bee94f49f87bfa, type: 3}
+  - {fileID: 21300000, guid: fe603dc468fcacd46b5b8f211f420616, type: 3}
+  - {fileID: 21300000, guid: 81d6bf3b872b921479a57ff3ecddd96f, type: 3}
+  - {fileID: 21300000, guid: d75b9f5c2e7d03c4b90c18a398f6b9bd, type: 3}
+  - {fileID: 21300000, guid: caa8123c77b96dc4fae60723d804ec36, type: 3}
+  - {fileID: 21300000, guid: 5ad0bb2330258304791a67ced5ace2f7, type: 3}
+  - {fileID: 21300000, guid: 68709c8317c0ec54e89c61fea8376a8d, type: 3}
+  - {fileID: 21300000, guid: 8feaf2abc4f191146a14536e91c01015, type: 3}
+  - {fileID: 21300000, guid: 76a402952da577c4d925bffa4c39f427, type: 3}
+  - {fileID: 21300000, guid: acbd74e5315f94440a198bd437d27c36, type: 3}
+  - {fileID: 21300000, guid: 0867819647d06434b95e495b8e9451dd, type: 3}
+  - {fileID: 21300000, guid: 85730c8c643a14745b5bf3f6788b0da4, type: 3}
+  - {fileID: 21300000, guid: 219edab9fd442c24a8732f93b845a18d, type: 3}
+  - {fileID: 21300000, guid: ae227782a0884a545a92ecd786acd946, type: 3}
+  - {fileID: 21300000, guid: ca2adf0e788a4664ba219725d1ed862c, type: 3}
+  - {fileID: 21300000, guid: 5c73d4a1b66bec140978f0483a88b199, type: 3}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  artNames:
+  - globe_0
+  - globe_1
+  - globe_2
+  - globe_3
+  - globe_4
+  - globe_5
+  - globe_6
+  - globe_7
+  - owl_0
+  - banner_0
+  - owl_1
+  - banner_1
+  - owl_2
+  - banner_2
+  - clock
+  - coil
+  - hand_min
+  - hand_hour
+  - bird_0
+  - bird_1
+  - lamp_off
+  - flame_0
+  - flame_1
+  - white
+  - scope_view
+  - scope_light
+  - scope_climber
+  kindOutline:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: 6abfdefe6b23f784fa2a3f1063962e28, type: 3}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: 17a311d27ea521748a900703ef237b9c, type: 3}
+  - {fileID: 21300000, guid: 37926a3897be70942a996913ff8c57c3, type: 3}
+  - {fileID: 21300000, guid: 1ee05e748ac41fe479b03cd64c2ff041, type: 3}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: abd1184e080c83848b3c442fd4a9f888, type: 3}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: 80ba2f71027f714449ac451cc76080be, type: 3}
+  - {fileID: 21300000, guid: c14c40171f47fe04aa0abc1de89bb766, type: 3}
+  - {fileID: 21300000, guid: 25dca7eec61e8aa4bb653bfd9959aff7, type: 3}
+  - {fileID: 21300000, guid: 68c7e48e83d0a694e853f5c9ad19fd37, type: 3}
+  - {fileID: 21300000, guid: 42ed14f0551747e429e514894a4d9964, type: 3}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: 44cc7a50e4f9c8a4691fc5cb04434ff3, type: 3}
+  - {fileID: 0}
   cat:
   - {fileID: 21300000, guid: f57305fd6fe080b4fb34c35280614d11, type: 3}
   - {fileID: 21300000, guid: b15461f5146413a48941388a78d38b79, type: 3}
@@ -161,8 +265,6 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 686c3c1e2f6d75f418300f1927013e94, type: 3}
   wheelOutline: {fileID: 21300000, guid: 73e871b9867e2a34aae83429404e4a40, type: 3}
   hammockOutline: {fileID: 21300000, guid: cc0a8f7cfd210574eb7d275480bf8ee0, type: 3}
-  cauldronOutline: {fileID: 21300000, guid: 6abfdefe6b23f784fa2a3f1063962e28, type: 3}
-  lampOutline: {fileID: 21300000, guid: 17a311d27ea521748a900703ef237b9c, type: 3}
   glow: {fileID: 7183354912903708605}
   kind: 0
 --- !u!1 &6891743746035789358

@@ -734,7 +734,7 @@ namespace Gloomdelve.EditorTools
             }
             void Crate(int x, int y, int s) { R(x, y, s, s, wood); R(x, y, s, 1, woodD); R(x, y + s - 1, s, 1, woodL); R(x, y, 1, s, woodD); R(x + s - 1, y, 1, s, woodD); for (int i = 2; i < s - 2; i++) { Dot(x + i, y + i, woodD); Dot(x + s - 1 - i, y + i, woodD); } }
             void Barrel(int x, int y) { R(x, y, 12, 16, C(134, 90, 54)); R(x + 1, y + 16, 10, 1, woodD); R(x, y + 3, 12, 2, C(90, 92, 104)); R(x, y + 11, 12, 2, C(90, 92, 104)); R(x, y, 1, 16, woodD); R(x + 11, y, 1, 16, woodD); }
-            void Lamp(int x, int y) { if (roomSkip == "lamp" && kind == 7 && oy == 0 && x == 128) { lights.Add(new Vector4(ix + x, iy + oy + y + 3, 112f, 1f)); return; } R(x, y + 7, 1, 96 - y - 7, VBeam); R(x - 3, y, 7, 7, VBeam); if (roomLampsOut) { R(x - 2, y + 1, 5, 5, C(58, 52, 50)); R(x - 1, y + 3, 3, 1, C(84, 78, 74)); return; } R(x - 2, y + 1, 5, 5, VGlow); R(x - 1, y + 2, 3, 3, VGlowL); lights.Add(new Vector4(ix + x, iy + oy + y + 3, 112f, 1f)); }
+            void Lamp(int x, int y) { if ((roomSkip == "lamp" && kind == 7 && oy == 0 && x == 128) || (roomSkip == "lamprow" && kind == 5 && oy == 0)) { lights.Add(new Vector4(ix + x, iy + oy + y + 3, 112f, 1f)); return; } R(x, y + 7, 1, 96 - y - 7, VBeam); R(x - 3, y, 7, 7, VBeam); if (roomLampsOut) { R(x - 2, y + 1, 5, 5, C(58, 52, 50)); R(x - 1, y + 3, 3, 1, C(84, 78, 74)); return; } R(x - 2, y + 1, 5, 5, VGlow); R(x - 1, y + 2, 3, 3, VGlowL); lights.Add(new Vector4(ix + x, iy + oy + y + 3, 112f, 1f)); }
             void NightWindow(int x, int y, int w, int h)
             {
                 // curtains drawn back to either side, a rail above them
@@ -815,14 +815,14 @@ namespace Gloomdelve.EditorTools
                     lights.Add(new Vector4(ix + 193, iy + 16, 150f, 1.15f));
                     Counter(76, 92);
                     R(74, 52, 60, 2, woodD); for (int i = 0; i < 6; i++) { R(78 + i * 9, 54, 2, 20, C(190, 196, 210)); R(76 + i * 9, 54, 6, 2, C(120, 84, 52)); R(78 + i * 9, 50, 2, 4, C(90, 60, 40)); }
-                    R(142, 0, 14, 5, VStoneD); R(140, 5, 18, 4, C(70, 72, 84)); R(144, 9, 10, 3, C(70, 72, 84)); R(138, 12, 22, 4, C(96, 98, 112));       // anvil
+                    if (roomSkip != "anvil") { R(142, 0, 14, 5, VStoneD); R(140, 5, 18, 4, C(70, 72, 84)); R(144, 9, 10, 3, C(70, 72, 84)); R(138, 12, 22, 4, C(96, 98, 112)); }       // anvil
                     R(150, 40, 10, 14, C(60, 62, 76)); R(152, 54, 6, 6, C(120, 84, 52));
                     // hammers and tongs on the wall over the counter, horseshoes nailed up for luck
                     for (int i = 0; i < 4; i++) { R(80 + i * 11, 28, 2, 14, wood); R(77 + i * 11, 40, 8, 4, C(70, 72, 84)); R(77 + i * 11, 43, 8, 1, C(120, 122, 136)); }
                     R(126, 28, 1, 16, C(90, 92, 104)); R(130, 28, 1, 16, C(90, 92, 104)); R(126, 42, 5, 2, C(70, 72, 84));
                     foreach (int hx in new[] { 138, 148 }) { R(hx, 76, 2, 8, C(130, 132, 146)); R(hx + 6, 76, 2, 8, C(130, 132, 146)); R(hx, 76, 8, 2, C(130, 132, 146)); }
                     // the bellows by the furnace, a heap of coal before it
-                    R(156, 30, 10, 10, C(110, 70, 44)); R(158, 40, 6, 3, woodD); R(160, 26, 2, 4, C(70, 72, 84)); for (int k = 0; k < 10; k++) Dot(156 + k, 30 + (k % 2), C(84, 52, 32));
+                    if (roomSkip != "bellows") { R(156, 30, 10, 10, C(110, 70, 44)); R(158, 40, 6, 3, woodD); R(160, 26, 2, 4, C(70, 72, 84)); for (int k = 0; k < 10; k++) Dot(156 + k, 30 + (k % 2), C(84, 52, 32)); }
                     for (int k = 0; k < 15; k++) R(170 + k, 0, 1, Mathf.Max(1, 4 - Mathf.Abs(k - 7) / 2), (k % 3 == 0) ? C(52, 48, 50) : C(30, 28, 30));
                     Lamp(100, 80);
                     break;
@@ -845,8 +845,7 @@ namespace Gloomdelve.EditorTools
                     for (int i = 0; i < 4; i++) { R(68 + i * 3, 90, 2, 3, C(90, 92, 104)); for (int y = 30 + i * 4; y < 90; y++) Dot(68 + i * 3 + ((y / 3) % 2), y, (y + i) % 4 == 0 ? C(170, 140, 90) : C(206, 176, 112)); }
                     R(112, 74, 30, 20, woodD); R(114, 76, 26, 16, C(150, 104, 62));
                     for (int k = 0; k < 3; k++) for (int j = 0; j < 2; j++) { int kx = 118 + k * 8, ky = 80 + j * 7; p.Disc(ix + kx + 0.5f, iy + oy + ky + 0.5f, 2.2f, C(206, 176, 112)); Dot(kx, ky, C(150, 120, 70)); R(kx, ky - 4, 1, 3, C(206, 176, 112)); }
-                    // a great coil on the floor by the counter
-                    p.Ellipse(ix + 160.5f, iy + oy + 4.5f, 9f, 4.5f, C(206, 176, 112)); p.Ellipse(ix + 160.5f, iy + oy + 4.5f, 6f, 3f, C(170, 140, 90)); p.Ellipse(ix + 160.5f, iy + oy + 4.5f, 3f, 1.5f, C(110, 84, 50));
+                    // (the great coil on the floor by the counter is RoomToy's)
                     Lamp(150, 80);
                     break;
                 case 2:     // the apothecary: a great cabinet of bottles and jars, a cauldron on its tripod, herbs drying from the beams
@@ -922,7 +921,7 @@ namespace Gloomdelve.EditorTools
                     for (int x = 86; x < 162; x += 4) Dot(x, 60 + (int)(Mathf.Sin(x * 0.3f) * 6f), C(120, 96, 70));
                     R(150, 78, 3, 3, C(214, 70, 80)); R(100, 58, 3, 3, C(214, 70, 80));
                     Counter(76, 92);
-                    Table(170, 46); R(176, 15, 16, 2, C(232, 220, 190)); R(198, 15, 2, 8, woodD); R(193, 23, 12, 12, C(80, 130, 180)); R(196, 26, 5, 4, C(120, 170, 110));
+                    Table(170, 46); R(176, 15, 16, 2, C(232, 220, 190)); R(198, 15, 2, 8, woodD); /* the globe on its stand is RoomToy's */
                     // rolled maps standing in a basket, a candle and a quill on the counter, a sea chart pinned beside the map
                     R(64, 0, 10, 10, C(170, 130, 70)); for (int x = 64; x < 74; x += 2) R(x, 1, 1, 8, C(130, 96, 50));
                     for (int i = 0; i < 4; i++) { R(65 + i * 2, 10, 2, 8 + (i * 3) % 5, cream); Dot(65 + i * 2, 10 + 8 + (i * 3) % 5, creamD); }
@@ -938,9 +937,9 @@ namespace Gloomdelve.EditorTools
                     R(120, 46, 22, 38, C(70, 130, 140)); for (int y = 50; y < 84; y += 8) R(122, y, 18, 3, C(240, 232, 214));
                     Shelf(150, 60, 60); Bottles(154, 63, 4, 4); R(182, 63, 8, 8, C(200, 170, 90)); R(194, 63, 10, 5, C(170, 100, 190));
                     // a clock on the wall, a stuffed owl on the crates, a birdcage, a pile of books by the stair
-                    p.Disc(ix + 160.5f, iy + oy + 44.5f, 6f, woodD); p.Disc(ix + 160.5f, iy + oy + 44.5f, 4.5f, cream); R(160, 44, 1, 4, C(40, 30, 30)); R(160, 44, 3, 1, C(40, 30, 30)); R(159, 35, 3, 4, woodD);
-                    R(180, 36, 7, 9, C(130, 100, 70)); R(181, 42, 2, 2, C(240, 200, 90)); R(184, 42, 2, 2, C(240, 200, 90)); R(182, 45, 3, 2, C(110, 84, 60));
-                    for (int k = 0; k < 9; k++) { Dot(136 + k, 70, C(214, 170, 80)); Dot(136 + k, 82, C(214, 170, 80)); } for (int x = 136; x < 145; x += 2) R(x, 70, 1, 12, C(214, 170, 80)); R(139, 83, 3, 13, C(150, 120, 70)); Dot(140, 74, C(120, 200, 120));
+                    R(159, 35, 3, 4, woodD);          // (the clock over it is RoomToy's)
+                    /* the owl on the crates is RoomToy's */
+                    if (roomSkip != "cage") { for (int k = 0; k < 9; k++) { Dot(136 + k, 70, C(214, 170, 80)); Dot(136 + k, 82, C(214, 170, 80)); } for (int x = 136; x < 145; x += 2) R(x, 70, 1, 12, C(214, 170, 80)); R(139, 83, 3, 13, C(150, 120, 70)); }      // (the bird in it is RoomToy's)
                     R(64, 0, 12, 3, C(150, 70, 70)); R(65, 3, 10, 3, C(70, 110, 150)); R(64, 6, 11, 2, C(214, 170, 80));
                     Lamp(112, 86); Lamp(170, 82); Lamp(204, 78);
                     break;
@@ -960,9 +959,8 @@ namespace Gloomdelve.EditorTools
                     break;
                 case 6:     // the village hall: the hearth, a long table, the banner of Brindlemoor
                     Fireplace(176);
-                    R(96, 40, 24, 50, C(150, 44, 50)); R(96, 88, 24, 2, VBeam);
-                    R(102, 62, 12, 5, C(250, 200, 70)); R(102, 67, 2, 4, C(250, 200, 70)); R(107, 67, 2, 4, C(250, 200, 70)); R(112, 67, 2, 4, C(250, 200, 70));
-                    Table(72, 92); R(80, 15, 6, 5, C(214, 170, 80)); R(100, 15, 10, 3, C(232, 220, 190)); R(134, 15, 4, 8, C(190, 196, 210)); R(135, 23, 2, 3, VGlowL);
+                    // (the banner of Brindlemoor is RoomToy's: it stirs when touched)
+                    Table(72, 92); if (roomSkip != "cup") R(80, 15, 6, 5, C(214, 170, 80)); R(100, 15, 10, 3, C(232, 220, 190)); R(134, 15, 4, 8, C(190, 196, 210)); R(135, 23, 2, 3, VGlowL);
                     R(164, 0, 2, 22, woodD); R(164, 10, 10, 2, wood); R(172, 0, 2, 10, woodD);
                     R(136, 60, 26, 2, woodD); R(140, 62, 3, 10, C(232, 220, 190)); R(154, 62, 3, 10, C(232, 220, 190)); R(146, 62, 5, 6, C(150, 110, 70));
                     // portraits of the elders before him, and antlers over the hearth
@@ -1045,7 +1043,7 @@ namespace Gloomdelve.EditorTools
                     Lamp(58, 80); lights[lights.Count - 1] = new Vector4(lights[lights.Count - 1].x, lights[lights.Count - 1].y, 64f, 0.6f);
                     break;
                 }
-                case 3: Bed(84, C(84, 110, 170)); NightWindow(160, 40, 28, 30); R(196, 0, 3, 34, woodD); R(190, 0, 14, 2, woodD); for (int i = 0; i < 16; i++) Dot(197 - i, 34 + i / 2, C(214, 170, 80)); R(180, 40, 4, 4, C(214, 170, 80));       // a telescope at the big window
+                case 3: Bed(84, C(84, 110, 170)); NightWindow(160, 40, 28, 30); if (roomSkip != "telescope") { R(196, 0, 3, 34, woodD); R(190, 0, 14, 2, woodD); for (int i = 0; i < 16; i++) Dot(197 - i, 34 + i / 2, C(214, 170, 80)); R(180, 40, 4, 4, C(214, 170, 80)); }       // a telescope at the big window
                     Table(100, 44); R(104, 15, 30, 2, C(232, 220, 190));
                     // charts pinned over the table, books stacked on the floor, a candle
                     R(100, 48, 16, 14, cream); R(120, 52, 18, 12, Lerp(cream, C(200, 180, 140), 0.4f)); R(104, 66, 14, 10, cream);
@@ -1061,7 +1059,7 @@ namespace Gloomdelve.EditorTools
                     R(108, 16, 14, 12, woodD); R(110, 18, 10, 8, C(90, 130, 110)); R(92, 36, 12, 10, woodD); R(94, 38, 8, 6, C(170, 110, 90));
                     Lamp(110, 84); Lamp(190, 80); break;
                 case 5:     // the great lamp of the tower, behind its glass
-                    R(100, 0, 60, 6, VStoneD); R(108, 6, 44, 60, VBeam); R(112, 10, 36, 52, VGlow); R(120, 18, 20, 36, VGlowL); R(129, 6, 2, 60, VBeam); R(108, 34, 44, 2, VBeam);
+                    if (roomSkip != "greatlamp") { R(100, 0, 60, 6, VStoneD); R(108, 6, 44, 60, VBeam); R(112, 10, 36, 52, VGlow); R(120, 18, 20, 36, VGlowL); R(129, 6, 2, 60, VBeam); R(108, 34, 44, 2, VBeam); }
                     lights.Add(new Vector4(ix + 130, iy + oy + 36, 150f, 1.2f));
                     R(104, 66, 52, 4, VStoneD); Bed(164 - 4, C(96, 100, 150)); Barrel(84, 0);
                     // the night's logbook on a stand, oil-stained boards, a chair by the lamp
@@ -1072,12 +1070,12 @@ namespace Gloomdelve.EditorTools
                 case 6: Bed(150, C(150, 60, 64)); R(84, 0, 30, 60, woodD); for (int y = 4; y < 58; y += 14) { R(86, y, 26, 11, C(40, 28, 24)); for (int i = 0; i < 7; i++) R(87 + i * 3 + i / 3, y, 3, 8 + (i * 5 + y) % 3, new[] { C(170, 60, 60), C(70, 110, 160), C(90, 140, 90), C(200, 170, 90) }[(i + y) % 4]); }
                     Table(118, 28); R(122, 15, 14, 2, C(232, 220, 190)); R(138, 15, 3, 7, VGlowL); NightWindow(124, 50, 16, 18); Rug(118, 90, C(150, 44, 50));
                     // a candlestand with three candles, a cloak on a peg
-                    R(212, 0, 2, 26, C(160, 118, 44)); R(207, 26, 12, 2, C(160, 118, 44)); foreach (int cxs in new[] { 207, 212, 217 }) { R(cxs, 28, 2, 6, cream); Dot(cxs, 34, C(255, 220, 120)); }
+                    if (roomSkip != "candles") { R(212, 0, 2, 26, C(160, 118, 44)); R(207, 26, 12, 2, C(160, 118, 44)); foreach (int cxs in new[] { 207, 212, 217 }) R(cxs, 28, 2, 6, cream); }      // (their flames are RoomToy's)
                     lights.Add(new Vector4(ix + 212, iy + oy + 34, 52f, 0.75f));
                     R(150, 44, 2, 3, woodD); R(146, 22, 12, 22, C(110, 40, 50)); R(146, 22, 12, 1, C(80, 28, 36));
                     Lamp(170, 84); break;
                 default:    // home, upstairs: the bed the player wakes up in
-                    Bed(110, C(176, 62, 64)); Wardrobe(184);                    // (the chest at the foot of the bed is a Curio)
+                    if (roomSkip != "bed") Bed(110, C(176, 62, 64)); Wardrobe(184);                    // (the chest at the foot of the bed is a Curio)
                     NightWindow(128, 46, 22, 24); Rug(104, 72, C(84, 110, 150)); Lamp(96, 82);
                     R(176, 60, 5, 5, VBeam);
                     // a child's drawing pinned over the bed
@@ -1316,6 +1314,152 @@ namespace Gloomdelve.EditorTools
             // and without it, and the line round where they differ - a sheet the size of the room picture
             BakedRing(2, "cauldron", d + "toy_hl_cauldron");
             BakedRing(7, "lamp", d + "toy_hl_lamp");
+            foreach (var (k, id) in new[] { (0, "bellows"), (0, "anvil"), (3, "telescope"), (4, "cage"), (5, "lamprow"), (5, "greatlamp"), (6, "cup"), (6, "candles"), (7, "bed") })
+                BakedRing(k, id, d + "toy_hl_" + id);
+            MoreToyArt(d);
+        }
+
+        /// <summary>
+        /// The pictures of the other things in the houses (RoomToy.More): Oswin's globe turning (8 steps; the first
+        /// shows the burned hole), Pip's owl (front, head round, blinking), clock and hands, the bird of the cage,
+        /// an unlit lamp, a candle flame, the hall's banner stirring, Tam's coil of rope, and what the telescope shows.
+        /// </summary>
+        static void MoreToyArt(string d)
+        {
+            Color32 W(Color32 c, float lit) => new Color32(
+                (byte)Mathf.Clamp(Mathf.Lerp(c.r * 0.34f, c.r * 1.1f + 6f, lit), 0, 255),
+                (byte)Mathf.Clamp(Mathf.Lerp(c.g * 0.4f, c.g + 2f, lit), 0, 255),
+                (byte)Mathf.Clamp(Mathf.Lerp(c.b * 0.58f + 6f, c.b * 0.84f, lit), 0, 255), 255);
+            Px Map(string[] rows, System.Collections.Generic.Dictionary<char, Color32> pal)
+            {
+                int mw = 0; foreach (var r in rows) mw = Mathf.Max(mw, r.Length);
+                var m = new Px(mw, rows.Length);
+                for (int y = 0; y < rows.Length; y++)
+                    for (int x = 0; x < rows[y].Length; x++)
+                        if (pal.TryGetValue(rows[y][x], out var col)) m.Set(x, rows.Length - 1 - y, col);
+                return m;
+            }
+            Color32 ink = C(34, 22, 20);
+            // the globe: seas and lands turning; the hole burned through where Brindlemoor should be
+            for (int f = 0; f < 8; f++)
+            {
+                var p = new Px(13, 13);
+                float phase = f * 45f * Mathf.Deg2Rad;
+                for (int y = 0; y < 13; y++)
+                    for (int x = 0; x < 13; x++)
+                    {
+                        float dx = x - 6f, dy = y - 6f;
+                        if (dx * dx + dy * dy > 40f) continue;
+                        if (dx * dx + dy * dy > 30f) { p.Set(x, y, W(C(60, 80, 110), 0.9f)); continue; }
+                        float u = Mathf.Clamp(dx / 6.2f, -1f, 1f), lat = dy / 6.2f;
+                        float lon = Mathf.Asin(u) + phase;
+                        float wl = Mathf.Repeat(lon + Mathf.PI, Mathf.PI * 2f) - Mathf.PI;
+                        bool land = Mathf.PerlinNoise(Mathf.Cos(lon) * 1.4f + 5f, Mathf.Sin(lon) * 1.4f + lat * 1.8f + 3f) > 0.52f;
+                        Color32 c = land ? C(110, 170, 100) : C(80, 130, 190);
+                        float shade = 1f - Mathf.Abs(u) * 0.35f - (dy < -3f ? 0.1f : 0f);
+                        c = Mul(c, shade);
+                        float hx = wl * 3.2f, hy = (lat - 0.25f) * 3.2f;
+                        if (Mathf.Abs(wl) < 1.4f && hx * hx + hy * hy < 1.1f) c = C(26, 18, 16);
+                        else if (Mathf.Abs(wl) < 1.4f && hx * hx + hy * hy < 2.4f) c = C(140, 80, 44);
+                        p.Set(x, y, W(c, 0.9f));
+                    }
+                p.Set(4, 9, W(C(236, 240, 250), 0.9f));                   // a glint
+                SaveWithRing(Padded(p, 1), d + "toy_globe_" + f, PCenter);
+            }
+            {
+                // Pip's stuffed owl: front, the head turned right round, a blink
+                var pal = new System.Collections.Generic.Dictionary<char, Color32> { { 'b', W(C(150, 110, 74), 0.9f) }, { 'd', W(C(100, 70, 46), 0.9f) }, { 'l', W(C(222, 200, 160), 0.9f) },
+                    { 'y', C(250, 210, 80) }, { 'k', ink }, { 'o', W(C(230, 150, 60), 0.9f) } };
+                string[] body = { ".bblllbb.", ".bldldlb.", ".blllllb.", ".bldldlb.", "..blllb..", "..o...o.." };
+                string[] Owl(params string[] head) { var r = new System.Collections.Generic.List<string>(head); r.AddRange(body); return r.ToArray(); }
+                var heads = new[]
+                {
+                    Owl(".d.....d.", ".dbbbbbd.", "bbbbbbbbb", "byybbbyyb", "bykbbbkyb", "bbbbobbbb"),
+                    Owl(".d.....d.", ".dbbbbbd.", "bbbbbbbbb", "bbdbbbdbb", "bbbdbdbbb", "bbbbdbbbb"),
+                    Owl(".d.....d.", ".dbbbbbd.", "bbbbbbbbb", "bkkbbbkkb", "bbbbbbbbb", "bbbbobbbb"),
+                };
+                for (int i = 0; i < 3; i++) { var q = Padded(Map(heads[i], pal), 2); q.Outline(ink); SaveWithRing(q, d + "toy_owl_" + i, new Vector2(0.5f, 2f / q.h)); }
+            }
+            {
+                // the clock: a round face in a wooden rim, the hours marked; the hands are pictures of their own
+                var p = new Px(13, 13);
+                p.Disc(6.5f, 6.5f, 6.4f, W(C(96, 62, 40), 0.85f)); p.Disc(6.5f, 6.5f, 5f, W(C(236, 224, 190), 0.85f));
+                p.Set(6, 11, ink); p.Set(6, 1, ink); p.Set(1, 6, ink); p.Set(11, 6, ink);
+                p.Set(6, 6, ink);
+                SaveWithRing(Padded(p, 1), d + "toy_clock", PCenter);
+                var mh = new Px(1, 6); mh.Rect(0, 0, 1, 6, ink); Save(mh, d + "toy_hand_min", new Vector2(0.5f, 0.5f / 6f));
+                var hh = new Px(1, 4); hh.Rect(0, 0, 1, 4, W(C(120, 40, 40), 0.85f)); Save(hh, d + "toy_hand_hour", new Vector2(0.5f, 0.5f / 4f));
+            }
+            {
+                // the bird of the cage, wings up and down (it faces right)
+                var pal = new System.Collections.Generic.Dictionary<char, Color32> { { 'b', W(C(90, 140, 220), 0.9f) }, { 'y', W(C(240, 210, 90), 0.9f) }, { 'o', W(C(240, 150, 60), 0.9f) }, { 'k', ink } };
+                Save(Map(new[] { "b.b...", ".bbbk.", ".byybo", "..bb.." }, pal), d + "toy_bird_0", PCenter);
+                Save(Map(new[] { "......", ".bbbk.", "bbyybo", "b.bb.." }, pal), d + "toy_bird_1", PCenter);
+            }
+            {
+                // a lamp put out (its glass dark), a candle flame (two flickers), plain white
+                var o = new Px(5, 5); o.Rect(0, 0, 5, 5, C(58, 52, 50)); o.Rect(1, 2, 3, 1, C(84, 78, 74)); Save(o, d + "toy_lamp_off", PCenter);
+                var pal = new System.Collections.Generic.Dictionary<char, Color32> { { 'y', C(255, 226, 130) }, { 'o', C(255, 170, 60) }, { 'w', C(255, 250, 230) } };
+                Save(Map(new[] { ".y", "yy", "yw", "oo" }, pal), d + "toy_flame_0", new Vector2(0.5f, 0f));
+                Save(Map(new[] { "y.", "yy", "wy", "oo" }, pal), d + "toy_flame_1", new Vector2(0.5f, 0f));
+                var wh = new Px(4, 4); wh.Rect(0, 0, 4, 4, C(255, 255, 255)); Save(wh, d + "toy_white", PCenter);
+            }
+            {
+                // the banner of Brindlemoor on its rod: red, a gold crown, a swallowtail; stirring as if in a wind
+                Color32 red = W(C(150, 44, 50), 0.8f), redD = W(C(110, 30, 36), 0.8f), gold = W(C(250, 200, 70), 0.8f), rod = W(C(90, 64, 44), 0.8f);
+                for (int f = 0; f < 3; f++)
+                {
+                    var p = new Px(28, 50);
+                    p.Rect(0, 48, 28, 2, rod);
+                    for (int y = 0; y < 48; y++)
+                    {
+                        float down = (47 - y) / 47f;
+                        int sh = Mathf.RoundToInt(Mathf.Sin(y * 0.22f + f * 2.1f) * 2f * down);
+                        for (int x = 0; x < 24; x++)
+                        {
+                            if (y < 6 && Mathf.Abs(x - 11.5f) < 6 - y) continue;          // the swallowtail
+                            int gx = 2 + x + sh, ey = y;      // (the emblem where it was painted: 22..30 up the cloth)
+                            Color32 c = (x == 0 || x == 23) ? redD : red;
+                            if (ey >= 22 && ey < 27 && x >= 6 && x < 18) c = gold;
+                            if (ey >= 27 && ey < 31 && (x == 6 || x == 7 || x == 11 || x == 12 || x == 16 || x == 17)) c = gold;
+                            if (x % 6 == 3 && (y + f) % 9 < 2) c = redD;               // folds
+                            p.Set(gx, y, c);
+                        }
+                    }
+                    SaveWithRing(Padded(p, 1), d + "toy_banner_" + f, new Vector2(0.5f, 51f / 52f));
+                }
+            }
+            {
+                // Tam's great coil of rope, lying on the floor
+                var p = new Px(19, 10);
+                Color32 rope = W(C(206, 176, 112), 0.85f), ropeD = W(C(170, 140, 90), 0.85f), dark = W(C(110, 84, 50), 0.85f);
+                p.Ellipse(9.5f, 4.5f, 9f, 4.5f, rope); p.Ellipse(9.5f, 4.5f, 6f, 3f, ropeD); p.Ellipse(9.5f, 4.5f, 3f, 1.5f, dark);
+                for (int x = 1; x < 18; x += 3) p.Set(x, 4, ropeD);
+                SaveWithRing(Padded(p, 1), d + "toy_coil", new Vector2(0.5f, 1f / 12f));
+            }
+            {
+                // through the telescope: a round view of the night, the mountain's peak in the middle of it; the light on
+                // the peak and a climber with a lantern are pictures of their own
+                var p = new Px(128, 128);
+                for (int y = 0; y < 128; y++)
+                    for (int x = 0; x < 128; x++)
+                    {
+                        float dx = x - 63.5f, dy = y - 63.5f, r = Mathf.Sqrt(dx * dx + dy * dy);
+                        if (r > 60f) { p.Set(x, y, C(0, 0, 0)); continue; }
+                        Color32 sky = Lerp(C(40, 50, 96), C(8, 10, 30), y / 127f);
+                        float ridge = 96f - Mathf.Abs(x - 64f) * 1.15f + Mathf.Sin(x * 0.5f) * 2f + Mathf.PerlinNoise(x * 0.08f, 3f) * 6f;
+                        Color32 c = sky;
+                        if (y < ridge) c = y > ridge - 4f - Mathf.Max(0f, 30f - Mathf.Abs(x - 64f)) * 0.4f ? C(200, 210, 236) : Lerp(C(30, 34, 52), C(52, 58, 86), y / 100f);
+                        else if (((x * 37 + y * 91) % 97) == 0) c = C(230, 236, 255);                          // stars
+                        if (r > 57f) c = Mul(c, 0.5f);                                                       // the rim of the lens
+                        p.Set(x, y, c);
+                    }
+                Save(p, d + "toy_scope_view", PCenter);
+                var l = new Px(5, 5); l.Disc(2.5f, 2.5f, 2.4f, C(255, 190, 90, 120)); l.Rect(1, 2, 3, 1, C(255, 230, 150)); l.Rect(2, 1, 1, 3, C(255, 230, 150)); l.Set(2, 2, C(255, 255, 230));
+                Save(l, d + "toy_scope_light", PCenter);
+                var cl = new Px(3, 5); cl.Rect(1, 0, 1, 4, C(16, 16, 24)); cl.Set(0, 1, C(16, 16, 24)); cl.Set(2, 0, C(16, 16, 24)); cl.Set(1, 4, C(16, 16, 24)); cl.Set(2, 3, C(255, 210, 120));
+                Save(cl, d + "toy_scope_climber", PCenter);
+            }
         }
 
         static void BakedRing(int kind, string skip, string path)

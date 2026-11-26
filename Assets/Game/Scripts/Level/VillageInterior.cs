@@ -33,7 +33,7 @@ namespace Gloomdelve
         {
             new[]   // the forge - Hilde
             {
-                (141f, 0, 56, Curio.Form.Pinned, "a note by the furnace", "In Hilde's hand: 'Bank the coals at dusk.' Under it, newer, pressed hard into the paper: 'They have not burned down. Not once.'"),
+                (173f, 0, 40, Curio.Form.Pinned, "a note by the furnace", "In Hilde's hand: 'Bank the coals at dusk.' Under it, newer, pressed hard into the paper: 'They have not burned down. Not once.'"),
                 (84f, 0, 16, Curio.Form.Book, "the order book", "Horseshoes, hinges, nails: a whole season of orders, every one marked 'done', none collected. The last six lines are blades, and all six are dated the same day."),
                 (165f, 1, 16, Curio.Form.Letter, "a letter under the pillow", "Wrapped round a ring too small for Hilde's hand: 'When the sun comes back, ask me again.' The fold is worn soft. It has been opened a great many times."),
             },
@@ -87,6 +87,13 @@ namespace Gloomdelve
             (7, RoomToy.Kind.Cat, 171f, 0), (7, RoomToy.Kind.Lamps, 136f, 0),
             (1, RoomToy.Kind.Wheel, 200f, 0), (1, RoomToy.Kind.Hammock, 71f, 1),
             (2, RoomToy.Kind.Cauldron, 200f, 0),
+            (0, RoomToy.Kind.Bellows, 161f, 0), (0, RoomToy.Kind.Anvil, 149f, 0),
+            (3, RoomToy.Kind.Globe, 199f, 0), (3, RoomToy.Kind.Telescope, 192f, 1),
+            (4, RoomToy.Kind.Owl, 183f, 0), (4, RoomToy.Kind.Clock, 160f, 0), (4, RoomToy.Kind.Birdcage, 140f, 0),
+            (5, RoomToy.Kind.LampRow, 150f, 0), (5, RoomToy.Kind.GreatLamp, 130f, 1),
+            (6, RoomToy.Kind.Cup, 83f, 0), (6, RoomToy.Kind.Banner, 100f, 0), (6, RoomToy.Kind.Candles, 212f, 1),
+            (7, RoomToy.Kind.Bed, 140f, 1),
+            (1, RoomToy.Kind.Coil, 160f, 0),
         };
 
         /// <summary>The player's own house (its lamps can be put out).</summary>
@@ -244,6 +251,9 @@ namespace Gloomdelve
             base.LateUpdate();
             if (!cameraHere || Index < 0 || Index >= WinW.Length) return;
             float dt = Time.deltaTime;
+            if (flareT > 0f) flareT -= dt;
+            if (fire != null && FireX[Index] >= 0) fire.localScale = Vector3.one * FireScale[Index] * (1f + 0.7f * FireBoost);
+            if (FireBoost > 0.3f && Random.value < 0.4f) Fx.Embers(At(FireX[Index] + Random.Range(-8f, 8f), FireY[Index] + 14f), 1);
             steamT -= dt; bubbleT -= dt; moteT -= dt; emberT -= dt;
             if (Index == 2)
             {
@@ -267,7 +277,11 @@ namespace Gloomdelve
             }
         }
 
-        float emberT;
+        float emberT, flareT;
+        /// <summary>The fire roars up for a moment (the bellows).</summary>
+        public void Flare() { flareT = FlareTime; }
+        const float FlareTime = 1.2f;
+        public float FireBoost => flareT > 0f ? Mathf.Sin(Mathf.Clamp01(flareT / FlareTime) * Mathf.PI) : 0f;
         /// <summary>The upstairs window of each room, in floor-space pixels of its storey (x, foot, width; 0 wide = none): where the light falls in.
         /// Same numbers as ArtGenerator.Village, Room (NightWindow).</summary>
         static readonly int[] WinX = { 100, 118, 120, 160, 128, 0, 124, 128 }, WinY = { 46, 46, 46, 40, 50, 0, 50, 46 }, WinW = { 18, 18, 18, 28, 16, 0, 16, 22 };

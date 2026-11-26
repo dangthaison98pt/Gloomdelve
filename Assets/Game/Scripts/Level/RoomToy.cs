@@ -9,16 +9,15 @@ namespace Gloomdelve
     /// it; it never ends well) and Maren's cauldron (stir it). Whoever keeps the house has something to say about it.
     /// VillageInterior puts them out (param = Kind).
     /// </summary>
-    public class RoomToy : Entity, IInteractable
+    public partial class RoomToy : Entity, IInteractable
     {
-        public enum Kind { Cat, Wheel, Cauldron, Hammock, Lamps }
+        public enum Kind { Cat, Wheel, Cauldron, Hammock, Lamps, Bellows, Anvil, Globe, Telescope, Owl, Clock, Birdcage, LampRow, GreatLamp, Candles, Cup, Banner, Bed, Coil }
 
         [Tooltip("The cat (facing left): asleep, stretching, sitting up, two steps of a walk.")] public Sprite[] cat;
         public Sprite wheel, hammockRolled, hammockHung;
         [Tooltip("A second picture: the hammock hung up, in front of whoever lies in it.")] public SpriteRenderer extra;
         [Tooltip("The white outlines shown while the player is in reach: the cat's (by frame), the wheel's, the rolled hammock's.")] public Sprite[] catOutline;
         public Sprite wheelOutline, hammockOutline;
-        [Tooltip("Outlines of things painted into the room picture (the size of the picture): Maren's cauldron, the lamp at home.")] public Sprite cauldronOutline, lampOutline;
         [Tooltip("The outline's renderer (a child, just in front).")] public SpriteRenderer glow;
 
         public Kind kind;
@@ -54,12 +53,17 @@ namespace Gloomdelve
 
         /// <summary>The room this stands in. (Put out while the room itself is being set up, so it may not be found at
         /// once: looked for again until it is.)</summary>
-        void FindRoom() { if (room == null || room.Dead) room = VillageInterior.RoomAt(World, new Vector2(pos.x, pos.y + 0.3f)); }
+        void FindRoom()
+        {
+            if (room == null || room.Dead) room = VillageInterior.RoomAt(World, new Vector2(pos.x, pos.y + 0.3f));
+            if (!built && room != null) { built = true; Build(); }      // (what it needs placed in the room picture: RoomToy.More)
+        }
+        bool built;
 
         Sprite Frame(int i) => cat != null && i < cat.Length ? cat[i] : null;
 
         /// <summary>Still busy with the last touch (the cat is up and about, someone is in the hammock): nothing to do with it now.</summary>
-        public bool Busy => (kind == Kind.Cat && catState != 0) || (kind == Kind.Hammock && (sleeper != null || hamRest > 0f));
+        public bool Busy => (kind == Kind.Cat && catState != 0) || (kind == Kind.Hammock && (sleeper != null || hamRest > 0f)) || MoreBusy;
 
         public string GetPrompt(PlayerController p)
         {
@@ -71,7 +75,8 @@ namespace Gloomdelve
                 case Kind.Wheel: return "[enter]  Spin the wheel";
                 case Kind.Cauldron: return "[enter]  Stir the brew";
                 case Kind.Hammock: return "[enter]  Lie in the hammock";
-                default: return room != null && room.LampsOut ? "[enter]  Light the lamps" : "[enter]  Put out the lamps";
+                case Kind.Lamps: return room != null && room.LampsOut ? "[enter]  Light the lamps" : "[enter]  Put out the lamps";
+                default: return MorePrompt();
             }
         }
 
@@ -86,6 +91,7 @@ namespace Gloomdelve
                 case Kind.Cauldron: Stir(); break;
                 case Kind.Hammock: LieDown(p); break;
                 case Kind.Lamps: SwitchLamps(); break;
+                default: MoreInteract(p); break;
             }
         }
 
@@ -100,6 +106,7 @@ namespace Gloomdelve
                 case Kind.Wheel: TickWheel(dt); break;
                 case Kind.Cauldron: TickCauldron(dt); break;
                 case Kind.Hammock: TickHammock(dt); break;
+                default: MoreTick(dt); break;
             }
         }
 
@@ -116,6 +123,7 @@ namespace Gloomdelve
             }
             else if (kind == Kind.Wheel) sr.transform.localRotation = Quaternion.Euler(0f, 0f, -Angle);
             else if (kind == Kind.Hammock && extra != null) extra.transform.localRotation = Quaternion.Euler(0f, 0f, swing);
+            MoreLate();
             // in reach: a white outline round it (round the thing in the picture, for the cauldron and the lamp)
             Sprite outline = null;
             if (!Busy)
@@ -124,12 +132,11 @@ namespace Gloomdelve
                     case Kind.Cat: outline = catOutline != null && catFrame < catOutline.Length ? catOutline[catFrame] : null; break;
                     case Kind.Wheel: outline = wheelOutline; break;
                     case Kind.Hammock: outline = hammockOutline; break;
-                    case Kind.Cauldron: outline = cauldronOutline; break;
-                    case Kind.Lamps: outline = lampOutline; break;
+                    default: outline = Baked ? kindOutline[(int)kind] : OutlineOf(sr.sprite); break;
                 }
             if (glow != null)
             {
-                if (kind == Kind.Cauldron || kind == Kind.Lamps)
+                if (Baked)
                 {
                     if (room != null) glow.transform.position = room.transform.position + new Vector3(5.5f, 6.5f, -0.1f);       // where the room picture's middle is
                     glow.transform.localScale = Vector3.one; glow.transform.localRotation = Quaternion.identity; glow.flipX = false;
@@ -150,10 +157,10 @@ namespace Gloomdelve
         {
             if (sayCool > 0f || lines == null || lines.Length == 0 || Random.value > chance) return;
             foreach (var e in World.Entities)
-                if (e is VillagerHome vh && !vh.Dead && VillageInterior.RoomAt(World, new Vector2(vh.pos.x, vh.pos.y + 0.3f)) == room)
+                if ((e is VillagerHome || e is Elder) && !e.Dead && VillageInterior.RoomAt(World, new Vector2(e.pos.x, e.pos.y + 0.3f)) == room)
                 {
                     sayCool = 4f;
-                    Fx.Text(new Vector2(vh.pos.x, vh.pos.y + 2.3f), lines[Random.Range(0, lines.Length)], new Color(1f, 0.9f, 0.68f), 2.4f);
+                    Fx.Text(new Vector2(e.pos.x, e.pos.y + 2.3f), lines[Random.Range(0, lines.Length)], new Color(1f, 0.9f, 0.68f), 2.4f);
                     return;
                 }
         }
@@ -374,6 +381,7 @@ namespace Gloomdelve
         {
             if (sleeper != null && sleeper.restingIn == this) { sleeper.restingIn = null; sleeper.restAngle = 0f; }
             sleeper = null;
+            MoreDespawn();
             base.OnDespawn();
         }
 

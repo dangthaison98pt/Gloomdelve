@@ -277,6 +277,42 @@ MonoBehaviour:
     volume: 0.8
     pitchJitter: 0.06
     minInterval: 0.03
+  - id: bellows
+    clips:
+    - {fileID: 8300000, guid: 10dc8c587934ac54c89ddd43f3fb50a7, type: 3}
+    volume: 0.8
+    pitchJitter: 0.06
+    minInterval: 0.03
+  - id: clang
+    clips:
+    - {fileID: 8300000, guid: 8713dfc5c863e4041af88d7900f1fdc4, type: 3}
+    volume: 0.8
+    pitchJitter: 0.06
+    minInterval: 0.03
+  - id: hoo
+    clips:
+    - {fileID: 8300000, guid: 479694f51e8c84d468274f8fb395ed6e, type: 3}
+    volume: 0.8
+    pitchJitter: 0.06
+    minInterval: 0.03
+  - id: chirp
+    clips:
+    - {fileID: 8300000, guid: 7cd152234afd07244922081f88851210, type: 3}
+    volume: 0.8
+    pitchJitter: 0.06
+    minInterval: 0.03
+  - id: gulp
+    clips:
+    - {fileID: 8300000, guid: 3d9f4a040d9a3d3409c7ebcaa045eae5, type: 3}
+    volume: 0.8
+    pitchJitter: 0.06
+    minInterval: 0.03
+  - id: tick
+    clips:
+    - {fileID: 8300000, guid: 54a0f1faf09c1fa42908d0d49b7af185, type: 3}
+    volume: 0.8
+    pitchJitter: 0.06
+    minInterval: 0.03
   - id: pot_break
     clips:
     - {fileID: 8300000, guid: 0b28b56f3740f83468165074586aaeb2, type: 3}

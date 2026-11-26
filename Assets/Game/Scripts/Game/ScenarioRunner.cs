@@ -272,6 +272,9 @@ namespace Gloomdelve
             new Scenario { name = "room toys: the cat wakes when petted and moves to the armchair at the tenth poke, the lamps at home go out and on, Tam's wheel spins and slows, his hammock tips the player out, Maren's brew can be stirred",
                 map = m => { Set(m, 3, 1, 'S'); for (int x = 4; x <= 14; x++) Set(m, x, 7, '#'); },
                 run = c => RoomToysCase(c) },
+            new Scenario { name = "room toys 2: bellows and anvil, globe and telescope, Pip's owl, clock and bird, Bera's lamps, the hall's candles, cup and banner, a nap in the bed at home, Tam's coil",
+                map = m => { Set(m, 3, 1, 'S'); for (int x = 4; x <= 20; x++) Set(m, x, 7, '#'); },
+                run = c => RoomToys2Case(c) },
             new Scenario { name = "ladder grab: standing half beside a ladder, up climbs it; a step away, up only looks up",
                 map = m => { Set(m, 3, 1, 'S'); for (int y = 1; y <= 7; y++) Set(m, 10, y, 'H'); },
                 run = c => LadderGrabCase(c) },
@@ -4295,6 +4298,125 @@ namespace Gloomdelve
             var pot = Toy(RoomToy.Kind.Cauldron);
             c.Expect(pot != null, "Maren's cauldron can be stirred");
             if (pot != null) { pot.Interact(c.p); yield return c.Frames(4); c.Expect(pot.Stirring, "stirred, it bubbles up"); }
+            Clear();
+            Villagers.ResetTestState();
+            Villagers.testRescued = null;
+            c.dir.cameraFollow.SetBounds(new Rect(0, 0, c.world.Grid.Width, c.world.Grid.Height));
+            yield return c.Frames(4);
+        }
+
+        static IEnumerator RoomToys2Case(Ctx c)
+        {
+            c.p.godMode = true;
+            Villagers.testRescued = new HashSet<string>(); foreach (var v in Villagers.All) Villagers.testRescued.Add(v.id);
+            Villagers.ResetTestState();
+            RoomToy Toy(RoomToy.Kind k) { foreach (var e in c.world.Entities) if (e is RoomToy t && !t.Dead && t.kind == k) return t; return null; }
+            void Clear() { foreach (var e in c.world.Entities) if (!e.Dead && (e is VillagerHome || e is Curio || e is VillageInterior || e is RoomToy || e is Elder)) e.Despawn(); }
+            VillageInterior room = null;
+            IEnumerator Enter(int k) { Clear(); yield return c.Frames(3); room = c.Spawn<VillageInterior>("interior", 4, 1, k); yield return c.Frames(4); room.Enter(c.p); yield return c.Frames(25); }
+            IEnumerator StandBy(RoomToy t) { c.Teleport(t.pos.x, t.pos.y + 0.2f); yield return c.Frames(30); }
+            IEnumerator Shot(string n) { yield return new WaitForSecondsRealtime(0.25f); ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, n)); yield return new WaitForSecondsRealtime(0.2f); }
+
+            // the forge
+            yield return Enter(0);
+            var bel = Toy(RoomToy.Kind.Bellows); var anv = Toy(RoomToy.Kind.Anvil);
+            c.Expect(bel != null && anv != null, "the forge has its bellows and anvil");
+            if (bel != null) { yield return StandBy(bel); c.Expect(bel.glow.enabled, "by the bellows, they are outlined"); yield return Shot("toys2_forge_outline.png"); bel.Interact(c.p); yield return c.Frames(15); c.Expect(room.FireBoost > 0.2f, "worked, the bellows make the fire roar"); }
+            if (anv != null) { yield return StandBy(anv); for (int i = 0; i < 3; i++) { anv.Interact(c.p); yield return c.Frames(8); } for (int i = 0; i < 120 && !anv.Answered; i++) yield return c.Frames(1); c.Expect(anv.Answered, "three quick strikes on the anvil: Hilde strikes back"); }
+
+            // the map room
+            yield return Enter(3);
+            var globe = Toy(RoomToy.Kind.Globe); var scope = Toy(RoomToy.Kind.Telescope);
+            c.Expect(globe != null && scope != null, "the map room has its globe and telescope");
+            if (globe != null)
+            {
+                yield return StandBy(globe); globe.Interact(c.p); yield return c.Frames(20);
+                c.Expect(globe.Busy, "the globe spins");
+                for (int i = 0; i < 400 && globe.Busy; i++) yield return c.Frames(1);
+                c.Expect(!globe.Busy && globe.GlobeTurns == 1 && globe.GlobeFrame == 0, "and comes to rest with the burned hole facing out");
+            }
+            if (scope != null)
+            {
+                yield return StandBy(scope); scope.Interact(c.p); yield return c.Frames(40);
+                c.Expect(scope.Viewing && c.p.restingIn == scope, "looking through the telescope: the view, the player still");
+                yield return Shot("toys2_telescope.png");
+                for (int i = 0; i < 400 && scope.Viewing; i++) yield return c.Frames(1);
+                c.Expect(!scope.Viewing && c.p.restingIn == null, "and then back to the room");
+                yield return c.Frames(10);
+                scope.Interact(c.p); yield return c.Frames(40);
+                yield return Shot("toys2_telescope_climber.png");
+                for (int i = 0; i < 400 && scope.Viewing; i++) yield return c.Frames(1);
+            }
+
+            // Pip's
+            yield return Enter(4);
+            var owl = Toy(RoomToy.Kind.Owl); var clk = Toy(RoomToy.Kind.Clock); var cage = Toy(RoomToy.Kind.Birdcage);
+            c.Expect(owl != null && clk != null && cage != null, "Pip's has an owl, a clock and a birdcage");
+            yield return Shot("toys2_pip.png");
+            if (owl != null) { yield return StandBy(owl); for (int i = 0; i < 5; i++) { owl.Interact(c.p); for (int j = 0; j < 80 && owl.Busy; j++) yield return c.Frames(1); } c.Expect(owl.Hooed, "the fifth poke: the stuffed owl hoots"); }
+            if (clk != null) { yield return StandBy(clk); clk.Interact(c.p); yield return c.Frames(10); c.Expect(clk.Busy, "the clock's hands run backwards"); for (int i = 0; i < 200 && clk.Busy; i++) yield return c.Frames(1); c.Expect(!clk.Busy, "and stop where they were"); }
+            if (cage != null)
+            {
+                yield return StandBy(cage); cage.Interact(c.p); yield return c.Frames(60);
+                c.Expect(cage.BirdOut > 1f, $"the bird flies out round the room ({cage.BirdOut:0.0} out)");
+                yield return Shot("toys2_bird.png");
+                for (int i = 0; i < 300 && cage.Busy; i++) yield return c.Frames(1);
+                c.Expect(cage.BirdOut < 0.1f, "and back into its cage");
+            }
+
+            // the lamp house
+            yield return Enter(5);
+            var row = Toy(RoomToy.Kind.LampRow); var great = Toy(RoomToy.Kind.GreatLamp);
+            c.Expect(row != null && great != null, "the lamp house has its row of lamps and the great lamp");
+            if (row != null)
+            {
+                yield return StandBy(row); row.Interact(c.p); yield return c.Frames(60);
+                c.Expect(row.LampsDark >= 3, $"snuffed, the lamps go out one by one ({row.LampsDark} out)");
+                yield return Shot("toys2_lamprow.png");
+                for (int i = 0; i < 300 && row.Busy; i++) yield return c.Frames(1);
+                c.Expect(row.LampsDark == 0, "and are lit again");
+            }
+            if (great != null) { yield return StandBy(great); great.Interact(c.p); yield return c.Frames(5); c.Expect(great.Flashing, "touched, the great lamp flares"); for (int i = 0; i < 100 && great.Busy; i++) yield return c.Frames(1); }
+
+            // the hall
+            yield return Enter(6);
+            var cup = Toy(RoomToy.Kind.Cup); var ban = Toy(RoomToy.Kind.Banner); var can = Toy(RoomToy.Kind.Candles);
+            c.Expect(cup != null && ban != null && can != null, "the hall has a cup, the banner and the candles");
+            if (cup != null) { yield return StandBy(cup); cup.Interact(c.p); yield return c.Frames(5); c.Expect(cup.Drunk == 1, "the cup is drunk from"); }
+            if (ban != null) { yield return StandBy(ban); ban.Interact(c.p); yield return c.Frames(10); c.Expect(ban.Busy, "touched, the banner stirs"); yield return Shot("toys2_banner.png"); }
+            if (can != null)
+            {
+                yield return StandBy(can);
+                for (int i = 0; i < 3; i++) { can.Interact(c.p); yield return c.Frames(10); }
+                c.Expect(!can.CandleLit(0) && !can.CandleLit(1), "two candles blown out");
+                for (int i = 0; i < 150 && !can.CandleLit(2); i++) yield return c.Frames(1);
+                c.Expect(can.CandleLit(2) && !can.CandleLit(0), "the third lights itself again");
+            }
+
+            // home: the bed
+            yield return Enter(VillageInterior.Home);
+            var bed = Toy(RoomToy.Kind.Bed);
+            c.Expect(bed != null, "home has its bed to sleep in");
+            if (bed != null)
+            {
+                yield return StandBy(bed);
+                int hour = VillageClock.Hour;
+                bed.Interact(c.p);
+                yield return c.Frames(10);
+                c.Expect(bed.Napping && c.p.restingIn == bed, "lying down for a nap");
+                for (int i = 0; i < 300 && bed.Napping; i++) yield return c.Frames(1);
+                yield return c.Frames(5);
+                c.Expect(!bed.Napping && c.p.restingIn == null && !string.IsNullOrEmpty(bed.LastDream) && c.dir.hud.NoteUp, "waking, a dream is remembered");
+                c.Expect(VillageClock.Hour == hour, "the hour stays the player's own");
+                c.dir.hud.DismissHeld();
+            }
+
+            // Tam's coil
+            yield return Enter(1);
+            var coil = Toy(RoomToy.Kind.Coil);
+            c.Expect(coil != null, "the ropewalk has a coil on the floor");
+            if (coil != null) { float x0 = coil.pos.x; c.Teleport(coil.pos.x - 0.6f, 1.2f); yield return c.Frames(30); coil.Interact(c.p); for (int i = 0; i < 60 && coil.Busy; i++) yield return c.Frames(1); c.Expect(Mathf.Abs(coil.pos.x - x0) > 1f, $"kicked, the coil rolls away ({coil.pos.x - x0:0.0})"); }
+
             Clear();
             Villagers.ResetTestState();
             Villagers.testRescued = null;
