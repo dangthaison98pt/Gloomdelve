@@ -262,6 +262,10 @@ MonoBehaviour:
     prefab: {fileID: 3648075486702423137, guid: 2f1469a50f66e50438f65d0f57a6be0e, type: 3}
   - id: roomtoy
     prefab: {fileID: 8190073595976419504, guid: ffe702546b586f14a9ae2d85ba53f07d, type: 3}
+  - id: shaketree
+    prefab: {fileID: 3292022294281736224, guid: a5268a36252c864498255ca8775e9cdf, type: 3}
+  - id: ocarina
+    prefab: {fileID: 5531563528195445306, guid: d0dc5c5480e663d439ff9c1cf6d8abeb, type: 3}
   - id: kennel
     prefab: {fileID: 8452434925105755567, guid: 810f38a2aa4846e498e7a94596343cd0, type: 3}
   - id: villagedog

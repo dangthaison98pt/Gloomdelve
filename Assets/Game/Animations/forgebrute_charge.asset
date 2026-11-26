@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: forgebrute_charge
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: 133e6a6948d5ddf4ca65c2483c736833, type: 3}
+  - {fileID: -1582026433, guid: cc98d29adc3b45143b61d329453b722c, type: 3}
   fps: 1
   loop: 1

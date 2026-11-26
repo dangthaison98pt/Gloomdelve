@@ -2046,6 +2046,24 @@ namespace Gloomdelve.EditorTools
                     xs.sharedMaterial = unlitMat; xs.sortingOrder = 30; xs.enabled = false;     // the hammock is in front of whoever lies in it
                     e.extra = xs;
                 }));
+                // a fir of the street that can be shaken (the same picture and candles as the others), and the Blue
+                // Ocarina that falls out of it
+                Reg("shaketree", Make<ShakeTree>("ShakeTree", "Level", "fir", new Vector2(1.6f, 3f), ArtGenerator.S("Sprites/Village/fir_tree"), null, 3, (e, g, s) =>
+                {
+                    e.flipWithFacing = false;
+                    GroundShadow(g, Vector2.zero, s.sprite != null ? s.sprite.rect.width / 16f * 0.9f : 1f, 2);
+                    Lamp(g, "Candles", new Vector2(0f, 1.8f), 3.2f, 0.4f, 0.25f);
+                    e.outline = ArtGenerator.S("Sprites/Village/fir_tree_hl");
+                    e.glow = InReachGlow(g, unlitMat);
+                    e.glow.sortingOrder = 4;
+                }));
+                Reg("ocarina", Make<OcarinaPickup>("Ocarina", "Items", "blue ocarina", new Vector2(0.6f, 0.45f), ArtGenerator.S("Sprites/Village/ocarina"), null, 22, (e, g, s) =>
+                {
+                    e.flipWithFacing = false;
+                    e.outline = ArtGenerator.S("Sprites/Village/ocarina_hl");
+                    e.glow = InReachGlow(g, unlitMat);
+                    e.glow.sortingOrder = 23;
+                }));
                 Reg("kennel", Make<Kennel>("Kennel", "Level", "kennel", new Vector2(1f, 1f), ArtGenerator.S("Sprites/Village/kennel"), null, 3, (e, g, s) =>
                 {
                     e.flipWithFacing = false;
@@ -2123,6 +2141,7 @@ namespace Gloomdelve.EditorTools
             foreach (var m in manualEntries)
                 if (m != null && m.prefab != null && !string.IsNullOrEmpty(m.id) && !reg.entries.Exists(x => x.id == m.id)) reg.entries.Add(m);
             cfg.prefabs = reg;
+            cfg.unitSquare = ArtGenerator.S("Center/unit_square"); cfg.unitSquareFoot = ArtGenerator.S("Center/unit_square_foot"); cfg.unitDisc = ArtGenerator.S("Center/unit_disc");
             EditorUtility.SetDirty(reg);
             EditorUtility.SetDirty(cfg);
             AssetDatabase.SaveAssets();
@@ -2322,7 +2341,8 @@ namespace Gloomdelve.EditorTools
             menu.tutorialButton = null;
             menu.bossButton = Entry("BossTest", "Challenge", 1);
             menu.settingsButton = Entry("Settings", "Settings", 2);
-            menu.recordsButton = Entry("Records", "Records", 3);
+            menu.recordsButton = null;          // (the records are a tab of the Achievements screen)
+            menu.achievementsButton = Entry("Achievements", "Achievements", 3);
             menu.quitButton = Entry("Quit", "Quit", 4);
             var ptrImg = UIBuilder.Img(t, "Pointer", ArtGenerator.S("UI/menu_pointer"), Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(42, 33));
             var ptr = menu.gameObject.AddComponent<MenuPointer>();
@@ -2357,16 +2377,49 @@ namespace Gloomdelve.EditorTools
                 menu.slotPanel = sp.gameObject;
             }
             menu.settingsPanel = UIBuilder.Settings(t);
-            var rec = UIBuilder.Panel(t, "RecordsPanel", new Vector2(0.5f, 0.5f), new Vector2(0, -20), new Vector2(1180, 820));
-            UIBuilder.Label(rec.transform, "Title", "RECORDS", 46, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -44), new Vector2(700, 70));
-            menu.recordsText = UIBuilder.Label(rec.transform, "Body", "", 28, Color.white, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(-270, -196), new Vector2(520, 460));
-            UIBuilder.Label(rec.transform, "RunsHead", "RUNS", 24, new Color(1f, 0.84f, 0.38f), TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(-270, -146), new Vector2(520, 34), true, FontStyle.Bold);
-            UIBuilder.Label(rec.transform, "BossHead", "CHALLENGE  -  best time against each boss", 24, new Color(1f, 0.84f, 0.38f), TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(290, -146), new Vector2(520, 34), true, FontStyle.Bold);
-            menu.bossRecordsText = UIBuilder.Label(rec.transform, "Bosses", "", 28, Color.white, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(290, -196), new Vector2(520, 460));
-            menu.bossRecordsText.lineSpacing = 35f;
-            menu.recordsText.lineSpacing = 20f;
-            menu.recordsBack = UIBuilder.Button(rec.transform, "Back", "BACK", new Vector2(0.5f, 0f), new Vector2(0, 50), new Vector2(320, 70));   // records cannot be reset from the game
-            menu.recordsPanel = rec.gameObject;
+            menu.recordsPanel = null;               // (the records are a tab of the Achievements screen, below)
+            {
+                // Achievements: one row each - picture (a lock over it while not earned), name, what earned it
+                var ap = UIBuilder.Panel(t, "AchievementsPanel", new Vector2(0.5f, 0.5f), new Vector2(0, -20), new Vector2(1180, 820));
+                var ach = ap.gameObject.AddComponent<AchievementsPanel>();
+                // the two tabs: the achievements, the records
+                ach.tabAchievements = UIBuilder.TextButton(ap.transform, "TabAchievements", "Achievements", new Vector2(0.5f, 1f), new Vector2(-170, -44), new Vector2(320, 60), 40, out ach.tabAchievementsLabel);
+                ach.tabRecords = UIBuilder.TextButton(ap.transform, "TabRecords", "Records", new Vector2(0.5f, 1f), new Vector2(170, -44), new Vector2(320, 60), 40, out ach.tabRecordsLabel);
+                var listGo = UIBuilder.Node(ap.transform, "List"); UIBuilder.Stretch(UIBuilder.Rect(listGo)); ach.listGroup = listGo;
+                var recGo = UIBuilder.Node(ap.transform, "Records"); UIBuilder.Stretch(UIBuilder.Rect(recGo)); ach.recordsGroup = recGo; recGo.SetActive(false);
+                {
+                    // the records: the runs of this save on the left, the Challenge times on the right
+                    var rt = recGo.transform;
+                    menu.recordsText = UIBuilder.Label(rt, "Body", "", 28, Color.white, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(-270, -196), new Vector2(520, 460));
+                    UIBuilder.Label(rt, "RunsHead", "RUNS", 24, new Color(1f, 0.84f, 0.38f), TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(-270, -146), new Vector2(520, 34), true, FontStyle.Bold);
+                    UIBuilder.Label(rt, "BossHead", "CHALLENGE  -  best time against each boss", 24, new Color(1f, 0.84f, 0.38f), TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(290, -146), new Vector2(520, 34), true, FontStyle.Bold);
+                    menu.bossRecordsText = UIBuilder.Label(rt, "Bosses", "", 28, Color.white, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(290, -196), new Vector2(520, 460));
+                    menu.bossRecordsText.lineSpacing = 35f;
+                    menu.recordsText.lineSpacing = 20f;
+                }
+                ach.count = UIBuilder.Label(listGo.transform, "Count", "", 26, new Color(1f, 1f, 1f, 0.7f), TextAnchor.MiddleRight, new Vector2(1f, 1f), new Vector2(-60, -50), new Vector2(200, 40));
+                ach.count.rectTransform.pivot = new Vector2(1f, 0.5f);
+                int n = Achievements.All.Length;
+                ach.icons = new Image[n]; ach.locks = new Image[n]; ach.titles = new TMPro.TMP_Text[n]; ach.lines = new TMPro.TMP_Text[n]; ach.pictures = new Sprite[n];
+                for (int i = 0; i < n; i++)
+                {
+                    float y = -150 - i * 124;
+                    var row = UIBuilder.Img(listGo.transform, "Row" + i, ArtGenerator.S("UI/tag_fade"), new Color(0.05f, 0.06f, 0.11f, 0.7f), new Vector2(0.5f, 1f), new Vector2(0, y), new Vector2(1060, 112));
+                    ach.pictures[i] = ArtGenerator.S("UI/" + Achievements.All[i].Icon);
+                    ach.icons[i] = UIBuilder.Img(row.transform, "Icon", ach.pictures[i], Color.white, new Vector2(0f, 0.5f), new Vector2(56, 0), new Vector2(72, 72));
+                    ach.icons[i].rectTransform.pivot = new Vector2(0.5f, 0.5f);
+                    ach.locks[i] = UIBuilder.Img(row.transform, "Lock", ArtGenerator.S("UI/ach_lock"), Color.white, new Vector2(0f, 0.5f), new Vector2(86, -24), new Vector2(24, 30));
+                    ach.locks[i].rectTransform.pivot = new Vector2(0.5f, 0.5f);
+                    ach.titles[i] = UIBuilder.Label(row.transform, "Name", "", 30, gold, TextAnchor.MiddleLeft, new Vector2(0f, 1f), new Vector2(132, -30), new Vector2(890, 40), true, FontStyle.Bold);
+                    ach.titles[i].rectTransform.pivot = new Vector2(0f, 0.5f);
+                    ach.lines[i] = UIBuilder.Label(row.transform, "Line", "", 22, Color.white, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(132, -52), new Vector2(890, 54));
+                    ach.lines[i].rectTransform.pivot = new Vector2(0f, 1f);
+                }
+                ach.secretPicture = ArtGenerator.S("UI/ach_secret");
+                ach.back = UIBuilder.Button(ap.transform, "Back", "BACK", new Vector2(0.5f, 0f), new Vector2(0, 50), new Vector2(320, 70));
+                menu.achievementsPanel = ach;
+                ap.gameObject.SetActive(false);
+            }
             menu.versionText = UIBuilder.Label(t, "Version", "", 22, new Color(1, 1, 1, 0.5f), TextAnchor.LowerLeft, new Vector2(0f, 0f), new Vector2(20, 16), new Vector2(900, 40), false);
             UIBuilder.Label(t, "Hint", "[move] navigate   ·   [confirm] select   ·   [jump] jump   ·   [whip] blade   ·   [use] use gear   ·   hold [gear] gear wheel   ·   [enter] enter", 22,
                 new Color(1, 1, 1, 0.55f), TextAnchor.LowerRight, new Vector2(1f, 0f), new Vector2(-20, 16), new Vector2(1300, 40), false);
@@ -2564,7 +2617,7 @@ namespace Gloomdelve.EditorTools
                     foreach (var kv in ArtGenerator.Drawn)
                     {
                         if (!(kv.Key.StartsWith("Sprites/Items/") || kv.Key.StartsWith("UI/") || kv.Key.StartsWith("Sprites/NPC/ware") || kv.Key.StartsWith("Sprites/Props/"))) continue;
-                        var sp = AssetDatabase.LoadAssetAtPath<Sprite>(G + "Art/" + kv.Key + ".png");
+                        var sp = ArtGenerator.Find(kv.Key);
                         if (sp == null) continue;
                         frames.sprites.Add(sp); frames.frames.Add(kv.Value);
                     }
@@ -2862,7 +2915,7 @@ namespace Gloomdelve.EditorTools
             inv.bagLabel = UIBuilder.Label(ipanel.transform, "BagLabel", "In the bag", 20, new Color(1f, 1f, 1f, 0.5f), TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -324), new Vector2(600, 28), false);
             inv.pouchIcon = ArtGenerator.S("UI/icon_pouch");
             inv.bookIcon = ArtGenerator.S("UI/icon_book");
-            inv.planIcon = ArtGenerator.S("UI/blueprint_sheet");
+            inv.ocarinaIcon = ArtGenerator.S("Sprites/Village/ocarina");
             var igrid = UIBuilder.Node(ipanel.transform, "Grid");
             UIBuilder.Place(UIBuilder.Rect(igrid), new Vector2(0.5f, 1f), new Vector2(0, -412), new Vector2(900, 10), new Vector2(0.5f, 0.5f));
             inv.grid = (RectTransform)igrid.transform;
@@ -2924,7 +2977,7 @@ namespace Gloomdelve.EditorTools
                     cx.overlay = UIBuilder.Img(frame.transform, "Overlay", null, Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(64, 64));
                     cx.overlay.enabled = false;
                     var keys = new List<string>(); var pics = new List<Sprite>();
-                    void Pic(string key) { if (keys.Contains(key)) return; var sp = AssetDatabase.LoadAssetAtPath<Sprite>(G + "Art/" + key + ".png"); if (sp != null) { keys.Add(key); pics.Add(sp); } }
+                    void Pic(string key) { if (keys.Contains(key)) return; var sp = ArtGenerator.Find(key); if (sp != null) { keys.Add(key); pics.Add(sp); } }
                     foreach (var setName in new HashSet<string>(Codex.TileSets.Values))
                     {
                         for (int b = 0; b < 4; b++) Pic("Tiles/" + setName + "/bg_" + b);
@@ -3086,6 +3139,24 @@ namespace Gloomdelve.EditorTools
             rs.retrySeedButton = UIBuilder.Button(rp.transform, "RetrySeed", "SAME SEED", bottom, new Vector2(0, 60), new Vector2(320, 76));
             rs.menuButton = UIBuilder.Button(rp.transform, "Menu", "MAIN MENU", bottom, new Vector2(340, 60), new Vector2(320, 76));
             dir.results = rs;
+            {
+                // an achievement earned: a board slides down from the top of the screen (AchievementToast)
+                var host = UIBuilder.Node(t, "Achievements");
+                UIBuilder.Stretch(UIBuilder.Rect(host));
+                var toast = host.AddComponent<AchievementToast>();
+                var board = UIBuilder.Panel(host.transform, "Toast", new Vector2(0.5f, 1f), new Vector2(0, -18), new Vector2(800, 152));
+                toast.root = board.rectTransform;
+                toast.icon = UIBuilder.Img(board.transform, "Icon", null, Color.white, new Vector2(0f, 0.5f), new Vector2(70, 0), new Vector2(72, 72));
+                toast.icon.rectTransform.pivot = new Vector2(0.5f, 0.5f); toast.icon.preserveAspect = true;
+                var head = UIBuilder.Label(board.transform, "Head", "ACHIEVEMENT UNLOCKED", 18, new Color(1f, 1f, 1f, 0.6f), TextAnchor.MiddleLeft, new Vector2(0f, 1f), new Vector2(136, -24), new Vector2(630, 26), true, FontStyle.Bold);
+                head.rectTransform.pivot = new Vector2(0f, 0.5f);
+                toast.title = UIBuilder.Label(board.transform, "Name", "", 30, gold, TextAnchor.MiddleLeft, new Vector2(0f, 1f), new Vector2(136, -52), new Vector2(630, 36), true, FontStyle.Bold);
+                toast.title.rectTransform.pivot = new Vector2(0f, 0.5f); toast.title.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
+                toast.line = UIBuilder.Label(board.transform, "Line", "", 20, new Color(1f, 1f, 1f, 0.9f), TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(136, -72), new Vector2(630, 50), true, FontStyle.Italic);
+                toast.line.rectTransform.pivot = new Vector2(0f, 1f);
+                toast.icons = Achievements.All.Select(a => ArtGenerator.S("UI/" + a.Icon)).ToArray();
+                board.gameObject.SetActive(false);
+            }
 
             UIBuilder.menuStyle = false;
             EditorSceneManager.SaveScene(scene, G + "Scenes/Game.unity");

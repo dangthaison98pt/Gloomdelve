@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: wraith_float
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: c8d95be0fe7b14a4587d65b76f152e20, type: 3}
-  - {fileID: 21300000, guid: b269f4ff1504ff5448e98e1804865c73, type: 3}
+  - {fileID: 1840282731, guid: 2d31ed06c1f61e74baa08e8856e8c111, type: 3}
+  - {fileID: -1070437116, guid: 2d31ed06c1f61e74baa08e8856e8c111, type: 3}
   fps: 3
   loop: 1

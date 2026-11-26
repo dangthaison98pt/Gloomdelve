@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: bomb_idle
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: a39286c7ec127974ab885abc55803f59, type: 3}
+  - {fileID: -871733701, guid: 9c713ceb75d249846ac6ed8a644c3d96, type: 3}
   fps: 1
   loop: 1

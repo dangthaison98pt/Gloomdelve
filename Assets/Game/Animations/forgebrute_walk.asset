@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: forgebrute_walk
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: 5e0d3a3bd0e3491429d6fa3fc2bec537, type: 3}
-  - {fileID: 21300000, guid: 34ef5dff6007e564b90d2cda36ffc276, type: 3}
+  - {fileID: -688228331, guid: cc98d29adc3b45143b61d329453b722c, type: 3}
+  - {fileID: -740362475, guid: cc98d29adc3b45143b61d329453b722c, type: 3}
   fps: 4
   loop: 1

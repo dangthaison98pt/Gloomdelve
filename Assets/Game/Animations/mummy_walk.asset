@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: mummy_walk
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: 43fa4d8dfebbbe440a927c61e7536612, type: 3}
-  - {fileID: 21300000, guid: aa9b194feea149d438ba00799d7b6815, type: 3}
+  - {fileID: 299659373, guid: 3aa38b9f5706b9148b730f0d2c338b09, type: 3}
+  - {fileID: 1853565682, guid: 3aa38b9f5706b9148b730f0d2c338b09, type: 3}
   fps: 3
   loop: 1

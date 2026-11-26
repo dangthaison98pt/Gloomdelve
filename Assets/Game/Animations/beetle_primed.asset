@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: beetle_primed
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: 7cac87e39418c5d4cb53ad70d847a6a8, type: 3}
-  - {fileID: 21300000, guid: fd9a1dd27662cf7499a992589e08788c, type: 3}
+  - {fileID: -1661342226, guid: a881641751f84564e80e0f2d73f89377, type: 3}
+  - {fileID: -2130542053, guid: a881641751f84564e80e0f2d73f89377, type: 3}
   fps: 14
   loop: 1

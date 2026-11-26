@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: cfx_bite
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: b4f8ba09a7d5e9a41b75d674eab855b6, type: 3}
-  - {fileID: 21300000, guid: 165e9c57ba980a34ea5ec30d95518f55, type: 3}
-  - {fileID: 21300000, guid: ecde2435c6d297441aac13bd2dac7db7, type: 3}
-  - {fileID: 21300000, guid: 94908001817c5904cba806ffe19d433f, type: 3}
+  - {fileID: 604396671, guid: 7d8ddb307d45b57418395de2794eaf59, type: 3}
+  - {fileID: -706961522, guid: 7d8ddb307d45b57418395de2794eaf59, type: 3}
+  - {fileID: 811266826, guid: 7d8ddb307d45b57418395de2794eaf59, type: 3}
+  - {fileID: -558551376, guid: 7d8ddb307d45b57418395de2794eaf59, type: 3}
   fps: 13
   loop: 0

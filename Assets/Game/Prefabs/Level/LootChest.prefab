@@ -51,7 +51,7 @@ MonoBehaviour:
   maxHealth: 1
   flipWithFacing: 0
   artFacesLeft: 0
-  openSprite: {fileID: 21300000, guid: 50bb14b3ef843b74fb353f913994a9dc, type: 3}
+  openSprite: {fileID: 1335799357, guid: a61a23b86b302a340a3d01b069079bff, type: 3}
   bookIcon: {fileID: 0}
   hammerHeadIcon: {fileID: 0}
   itemCount: 3
@@ -173,7 +173,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 4
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: a1c549f41da98d04aaa184ae5bd9ad16, type: 3}
+  m_Sprite: {fileID: 139769886, guid: a61a23b86b302a340a3d01b069079bff, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

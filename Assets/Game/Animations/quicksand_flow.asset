@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: quicksand_flow
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: c0fd34d63fd805e42bc91ed9ff464d73, type: 3}
-  - {fileID: 21300000, guid: b15059765a1f234418d9d252c4f2b1a1, type: 3}
+  - {fileID: -1750058893, guid: 332a09da4bd1e684dbf564e366f38335, type: 3}
+  - {fileID: -1935071182, guid: 332a09da4bd1e684dbf564e366f38335, type: 3}
   fps: 1.6
   loop: 1

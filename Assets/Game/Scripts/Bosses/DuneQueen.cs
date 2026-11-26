@@ -74,9 +74,7 @@ namespace Gloomdelve
             if (sr == null) return;
             if (on && mask == null)
             {
-                if (maskSprite == null)
-                    maskSprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, Texture2D.whiteTexture.width, Texture2D.whiteTexture.height),
-                                               new Vector2(0.5f, 0f), Texture2D.whiteTexture.width);
+                if (maskSprite == null) maskSprite = World.config != null ? World.config.unitSquareFoot : null;
                 var go = new GameObject("DuneQueenFloorMask");
                 mask = go.AddComponent<SpriteMask>();
                 mask.sprite = maskSprite;

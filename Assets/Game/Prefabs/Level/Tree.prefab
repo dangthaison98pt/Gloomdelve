@@ -51,8 +51,8 @@ MonoBehaviour:
   flipWithFacing: 0
   artFacesLeft: 0
   variants:
-  - {fileID: 21300000, guid: 4fcd63a3a98b065459a52433aabfded0, type: 3}
-  - {fileID: 21300000, guid: a682f619659a45544bf6be00114e8503, type: 3}
+  - {fileID: -1680200750, guid: 74ef0b9494f919a439f8158daea09219, type: 3}
+  - {fileID: -254177314, guid: 74ef0b9494f919a439f8158daea09219, type: 3}
 --- !u!1 &5929378823295973502
 GameObject:
   m_ObjectHideFlags: 0
@@ -134,7 +134,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: -6
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 4fcd63a3a98b065459a52433aabfded0, type: 3}
+  m_Sprite: {fileID: -1680200750, guid: 74ef0b9494f919a439f8158daea09219, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: bat_fly
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: 57096cde6412e5341a015aa74dbd4db3, type: 3}
-  - {fileID: 21300000, guid: dcffe91edeb4de44f85f5aa473f21136, type: 3}
+  - {fileID: -1042687502, guid: 51239cc559162df4b911a28735e970ef, type: 3}
+  - {fileID: -1761921963, guid: 51239cc559162df4b911a28735e970ef, type: 3}
   fps: 10
   loop: 1

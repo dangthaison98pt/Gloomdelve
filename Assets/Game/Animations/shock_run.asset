@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: shock_run
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: 5ca4f2bad70774242801f5bd15efbca3, type: 3}
-  - {fileID: 21300000, guid: 70cc4a095187c1743a8b7242ce9632a7, type: 3}
+  - {fileID: -981242762, guid: 4f88300ac9798d84c9420c2b9cdae322, type: 3}
+  - {fileID: 22764594, guid: 4f88300ac9798d84c9420c2b9cdae322, type: 3}
   fps: 12
   loop: 1

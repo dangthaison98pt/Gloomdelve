@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: brute_dazed
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: bf84b0233eb625c4296fb0dca9f31f3f, type: 3}
+  - {fileID: 1986312055, guid: 8fd46c49f9d3d574a99da4e71a54b595, type: 3}
   fps: 1
   loop: 1

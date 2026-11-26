@@ -12,6 +12,8 @@ namespace Gloomdelve
         public GameObject recordsPanel;
         public SettingsPanel settingsPanel;
         public Button startButton, tutorialButton, settingsButton, recordsButton, quitButton;
+        [Tooltip("The Achievements screen and the button on the main list that opens it.")] public Button achievementsButton;
+        public AchievementsPanel achievementsPanel;
         public Button recordsBack;
         [Tooltip("Settings > Keys: the controls list, where keyboard keys can be changed.")] public KeyBindPanel keysPanel;
         public TMPro.TMP_Text recordsText;
@@ -53,8 +55,11 @@ namespace Gloomdelve
             UIUtil.Wire(tutorialButton, StartTutorial);
             UIUtil.Wire(settingsButton, () => Open(settingsPanel.gameObject, settingsPanel.First));
             UIUtil.Wire(recordsButton, () => { RefreshRecords(); Open(recordsPanel, recordsBack); });
+            if (achievementsPanel != null) achievementsPanel.onRecords = RefreshRecords;
             UIUtil.Wire(quitButton, GameDirector.QuitGame);
             UIUtil.Wire(recordsBack, ShowMain);
+            UIUtil.Wire(achievementsButton, OpenAchievements);
+            if (achievementsPanel != null) UIUtil.Wire(achievementsPanel.back, ShowMain);
             UIUtil.Wire(bossButton, OpenBossList);
             UIUtil.Wire(bossBack, ShowMain);
             if (bossButtons != null)
@@ -254,11 +259,19 @@ namespace Gloomdelve
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_boss.png"));
             Layout("challenge");
             yield return new WaitForSecondsRealtime(0.3f);
-            RefreshRecords(); Open(recordsPanel, recordsBack);
+            OpenAchievements();
             yield return new WaitForSecondsRealtime(0.3f);
-            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_records.png"));
-            Layout("records");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_achievements.png"));
+            Layout("achievements");
             yield return new WaitForSecondsRealtime(0.3f);
+            if (achievementsPanel != null)
+            {
+                achievementsPanel.ShowTab(true);
+                yield return new WaitForSecondsRealtime(0.3f);
+                ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_records.png"));
+                Layout("achievements: records tab");
+                yield return new WaitForSecondsRealtime(0.3f);
+            }
             RunSession.NewRun(1, true, config.player);
             SceneManager.LoadScene(GameConst.SceneGame);
         }
@@ -400,7 +413,8 @@ namespace Gloomdelve
         {
             mainPanel.SetActive(false);
             ShowTitle(false);
-            recordsPanel.SetActive(panel == recordsPanel);
+            if (recordsPanel != null) recordsPanel.SetActive(panel == recordsPanel);
+            if (achievementsPanel != null) achievementsPanel.gameObject.SetActive(panel == achievementsPanel.gameObject);
             if (slotPanel != null) slotPanel.SetActive(panel == slotPanel);
             if (bossPanel != null) bossPanel.SetActive(panel == bossPanel);
             settingsPanel.gameObject.SetActive(panel == settingsPanel.gameObject);
@@ -408,11 +422,19 @@ namespace Gloomdelve
             UIUtil.Select(first);
         }
 
+        public void OpenAchievements()
+        {
+            if (achievementsPanel == null) return;
+            achievementsPanel.ShowTab(false);
+            Open(achievementsPanel.gameObject, achievementsPanel.tabAchievements != null ? achievementsPanel.tabAchievements : achievementsPanel.back);
+        }
+
         void ShowMain()
         {
             mainPanel.SetActive(true);
             ShowTitle(true);
-            recordsPanel.SetActive(false);
+            if (recordsPanel != null) recordsPanel.SetActive(false);
+            if (achievementsPanel != null) achievementsPanel.gameObject.SetActive(false);
             if (slotPanel != null) slotPanel.SetActive(false);
             if (bossPanel != null) bossPanel.SetActive(false);
             settingsPanel.gameObject.SetActive(false);

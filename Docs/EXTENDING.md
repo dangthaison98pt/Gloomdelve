@@ -21,6 +21,22 @@ Tài liệu này chỉ ra **phải đụng vào đâu** khi thêm nội dung m�
 
 ---
 
+## 0. Hình và âm thanh là file asset
+
+Mọi hình (`Assets/Game/Art`) và âm thanh (`Assets/Game/Audio`) là **file asset**. Sửa bằng Aseprite, Photoshop, Audacity… rồi lưu đè là xong; Build Everything **không ghi đè** file đã có.
+
+- **Code vẽ (`ArtGenerator*`, `AudioGenerator`) chỉ tạo bản đầu tiên** khi file chưa có. Muốn làm lại một hình hay một tiếng từ code thì xoá file đó rồi chạy Build Everything.
+- **Viền trắng khi lại gần** (`*_hl`) là ngoại lệ duy nhất: mỗi lần build tự tính lại từ hình hiện tại, nên sửa hình thì viền theo.
+- **Giữ nguyên cỡ ảnh và chỗ đặt hình trong ảnh.** Điểm neo (pivot) tính theo tỉ lệ khung. Ảnh pixel: 16 px = 1 ô.
+- **Hình đi kèm nhau thì sửa đi kèm.** Mấy hình sau được cắt hoặc ghép từ hình khác lúc tạo bản đầu, nên sửa hình gốc thì nên sửa luôn:
+  - `room_7_out*` (nhà Brann tắt đèn) và viền `toy_hl_*` đi theo tranh phòng.
+  - `UI/ach_*` (ảnh thành tựu) đi theo hình ocarina.
+- **Animation là một file sprite sheet:** các khung của một animation nằm cạnh nhau trong `<tên>_sheet.png` (cách nhau 2 px, đứng trên mép dưới), ví dụ `Sprites/Enemies/bat_sheet.png` chứa `bat_0`, `bat_1`, `bat_2`. Unity tự cắt thành từng khung với tên và điểm neo cũ (`ArtSheets`, vị trí từng khung ghi trong `Art/sheets.json`).
+  - Sửa nét vẽ trong khung thì thoải mái, nhưng **đừng dời hay đổi cỡ khung**. Muốn đổi cỡ, xoá dòng của sheet đó trong `sheets.json` và xoá file sheet, rồi để build tạo lại.
+  - Thêm khung mới: đặt file rời `<tên>_<số>.png` cạnh sheet. Build tự gộp nó vào bên phải sheet, giữ nguyên các khung cũ.
+  - Không gom thành sheet: tile, font, hình nút, bầu trời, tranh phòng, mặt tiền nhà, chân dung dân làng (đó là bộ hình riêng lẻ, không phải animation).
+- **Hình vẽ lúc chạy:** chỉ còn bản đồ (vẽ theo đường người chơi đi) và hiệu ứng xoáy ở đoạn kết, vì đó là hình động thay đổi từng khung. Các hình phẳng trước đây tạo lúc chạy (dải tia sáng, hình tròn của tia, mặt nạ sàn Dune Queen) giờ là file `Art/Center/unit_*`.
+
 ## 1. Mẫu phòng – tool cho Game Designer
 
 Mở **Brindlemoor > Room Template Editor**. Tool đọc/ghi thẳng `Assets/Game/Data/RoomTemplates.txt` (file văn bản vẫn là nguồn duy nhất, sửa tay vẫn được).

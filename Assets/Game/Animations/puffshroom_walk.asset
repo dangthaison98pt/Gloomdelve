@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: puffshroom_walk
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: 45b405044d9b6134d9a2aa64e4cfd850, type: 3}
-  - {fileID: 21300000, guid: 699543da87c4dd243afcd5d1f83bce57, type: 3}
+  - {fileID: 1643878904, guid: 49c7228359dcbc9459d0187dd39e10e7, type: 3}
+  - {fileID: 512999970, guid: 49c7228359dcbc9459d0187dd39e10e7, type: 3}
   fps: 4
   loop: 1

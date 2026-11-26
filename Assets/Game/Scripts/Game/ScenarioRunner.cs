@@ -275,6 +275,9 @@ namespace Gloomdelve
             new Scenario { name = "room toys 2: bellows and anvil, globe and telescope, Pip's owl, clock and bird, Bera's lamps, the hall's candles, cup and banner, a nap in the bed at home, Tam's coil",
                 map = m => { Set(m, 3, 1, 'S'); for (int x = 4; x <= 20; x++) Set(m, x, 7, '#'); },
                 run = c => RoomToys2Case(c) },
+            new Scenario { name = "achievements: shaking the fir by the hall five times running drops the Blue Ocarina; picked up, it goes into KEY ITEMS and earns Ocarina of GOAT once, and the toast slides down",
+                map = m => { Set(m, 3, 1, 'S'); },
+                run = c => OcarinaCase(c) },
             new Scenario { name = "ladder grab: standing at a ladder, up climbs it; after a word with a keeper, up still climbs it",
                 map = m => { Set(m, 3, 1, 'S'); for (int y = 1; y <= 7; y++) Set(m, 10, y, 'H'); },
                 run = c => LadderGrabCase(c) },
@@ -4422,6 +4425,64 @@ namespace Gloomdelve
             Villagers.testRescued = null;
             c.dir.cameraFollow.SetBounds(new Rect(0, 0, c.world.Grid.Width, c.world.Grid.Height));
             yield return c.Frames(4);
+        }
+
+        static IEnumerator OcarinaCase(Ctx c)
+        {
+            c.p.godMode = true;
+            Achievements.ResetTestState();
+            Villagers.testRescued = new HashSet<string>();          // (the keys of a save, kept in memory for the test)
+            Villagers.ResetTestState();
+            var tree = c.Spawn<ShakeTree>("shaketree", 8, 1);
+            yield return c.Frames(4);
+            if (tree == null) { c.Expect(false, "the fir is there"); yield break; }
+            c.Teleport(8.5f, 1f);
+            yield return c.Frames(20);
+            c.Expect(tree.glow != null && tree.glow.enabled && tree.GetPrompt(c.p).Contains("Shake"), "by the tree: outlined, it offers a shake");
+            // shakes with a long breath between them do not count as running
+            tree.Interact(c.p);
+            yield return c.Frames(100);
+            tree.Interact(c.p);
+            c.Expect(tree.ShakesInARow == 1, $"a shake after a long pause starts the count again ({tree.ShakesInARow})");
+            yield return c.Frames(100);
+            for (int i = 0; i < 4; i++) { tree.Interact(c.p); yield return c.Frames(12); }
+            c.Expect(!tree.Dropped && tree.ShakesInARow == 4, "four shakes running: nothing yet");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "ocarina_tree.png"));
+            tree.Interact(c.p);
+            c.Expect(tree.Dropped, "the fifth: something falls out of it");
+            yield return c.Frames(3);
+            c.Expect(tree.GetPrompt(c.p) == null && !tree.glow.enabled, "after that the fir is only a fir: no prompt, no outline");
+            OcarinaPickup oc = null;
+            for (int i = 0; i < 120; i++) { yield return c.Frames(1); foreach (var e in c.world.Entities) if (e is OcarinaPickup o && !o.Dead) oc = o; if (oc != null && oc.grounded) break; }
+            c.Expect(oc != null && oc.grounded, "the Blue Ocarina lies in the snow");
+            if (oc == null) yield break;
+            c.Teleport(oc.pos.x, 1f);
+            yield return c.Frames(25);
+            c.Expect(oc.glow != null && oc.glow.enabled && oc.GetPrompt(c.p).Contains("Pick up"), "standing by it: outlined, it can be picked up");
+            c.Expect(!Achievements.IsEarned(Achievements.OcarinaOfGoat), "not earned before it is picked up");
+            oc.Interact(c.p);
+            yield return c.Frames(20);
+            c.Expect(oc.Held && c.p.restingIn == oc, "held up over the head while it plays");
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "ocarina_held.png"));
+            for (int i = 0; i < 200 && !oc.Dead; i++) yield return c.Frames(1);
+            yield return c.Frames(10);
+            var toast = AchievementToast.Instance;
+            c.Expect(Achievements.IsEarned(Achievements.OcarinaOfGoat) && c.p.restingIn == null, "picked up: Ocarina of GOAT is earned, and the player is free again");
+            c.Expect(Villagers.HasKey(Villagers.KeyOcarina), "the Blue Ocarina is in the bag, among the key items");
+            c.Expect(toast != null && toast.Showing && toast.ShowingTitle == "Ocarina of GOAT", "the toast slides down with its name");
+            yield return new WaitForSecondsRealtime(0.5f);
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "achievement_toast.png"));
+            c.Expect(!Achievements.Unlock(Achievements.OcarinaOfGoat), "earned once: a second time changes nothing");
+            var again = c.Spawn<ShakeTree>("shaketree", 14, 1);
+            yield return c.Frames(4);
+            c.Expect(again != null && again.GetPrompt(c.p) == null, "with the ocarina in the bag, the fir cannot be shaken again (a later visit)");
+            if (again != null) again.Despawn();
+            yield return new WaitForSecondsRealtime(4.5f);
+            c.Expect(toast != null && !toast.Showing, "and slides away again");
+            tree.Despawn();
+            Achievements.ResetTestState();
+            Villagers.ResetTestState();
+            Villagers.testRescued = null;
         }
 
         static IEnumerator LadderGrabCase(Ctx c)

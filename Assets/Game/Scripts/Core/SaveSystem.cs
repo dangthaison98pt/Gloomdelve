@@ -189,6 +189,8 @@ namespace Gloomdelve
         static string RecordsPath => SlotPath(Slot);
         static string ChallengePath => Path.Combine(Dir, "challenge.json");
         static string TotalsPath => Path.Combine(Dir, "totals.json");
+        /// <summary>A file of the player's own beside the saves (not one save's: achievements.json).</summary>
+        public static string FileInSaveDir(string name) => Path.Combine(Dir, name);
 
         public static bool SlotUsed(int i) => i >= 0 && i < SlotCount && File.Exists(SlotPath(i));
 

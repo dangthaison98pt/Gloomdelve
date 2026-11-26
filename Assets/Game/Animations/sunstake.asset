@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: sunstake
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: 723534a1af823b0419399d393b631b4a, type: 3}
-  - {fileID: 21300000, guid: a0cb004155f25654094371632e065611, type: 3}
+  - {fileID: -1221290672, guid: 57c62bc7fa60180488f2a22e2c2cfebc, type: 3}
+  - {fileID: -635539927, guid: 57c62bc7fa60180488f2a22e2c2cfebc, type: 3}
   fps: 6
   loop: 1

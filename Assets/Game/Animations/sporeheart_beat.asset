@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: sporeheart_beat
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: 5e25723e22a0f9b439efe824e789fb9f, type: 3}
-  - {fileID: 21300000, guid: fbc25944f3e775f4ab13dd18abcc64db, type: 3}
+  - {fileID: -903838468, guid: 5c0bc17787fbb904f8296bfcc9cbac52, type: 3}
+  - {fileID: -207550735, guid: 5c0bc17787fbb904f8296bfcc9cbac52, type: 3}
   fps: 2.4
   loop: 1

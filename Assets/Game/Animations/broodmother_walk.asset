@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: broodmother_walk
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: 868cdc74acfc18a4698ca0f9f617e873, type: 3}
-  - {fileID: 21300000, guid: fd720d97fa68d29499301b6cfa5a4d99, type: 3}
-  - {fileID: 21300000, guid: 36dbae0e8f62e5a40b8c5c3df299d19d, type: 3}
-  - {fileID: 21300000, guid: 37461fb26dba87a448ab37d1b0d09dec, type: 3}
+  - {fileID: 2031145807, guid: 2854b7848cde2754888bbc7fb1ebe9c8, type: 3}
+  - {fileID: -1888531602, guid: 2854b7848cde2754888bbc7fb1ebe9c8, type: 3}
+  - {fileID: -1431462357, guid: 2854b7848cde2754888bbc7fb1ebe9c8, type: 3}
+  - {fileID: -1789757082, guid: 2854b7848cde2754888bbc7fb1ebe9c8, type: 3}
   fps: 10
   loop: 1

@@ -55,9 +55,9 @@ MonoBehaviour:
   upTime: 0.7
   damage: 2
   frames:
-  - {fileID: 21300000, guid: 43355abacb5436148bfdcce326684715, type: 3}
-  - {fileID: 21300000, guid: a0afd2d7ac0972743a9cac614121557b, type: 3}
-  - {fileID: 21300000, guid: f9d1f0289c299c34296f3aca248445f9, type: 3}
+  - {fileID: 124798817, guid: 5d108af35a2546747b37bede1070b932, type: 3}
+  - {fileID: -612103436, guid: 5d108af35a2546747b37bede1070b932, type: 3}
+  - {fileID: -2146179192, guid: 5d108af35a2546747b37bede1070b932, type: 3}
 --- !u!1 &5813084455756378922
 GameObject:
   m_ObjectHideFlags: 0
@@ -139,7 +139,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 6
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 43355abacb5436148bfdcce326684715, type: 3}
+  m_Sprite: {fileID: 124798817, guid: 5d108af35a2546747b37bede1070b932, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

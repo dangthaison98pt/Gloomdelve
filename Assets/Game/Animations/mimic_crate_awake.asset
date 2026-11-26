@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: mimic_crate_awake
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: 9f73e7b617fb38b40a32a183ce8cc3c1, type: 3}
-  - {fileID: 21300000, guid: fe4534d76c9f08046afed7a5d330960e, type: 3}
+  - {fileID: -1276881852, guid: 02fdb64173021a64da70c66b62e637e3, type: 3}
+  - {fileID: 1146382575, guid: 02fdb64173021a64da70c66b62e637e3, type: 3}
   fps: 7
   loop: 1

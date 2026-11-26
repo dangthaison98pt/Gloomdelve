@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: snake_walk
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: d81852a24d4d80643bb03817130aa0ed, type: 3}
-  - {fileID: 21300000, guid: 6c63a1711282f4c49bf918654a3303b7, type: 3}
+  - {fileID: -1561589248, guid: 091b606827ca6d4498d0abc079219e47, type: 3}
+  - {fileID: 330157516, guid: 091b606827ca6d4498d0abc079219e47, type: 3}
   fps: 4
   loop: 1

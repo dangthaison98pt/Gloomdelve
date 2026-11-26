@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: keeper_angry
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: 6a887c1ed5160574ebebb1f099e15542, type: 3}
-  - {fileID: 21300000, guid: 74b113c3415d7504eb1d22f62c287950, type: 3}
+  - {fileID: 759712893, guid: 6e8e509befd691c4a8e4aa9b40f9b0bf, type: 3}
+  - {fileID: -1806217626, guid: 6e8e509befd691c4a8e4aa9b40f9b0bf, type: 3}
   fps: 6
   loop: 1

@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: yetiking_slide
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: 1d031bf6ae672f94ab6a263c244b048d, type: 3}
+  - {fileID: -1044631618, guid: c8efa73c8fa5a6d4c9aeb4cc03f7dd96, type: 3}
   fps: 1
   loop: 1

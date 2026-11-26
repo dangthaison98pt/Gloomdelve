@@ -60,8 +60,8 @@ MonoBehaviour:
   goldChance: 0.8
   heartDropChance: 0
   frames:
-  - {fileID: 21300000, guid: d43d2eee4a56f714ba054ca5110fded7, type: 3}
-  - {fileID: 21300000, guid: 574e45dd84942554f8e7bd414bc3d06e, type: 3}
+  - {fileID: -969762708, guid: bfb0b0a2321a1044fbba717ac0f111b3, type: 3}
+  - {fileID: 1900736252, guid: bfb0b0a2321a1044fbba717ac0f111b3, type: 3}
 --- !u!114 &8254297069048701113
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -162,7 +162,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 15
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: d43d2eee4a56f714ba054ca5110fded7, type: 3}
+  m_Sprite: {fileID: -969762708, guid: bfb0b0a2321a1044fbba717ac0f111b3, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

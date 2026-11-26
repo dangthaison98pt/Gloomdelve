@@ -81,7 +81,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 4
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: b7de685da1fa0ea48b1f076f3c5ec710, type: 3}
+  m_Sprite: {fileID: -1842288695, guid: 9f906738e0324d5458c2dfc971290615, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -145,8 +145,8 @@ MonoBehaviour:
   bounce: 22
   bounceHeld: 25.5
   minFallSpeed: 2
-  restSprite: {fileID: 21300000, guid: b7de685da1fa0ea48b1f076f3c5ec710, type: 3}
-  squashSprite: {fileID: 21300000, guid: ee2353fb9dc435341a5bc766c02ae080, type: 3}
+  restSprite: {fileID: -1842288695, guid: 9f906738e0324d5458c2dfc971290615, type: 3}
+  squashSprite: {fileID: 1336729934, guid: 9f906738e0324d5458c2dfc971290615, type: 3}
   sporeColor: {r: 0.45, g: 1, b: 0.85, a: 1}
 --- !u!114 &8274218066071500597
 MonoBehaviour:

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: emberbat_fly
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: 7e0afc0fa2b9cdb4384946c0962aab06, type: 3}
-  - {fileID: 21300000, guid: a7740d0cc4e3d664d8a2e44d4e49ffa1, type: 3}
+  - {fileID: -527428770, guid: 5057f489aa1723e44a807c217239f10e, type: 3}
+  - {fileID: 2028700023, guid: 5057f489aa1723e44a807c217239f10e, type: 3}
   fps: 12
   loop: 1

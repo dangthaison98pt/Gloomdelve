@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: sentry_walk
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: 06f7687a769ef31418c345a02873106f, type: 3}
-  - {fileID: 21300000, guid: aa7b0eb8f2a592744a108da1a3393ac1, type: 3}
+  - {fileID: -1425335725, guid: 1caa9d91378c4004eb7b9d5cef156174, type: 3}
+  - {fileID: 2063513977, guid: 1caa9d91378c4004eb7b9d5cef156174, type: 3}
   fps: 4
   loop: 1

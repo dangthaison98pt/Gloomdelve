@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: gearwyrm_idle
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: 65d67a2f0a3ee9a44a6d080d42752fe3, type: 3}
+  - {fileID: -254213174, guid: 8e19b6d9abbb73a4ea066f8433b7d613, type: 3}
   fps: 1
   loop: 1

@@ -114,6 +114,7 @@ namespace Gloomdelve
                         case 'E': d.spawns.Add(new SpawnPoint("cratestack", cell)); break;
                         case 'y': d.spawns.Add(new SpawnPoint("firsmall", cell)); break;           // a young fir, undressed
                         case 'O': d.spawns.Add(new SpawnPoint("baretree", cell)); break;           // a bare tree under snow
+                        case 'P': d.spawns.Add(new SpawnPoint("shaketree", cell)); break;          // a fir like the others, by the village hall: it can be shaken (ShakeTree)
                         case 'z': d.spawns.Add(new SpawnPoint("snowbush", cell)); break;
                         case '&': d.spawns.Add(new SpawnPoint("codexchest", cell, 0, 0, Codex.Key)); break;      // the chest that holds the Field Guide (end of the tutorial)
                         case 'd': d.spawns.Add(new SpawnPoint("kennel", cell)); break;             // the kennel (it keeps the village dog)

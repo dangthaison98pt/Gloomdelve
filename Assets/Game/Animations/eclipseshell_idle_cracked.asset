@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: eclipseshell_idle_cracked
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: 0be861ce7db499743b3b89fa3822acc0, type: 3}
+  - {fileID: -434861925, guid: 490a1ba13356c2545ad4cca3f242e76d, type: 3}
   fps: 1
   loop: 1

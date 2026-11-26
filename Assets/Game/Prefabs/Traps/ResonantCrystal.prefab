@@ -81,7 +81,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 7
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 7035102fd1baf734d94e90bcce93f2f7, type: 3}
+  m_Sprite: {fileID: 1108692642, guid: 0af1d082f3b90474e9cbcf550be99b17, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -147,9 +147,9 @@ MonoBehaviour:
   shardId: crystalshard
   shardSpeed: 9
   frames:
-  - {fileID: 21300000, guid: 7035102fd1baf734d94e90bcce93f2f7, type: 3}
-  - {fileID: 21300000, guid: 328c4fd8df57ee44089f067843d9894a, type: 3}
-  - {fileID: 21300000, guid: 9e067b6e712ef7246987de377ec1b67c, type: 3}
+  - {fileID: 1108692642, guid: 0af1d082f3b90474e9cbcf550be99b17, type: 3}
+  - {fileID: 1421191613, guid: 0af1d082f3b90474e9cbcf550be99b17, type: 3}
+  - {fileID: -1807977850, guid: 0af1d082f3b90474e9cbcf550be99b17, type: 3}
 --- !u!114 &8881316619649779165
 MonoBehaviour:
   m_ObjectHideFlags: 0

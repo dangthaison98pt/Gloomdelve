@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: warden_float
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: 11a73ad194315fa4ea31f1c5709f71d9, type: 3}
-  - {fileID: 21300000, guid: 81433baa028163b4c8a91e4c7d3e1449, type: 3}
+  - {fileID: -1290951254, guid: ae4cb89bb39175b4b82ce67c31127729, type: 3}
+  - {fileID: -425697610, guid: ae4cb89bb39175b4b82ce67c31127729, type: 3}
   fps: 3
   loop: 1

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: player_stunned
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: cb9e038c7a34f7a4a8bad51e5ce1fb64, type: 3}
-  - {fileID: 21300000, guid: 254cbee9926b0424d9d7ae0c8badcb84, type: 3}
+  - {fileID: -1581350334, guid: 252e0c4d357f5e843b20ca45de697411, type: 3}
+  - {fileID: -1921082046, guid: 252e0c4d357f5e843b20ca45de697411, type: 3}
   fps: 6
   loop: 1

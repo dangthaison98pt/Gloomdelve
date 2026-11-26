@@ -313,6 +313,24 @@ MonoBehaviour:
     volume: 0.8
     pitchJitter: 0.06
     minInterval: 0.03
+  - id: rustle
+    clips:
+    - {fileID: 8300000, guid: 6c7ed6707d6a3fa42aeb1ea34166b5b7, type: 3}
+    volume: 0.8
+    pitchJitter: 0.06
+    minInterval: 0.03
+  - id: ocarina
+    clips:
+    - {fileID: 8300000, guid: 65278e0a4c45fdf46a7f3e2aa5c5430c, type: 3}
+    volume: 0.8
+    pitchJitter: 0.06
+    minInterval: 0.03
+  - id: achievement
+    clips:
+    - {fileID: 8300000, guid: 72a6fbaa3df9ab9479f030cebf0e2537, type: 3}
+    volume: 0.8
+    pitchJitter: 0.06
+    minInterval: 0.03
   - id: pot_break
     clips:
     - {fileID: 8300000, guid: 0b28b56f3740f83468165074586aaeb2, type: 3}

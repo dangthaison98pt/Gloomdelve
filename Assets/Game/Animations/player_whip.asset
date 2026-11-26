@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: player_whip
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: bd3c254e07858484fb5a5a4f397b90d3, type: 3}
-  - {fileID: 21300000, guid: 98c99d2ba5131064ba8fbac26c72a023, type: 3}
+  - {fileID: -1048936682, guid: 4a9a56b4331f8c7449cc227bf99ca058, type: 3}
+  - {fileID: 1195912207, guid: 4a9a56b4331f8c7449cc227bf99ca058, type: 3}
   fps: 10
   loop: 0

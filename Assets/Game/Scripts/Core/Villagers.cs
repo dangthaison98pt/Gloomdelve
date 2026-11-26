@@ -38,6 +38,8 @@ namespace Gloomdelve
         public const string KeyPouch = "pouch";
         /// <summary>Oswin's lost letter (a key item, kept for good): the level that holds a caged villager says so, and the map marks the cage.</summary>
         public const string KeyLetter = "lostletter";
+        /// <summary>The Blue Ocarina, shaken out of the fir by the hall (ShakeTree): kept in KEY ITEMS, it can be played.</summary>
+        public const string KeyOcarina = "ocarina";
         /// <summary>How many embers the pouch holds when the elder first hands it over. His errands make it larger (ExpandPouch).</summary>
         public const int PouchStartCapacity = 5;
 

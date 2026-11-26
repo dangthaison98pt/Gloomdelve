@@ -32,7 +32,7 @@ namespace Gloomdelve
         public Image[] tabFrames;
         [Tooltip("Picture of the Ember Pouch (KEY ITEMS tab).")] public Sprite pouchIcon;
         [Tooltip("Picture of the Field Guide (KEY ITEMS tab): confirm opens it.")] public Sprite bookIcon;
-        [Tooltip("Picture of the blueprints bought from the villagers (KEY ITEMS tab).")] public Sprite planIcon;
+        [Tooltip("Picture of the Blue Ocarina (KEY ITEMS tab): confirm plays it.")] public Sprite ocarinaIcon;
         public PlayerInputReader input;
         public GameDirector director;
         public int columns = 7;
@@ -266,29 +266,16 @@ namespace Gloomdelve
                         desc = "Oswin's letter from the ones who went up before you. A level that holds a caged villager tells you so as you enter, and your map marks the cage. It is never lost.",
                     });
                 }
-                // the blueprints bought from the villagers: what the shops on the mountain carry because of them
-                {
-                    var shopCfg = director != null && director.config != null ? director.config.shop : null;
-                    var names = new List<string>();
-                    Sprite firstIcon = null;
-                    foreach (var id in Blueprints.VillageWares)
-                        if (Blueprints.Known(id))
-                        {
-                            var o = shopCfg != null ? shopCfg.Find(id) : null;
-                            names.Add(o != null ? o.displayName : id);
-                            if (firstIcon == null && o != null) firstIcon = o.icon;
-                        }
-                    if (names.Count > 0)
+                // the Blue Ocarina, shaken out of the fir by the hall: kept for good, and it can be played
+                if (Villagers.HasKey(Villagers.KeyOcarina))
+                    entries.Add(new Entry
                     {
-                        names.Sort(System.StringComparer.Ordinal);
-                        entries.Add(new Entry
-                        {
-                            icon = planIcon != null ? planIcon : firstIcon, under = names.Count + " / " + Blueprints.VillageWares.Count, marked = false,
-                            name = "Blueprints",
-                            desc = "The shops on the mountain carry these, bought from the villagers: " + string.Join(", ", names) + ". The rest of their wares are not seen up there until you buy how they are made.",
-                        });
-                    }
-                }
+                        icon = ocarinaIcon, under = "Play", marked = false,
+                        name = "Blue Ocarina",
+                        desc = "A little blue ocarina, shaken out of the fir by the village hall. It plays a tune nobody taught you. It is never lost.",
+                        act = "Play",
+                        run = () => Sfx.PlayUI("ocarina", 0.9f),
+                    });
                 // the story's things (Story): the copy of the old signs, and the parts of the hammer this run has found
                 var gcfg = director != null ? director.config : null;
                 if (Story.HasRubbing)

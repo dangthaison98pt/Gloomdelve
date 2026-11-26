@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: cfx_buck
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: 356731938f8835b488c6d89991e6d1b0, type: 3}
-  - {fileID: 21300000, guid: d76e312145bcfb44b8bb8055f6c480de, type: 3}
-  - {fileID: 21300000, guid: 1a6f76bdac9249341a32e9dfc3756c35, type: 3}
-  - {fileID: 21300000, guid: 7611c0b3aa7efe84cb0d6d5492e68fdf, type: 3}
+  - {fileID: -263966323, guid: c057be657fbae1949b55ff792847afa3, type: 3}
+  - {fileID: 1946830349, guid: c057be657fbae1949b55ff792847afa3, type: 3}
+  - {fileID: -1257823460, guid: c057be657fbae1949b55ff792847afa3, type: 3}
+  - {fileID: -2101221678, guid: c057be657fbae1949b55ff792847afa3, type: 3}
   fps: 13
   loop: 0

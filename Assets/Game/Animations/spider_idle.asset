@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: spider_idle
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: 39c8294a5e1be8446996bb7b4805cced, type: 3}
+  - {fileID: 534498768, guid: b09f7c6f89e95564d9408ba4202fc54d, type: 3}
   fps: 1
   loop: 1

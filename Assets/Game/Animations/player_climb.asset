@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: player_climb
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: df764490ede76c24085933f4d099996b, type: 3}
-  - {fileID: 21300000, guid: df1c1bbac08e92e4594c8015813070ad, type: 3}
+  - {fileID: 85749322, guid: 6e6c043fe7902df429b04ad50bb009c9, type: 3}
+  - {fileID: 298493585, guid: 6e6c043fe7902df429b04ad50bb009c9, type: 3}
   fps: 8
   loop: 1

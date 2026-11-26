@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: player_run
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: 7e8dd4a6714e44c459efa3aa283522dd, type: 3}
-  - {fileID: 21300000, guid: c6dda87f502a9204aa6c1babb00fd3f8, type: 3}
-  - {fileID: 21300000, guid: 545c114b42a5fb7488cacaf16cb9d3d5, type: 3}
-  - {fileID: 21300000, guid: 39ea0e82b9fa751439277fc80338685e, type: 3}
+  - {fileID: 592797535, guid: 0ab34596cc99f3640b69a77082b8402a, type: 3}
+  - {fileID: 1494385324, guid: 0ab34596cc99f3640b69a77082b8402a, type: 3}
+  - {fileID: 698533558, guid: 0ab34596cc99f3640b69a77082b8402a, type: 3}
+  - {fileID: 533892638, guid: 0ab34596cc99f3640b69a77082b8402a, type: 3}
   fps: 12
   loop: 1

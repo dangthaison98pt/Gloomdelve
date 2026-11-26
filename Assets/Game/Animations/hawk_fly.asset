@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: hawk_fly
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: a679ac238a4cda445a4d284319f28647, type: 3}
-  - {fileID: 21300000, guid: b17d38f43b483154bb9256207d92dd65, type: 3}
+  - {fileID: -1728736255, guid: 3bbdaf5324658ce4e9e3f319ebc41944, type: 3}
+  - {fileID: 1587540657, guid: 3bbdaf5324658ce4e9e3f319ebc41944, type: 3}
   fps: 7
   loop: 1

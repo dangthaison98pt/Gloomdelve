@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: cfx_frost
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: 28806e4fc8b62204b97559b4605addae, type: 3}
-  - {fileID: 21300000, guid: a1fc0209f08494841993749b9e063b5e, type: 3}
-  - {fileID: 21300000, guid: 8d17fc1af7216c44f8f4040b6d60620b, type: 3}
-  - {fileID: 21300000, guid: caec267b2ef5c514ba2f1520dd6da29f, type: 3}
+  - {fileID: 151172229, guid: 4c1a44c0771de3f4cab2574d99e698e7, type: 3}
+  - {fileID: 1154243414, guid: 4c1a44c0771de3f4cab2574d99e698e7, type: 3}
+  - {fileID: 1700136614, guid: 4c1a44c0771de3f4cab2574d99e698e7, type: 3}
+  - {fileID: 82666076, guid: 4c1a44c0771de3f4cab2574d99e698e7, type: 3}
   fps: 13
   loop: 0

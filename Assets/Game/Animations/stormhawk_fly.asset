@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: stormhawk_fly
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: d78ff103c6e2255439d58b2785fd2066, type: 3}
-  - {fileID: 21300000, guid: af2eb4452355d28419de691bb985d370, type: 3}
+  - {fileID: 860424853, guid: e3e7420b24beede4391bc0670a2824ac, type: 3}
+  - {fileID: 182292176, guid: e3e7420b24beede4391bc0670a2824ac, type: 3}
   fps: 6
   loop: 1

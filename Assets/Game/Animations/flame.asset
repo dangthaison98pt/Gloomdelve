@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: flame
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: 7eadd5708795c914abcf58b9ababae2f, type: 3}
-  - {fileID: 21300000, guid: 678b98b06e8f6724d8cf86f5ce62b1d3, type: 3}
-  - {fileID: 21300000, guid: af7d268635afed5409931078974ac886, type: 3}
+  - {fileID: -1820306839, guid: 7d45c6095a1f5fc4e9b89c40301c4cd5, type: 3}
+  - {fileID: -1368145022, guid: 7d45c6095a1f5fc4e9b89c40301c4cd5, type: 3}
+  - {fileID: 1576306760, guid: 7d45c6095a1f5fc4e9b89c40301c4cd5, type: 3}
   fps: 14
   loop: 1

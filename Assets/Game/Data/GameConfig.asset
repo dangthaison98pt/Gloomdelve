@@ -17,6 +17,9 @@ MonoBehaviour:
   prefabs: {fileID: 11400000, guid: 7e67c5d380b678b4f903ea3b7d562ead, type: 2}
   quests: {fileID: 11400000, guid: 459b75a3ffc86c141b38fb0df0013cba, type: 2}
   emberPouchIcon: {fileID: 21300000, guid: 106c5584ad59d184c8e1712592801768, type: 3}
+  unitSquare: {fileID: 21300000, guid: 02877d16b1a5cde4897df74f39a52deb, type: 3}
+  unitSquareFoot: {fileID: 21300000, guid: 6466147abe559cb4d9d5d62234ca0fdf, type: 3}
+  unitDisc: {fileID: 21300000, guid: 8b85c7e3bc091234d88ce304067a3bb5, type: 3}
   sfx: {fileID: 11400000, guid: 032aa30e6ccab44418d28b5577fcd123, type: 2}
   equipment:
   - {fileID: 11400000, guid: 71cc6d1f52344b1478385f8e19f7a975, type: 2}

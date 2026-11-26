@@ -365,11 +365,11 @@ MonoBehaviour:
   gliderRenderer: {fileID: 8972387895506399046}
   wispRenderer: {fileID: 3805455543446058249}
   wispFrames:
-  - {fileID: 21300000, guid: 537975bda526d634cb3336bd9f1b3d43, type: 3}
-  - {fileID: 21300000, guid: 5af9416ffca9f644b9d9166fc95da5ed, type: 3}
-  - {fileID: 21300000, guid: 0fbd41c5c1be5d44b9f22cd5e1c92f00, type: 3}
-  - {fileID: 21300000, guid: 9a6258b5e5a782944b27b8abe01ff5c4, type: 3}
-  - {fileID: 21300000, guid: 29a46bf70408ce24fbf3975aeebd65a4, type: 3}
+  - {fileID: 2075172389, guid: d6bf4eef4dc3d4b40827acafde478721, type: 3}
+  - {fileID: 1942454765, guid: d6bf4eef4dc3d4b40827acafde478721, type: 3}
+  - {fileID: 1972722569, guid: d6bf4eef4dc3d4b40827acafde478721, type: 3}
+  - {fileID: -987334964, guid: d6bf4eef4dc3d4b40827acafde478721, type: 3}
+  - {fileID: 1781259646, guid: d6bf4eef4dc3d4b40827acafde478721, type: 3}
   whipBackSprite: {fileID: 21300000, guid: 68efaf0e092247b46bf6b4c4a8617735, type: 3}
   whipFrontSprite: {fileID: 21300000, guid: 705f00e6d379b5f4685d35f5d2ae03fd, type: 3}
 --- !u!1 &6468082832840438109
@@ -454,7 +454,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 20
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 1a8c3ef765394064788d300cee24e0a9, type: 3}
+  m_Sprite: {fileID: 1972422247, guid: ae57a3ef759ebab4db39205072a86d83, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: eclipseshell_ignite
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: b543290f6ec17df40a8d90b9bd907753, type: 3}
-  - {fileID: 21300000, guid: 5fc8e1c1b279df942b32973b464e1241, type: 3}
-  - {fileID: 21300000, guid: d995bfa266880b142a4558ead30ab06c, type: 3}
+  - {fileID: -1312474512, guid: 564100ef6cce2b746b4733c8e4c836eb, type: 3}
+  - {fileID: -11934720, guid: 564100ef6cce2b746b4733c8e4c836eb, type: 3}
+  - {fileID: -1677049140, guid: 564100ef6cce2b746b4733c8e4c836eb, type: 3}
   fps: 5
   loop: 0

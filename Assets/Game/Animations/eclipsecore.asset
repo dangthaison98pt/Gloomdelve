@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: eclipsecore
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: c9eb1cc40a0761d49a5a1d6ce2f3e9a9, type: 3}
-  - {fileID: 21300000, guid: e4021fd6504b60144a5d69782b44c843, type: 3}
+  - {fileID: 1756127410, guid: 579414508cb388b4b8a4fbccb3b68396, type: 3}
+  - {fileID: -981261826, guid: 579414508cb388b4b8a4fbccb3b68396, type: 3}
   fps: 6
   loop: 1

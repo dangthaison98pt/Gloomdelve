@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: shardlet_walk
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: 6604cd8b858b1a740b389a934dc5b102, type: 3}
-  - {fileID: 21300000, guid: 55e882fc98701324b8b8c9d97d42c7ca, type: 3}
+  - {fileID: 1354823733, guid: b91fa564893946146891c327bf8255a8, type: 3}
+  - {fileID: -211502508, guid: b91fa564893946146891c327bf8255a8, type: 3}
   fps: 9
   loop: 1

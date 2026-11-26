@@ -59,9 +59,11 @@ namespace Gloomdelve.EditorTools
             }
         }
 
+        /// <summary>A sound that is there already is an asset of its own: it is kept (delete it to have it made again from here).</summary>
         static void WriteWav(string rel, float[] data, float gain = 1f)
         {
             string path = Path.Combine(Directory.GetCurrentDirectory(), Root + rel + ".wav");
+            if (File.Exists(path)) return;
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             float peak = 0.0001f;
             foreach (var v in data) peak = Mathf.Max(peak, Mathf.Abs(v));
@@ -143,6 +145,10 @@ namespace Gloomdelve.EditorTools
             Sfx("chirp", 0.2f, b => { Tone(b, 0, 0.06f, 2400, 3200, Sin, 0.4f); Tone(b, 0.09f, 0.07f, 2600, 3500, Sin, 0.4f); }, 0.45f);
             Sfx("gulp", 0.32f, b => { Tone(b, 0, 0.12f, 190, 120, Sin, 0.7f); Tone(b, 0.18f, 0.12f, 170, 105, Sin, 0.6f); }, 0.6f);
             Sfx("tick", 0.04f, b => { Tone(b, 0, 0.02f, 3000, 2800, p => Sq(p), 0.3f); NoiseBurst(b, 0, 0.012f, 0.3f, 0.9f, 0.8f); }, 0.4f);
+            Sfx("rustle", 0.45f, b => { for (int i = 0; i < 5; i++) NoiseBurst(b, i * 0.06f, 0.12f, 0.5f, 0.5f, 0.25f, 1.2f); }, 0.5f);
+            // the Blue Ocarina's own little tune (written for this game): soft, breathy, a rise and a turn
+            Sfx("ocarina", 1.7f, b => { int[] n = { 3, 7, 10, 8, 15 }; float[] st = { 0f, 0.22f, 0.44f, 0.7f, 0.95f }; for (int i = 0; i < n.Length; i++) { Tone(b, st[i], i == n.Length - 1 ? 0.7f : 0.3f, NoteHz(n[i] + 12), NoteHz(n[i] + 12), Sin, 0.5f, 0.04f, 0.012f, 5.5f); NoiseBurst(b, st[i], 0.05f, 0.05f, 0.9f, 0.8f); } }, 0.6f);
+            Sfx("achievement", 0.6f, b => { Tone(b, 0, 0.18f, NoteHz(15), NoteHz(15), Tri, 0.45f); Tone(b, 0.12f, 0.45f, NoteHz(22), NoteHz(22), Tri, 0.45f); Tone(b, 0.12f, 0.45f, NoteHz(27), NoteHz(27), Sin, 0.2f); }, 0.55f);
             Sfx("pot_break", 0.22f, b => { NoiseBurst(b, 0, 0.18f, 0.8f, 0.7f, 0.3f); for (int i = 0; i < 3; i++) Tone(b, 0.02f + i * 0.04f, 0.03f, 1800 - i * 300, 1500, Tri, 0.2f); });
             Sfx("crate_break", 0.25f, b => { NoiseBurst(b, 0, 0.2f, 0.8f, 0.4f, 0.1f); Tone(b, 0, 0.12f, 160, 90, Sin, 0.5f); });
 

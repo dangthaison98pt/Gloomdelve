@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: brute_charge
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: c862e07380a6c514a88c678b7e8d7398, type: 3}
+  - {fileID: -1671310227, guid: 8fd46c49f9d3d574a99da4e71a54b595, type: 3}
   fps: 1
   loop: 1

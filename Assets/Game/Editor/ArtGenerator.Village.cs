@@ -49,6 +49,7 @@ namespace Gloomdelve.EditorTools
             finally { roomLampsOut = false; }
             RoomToyArt(d);
             ReadableArt(d);
+            TreeAndOcarinaArt(d);
             {
                 // the dark that surrounds a room, hiding the rock the house is cut into: stretched to RoomPxW x RoomPxH
                 var p = new Px(4, 4);
@@ -468,6 +469,8 @@ namespace Gloomdelve.EditorTools
                 }
                 p.Rect(19, 56, 3, 3, C(255, 220, 120)); p.Set(20, 59, C(255, 244, 190)); p.Set(18, 57, C(255, 220, 120)); p.Set(22, 57, C(255, 220, 120));
                 Save(p, d + "fir_tree", new Vector2(0.5f, 0f));
+                var firNow = Current(p, d + "fir_tree");
+                Save(RingOf(Padded(firNow, 1)), d + "fir_tree_hl", new Vector2(0.5f, 1f / (firNow.h + 2f)));       // its outline (the one that can be shaken)
             }
             {
                 // a young fir nobody has dressed: snow on its boughs
@@ -1475,6 +1478,69 @@ namespace Gloomdelve.EditorTools
             Save(RingOf(mask), path, PCenter);
         }
 
+        /// <summary>
+        /// The Blue Ocarina that falls out of the shaken fir, and the pictures of the achievement it earns (with the
+        /// lock the list shows over one not earned, and the tile of a secret one).
+        /// </summary>
+        static void TreeAndOcarinaArt(string d)
+        {
+            // a chunky pixel ocarina: the mouthpiece standing up at the left, a plump body lying along with its tail
+            // tapering to the right, holes in two staggered rows, pale glaze across the top (no band on the mouthpiece)
+            Px Ocarina()
+            {
+                string[] rows =
+                {
+                    "...mbd............",
+                    "...mbd............",
+                    "...mbd............",
+                    "..lmbbdd..........",
+                    ".lwwllbbbbdd......",
+                    "bbbbbllllbbbbdd...",
+                    "bbbkbbbbkbbbbbkbd.",
+                    "bbbbbbkbbbbkbbbbbd",
+                    "dbbbbbbbbbbbbbbbdd",
+                    ".ddbbbbbbbbbbbddd.",
+                    "...ddddbbbbdddd...",
+                };
+                var pal = new Dictionary<char, Color32> { { 'b', C(24, 112, 206) }, { 'l', C(92, 190, 240) }, { 'w', C(236, 242, 250) }, { 'd', C(34, 52, 128) }, { 'k', C(12, 14, 30) }, { 'm', C(70, 160, 230) } };
+                var o = new Px(rows[0].Length, rows.Length);
+                for (int y = 0; y < rows.Length; y++)
+                    for (int x = 0; x < rows[y].Length; x++)
+                        if (pal.TryGetValue(rows[y][x], out var col)) o.Set(x, rows.Length - 1 - y, col);
+                return o;
+            }
+            {
+                var q = Padded(Ocarina(), 2);
+                q.Outline(C(12, 14, 30));
+                SaveWithRing(q, d + "ocarina", new Vector2(0.5f, 2f / q.h));
+            }
+            {
+                // the achievement's picture, drawn at its own small size (24 px: shown at three times, 72, so every pixel
+                // is the same size on screen): the ocarina on a dark tile, a gold edge, two sparkles
+                var p = new Px(24, 24);
+                p.Rect(0, 0, 24, 24, C(196, 156, 70)); p.Rect(1, 1, 22, 22, C(22, 26, 48)); p.Rect(1, 22, 22, 1, C(40, 46, 80));
+                var o = Padded(Ocarina(), 1); o.Outline(C(12, 14, 30));
+                int ox = (24 - o.w) / 2, oy = (24 - o.h) / 2 - 1;
+                for (int y = 0; y < o.h; y++)
+                    for (int x = 0; x < o.w; x++) { var c = o.Get(x, y); if (c.a != 0) p.Set(ox + x, oy + y, c); }
+                p.Set(20, 20, C(255, 236, 170)); p.Set(3, 20, C(255, 236, 170));
+                Save(p, "UI/ach_" + Achievements.OcarinaOfGoat, PCenter);
+                // the lock over one not earned (8 x 10: shown at three times)
+                var l = new Px(8, 10);
+                l.Rect(1, 5, 1, 4, C(150, 156, 170)); l.Rect(6, 5, 1, 4, C(150, 156, 170)); l.Rect(2, 8, 4, 2, C(150, 156, 170)); l.Rect(2, 8, 4, 1, C(150, 156, 170));
+                l.Rect(0, 0, 8, 6, C(196, 156, 70)); l.Rect(0, 0, 8, 1, C(140, 110, 50)); l.Rect(3, 2, 2, 2, C(60, 44, 24));
+                Save(l, "UI/ach_lock", PCenter);
+                // a secret one not yet earned: a dim tile with a question mark (24 px, like the others)
+                var q = new Px(24, 24);
+                q.Rect(0, 0, 24, 24, C(110, 112, 130)); q.Rect(1, 1, 22, 22, C(46, 50, 76)); q.Rect(1, 22, 22, 1, C(64, 70, 104));
+                string[] mark = { ".####.", "##..##", "....##", "...##.", "..##..", "..##..", "......", "..##.." };
+                for (int y = 0; y < mark.Length; y++)
+                    for (int x = 0; x < mark[y].Length; x++)
+                        if (mark[y][x] == '#') q.Rect(6 + x * 2, 19 - y * 2, 2, 2, C(196, 200, 220));
+                Save(q, "UI/ach_secret", PCenter);
+            }
+        }
+
         /// <summary>The same drawing with n empty pixels all round it.</summary>
         static Px Padded(Px p, int n)
         {
@@ -1499,11 +1565,12 @@ namespace Gloomdelve.EditorTools
             return q;
         }
 
-        /// <summary>A drawing, and its outline as name_hl (same size and pivot).</summary>
+        /// <summary>A drawing, and its outline as name_hl (same size and pivot) - the outline of the picture as it is
+        /// now, so a hand-edited file gets an outline that fits it.</summary>
         static void SaveWithRing(Px p, string path, Vector2 pivot)
         {
             Save(p, path, pivot);
-            Save(RingOf(p), path + "_hl", pivot);
+            Save(RingOf(Current(p, path)), path + "_hl", pivot);
         }
 
         /// <summary>

@@ -133,12 +133,19 @@ namespace Gloomdelve.EditorTools
 
         public void Save(string path)
         {
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            File.WriteAllBytes(path, Png());
+        }
+
+        /// <summary>The picture as PNG bytes.</summary>
+        public byte[] Png()
+        {
             var tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
             tex.SetPixels32(c);
             tex.Apply();
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
-            File.WriteAllBytes(path, tex.EncodeToPNG());
+            var bytes = tex.EncodeToPNG();
             Object.DestroyImmediate(tex);
+            return bytes;
         }
 
         /// <summary>Deterministic hash noise in [0,1).</summary>

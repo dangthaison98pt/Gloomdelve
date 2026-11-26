@@ -7,8 +7,9 @@ using static Gloomdelve.EditorTools.Px;
 namespace Gloomdelve.EditorTools
 {
     /// <summary>
-    /// Generates every sprite of the game procedurally as PNG files (original art, no external assets).
-    /// Artists can overwrite the PNGs in Assets/Game/Art; re-running the generator overwrites them again.
+    /// Makes the first version of every picture of the game (original art, no external assets) as PNG files in
+    /// Assets/Game/Art. From then on the files are the art: the generator leaves a file that is there as it is
+    /// (HandOwned) - edit it in any paint program and it stays. Delete a file to have it drawn again from here.
     /// </summary>
     public static partial class ArtGenerator
     {
@@ -88,15 +89,66 @@ namespace Gloomdelve.EditorTools
             return p;
         }
 
+        /// <summary>
+        /// Every picture is an asset of its own, edited by hand: the generator writes one only when its file is not
+        /// there yet (a starting point), and leaves it as it is from then on. The one exception: the outlines
+        /// (name_hl), worked out each time from the picture as it is now, so an edited picture gets an outline that
+        /// fits it.
+        /// </summary>
+        public static bool HandOwned(string rel) => !rel.EndsWith("_hl");
+
+        static bool HandFileThere(string rel) => HandOwned(rel) && (File.Exists(Path.Combine(Directory.GetCurrentDirectory(), Root + rel + ".png")) || ArtSheets.Has(rel));
+
+        /// <summary>Files actually written in this run (new, or changed): the only ones imported again.</summary>
+        static readonly List<string> changed = new List<string>();
+
+        /// <summary>Write a picture only when it is new or different from the file there (nothing to import otherwise).</summary>
+        static void WriteIfChanged(Px p, string path)
+        {
+            string full = Path.Combine(Directory.GetCurrentDirectory(), path);
+            var bytes = p.Png();
+            if (File.Exists(full) && System.MemoryExtensions.SequenceEqual(System.MemoryExtensions.AsSpan(File.ReadAllBytes(full)), bytes)) return;
+            Directory.CreateDirectory(Path.GetDirectoryName(full));
+            File.WriteAllBytes(full, bytes);
+            changed.Add(path);
+        }
+
+        /// <summary>A kept file whose import settings are not what the generator asks of it is imported again (rare).</summary>
+        static void CheckKeptSettings(string path, Vector2 pivot)
+        {
+            if (!(AssetImporter.GetAtPath(path) is TextureImporter ti)) { if (File.Exists(Path.Combine(Directory.GetCurrentDirectory(), path))) changed.Add(path); return; }
+            var ts = new TextureImporterSettings(); ti.ReadTextureSettings(ts);
+            if (ti.textureType != TextureImporterType.Sprite || ti.spriteImportMode != SpriteImportMode.Single || Vector2.Distance(ts.spritePivot, pivot) > 0.0001f) changed.Add(path);
+        }
+
+        /// <summary>The picture as it is: the file, when it is hand-owned and there; otherwise what the code drew.</summary>
+        static Px Current(Px drawn, string rel) => HandFileThere(rel) ? LoadPx(rel) : drawn;
+
         static void Save(Px p, string rel, Vector2 pivot, Vector4 border = default)
         {
+            if (HandFileThere(rel))
+            {
+                // an asset of its own: the file (or its frame in a sheet) stays as it is; the part drawn on is still noted
+                NoteDrawn(LoadPx(rel), rel);
+                if (ArtSheets.Has(rel)) return;
+                string kept = Root + rel + ".png";
+                ArtImport.Pending[kept] = new ArtImport.Settings { pivot = pivot, border = border };
+                written.Add(kept);
+                CheckKeptSettings(kept, pivot);
+                return;
+            }
             if (rel.StartsWith("Sprites/Items/")) p = CloseUnder(p);
             if (rel.StartsWith("Sprites/Player/") || rel.StartsWith("Sprites/Enemies/") || rel.StartsWith("Sprites/Items/")) p = AutoShade(p);
             string path = Root + rel + ".png";
-            p.Save(Path.Combine(Directory.GetCurrentDirectory(), path));
+            WriteIfChanged(p, path);
             ArtImport.Pending[path] = new ArtImport.Settings { pivot = pivot, border = border };
             written.Add(path);
-            // the part of the sheet that is drawn on (see IconFrames)
+            NoteDrawn(p, rel);
+        }
+
+        /// <summary>The part of the sheet that is drawn on (see IconFrames).</summary>
+        static void NoteDrawn(Px p, string rel)
+        {
             int x0 = p.w, y0 = p.h, x1 = -1, y1 = -1;
             for (int y = 0; y < p.h; y++)
                 for (int x = 0; x < p.w; x++)
@@ -110,7 +162,8 @@ namespace Gloomdelve.EditorTools
         static void SaveSmooth(Px p, string rel)
         {
             string path = Root + rel + ".png";
-            p.Save(Path.Combine(Directory.GetCurrentDirectory(), path));
+            if (HandFileThere(rel)) { ArtImport.Pending[path] = new ArtImport.Settings { pivot = PCenter, smooth = true }; written.Add(path); return; }      // (a file of its own: kept)
+            WriteIfChanged(p, path);
             ArtImport.Pending[path] = new ArtImport.Settings { pivot = PCenter, smooth = true };
             written.Add(path);
         }
@@ -175,9 +228,16 @@ namespace Gloomdelve.EditorTools
 
         public static Sprite S(string rel)
         {
-            var s = AssetDatabase.LoadAssetAtPath<Sprite>(Root + rel + ".png");
+            var s = Find(rel);
             if (s == null) Debug.LogError("[Art] Missing sprite " + rel);
             return s;
+        }
+
+        /// <summary>A picture by name: its own file, or its frame in an animation sheet (ArtSheets); null when there is none.</summary>
+        public static Sprite Find(string rel)
+        {
+            var s = AssetDatabase.LoadAssetAtPath<Sprite>(Root + rel + ".png");
+            return s != null ? s : ArtSheets.FrameSprite(rel);
         }
 
         public static Sprite[] Frames(string relPrefix, int count)
@@ -190,7 +250,9 @@ namespace Gloomdelve.EditorTools
         public static void GenerateAll()
         {
             written.Clear();
+            changed.Clear();
             ArtImport.Pending.Clear();
+            ArtSheets.Load();
             AllTiles();
             PlayerArt();
             EnemyArt();
@@ -207,11 +269,14 @@ namespace Gloomdelve.EditorTools
             FontArt();
             AppIconArt();
             AssetDatabase.Refresh();
+            // only what was written (new or changed) - or kept with the wrong import settings - is imported again
             AssetDatabase.StartAssetEditing();
-            try { foreach (var p in written) AssetDatabase.ImportAsset(p, ImportAssetOptions.ForceUpdate); }
+            try { foreach (var p in changed) AssetDatabase.ImportAsset(p, ImportAssetOptions.ForceUpdate); }
             finally { AssetDatabase.StopAssetEditing(); }
             ArtImport.Pending.Clear();
-            Debug.Log($"[Art] Generated {written.Count} sprites");
+            // the frames of each animation, gathered into its sheet
+            int gathered = ArtSheets.Pack();
+            Debug.Log($"[Art] {written.Count} pictures; {changed.Count} written or imported again; {gathered} frames gathered into sheets");
         }
 
         // ======================================================================================= TILES
@@ -3192,6 +3257,16 @@ namespace Gloomdelve.EditorTools
         static void FxArt()
         {
             var px = new Px(1, 1); px.Set(0, 0, C(255, 255, 255)); Save(px, "Center/pixel", PCenter);
+            {
+                // plain white shapes one unit across, for what the game stretches and tints as it runs: a beam of light
+                // and its round ends (BeamVisual), the floor mask under the Dune Queen
+                var sq = new Px(16, 16); sq.Fill(C(255, 255, 255));
+                Save(sq, "Center/unit_square", PCenter);
+                Save(sq, "Center/unit_square_foot", new Vector2(0.5f, 0f));
+                var disc = new Px(16, 16);
+                for (int y = 0; y < 16; y++) for (int x = 0; x < 16; x++) { float dx = x + 0.5f - 8f, dy = y + 0.5f - 8f; if (dx * dx + dy * dy <= 64f) disc.Set(x, y, C(255, 255, 255)); }
+                Save(disc, "Center/unit_disc", PCenter);
+            }
             // soft round glow behind collectibles (tinted per type at runtime)
             {
                 var gl = new Px(16, 16);
@@ -3541,6 +3616,7 @@ namespace Gloomdelve.EditorTools
 
         static Px LoadPx(string rel)
         {
+            if (!File.Exists(Path.Combine(Directory.GetCurrentDirectory(), Root + rel + ".png")) && ArtSheets.Has(rel)) return ArtSheets.Crop(rel);
             var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
             tex.LoadImage(File.ReadAllBytes(Path.Combine(Directory.GetCurrentDirectory(), Root + rel + ".png")));
             var p = new Px(tex.width, tex.height);

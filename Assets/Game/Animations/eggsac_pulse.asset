@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: eggsac_pulse
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: f462b3c8ccd48574a832f29b2dc2e398, type: 3}
-  - {fileID: 21300000, guid: a7386f15bb4e0454da0a583dc0236e34, type: 3}
+  - {fileID: 446287665, guid: ba496096b1628194aab88529b0b1cd26, type: 3}
+  - {fileID: 1475091171, guid: ba496096b1628194aab88529b0b1cd26, type: 3}
   fps: 3
   loop: 1

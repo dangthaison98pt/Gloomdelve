@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: sandworm_out
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: eed9d8905b909f94fbc076669e01e2a4, type: 3}
-  - {fileID: 21300000, guid: 059f99686767b0b41b0b60286d90d66f, type: 3}
+  - {fileID: 2105710125, guid: 0b377d279bb16ae4a8b06e68a05e8107, type: 3}
+  - {fileID: 2053652865, guid: 0b377d279bb16ae4a8b06e68a05e8107, type: 3}
   fps: 3
   loop: 1

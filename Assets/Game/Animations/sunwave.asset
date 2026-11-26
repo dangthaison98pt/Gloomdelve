@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: sunwave
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: a6cee0654aa570142af0d7ef4913df1b, type: 3}
-  - {fileID: 21300000, guid: e4e56e38d18ec7f46b8f28b4090c7cde, type: 3}
+  - {fileID: 1522696140, guid: ec4fb20fafc4e8c42894a7de0a9b1a31, type: 3}
+  - {fileID: 2138713712, guid: ec4fb20fafc4e8c42894a7de0a9b1a31, type: 3}
   fps: 12
   loop: 1

@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: explosion
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: 65c2516a1a205ee4b98b55e5e2e52734, type: 3}
-  - {fileID: 21300000, guid: 8d4e93747ab38074c94f140da656250c, type: 3}
-  - {fileID: 21300000, guid: 3449e5a6909310b46aa6d13da81a30e0, type: 3}
-  - {fileID: 21300000, guid: e9e42595814765949b9b9638f8e28d53, type: 3}
-  - {fileID: 21300000, guid: 7c54c8a6e986bf94cb697e119df928cb, type: 3}
-  - {fileID: 21300000, guid: 2a615b1626455ce489bea44a98f31202, type: 3}
+  - {fileID: -772427706, guid: 4db8a47b76b609b4a9ad22820e4d3e8f, type: 3}
+  - {fileID: 278365293, guid: 4db8a47b76b609b4a9ad22820e4d3e8f, type: 3}
+  - {fileID: -524328915, guid: 4db8a47b76b609b4a9ad22820e4d3e8f, type: 3}
+  - {fileID: -1327855875, guid: 4db8a47b76b609b4a9ad22820e4d3e8f, type: 3}
+  - {fileID: 1168817190, guid: 4db8a47b76b609b4a9ad22820e4d3e8f, type: 3}
+  - {fileID: 172559622, guid: 4db8a47b76b609b4a9ad22820e4d3e8f, type: 3}
   fps: 18
   loop: 0

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: mimic_pot_awake
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: c2ff0b8798b78fd459fd15c34b8556ed, type: 3}
-  - {fileID: 21300000, guid: 0dbcbe989a7b55e41be8636f25f43e46, type: 3}
+  - {fileID: -1834727826, guid: 5a4aab61f1dccd243aadbaefa2cf8b80, type: 3}
+  - {fileID: 1915186769, guid: 5a4aab61f1dccd243aadbaefa2cf8b80, type: 3}
   fps: 7
   loop: 1

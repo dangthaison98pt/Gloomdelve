@@ -144,29 +144,29 @@ MonoBehaviour:
   flipWithFacing: 0
   artFacesLeft: 0
   art:
-  - {fileID: 21300000, guid: 7a9a3faebc27ad849939e9841b2e84d7, type: 3}
-  - {fileID: 21300000, guid: 5362b9dba72abfc49970cc6152bd7580, type: 3}
-  - {fileID: 21300000, guid: 4c1772918ae8a164daa99a8293663959, type: 3}
-  - {fileID: 21300000, guid: 2b630752d6d339d4ea486ae37760bf28, type: 3}
-  - {fileID: 21300000, guid: 0abfd542a80b15645a9ad9774086a1e2, type: 3}
-  - {fileID: 21300000, guid: 7df0f3a5bc0da6544b797876155d683d, type: 3}
-  - {fileID: 21300000, guid: 01a5f2f46e012ae43b9dbe101d0c0be2, type: 3}
-  - {fileID: 21300000, guid: 280df6d7ce5fef044b7d8398e4656420, type: 3}
-  - {fileID: 21300000, guid: ebe918195b16523449346e33a0928fdc, type: 3}
-  - {fileID: 21300000, guid: 0a1fb368a6990674fad9dd459d22dd39, type: 3}
-  - {fileID: 21300000, guid: cdfa71b5a7b21804da91e85cc7f22c6d, type: 3}
-  - {fileID: 21300000, guid: b4334d0c59ab3b242b5546bc8a7a3bfb, type: 3}
-  - {fileID: 21300000, guid: 18a52d1f85595134a90124a4cde03856, type: 3}
-  - {fileID: 21300000, guid: 6a524e88884391344b576fce79159cc3, type: 3}
+  - {fileID: 258867163, guid: 9afcde3ca21e7bd46bfa483246f879c2, type: 3}
+  - {fileID: 460394677, guid: 9afcde3ca21e7bd46bfa483246f879c2, type: 3}
+  - {fileID: 992377507, guid: 9afcde3ca21e7bd46bfa483246f879c2, type: 3}
+  - {fileID: -37658474, guid: 9afcde3ca21e7bd46bfa483246f879c2, type: 3}
+  - {fileID: 1457529511, guid: 9afcde3ca21e7bd46bfa483246f879c2, type: 3}
+  - {fileID: 1471259161, guid: 9afcde3ca21e7bd46bfa483246f879c2, type: 3}
+  - {fileID: -787728198, guid: 9afcde3ca21e7bd46bfa483246f879c2, type: 3}
+  - {fileID: 971364184, guid: 9afcde3ca21e7bd46bfa483246f879c2, type: 3}
+  - {fileID: 876427179, guid: e8cc1ad86129d4b44b74e67a9ae1c305, type: 3}
+  - {fileID: -2080557973, guid: cc31374a9e2a3a54b8ee753209b43943, type: 3}
+  - {fileID: 955982114, guid: e8cc1ad86129d4b44b74e67a9ae1c305, type: 3}
+  - {fileID: 139900007, guid: cc31374a9e2a3a54b8ee753209b43943, type: 3}
+  - {fileID: -1427326593, guid: e8cc1ad86129d4b44b74e67a9ae1c305, type: 3}
+  - {fileID: -1744957367, guid: cc31374a9e2a3a54b8ee753209b43943, type: 3}
   - {fileID: 21300000, guid: 94d2daa65fc68e54a80b16e96c9fe3cb, type: 3}
   - {fileID: 21300000, guid: 9001aebf1fad43f4a8ab113aa9633f07, type: 3}
   - {fileID: 21300000, guid: 438e560a3f0563c449a776f725c995bb, type: 3}
   - {fileID: 21300000, guid: 4a30a80935aaab44aa6919eba571d81a, type: 3}
-  - {fileID: 21300000, guid: 08acebcc6640e3c4087de33ee07eb5fc, type: 3}
-  - {fileID: 21300000, guid: f560a10a0f46d534982b6e539eb76c3a, type: 3}
+  - {fileID: 420491923, guid: 8ad37301b3ec6d349b872765bd397b46, type: 3}
+  - {fileID: -1624494687, guid: 8ad37301b3ec6d349b872765bd397b46, type: 3}
   - {fileID: 21300000, guid: cfbebfe21fc35e44b97225a003c90a0b, type: 3}
-  - {fileID: 21300000, guid: 77f311f02e6279a40809e2659828970c, type: 3}
-  - {fileID: 21300000, guid: 6a72b278d6356734daef601f7781ccd5, type: 3}
+  - {fileID: -102172971, guid: 5d5ba9e659d7d0d488ad090f99c09789, type: 3}
+  - {fileID: -479474500, guid: 5d5ba9e659d7d0d488ad090f99c09789, type: 3}
   - {fileID: 21300000, guid: 8c129c7be9c1f864dab11a5273eae40d, type: 3}
   - {fileID: 21300000, guid: c5f755d4f7da61d41a9feafface8a100, type: 3}
   - {fileID: 21300000, guid: 7a97db673ec81604f945e6c2435133fa, type: 3}
@@ -248,11 +248,11 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 44cc7a50e4f9c8a4691fc5cb04434ff3, type: 3}
   - {fileID: 0}
   cat:
-  - {fileID: 21300000, guid: f57305fd6fe080b4fb34c35280614d11, type: 3}
-  - {fileID: 21300000, guid: b15461f5146413a48941388a78d38b79, type: 3}
-  - {fileID: 21300000, guid: 751b339f35db4554abdf3654e7ebea8a, type: 3}
-  - {fileID: 21300000, guid: a9635fcd1f34a9f4b8daf528648033fe, type: 3}
-  - {fileID: 21300000, guid: a6974d46e816dca42bc89dcaaec79c88, type: 3}
+  - {fileID: -1047391511, guid: 1408b2acf91d6034a9a19ad2753e2496, type: 3}
+  - {fileID: 305654092, guid: 1408b2acf91d6034a9a19ad2753e2496, type: 3}
+  - {fileID: 1685690496, guid: 1408b2acf91d6034a9a19ad2753e2496, type: 3}
+  - {fileID: 1249888871, guid: 1408b2acf91d6034a9a19ad2753e2496, type: 3}
+  - {fileID: -1349791323, guid: 1408b2acf91d6034a9a19ad2753e2496, type: 3}
   wheel: {fileID: 21300000, guid: 597814ce95da01440a64cb5342acb538, type: 3}
   hammockRolled: {fileID: 21300000, guid: 6986367927871624585bb9517ffd4f6b, type: 3}
   hammockHung: {fileID: 21300000, guid: 9d3890f7a017a714c8e7bd6556afbf53, type: 3}

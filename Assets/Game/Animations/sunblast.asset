@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: sunblast
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: d645c15c4a8b0c843b5b357fe28a3a04, type: 3}
-  - {fileID: 21300000, guid: 8accf668a74106847af8e62cff047b9a, type: 3}
-  - {fileID: 21300000, guid: 2dac1377c36f8904eac18ba7c9c2bb2a, type: 3}
-  - {fileID: 21300000, guid: 6b3796c63eb9c2a43a5708ff38379e1d, type: 3}
+  - {fileID: -651221033, guid: 5bb09e468682d3445848ed3dac73ea4d, type: 3}
+  - {fileID: 485788907, guid: 5bb09e468682d3445848ed3dac73ea4d, type: 3}
+  - {fileID: -1415797310, guid: 5bb09e468682d3445848ed3dac73ea4d, type: 3}
+  - {fileID: -1696363394, guid: 5bb09e468682d3445848ed3dac73ea4d, type: 3}
   fps: 14
   loop: 1

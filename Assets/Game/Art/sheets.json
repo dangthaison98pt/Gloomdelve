@@ -1,0 +1,3065 @@
+{
+    "sheets": [
+        {
+            "sheet": "Center/cfx_bite_sheet",
+            "frames": [
+                {
+                    "name": "cfx_bite_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 32,
+                    "h": 32,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "cfx_bite_1",
+                    "x": 34,
+                    "y": 0,
+                    "w": 32,
+                    "h": 32,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "cfx_bite_2",
+                    "x": 68,
+                    "y": 0,
+                    "w": 32,
+                    "h": 32,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "cfx_bite_3",
+                    "x": 102,
+                    "y": 0,
+                    "w": 32,
+                    "h": 32,
+                    "px": 0.5,
+                    "py": 0.5
+                }
+            ]
+        },
+        {
+            "sheet": "Center/cfx_buck_sheet",
+            "frames": [
+                {
+                    "name": "cfx_buck_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 32,
+                    "h": 32,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "cfx_buck_1",
+                    "x": 34,
+                    "y": 0,
+                    "w": 32,
+                    "h": 32,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "cfx_buck_2",
+                    "x": 68,
+                    "y": 0,
+                    "w": 32,
+                    "h": 32,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "cfx_buck_3",
+                    "x": 102,
+                    "y": 0,
+                    "w": 32,
+                    "h": 32,
+                    "px": 0.5,
+                    "py": 0.5
+                }
+            ]
+        },
+        {
+            "sheet": "Center/cfx_frost_sheet",
+            "frames": [
+                {
+                    "name": "cfx_frost_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 32,
+                    "h": 32,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "cfx_frost_1",
+                    "x": 34,
+                    "y": 0,
+                    "w": 32,
+                    "h": 32,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "cfx_frost_2",
+                    "x": 68,
+                    "y": 0,
+                    "w": 32,
+                    "h": 32,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "cfx_frost_3",
+                    "x": 102,
+                    "y": 0,
+                    "w": 32,
+                    "h": 32,
+                    "px": 0.5,
+                    "py": 0.5
+                }
+            ]
+        },
+        {
+            "sheet": "Center/cfx_gust_sheet",
+            "frames": [
+                {
+                    "name": "cfx_gust_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 32,
+                    "h": 32,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "cfx_gust_1",
+                    "x": 34,
+                    "y": 0,
+                    "w": 32,
+                    "h": 32,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "cfx_gust_2",
+                    "x": 68,
+                    "y": 0,
+                    "w": 32,
+                    "h": 32,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "cfx_gust_3",
+                    "x": 102,
+                    "y": 0,
+                    "w": 32,
+                    "h": 32,
+                    "px": 0.5,
+                    "py": 0.5
+                }
+            ]
+        },
+        {
+            "sheet": "Center/explosion_sheet",
+            "frames": [
+                {
+                    "name": "explosion_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 80,
+                    "h": 80,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "explosion_1",
+                    "x": 82,
+                    "y": 0,
+                    "w": 80,
+                    "h": 80,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "explosion_2",
+                    "x": 164,
+                    "y": 0,
+                    "w": 80,
+                    "h": 80,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "explosion_3",
+                    "x": 246,
+                    "y": 0,
+                    "w": 80,
+                    "h": 80,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "explosion_4",
+                    "x": 328,
+                    "y": 0,
+                    "w": 80,
+                    "h": 80,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "explosion_5",
+                    "x": 410,
+                    "y": 0,
+                    "w": 80,
+                    "h": 80,
+                    "px": 0.5,
+                    "py": 0.5
+                }
+            ]
+        },
+        {
+            "sheet": "Center/smoke_sheet",
+            "frames": [
+                {
+                    "name": "smoke_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 8,
+                    "h": 8,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "smoke_1",
+                    "x": 10,
+                    "y": 0,
+                    "w": 8,
+                    "h": 8,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "smoke_2",
+                    "x": 20,
+                    "y": 0,
+                    "w": 8,
+                    "h": 8,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "smoke_3",
+                    "x": 30,
+                    "y": 0,
+                    "w": 8,
+                    "h": 8,
+                    "px": 0.5,
+                    "py": 0.5
+                }
+            ]
+        },
+        {
+            "sheet": "UI/menu_scarf_sheet",
+            "frames": [
+                {
+                    "name": "menu_scarf_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 18,
+                    "h": 12,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "menu_scarf_1",
+                    "x": 20,
+                    "y": 0,
+                    "w": 18,
+                    "h": 12,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "menu_scarf_2",
+                    "x": 40,
+                    "y": 0,
+                    "w": 18,
+                    "h": 12,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "menu_scarf_3",
+                    "x": 60,
+                    "y": 0,
+                    "w": 18,
+                    "h": 12,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "menu_scarf_4",
+                    "x": 80,
+                    "y": 0,
+                    "w": 18,
+                    "h": 12,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "menu_scarf_5",
+                    "x": 100,
+                    "y": 0,
+                    "w": 18,
+                    "h": 12,
+                    "px": 0.5,
+                    "py": 0.5
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Bosses/broodmother_sheet",
+            "frames": [
+                {
+                    "name": "broodmother_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 64,
+                    "h": 46,
+                    "px": 0.5,
+                    "py": 0.021739130839705468
+                },
+                {
+                    "name": "broodmother_1",
+                    "x": 66,
+                    "y": 0,
+                    "w": 64,
+                    "h": 46,
+                    "px": 0.5,
+                    "py": 0.021739130839705468
+                },
+                {
+                    "name": "broodmother_2",
+                    "x": 132,
+                    "y": 0,
+                    "w": 64,
+                    "h": 46,
+                    "px": 0.5,
+                    "py": 0.021739130839705468
+                },
+                {
+                    "name": "broodmother_3",
+                    "x": 198,
+                    "y": 0,
+                    "w": 64,
+                    "h": 46,
+                    "px": 0.5,
+                    "py": 0.021739130839705468
+                },
+                {
+                    "name": "broodmother_4",
+                    "x": 264,
+                    "y": 0,
+                    "w": 64,
+                    "h": 46,
+                    "px": 0.5,
+                    "py": 0.021739130839705468
+                },
+                {
+                    "name": "broodmother_5",
+                    "x": 330,
+                    "y": 0,
+                    "w": 64,
+                    "h": 46,
+                    "px": 0.5,
+                    "py": 0.021739130839705468
+                },
+                {
+                    "name": "broodmother_6",
+                    "x": 396,
+                    "y": 0,
+                    "w": 64,
+                    "h": 46,
+                    "px": 0.5,
+                    "py": 0.021739130839705468
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Bosses/dunequeen_sheet",
+            "frames": [
+                {
+                    "name": "dunequeen_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 70,
+                    "h": 70,
+                    "px": 0.5,
+                    "py": 0.014285714365541935
+                },
+                {
+                    "name": "dunequeen_1",
+                    "x": 72,
+                    "y": 0,
+                    "w": 70,
+                    "h": 70,
+                    "px": 0.5,
+                    "py": 0.014285714365541935
+                },
+                {
+                    "name": "dunequeen_2",
+                    "x": 144,
+                    "y": 0,
+                    "w": 70,
+                    "h": 70,
+                    "px": 0.5,
+                    "py": 0.014285714365541935
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Bosses/eclipsecore_sheet",
+            "frames": [
+                {
+                    "name": "eclipsecore_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 64,
+                    "h": 70,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "eclipsecore_1",
+                    "x": 66,
+                    "y": 0,
+                    "w": 64,
+                    "h": 70,
+                    "px": 0.5,
+                    "py": 0.0
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Bosses/eclipseshell_0_sheet",
+            "frames": [
+                {
+                    "name": "eclipseshell_0_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 84,
+                    "h": 72,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "eclipseshell_0_1",
+                    "x": 86,
+                    "y": 0,
+                    "w": 84,
+                    "h": 72,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "eclipseshell_0_2",
+                    "x": 172,
+                    "y": 0,
+                    "w": 84,
+                    "h": 72,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "eclipseshell_0_3",
+                    "x": 258,
+                    "y": 0,
+                    "w": 84,
+                    "h": 72,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "eclipseshell_0_4",
+                    "x": 344,
+                    "y": 0,
+                    "w": 84,
+                    "h": 72,
+                    "px": 0.5,
+                    "py": 0.0
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Bosses/eclipseshell_1_sheet",
+            "frames": [
+                {
+                    "name": "eclipseshell_1_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 84,
+                    "h": 72,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "eclipseshell_1_1",
+                    "x": 86,
+                    "y": 0,
+                    "w": 84,
+                    "h": 72,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "eclipseshell_1_2",
+                    "x": 172,
+                    "y": 0,
+                    "w": 84,
+                    "h": 72,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "eclipseshell_1_3",
+                    "x": 258,
+                    "y": 0,
+                    "w": 84,
+                    "h": 72,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "eclipseshell_1_4",
+                    "x": 344,
+                    "y": 0,
+                    "w": 84,
+                    "h": 72,
+                    "px": 0.5,
+                    "py": 0.0
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Bosses/eclipseshell_fire_sheet",
+            "frames": [
+                {
+                    "name": "eclipseshell_fire_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 96,
+                    "h": 52,
+                    "px": 0.6875,
+                    "py": 0.0
+                },
+                {
+                    "name": "eclipseshell_fire_1",
+                    "x": 98,
+                    "y": 0,
+                    "w": 96,
+                    "h": 52,
+                    "px": 0.6875,
+                    "py": 0.0
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Bosses/eclipseshell_ignite_sheet",
+            "frames": [
+                {
+                    "name": "eclipseshell_ignite_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 96,
+                    "h": 52,
+                    "px": 0.6875,
+                    "py": 0.0
+                },
+                {
+                    "name": "eclipseshell_ignite_1",
+                    "x": 98,
+                    "y": 0,
+                    "w": 96,
+                    "h": 52,
+                    "px": 0.6875,
+                    "py": 0.0
+                },
+                {
+                    "name": "eclipseshell_ignite_2",
+                    "x": 196,
+                    "y": 0,
+                    "w": 96,
+                    "h": 52,
+                    "px": 0.6875,
+                    "py": 0.0
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Bosses/facetfist_sheet",
+            "frames": [
+                {
+                    "name": "facetfist_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 64,
+                    "h": 50,
+                    "px": 0.5,
+                    "py": 0.019999999552965165
+                },
+                {
+                    "name": "facetfist_1",
+                    "x": 66,
+                    "y": 0,
+                    "w": 64,
+                    "h": 50,
+                    "px": 0.5,
+                    "py": 0.019999999552965165
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Bosses/facet_sheet",
+            "frames": [
+                {
+                    "name": "facet_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 480,
+                    "h": 144,
+                    "px": 0.5,
+                    "py": 0.7777777910232544
+                },
+                {
+                    "name": "facet_1",
+                    "x": 482,
+                    "y": 0,
+                    "w": 480,
+                    "h": 144,
+                    "px": 0.5,
+                    "py": 0.7777777910232544
+                },
+                {
+                    "name": "facet_2",
+                    "x": 964,
+                    "y": 0,
+                    "w": 480,
+                    "h": 144,
+                    "px": 0.5,
+                    "py": 0.7777777910232544
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Bosses/forgebrute_sheet",
+            "frames": [
+                {
+                    "name": "forgebrute_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 86,
+                    "h": 56,
+                    "px": 0.45348837971687319,
+                    "py": 0.01785714365541935
+                },
+                {
+                    "name": "forgebrute_1",
+                    "x": 88,
+                    "y": 0,
+                    "w": 86,
+                    "h": 56,
+                    "px": 0.45348837971687319,
+                    "py": 0.01785714365541935
+                },
+                {
+                    "name": "forgebrute_2",
+                    "x": 176,
+                    "y": 0,
+                    "w": 86,
+                    "h": 56,
+                    "px": 0.45348837971687319,
+                    "py": 0.01785714365541935
+                },
+                {
+                    "name": "forgebrute_3",
+                    "x": 264,
+                    "y": 0,
+                    "w": 86,
+                    "h": 56,
+                    "px": 0.45348837971687319,
+                    "py": 0.01785714365541935
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Bosses/gearwyrm_sheet",
+            "frames": [
+                {
+                    "name": "gearwyrm_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 42,
+                    "h": 34,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "gearwyrm_1",
+                    "x": 44,
+                    "y": 0,
+                    "w": 42,
+                    "h": 34,
+                    "px": 0.5,
+                    "py": 0.5
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Bosses/shock_sheet",
+            "frames": [
+                {
+                    "name": "shock_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 16,
+                    "h": 12,
+                    "px": 0.5,
+                    "py": 0.0625
+                },
+                {
+                    "name": "shock_1",
+                    "x": 18,
+                    "y": 0,
+                    "w": 16,
+                    "h": 12,
+                    "px": 0.5,
+                    "py": 0.0625
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Bosses/sporeheart_sheet",
+            "frames": [
+                {
+                    "name": "sporeheart_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 50,
+                    "h": 70,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "sporeheart_1",
+                    "x": 52,
+                    "y": 0,
+                    "w": 50,
+                    "h": 70,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "sporeheart_2",
+                    "x": 104,
+                    "y": 0,
+                    "w": 50,
+                    "h": 70,
+                    "px": 0.5,
+                    "py": 0.0
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Bosses/stormhawk_sheet",
+            "frames": [
+                {
+                    "name": "stormhawk_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 84,
+                    "h": 50,
+                    "px": 0.5,
+                    "py": 0.03999999910593033
+                },
+                {
+                    "name": "stormhawk_1",
+                    "x": 86,
+                    "y": 0,
+                    "w": 84,
+                    "h": 50,
+                    "px": 0.5,
+                    "py": 0.03999999910593033
+                },
+                {
+                    "name": "stormhawk_2",
+                    "x": 172,
+                    "y": 0,
+                    "w": 42,
+                    "h": 64,
+                    "px": 0.5,
+                    "py": 0.46875
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Bosses/sunblast_sheet",
+            "frames": [
+                {
+                    "name": "sunblast_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 80,
+                    "h": 80,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "sunblast_1",
+                    "x": 82,
+                    "y": 0,
+                    "w": 80,
+                    "h": 80,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "sunblast_2",
+                    "x": 164,
+                    "y": 0,
+                    "w": 80,
+                    "h": 80,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "sunblast_3",
+                    "x": 246,
+                    "y": 0,
+                    "w": 80,
+                    "h": 80,
+                    "px": 0.5,
+                    "py": 0.5
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Bosses/sunburst_sheet",
+            "frames": [
+                {
+                    "name": "sunburst_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 84,
+                    "h": 58,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "sunburst_1",
+                    "x": 86,
+                    "y": 0,
+                    "w": 84,
+                    "h": 58,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "sunburst_2",
+                    "x": 172,
+                    "y": 0,
+                    "w": 84,
+                    "h": 58,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "sunburst_3",
+                    "x": 258,
+                    "y": 0,
+                    "w": 84,
+                    "h": 58,
+                    "px": 0.5,
+                    "py": 0.0
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Bosses/sunslash_sheet",
+            "frames": [
+                {
+                    "name": "sunslash_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 112,
+                    "h": 30,
+                    "px": 0.5,
+                    "py": 0.4000000059604645
+                },
+                {
+                    "name": "sunslash_1",
+                    "x": 114,
+                    "y": 0,
+                    "w": 112,
+                    "h": 30,
+                    "px": 0.5,
+                    "py": 0.4000000059604645
+                },
+                {
+                    "name": "sunslash_2",
+                    "x": 228,
+                    "y": 0,
+                    "w": 112,
+                    "h": 30,
+                    "px": 0.5,
+                    "py": 0.4000000059604645
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Bosses/sunstake_sheet",
+            "frames": [
+                {
+                    "name": "sunstake_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 16,
+                    "h": 30,
+                    "px": 0.5,
+                    "py": 0.03333333507180214
+                },
+                {
+                    "name": "sunstake_1",
+                    "x": 18,
+                    "y": 0,
+                    "w": 16,
+                    "h": 30,
+                    "px": 0.5,
+                    "py": 0.03333333507180214
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Bosses/sunwave_sheet",
+            "frames": [
+                {
+                    "name": "sunwave_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 18,
+                    "h": 66,
+                    "px": 0.5,
+                    "py": 0.03030303120613098
+                },
+                {
+                    "name": "sunwave_1",
+                    "x": 20,
+                    "y": 0,
+                    "w": 18,
+                    "h": 66,
+                    "px": 0.5,
+                    "py": 0.03030303120613098
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Bosses/venom_sheet",
+            "frames": [
+                {
+                    "name": "venom_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 12,
+                    "h": 9,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "venom_1",
+                    "x": 14,
+                    "y": 0,
+                    "w": 12,
+                    "h": 9,
+                    "px": 0.5,
+                    "py": 0.5
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Bosses/warden_sheet",
+            "frames": [
+                {
+                    "name": "warden_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 76,
+                    "h": 80,
+                    "px": 0.5,
+                    "py": 0.02500000037252903
+                },
+                {
+                    "name": "warden_1",
+                    "x": 78,
+                    "y": 0,
+                    "w": 76,
+                    "h": 80,
+                    "px": 0.5,
+                    "py": 0.02500000037252903
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Bosses/yetiking_sheet",
+            "frames": [
+                {
+                    "name": "yetiking_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 70,
+                    "h": 72,
+                    "px": 0.5,
+                    "py": 0.013888888992369175
+                },
+                {
+                    "name": "yetiking_1",
+                    "x": 72,
+                    "y": 0,
+                    "w": 70,
+                    "h": 72,
+                    "px": 0.5,
+                    "py": 0.013888888992369175
+                },
+                {
+                    "name": "yetiking_2",
+                    "x": 144,
+                    "y": 0,
+                    "w": 70,
+                    "h": 72,
+                    "px": 0.5,
+                    "py": 0.013888888992369175
+                },
+                {
+                    "name": "yetiking_3",
+                    "x": 216,
+                    "y": 0,
+                    "w": 70,
+                    "h": 72,
+                    "px": 0.5,
+                    "py": 0.013888888992369175
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Enemies/bat_sheet",
+            "frames": [
+                {
+                    "name": "bat_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "bat_1",
+                    "x": 20,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "bat_2",
+                    "x": 40,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Enemies/beetle_sheet",
+            "frames": [
+                {
+                    "name": "beetle_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "beetle_1",
+                    "x": 20,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "beetle_2",
+                    "x": 40,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Enemies/brute_sheet",
+            "frames": [
+                {
+                    "name": "brute_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 24,
+                    "h": 24,
+                    "px": 0.5,
+                    "py": 0.0416666679084301
+                },
+                {
+                    "name": "brute_1",
+                    "x": 26,
+                    "y": 0,
+                    "w": 24,
+                    "h": 24,
+                    "px": 0.5,
+                    "py": 0.0416666679084301
+                },
+                {
+                    "name": "brute_2",
+                    "x": 52,
+                    "y": 0,
+                    "w": 24,
+                    "h": 24,
+                    "px": 0.5,
+                    "py": 0.0416666679084301
+                },
+                {
+                    "name": "brute_3",
+                    "x": 78,
+                    "y": 0,
+                    "w": 24,
+                    "h": 24,
+                    "px": 0.5,
+                    "py": 0.0416666679084301
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Enemies/drone_sheet",
+            "frames": [
+                {
+                    "name": "drone_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "drone_1",
+                    "x": 20,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "drone_2",
+                    "x": 40,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Enemies/eggsac_sheet",
+            "frames": [
+                {
+                    "name": "eggsac_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "eggsac_1",
+                    "x": 20,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Enemies/emberbat_sheet",
+            "frames": [
+                {
+                    "name": "emberbat_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "emberbat_1",
+                    "x": 20,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "emberbat_2",
+                    "x": 40,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Enemies/frostbat_sheet",
+            "frames": [
+                {
+                    "name": "frostbat_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "frostbat_1",
+                    "x": 20,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "frostbat_2",
+                    "x": 40,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Enemies/glint_sheet",
+            "frames": [
+                {
+                    "name": "glint_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "glint_1",
+                    "x": 20,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "glint_2",
+                    "x": 40,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Enemies/hawk_sheet",
+            "frames": [
+                {
+                    "name": "hawk_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "hawk_1",
+                    "x": 20,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "hawk_2",
+                    "x": 40,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.5
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Enemies/lurecap_sheet",
+            "frames": [
+                {
+                    "name": "lurecap_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "lurecap_1",
+                    "x": 20,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "lurecap_2",
+                    "x": 40,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Enemies/moth_sheet",
+            "frames": [
+                {
+                    "name": "moth_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "moth_1",
+                    "x": 20,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "moth_2",
+                    "x": 40,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Enemies/mummy_sheet",
+            "frames": [
+                {
+                    "name": "mummy_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 20,
+                    "h": 22,
+                    "px": 0.5,
+                    "py": 0.04545454680919647
+                },
+                {
+                    "name": "mummy_1",
+                    "x": 22,
+                    "y": 0,
+                    "w": 20,
+                    "h": 22,
+                    "px": 0.5,
+                    "py": 0.04545454680919647
+                },
+                {
+                    "name": "mummy_2",
+                    "x": 44,
+                    "y": 0,
+                    "w": 20,
+                    "h": 22,
+                    "px": 0.5,
+                    "py": 0.04545454680919647
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Enemies/penguin_sheet",
+            "frames": [
+                {
+                    "name": "penguin_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "penguin_1",
+                    "x": 20,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "penguin_2",
+                    "x": 40,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Enemies/puffshroom_sheet",
+            "frames": [
+                {
+                    "name": "puffshroom_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "puffshroom_1",
+                    "x": 20,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "puffshroom_2",
+                    "x": 40,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "puffshroom_3",
+                    "x": 60,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Enemies/sandworm_sheet",
+            "frames": [
+                {
+                    "name": "sandworm_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 18,
+                    "h": 28,
+                    "px": 0.5,
+                    "py": 0.0357142873108387
+                },
+                {
+                    "name": "sandworm_1",
+                    "x": 20,
+                    "y": 0,
+                    "w": 18,
+                    "h": 28,
+                    "px": 0.5,
+                    "py": 0.0357142873108387
+                },
+                {
+                    "name": "sandworm_2",
+                    "x": 40,
+                    "y": 0,
+                    "w": 18,
+                    "h": 28,
+                    "px": 0.5,
+                    "py": 0.0357142873108387
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Enemies/scarab_sheet",
+            "frames": [
+                {
+                    "name": "scarab_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "scarab_1",
+                    "x": 20,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Enemies/sentry_sheet",
+            "frames": [
+                {
+                    "name": "sentry_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "sentry_1",
+                    "x": 20,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "sentry_2",
+                    "x": 40,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Enemies/shardlet_sheet",
+            "frames": [
+                {
+                    "name": "shardlet_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 12,
+                    "h": 12,
+                    "px": 0.5,
+                    "py": 0.0833333358168602
+                },
+                {
+                    "name": "shardlet_1",
+                    "x": 14,
+                    "y": 0,
+                    "w": 12,
+                    "h": 12,
+                    "px": 0.5,
+                    "py": 0.0833333358168602
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Enemies/shardling_sheet",
+            "frames": [
+                {
+                    "name": "shardling_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 20,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "shardling_1",
+                    "x": 22,
+                    "y": 0,
+                    "w": 20,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "shardling_2",
+                    "x": 44,
+                    "y": 0,
+                    "w": 20,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Enemies/snake_sheet",
+            "frames": [
+                {
+                    "name": "snake_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "snake_1",
+                    "x": 20,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Enemies/spider_sheet",
+            "frames": [
+                {
+                    "name": "spider_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "spider_1",
+                    "x": 20,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "spider_2",
+                    "x": 40,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Enemies/toad_sheet",
+            "frames": [
+                {
+                    "name": "toad_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "toad_1",
+                    "x": 20,
+                    "y": 0,
+                    "w": 18,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Enemies/wraith_sheet",
+            "frames": [
+                {
+                    "name": "wraith_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 24,
+                    "h": 32,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "wraith_1",
+                    "x": 26,
+                    "y": 0,
+                    "w": 24,
+                    "h": 32,
+                    "px": 0.5,
+                    "py": 0.0
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Enemies/yeti_sheet",
+            "frames": [
+                {
+                    "name": "yeti_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                },
+                {
+                    "name": "yeti_1",
+                    "x": 22,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Items/bomb_sheet",
+            "frames": [
+                {
+                    "name": "bomb_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 16,
+                    "h": 16,
+                    "px": 0.5,
+                    "py": 0.0625
+                },
+                {
+                    "name": "bomb_1",
+                    "x": 18,
+                    "y": 0,
+                    "w": 16,
+                    "h": 16,
+                    "px": 0.5,
+                    "py": 0.0625
+                },
+                {
+                    "name": "bomb_2",
+                    "x": 36,
+                    "y": 0,
+                    "w": 16,
+                    "h": 16,
+                    "px": 0.5,
+                    "py": 0.0625
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Items/wisp_sheet",
+            "frames": [
+                {
+                    "name": "wisp_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 16,
+                    "h": 16,
+                    "px": 0.5,
+                    "py": 0.0625
+                },
+                {
+                    "name": "wisp_1",
+                    "x": 18,
+                    "y": 0,
+                    "w": 16,
+                    "h": 16,
+                    "px": 0.5,
+                    "py": 0.0625
+                },
+                {
+                    "name": "wisp_2",
+                    "x": 36,
+                    "y": 0,
+                    "w": 16,
+                    "h": 16,
+                    "px": 0.5,
+                    "py": 0.0625
+                },
+                {
+                    "name": "wisp_3",
+                    "x": 54,
+                    "y": 0,
+                    "w": 16,
+                    "h": 16,
+                    "px": 0.5,
+                    "py": 0.0625
+                },
+                {
+                    "name": "wisp_4",
+                    "x": 72,
+                    "y": 0,
+                    "w": 16,
+                    "h": 16,
+                    "px": 0.5,
+                    "py": 0.0625
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Mimic/crate_sheet",
+            "frames": [
+                {
+                    "name": "crate_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 18,
+                    "h": 21,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "crate_1",
+                    "x": 20,
+                    "y": 0,
+                    "w": 18,
+                    "h": 23,
+                    "px": 0.5,
+                    "py": 0.0
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Mimic/gem_sheet",
+            "frames": [
+                {
+                    "name": "gem_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 18,
+                    "h": 21,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "gem_1",
+                    "x": 20,
+                    "y": 0,
+                    "w": 18,
+                    "h": 23,
+                    "px": 0.5,
+                    "py": 0.0
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Mimic/pot_sheet",
+            "frames": [
+                {
+                    "name": "pot_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 18,
+                    "h": 21,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "pot_1",
+                    "x": 20,
+                    "y": 0,
+                    "w": 18,
+                    "h": 23,
+                    "px": 0.5,
+                    "py": 0.0
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/NPC/folk_0_sheet",
+            "frames": [
+                {
+                    "name": "folk_0_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                },
+                {
+                    "name": "folk_0_1",
+                    "x": 22,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                },
+                {
+                    "name": "folk_0_2",
+                    "x": 44,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                },
+                {
+                    "name": "folk_0_3",
+                    "x": 66,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                },
+                {
+                    "name": "folk_0_4",
+                    "x": 88,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/NPC/folk_1_sheet",
+            "frames": [
+                {
+                    "name": "folk_1_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                },
+                {
+                    "name": "folk_1_1",
+                    "x": 22,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                },
+                {
+                    "name": "folk_1_2",
+                    "x": 44,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                },
+                {
+                    "name": "folk_1_3",
+                    "x": 66,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                },
+                {
+                    "name": "folk_1_4",
+                    "x": 88,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/NPC/folk_2_sheet",
+            "frames": [
+                {
+                    "name": "folk_2_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                },
+                {
+                    "name": "folk_2_1",
+                    "x": 22,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                },
+                {
+                    "name": "folk_2_2",
+                    "x": 44,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                },
+                {
+                    "name": "folk_2_3",
+                    "x": 66,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                },
+                {
+                    "name": "folk_2_4",
+                    "x": 88,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/NPC/folk_3_sheet",
+            "frames": [
+                {
+                    "name": "folk_3_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                },
+                {
+                    "name": "folk_3_1",
+                    "x": 22,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                },
+                {
+                    "name": "folk_3_2",
+                    "x": 44,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                },
+                {
+                    "name": "folk_3_3",
+                    "x": 66,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                },
+                {
+                    "name": "folk_3_4",
+                    "x": 88,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/NPC/kid_0_sheet",
+            "frames": [
+                {
+                    "name": "kid_0_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 14,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "kid_0_1",
+                    "x": 16,
+                    "y": 0,
+                    "w": 14,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "kid_0_2",
+                    "x": 32,
+                    "y": 0,
+                    "w": 14,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/NPC/kid_1_sheet",
+            "frames": [
+                {
+                    "name": "kid_1_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 14,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "kid_1_1",
+                    "x": 16,
+                    "y": 0,
+                    "w": 14,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "kid_1_2",
+                    "x": 32,
+                    "y": 0,
+                    "w": 14,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/NPC/kid_2_sheet",
+            "frames": [
+                {
+                    "name": "kid_2_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 14,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "kid_2_1",
+                    "x": 16,
+                    "y": 0,
+                    "w": 14,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                },
+                {
+                    "name": "kid_2_2",
+                    "x": 32,
+                    "y": 0,
+                    "w": 14,
+                    "h": 18,
+                    "px": 0.5,
+                    "py": 0.0555555559694767
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Player/climb_sheet",
+            "frames": [
+                {
+                    "name": "climb_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                },
+                {
+                    "name": "climb_1",
+                    "x": 22,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Player/crawl_sheet",
+            "frames": [
+                {
+                    "name": "crawl_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                },
+                {
+                    "name": "crawl_1",
+                    "x": 22,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Player/idle_sheet",
+            "frames": [
+                {
+                    "name": "idle_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                },
+                {
+                    "name": "idle_1",
+                    "x": 22,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Player/run_sheet",
+            "frames": [
+                {
+                    "name": "run_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                },
+                {
+                    "name": "run_1",
+                    "x": 22,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                },
+                {
+                    "name": "run_2",
+                    "x": 44,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                },
+                {
+                    "name": "run_3",
+                    "x": 66,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Player/stunned_sheet",
+            "frames": [
+                {
+                    "name": "stunned_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                },
+                {
+                    "name": "stunned_1",
+                    "x": 22,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Player/whip_sheet",
+            "frames": [
+                {
+                    "name": "whip_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                },
+                {
+                    "name": "whip_1",
+                    "x": 22,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Props/bouncecap_sheet",
+            "frames": [
+                {
+                    "name": "bouncecap_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 26,
+                    "h": 14,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "bouncecap_1",
+                    "x": 28,
+                    "y": 0,
+                    "w": 26,
+                    "h": 14,
+                    "px": 0.5,
+                    "py": 0.0
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Props/chestfine_sheet",
+            "frames": [
+                {
+                    "name": "chestfine_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 18,
+                    "h": 16,
+                    "px": 0.5,
+                    "py": 0.0625
+                },
+                {
+                    "name": "chestfine_1",
+                    "x": 20,
+                    "y": 0,
+                    "w": 18,
+                    "h": 16,
+                    "px": 0.5,
+                    "py": 0.0625
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Props/chest_sheet",
+            "frames": [
+                {
+                    "name": "chest_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 18,
+                    "h": 16,
+                    "px": 0.5,
+                    "py": 0.0625
+                },
+                {
+                    "name": "chest_1",
+                    "x": 20,
+                    "y": 0,
+                    "w": 18,
+                    "h": 16,
+                    "px": 0.5,
+                    "py": 0.0625
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Props/conveyor_sheet",
+            "frames": [
+                {
+                    "name": "conveyor_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 16,
+                    "h": 16,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "conveyor_1",
+                    "x": 18,
+                    "y": 0,
+                    "w": 16,
+                    "h": 16,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "conveyor_2",
+                    "x": 36,
+                    "y": 0,
+                    "w": 16,
+                    "h": 16,
+                    "px": 0.5,
+                    "py": 0.0
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Props/glowshroom_sheet",
+            "frames": [
+                {
+                    "name": "glowshroom_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 16,
+                    "h": 16,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "glowshroom_1",
+                    "x": 18,
+                    "y": 0,
+                    "w": 16,
+                    "h": 16,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "glowshroom_2",
+                    "x": 36,
+                    "y": 0,
+                    "w": 16,
+                    "h": 16,
+                    "px": 0.5,
+                    "py": 0.0
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Props/quicksand_sheet",
+            "frames": [
+                {
+                    "name": "quicksand_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 16,
+                    "h": 10,
+                    "px": 0.5,
+                    "py": 0.699999988079071
+                },
+                {
+                    "name": "quicksand_1",
+                    "x": 18,
+                    "y": 0,
+                    "w": 16,
+                    "h": 10,
+                    "px": 0.5,
+                    "py": 0.699999988079071
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Props/torch_flame_sheet",
+            "frames": [
+                {
+                    "name": "torch_flame_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 8,
+                    "h": 10,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "torch_flame_1",
+                    "x": 10,
+                    "y": 0,
+                    "w": 8,
+                    "h": 10,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "torch_flame_2",
+                    "x": 20,
+                    "y": 0,
+                    "w": 8,
+                    "h": 10,
+                    "px": 0.5,
+                    "py": 0.0
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Props/tree_sheet",
+            "frames": [
+                {
+                    "name": "tree_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 32,
+                    "h": 48,
+                    "px": 0.5,
+                    "py": 0.02083333395421505
+                },
+                {
+                    "name": "tree_1",
+                    "x": 34,
+                    "y": 0,
+                    "w": 32,
+                    "h": 48,
+                    "px": 0.5,
+                    "py": 0.02083333395421505
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Shopkeeper/angry_sheet",
+            "frames": [
+                {
+                    "name": "angry_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                },
+                {
+                    "name": "angry_1",
+                    "x": 22,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Shopkeeper/idle_sheet",
+            "frames": [
+                {
+                    "name": "idle_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                },
+                {
+                    "name": "idle_1",
+                    "x": 22,
+                    "y": 0,
+                    "w": 20,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.05000000074505806
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Traps/crystal_sheet",
+            "frames": [
+                {
+                    "name": "crystal_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 18,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "crystal_1",
+                    "x": 20,
+                    "y": 0,
+                    "w": 18,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "crystal_2",
+                    "x": 40,
+                    "y": 0,
+                    "w": 18,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.0
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Traps/flame_sheet",
+            "frames": [
+                {
+                    "name": "flame_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 16,
+                    "h": 32,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "flame_1",
+                    "x": 18,
+                    "y": 0,
+                    "w": 16,
+                    "h": 32,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "flame_2",
+                    "x": 36,
+                    "y": 0,
+                    "w": 16,
+                    "h": 32,
+                    "px": 0.5,
+                    "py": 0.0
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Traps/spear_sheet",
+            "frames": [
+                {
+                    "name": "spear_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 16,
+                    "h": 22,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "spear_1",
+                    "x": 18,
+                    "y": 0,
+                    "w": 16,
+                    "h": 22,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "spear_2",
+                    "x": 36,
+                    "y": 0,
+                    "w": 16,
+                    "h": 22,
+                    "px": 0.5,
+                    "py": 0.0
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Village/dog_sheet",
+            "frames": [
+                {
+                    "name": "dog_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 22,
+                    "h": 16,
+                    "px": 0.5,
+                    "py": 0.0625
+                },
+                {
+                    "name": "dog_1",
+                    "x": 24,
+                    "y": 0,
+                    "w": 22,
+                    "h": 16,
+                    "px": 0.5,
+                    "py": 0.0625
+                },
+                {
+                    "name": "dog_2",
+                    "x": 48,
+                    "y": 0,
+                    "w": 22,
+                    "h": 16,
+                    "px": 0.5,
+                    "py": 0.0625
+                },
+                {
+                    "name": "dog_3",
+                    "x": 72,
+                    "y": 0,
+                    "w": 22,
+                    "h": 16,
+                    "px": 0.5,
+                    "py": 0.0625
+                },
+                {
+                    "name": "dog_4",
+                    "x": 96,
+                    "y": 0,
+                    "w": 22,
+                    "h": 16,
+                    "px": 0.5,
+                    "py": 0.0625
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Village/fire_sheet",
+            "frames": [
+                {
+                    "name": "fire_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 22,
+                    "h": 22,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "fire_1",
+                    "x": 24,
+                    "y": 0,
+                    "w": 22,
+                    "h": 22,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "fire_2",
+                    "x": 48,
+                    "y": 0,
+                    "w": 22,
+                    "h": 22,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "fire_3",
+                    "x": 72,
+                    "y": 0,
+                    "w": 22,
+                    "h": 22,
+                    "px": 0.5,
+                    "py": 0.0
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Village/toy_banner_sheet",
+            "frames": [
+                {
+                    "name": "toy_banner_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 30,
+                    "h": 52,
+                    "px": 0.5,
+                    "py": 0.9807692170143127
+                },
+                {
+                    "name": "toy_banner_1",
+                    "x": 32,
+                    "y": 0,
+                    "w": 30,
+                    "h": 52,
+                    "px": 0.5,
+                    "py": 0.9807692170143127
+                },
+                {
+                    "name": "toy_banner_2",
+                    "x": 64,
+                    "y": 0,
+                    "w": 30,
+                    "h": 52,
+                    "px": 0.5,
+                    "py": 0.9807692170143127
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Village/toy_bird_sheet",
+            "frames": [
+                {
+                    "name": "toy_bird_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 6,
+                    "h": 4,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "toy_bird_1",
+                    "x": 8,
+                    "y": 0,
+                    "w": 6,
+                    "h": 4,
+                    "px": 0.5,
+                    "py": 0.5
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Village/toy_cat_sheet",
+            "frames": [
+                {
+                    "name": "toy_cat_sleep",
+                    "x": 0,
+                    "y": 0,
+                    "w": 24,
+                    "h": 13,
+                    "px": 0.5,
+                    "py": 0.1538461595773697
+                },
+                {
+                    "name": "toy_cat_stretch",
+                    "x": 26,
+                    "y": 0,
+                    "w": 24,
+                    "h": 16,
+                    "px": 0.5,
+                    "py": 0.125
+                },
+                {
+                    "name": "toy_cat_sit",
+                    "x": 52,
+                    "y": 0,
+                    "w": 18,
+                    "h": 20,
+                    "px": 0.5,
+                    "py": 0.10000000149011612
+                },
+                {
+                    "name": "toy_cat_walk_0",
+                    "x": 72,
+                    "y": 0,
+                    "w": 24,
+                    "h": 16,
+                    "px": 0.5,
+                    "py": 0.125
+                },
+                {
+                    "name": "toy_cat_walk_1",
+                    "x": 98,
+                    "y": 0,
+                    "w": 24,
+                    "h": 16,
+                    "px": 0.5,
+                    "py": 0.125
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Village/toy_flame_sheet",
+            "frames": [
+                {
+                    "name": "toy_flame_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 2,
+                    "h": 4,
+                    "px": 0.5,
+                    "py": 0.0
+                },
+                {
+                    "name": "toy_flame_1",
+                    "x": 4,
+                    "y": 0,
+                    "w": 2,
+                    "h": 4,
+                    "px": 0.5,
+                    "py": 0.0
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Village/toy_globe_sheet",
+            "frames": [
+                {
+                    "name": "toy_globe_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 15,
+                    "h": 15,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "toy_globe_1",
+                    "x": 17,
+                    "y": 0,
+                    "w": 15,
+                    "h": 15,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "toy_globe_2",
+                    "x": 34,
+                    "y": 0,
+                    "w": 15,
+                    "h": 15,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "toy_globe_3",
+                    "x": 51,
+                    "y": 0,
+                    "w": 15,
+                    "h": 15,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "toy_globe_4",
+                    "x": 68,
+                    "y": 0,
+                    "w": 15,
+                    "h": 15,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "toy_globe_5",
+                    "x": 85,
+                    "y": 0,
+                    "w": 15,
+                    "h": 15,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "toy_globe_6",
+                    "x": 102,
+                    "y": 0,
+                    "w": 15,
+                    "h": 15,
+                    "px": 0.5,
+                    "py": 0.5
+                },
+                {
+                    "name": "toy_globe_7",
+                    "x": 119,
+                    "y": 0,
+                    "w": 15,
+                    "h": 15,
+                    "px": 0.5,
+                    "py": 0.5
+                }
+            ]
+        },
+        {
+            "sheet": "Sprites/Village/toy_owl_sheet",
+            "frames": [
+                {
+                    "name": "toy_owl_0",
+                    "x": 0,
+                    "y": 0,
+                    "w": 13,
+                    "h": 16,
+                    "px": 0.5,
+                    "py": 0.125
+                },
+                {
+                    "name": "toy_owl_1",
+                    "x": 15,
+                    "y": 0,
+                    "w": 13,
+                    "h": 16,
+                    "px": 0.5,
+                    "py": 0.125
+                },
+                {
+                    "name": "toy_owl_2",
+                    "x": 30,
+                    "y": 0,
+                    "w": 13,
+                    "h": 16,
+                    "px": 0.5,
+                    "py": 0.125
+                }
+            ]
+        }
+    ]
+}

@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: frostbat_hang
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: 019909c8ceab62243b3ebcbbcff014e1, type: 3}
+  - {fileID: -328518213, guid: 025e398c743925e43b0ae79f3a72ac5a, type: 3}
   fps: 1
   loop: 1

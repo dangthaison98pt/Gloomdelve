@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: lurecap_idle
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: e70ef1491bd28ac41a48fd74d8c4a21a, type: 3}
+  - {fileID: -1519322195, guid: 3705556f333500a40919155434d3caa7, type: 3}
   fps: 1
   loop: 1

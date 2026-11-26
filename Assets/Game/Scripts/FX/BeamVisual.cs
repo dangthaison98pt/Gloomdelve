@@ -18,9 +18,7 @@ namespace Gloomdelve
             var go = new GameObject("Beam");
             var b = go.AddComponent<BeamVisual>();
             b.sr = go.AddComponent<SpriteRenderer>();
-            if (white == null)
-                white = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, Texture2D.whiteTexture.width, Texture2D.whiteTexture.height),
-                                      new Vector2(0.5f, 0.5f), Texture2D.whiteTexture.width);
+            if (white == null) white = World.Instance != null && World.Instance.config != null ? World.Instance.config.unitSquare : null;
             b.sr.sprite = white;
             var from = owner != null ? owner.GetComponentInChildren<SpriteRenderer>() : null;
             if (material != null) b.sr.sharedMaterial = material;
@@ -54,20 +52,7 @@ namespace Gloomdelve
         public void ShowDot(Vector2 at, float diameter, Color color)
         {
             if (sr == null) return;
-            if (disc == null)
-            {
-                const int n = 16;
-                var tex = new Texture2D(n, n, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
-                var px = new Color32[n * n];
-                for (int y = 0; y < n; y++)
-                    for (int x = 0; x < n; x++)
-                    {
-                        float dx = x + 0.5f - n * 0.5f, dy = y + 0.5f - n * 0.5f;
-                        px[y * n + x] = dx * dx + dy * dy <= n * n * 0.25f ? new Color32(255, 255, 255, 255) : new Color32(255, 255, 255, 0);
-                    }
-                tex.SetPixels32(px); tex.Apply();
-                disc = Sprite.Create(tex, new Rect(0, 0, n, n), new Vector2(0.5f, 0.5f), n);
-            }
+            if (disc == null) disc = World.Instance != null && World.Instance.config != null ? World.Instance.config.unitDisc : null;
             transform.position = new Vector3(at.x, at.y, 0f);
             transform.rotation = Quaternion.identity;
             transform.localScale = new Vector3(diameter, diameter, 1f);

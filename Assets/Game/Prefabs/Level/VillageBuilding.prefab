@@ -313,10 +313,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.ChimneySmoke
   frames:
-  - {fileID: 21300000, guid: fd2dc3e9db6b6a840b219445c6e1cec1, type: 3}
-  - {fileID: 21300000, guid: 1a580921933f9dc438e7577e415034a3, type: 3}
-  - {fileID: 21300000, guid: 8e9dea3eb32c6144dba47cfed0d58d1c, type: 3}
-  - {fileID: 21300000, guid: 92464d8c28fc68d4ba26d91399cff62c, type: 3}
+  - {fileID: 1727650967, guid: 358d7dfce4d35c94990a002117eabaa9, type: 3}
+  - {fileID: -1014908555, guid: 358d7dfce4d35c94990a002117eabaa9, type: 3}
+  - {fileID: -806122131, guid: 358d7dfce4d35c94990a002117eabaa9, type: 3}
+  - {fileID: -75018696, guid: 358d7dfce4d35c94990a002117eabaa9, type: 3}
   material: {fileID: 2100000, guid: 71f4b9bdde8354942977b450a30471f2, type: 2}
   puffs: 7
   life: 5

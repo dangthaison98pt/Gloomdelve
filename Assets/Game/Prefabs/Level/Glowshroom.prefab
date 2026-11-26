@@ -52,9 +52,9 @@ MonoBehaviour:
   flipWithFacing: 0
   artFacesLeft: 0
   variants:
-  - {fileID: 21300000, guid: 7c4df0a1d6aa5d6439adba0fe7183fa5, type: 3}
-  - {fileID: 21300000, guid: bd5ecc533b9d6444e9e1840a1ad05deb, type: 3}
-  - {fileID: 21300000, guid: 89d304500d2933f4191c95e763185e61, type: 3}
+  - {fileID: -1171190710, guid: 93dceba84178c4946b1afe844c8ace41, type: 3}
+  - {fileID: -1436343352, guid: 93dceba84178c4946b1afe844c8ace41, type: 3}
+  - {fileID: -412609641, guid: 93dceba84178c4946b1afe844c8ace41, type: 3}
 --- !u!114 &1792054132674320605
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -155,7 +155,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 1
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 7c4df0a1d6aa5d6439adba0fe7183fa5, type: 3}
+  m_Sprite: {fileID: -1171190710, guid: 93dceba84178c4946b1afe844c8ace41, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

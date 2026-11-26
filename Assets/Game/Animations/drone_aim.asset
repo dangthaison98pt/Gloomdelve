@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: drone_aim
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: d81b2394d0e19f141a5f081df6b3d2ea, type: 3}
-  - {fileID: 21300000, guid: 129e362d3b116a749bd7e0e985cfb999, type: 3}
+  - {fileID: -1144745765, guid: fd50f6e2b1d5b084f88b8ef97bc9bc5e, type: 3}
+  - {fileID: -1298661619, guid: fd50f6e2b1d5b084f88b8ef97bc9bc5e, type: 3}
   fps: 14
   loop: 1

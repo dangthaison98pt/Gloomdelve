@@ -19,6 +19,7 @@ namespace Gloomdelve.EditorTools
         void OnPreprocessTexture()
         {
             if (!assetPath.StartsWith("Assets/Game/Art/")) return;
+            if (ArtSheets.IsSheet(assetPath)) return;            // (a sheet's frames are cut by ArtSheets)
             if (!Pending.TryGetValue(assetPath, out var s)) return;
             var ti = (TextureImporter)assetImporter;
             ti.textureType = TextureImporterType.Sprite;

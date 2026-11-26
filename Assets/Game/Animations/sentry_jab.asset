@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: sentry_jab
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: 30cbf95edc93537499d3a7a33e404528, type: 3}
+  - {fileID: 37777208, guid: 1caa9d91378c4004eb7b9d5cef156174, type: 3}
   fps: 1
   loop: 1

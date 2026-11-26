@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: sunslash
   m_EditorClassIdentifier: Assembly-CSharp::Gloomdelve.SpriteAnim
   frames:
-  - {fileID: 21300000, guid: a177bd0c36e6b6e46834778f85bd50e7, type: 3}
-  - {fileID: 21300000, guid: a290ee1f93f2ca3428119d3e9f489784, type: 3}
-  - {fileID: 21300000, guid: 95ca810522ad0a44fa0641a3bb306e61, type: 3}
+  - {fileID: -1069479372, guid: c10e11957044e774994cd6019c88c1f9, type: 3}
+  - {fileID: 1567835254, guid: c10e11957044e774994cd6019c88c1f9, type: 3}
+  - {fileID: 1189209837, guid: c10e11957044e774994cd6019c88c1f9, type: 3}
   fps: 14
   loop: 1
