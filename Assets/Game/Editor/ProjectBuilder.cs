@@ -2391,8 +2391,8 @@ namespace Gloomdelve.EditorTools
                     return l;
                 }
                 TopLeft("StatsHead", "Overall Statistics", 36, gold, 80, -40, 700, 50);
-                TopLeft("RunsHead", "RUNS", 20, dimGold, 110, -112, 440, 30, FontStyle.Bold);
-                TopLeft("BossHead", "CHALLENGE  -  best time against each boss", 20, dimGold, 620, -112, 520, 30, FontStyle.Bold);
+                TopLeft("RunsHead", "Runs", 20, dimGold, 110, -112, 440, 30, FontStyle.Bold);
+                TopLeft("BossHead", "Challenge  -  best time against each boss", 20, dimGold, 620, -112, 520, 30, FontStyle.Bold);
                 menu.recordsText = TopLeft("Stats", "", 24, Color.white, 110, -152, 480, 300);
                 menu.recordsText.lineSpacing = 30f;
                 menu.bossRecordsText = TopLeft("Bosses", "", 22, Color.white, 620, -152, 520, 330);
