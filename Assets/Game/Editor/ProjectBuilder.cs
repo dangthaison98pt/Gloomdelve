@@ -85,6 +85,8 @@ namespace Gloomdelve.EditorTools
                     GE("gear", "Tab", pill, "R1", false, "R1", null, pill, "R"), GE("walk", "S", pill, "L1", false, "L1", null, pill, "L"), GE("dash", "Shift", GS("pad_red"), "B", false, "\u25CB", psCircle, null, "A"),
                     GE("pause", "Esc", pill, "Select", false, "Share", null, pill, "\u2212"), GE("inventory", "I", pill, "Start", false, "Options", null, pill, "+"),
                     GE("map", "M", pill, "L1", false, "L1", null, pill, "L"),
+                    // the Blue Ocarina's two held buttons (OcarinaScreen: not keys a player sets, so their pictures are fixed)
+                    GE("ocsharp", "Shift", pill, "R1", false, "R1", null, pill, "R"), GE("oclow", "Ctrl", pill, "L1", false, "L1", null, pill, "L"),
                     // the two buttons of a scene (EndingScene): a pad's "yes" and its "back", whatever it plays with
                     GE("next", "Space", GS("pad_green"), "A", false, "\u00D7", psCross, null, "A"), GE("skip", "Esc", GS("pad_red"), "B", false, "\u25CB", psCircle, null, "B"),
                     GE("up", "\u25B2", darkBtn, "\u25B2"), GE("down", "\u25BC", darkBtn, "\u25BC"),
@@ -3085,6 +3087,58 @@ namespace Gloomdelve.EditorTools
                 cx.input = reader; cx.director = dir;
                 dir.codex = cx;
                 cxRoot.gameObject.SetActive(false);
+            }
+
+            // the Blue Ocarina, played (from the bag's KEY ITEMS): a staff the notes are written on, eight holes under it
+            {
+                var ocGo = UIBuilder.Node(t, "Ocarina");
+                UIBuilder.Stretch(UIBuilder.Rect(ocGo));
+                var oc = ocGo.AddComponent<OcarinaScreen>();
+                var ocRoot = UIBuilder.Img(ocGo.transform, "Root", null, new Color(0f, 0f, 0f, 0.55f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+                UIBuilder.Stretch(ocRoot.rectTransform);
+                oc.root = ocRoot.gameObject;
+                var ocPanel = UIBuilder.Panel(ocRoot.transform, "Panel", new Vector2(0.5f, 0.5f), new Vector2(0, -20), new Vector2(1120, 600));
+                UIBuilder.Label(ocPanel.transform, "Title", "Blue Ocarina", 46, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -56), new Vector2(800, 64), true, FontStyle.Bold);
+                var ocPic = UIBuilder.Img(ocPanel.transform, "Picture", ArtGenerator.S("Sprites/Village/ocarina"), Color.white, new Vector2(0f, 1f), new Vector2(120, -60), new Vector2(110, 80));
+                ocPic.preserveAspect = true;
+                // the staff: five lines, the notes scroll along it from the right
+                const float gap = 16f;
+                var staffBack = UIBuilder.Img(ocPanel.transform, "Staff", null, new Color(0f, 0f, 0f, 0f), new Vector2(0.5f, 1f), new Vector2(0, -110), new Vector2(940, 190));
+                staffBack.gameObject.AddComponent<RectMask2D>();
+                for (int k = -2; k <= 2; k++)
+                    UIBuilder.Img(staffBack.transform, "Line" + (k + 2), ArtGenerator.S("Center/pixel"), new Color(1f, 1f, 1f, 0.32f), new Vector2(0.5f, 0.5f), new Vector2(0, k * gap), new Vector2(940, 2));
+                UIBuilder.Img(staffBack.transform, "Pen", ArtGenerator.S("Center/pixel"), new Color(1f, 0.86f, 0.5f, 0.35f), new Vector2(1f, 0.5f), new Vector2(-30, 0), new Vector2(2, gap * 7f));
+                oc.staff = staffBack.rectTransform;
+                oc.lineGap = gap;
+                oc.noteSprite = ArtGenerator.S("UI/note_head");
+                var sharp = UIBuilder.Label(staffBack.transform, "Sharp", "#", 24, new Color(1f, 0.86f, 0.5f), TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(24, 30), false, FontStyle.Bold);
+                sharp.gameObject.SetActive(false);
+                oc.sharpTemplate = sharp;
+                // the eight holes
+                oc.holes = new Image[8]; oc.holeNames = new TMPro.TMP_Text[8]; oc.holeKeys = new TMPro.TMP_Text[8]; oc.faceDots = new Image[16];
+                for (int i = 0; i < 8; i++)
+                {
+                    float x = (i - 3.5f) * 118f;
+                    var hole = UIBuilder.Img(ocPanel.transform, "Hole" + i, ArtGenerator.S("UI/ocarina_hole"), new Color(0.16f, 0.36f, 0.62f), new Vector2(0.5f, 0f), new Vector2(x, 200), new Vector2(88, 88));
+                    oc.holes[i] = hole;
+                    oc.holeNames[i] = UIBuilder.Label(hole.transform, "Name", "", 34, Color.white, TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(80, 50), true, FontStyle.Bold);
+                    oc.holeKeys[i] = UIBuilder.Label(ocPanel.transform, "Key" + i, "", 26, new Color(1f, 1f, 1f, 0.8f), TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(x, 128), new Vector2(100, 36), false, FontStyle.Bold);
+                    if (i >= 4)
+                    {
+                        // a face button: a diamond of four, the one to press lit (bottom, left, top, right)
+                        Vector2[] at = { new Vector2(0, -13), new Vector2(-13, 0), new Vector2(0, 13), new Vector2(13, 0) };
+                        for (int d = 0; d < 4; d++)
+                        {
+                            bool lit = d == i - 4;
+                            oc.faceDots[(i - 4) * 4 + d] = UIBuilder.Img(ocPanel.transform, "Face" + i + "_" + d, ArtGenerator.S("UI/ocarina_hole"), lit ? new Color(1f, 0.84f, 0.38f) : new Color(1f, 1f, 1f, 0.28f), new Vector2(0.5f, 0f), new Vector2(x, 128) + at[d], new Vector2(12, 12));
+                        }
+                    }
+                }
+                oc.modeText = UIBuilder.Label(ocPanel.transform, "Hint", "", 22, new Color(1f, 1f, 1f, 0.75f), TextAnchor.MiddleCenter, new Vector2(0.5f, 0f), new Vector2(0, 44), new Vector2(1040, 34));
+                oc.noteClip = AssetDatabase.LoadAssetAtPath<AudioClip>(AudioGenerator.Root + "Sfx/ocarina_note.wav");
+                oc.input = reader;
+                dir.ocarina = oc;
+                ocRoot.gameObject.SetActive(false);
             }
 
             // transition

@@ -325,6 +325,18 @@ MonoBehaviour:
     volume: 0.8
     pitchJitter: 0.06
     minInterval: 0.03
+  - id: ocarina_note
+    clips:
+    - {fileID: 8300000, guid: 8a1c397eefd17f84b9d3d13bd922df56, type: 3}
+    volume: 0.8
+    pitchJitter: 0.06
+    minInterval: 0.03
+  - id: ocarina_chiff
+    clips:
+    - {fileID: 8300000, guid: 6358eb169e5ac994096eb739171b9374, type: 3}
+    volume: 0.8
+    pitchJitter: 0.06
+    minInterval: 0.03
   - id: achievement
     clips:
     - {fileID: 8300000, guid: 72a6fbaa3df9ab9479f030cebf0e2537, type: 3}

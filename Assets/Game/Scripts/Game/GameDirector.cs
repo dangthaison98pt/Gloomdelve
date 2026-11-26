@@ -23,6 +23,7 @@ namespace Gloomdelve
         public EquipmentWheel gearWheel;
         public InventoryScreen inventory;
         [Tooltip("The Field Guide, open (read from the bag's KEY ITEMS).")] public CodexScreen codex;
+        [Tooltip("The Blue Ocarina, played (from the bag's KEY ITEMS).")] public OcarinaScreen ocarina;
         [Tooltip("A villager's shop (and the elder's work on the bags), open.")] public VillageShopPanel villageShop;
         public SkyBackdrop sky;
         public CaveBackdrop caveBackdrop;
@@ -360,6 +361,12 @@ namespace Gloomdelve
             {
                 if (Ended || input == null) villageShop.Close();
                 else if (input.PausePressed || input.BackPressed) villageShop.Back();      // (from a list to the choices, from the choices out)
+                return;
+            }
+            // the Blue Ocarina, played: Pause or the bag's button puts it away (the face buttons are its notes)
+            if (ocarina != null && ocarina.IsOpen)
+            {
+                if (Ended || input == null || input.InventoryPressed || input.PausePressed) ocarina.Close();
                 return;
             }
             // the Field Guide: Pause, the bag's button or a gamepad's back button shuts it

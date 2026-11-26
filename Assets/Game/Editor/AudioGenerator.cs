@@ -148,6 +148,29 @@ namespace Gloomdelve.EditorTools
             Sfx("rustle", 0.45f, b => { for (int i = 0; i < 5; i++) NoiseBurst(b, i * 0.06f, 0.12f, 0.5f, 0.5f, 0.25f, 1.2f); }, 0.5f);
             // the Blue Ocarina's own little tune (written for this game): soft, breathy, a rise and a turn
             Sfx("ocarina", 1.7f, b => { int[] n = { 3, 7, 10, 8, 15 }; float[] st = { 0f, 0.22f, 0.44f, 0.7f, 0.95f }; for (int i = 0; i < n.Length; i++) { Tone(b, st[i], i == n.Length - 1 ? 0.7f : 0.3f, NoteHz(n[i] + 12), NoteHz(n[i] + 12), Sin, 0.5f, 0.04f, 0.012f, 5.5f); NoiseBurst(b, st[i], 0.05f, 0.05f, 0.9f, 0.8f); } }, 0.6f);
+            // the Blue Ocarina, played (OcarinaScreen): one held C5 that loops without a seam - exactly one second, a
+            // whole number of cycles (523 Hz) and of its gentle vibrato (5 Hz) - and the puff of breath that starts a note
+            Sfx("ocarina_note", 1f, b =>
+            {
+                double ph = 0;
+                for (int i = 0; i < b.Length; i++)
+                {
+                    double t = i / (double)SR;
+                    double f = 523.0 * (1.0 + 0.0035 * System.Math.Sin(2 * System.Math.PI * 5.0 * t));
+                    ph += f / SR;
+                    double x = System.Math.Sin(2 * System.Math.PI * ph) + 0.035 * System.Math.Sin(4 * System.Math.PI * ph) + 0.012 * System.Math.Sin(6 * System.Math.PI * ph);
+                    b[i] = (float)(x * 0.5);
+                }
+                // a whisper of air under the note (soft, filtered noise; the same at both ends, so the loop stays seamless)
+                float y = 0f;
+                for (int i = 0; i < b.Length; i++)
+                {
+                    y += (Noise() - y) * 0.08f;
+                    float edge = Mathf.Min(1f, Mathf.Min(i, b.Length - 1 - i) / 400f);
+                    b[i] += y * 0.05f * edge;      // (faded to nothing at both ends: no click where the loop joins)
+                }
+            }, 0.7f);
+            Sfx("ocarina_chiff", 0.09f, b => { NoiseBurst(b, 0, 0.07f, 0.3f, 0.25f, 0.15f, 2f); }, 0.3f);
             Sfx("achievement", 0.6f, b => { Tone(b, 0, 0.18f, NoteHz(15), NoteHz(15), Tri, 0.45f); Tone(b, 0.12f, 0.45f, NoteHz(22), NoteHz(22), Tri, 0.45f); Tone(b, 0.12f, 0.45f, NoteHz(27), NoteHz(27), Sin, 0.2f); }, 0.55f);
             Sfx("pot_break", 0.22f, b => { NoiseBurst(b, 0, 0.18f, 0.8f, 0.7f, 0.3f); for (int i = 0; i < 3; i++) Tone(b, 0.02f + i * 0.04f, 0.03f, 1800 - i * 300, 1500, Tri, 0.2f); });
             Sfx("crate_break", 0.25f, b => { NoiseBurst(b, 0, 0.2f, 0.8f, 0.4f, 0.1f); Tone(b, 0, 0.12f, 160, 90, Sin, 0.5f); });

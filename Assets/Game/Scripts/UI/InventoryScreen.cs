@@ -273,9 +273,13 @@ namespace Gloomdelve
                     {
                         icon = ocarinaIcon, under = "Play", marked = false,
                         name = "Blue Ocarina",
-                        desc = "A little blue ocarina, shaken out of the fir by the village hall. It plays a tune nobody taught you. It is never lost.",
+                        desc = "A little blue ocarina, shaken out of the fir by the village hall. Play it: eight holes, one octave, and every tune you know. It is never lost.",
                         act = "Play",
-                        run = () => Sfx.PlayUI("ocarina", 0.9f),
+                        run = () =>
+                        {
+                            if (director != null && director.ocarina != null) { Close(); director.ocarina.Open(); }
+                            else Sfx.PlayUI("ocarina", 0.9f);
+                        },
                     });
                 // the two little dolls from the dog's basket: kept for good
                 if (Villagers.HasKey(Villagers.KeyDolls))

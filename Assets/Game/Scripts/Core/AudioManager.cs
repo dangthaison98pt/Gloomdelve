@@ -18,6 +18,7 @@ namespace Gloomdelve
         string currentMusic;
         float musicBaseVolume = 0.7f;
         float duck = 1f;
+        bool musicHushed;
 
         void Awake()
         {
@@ -50,7 +51,7 @@ namespace Gloomdelve
         {
             BoostListener();
             var s = SaveSystem.Settings;
-            duck = Mathf.MoveTowards(duck, 1f, Time.unscaledDeltaTime * 0.6f);
+            duck = musicHushed ? Mathf.MoveTowards(duck, 0f, Time.unscaledDeltaTime * 4f) : Mathf.MoveTowards(duck, 1f, Time.unscaledDeltaTime * 0.6f);
             musicSource.volume = s.masterVolume * s.musicVolume * musicBaseVolume * duck;
         }
 
@@ -96,6 +97,10 @@ namespace Gloomdelve
         }
 
         public void StopMusic() { currentMusic = null; musicSource.Stop(); }
+
+        /// <summary>The music fades out and stays silent until let go (the Blue Ocarina is being played); then it comes back slowly.</summary>
+        public void HushMusic(bool on) { musicHushed = on; }
+        public bool MusicHushed => musicHushed;
 
         /// <summary>Temporarily lowers music (e.g. on death / big moments).</summary>
         public void DuckMusic(float amount) { duck = Mathf.Clamp01(1f - amount); }

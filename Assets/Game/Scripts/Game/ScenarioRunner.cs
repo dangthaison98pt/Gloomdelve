@@ -275,6 +275,9 @@ namespace Gloomdelve
             new Scenario { name = "room toys 2: bellows and anvil, globe and telescope, Pip's owl, clock and bird, Bera's lamps, the hall's candles, cup and banner, a nap in the bed at home, Tam's coil",
                 map = m => { Set(m, 3, 1, 'S'); for (int x = 4; x <= 20; x++) Set(m, x, 7, '#'); },
                 run = c => RoomToys2Case(c) },
+            new Scenario { name = "ocarina: played from the bag (the press that opened it plays nothing), a held key sounds its note at its pitch, a second slurs and letting go goes back, Shift a half step up, Ctrl an octave down; the notes are written on the staff; the music falls silent while it is out; Pause puts it away",
+                map = m => { Set(m, 3, 1, 'S'); },
+                run = c => OcarinaPlayCase(c) },
             new Scenario { name = "audio: the listener makes the whole mix louder (about +13 dB: 75% on the sliders is the old 2.5 times at 100%), and the limiter keeps the loudest sounds under full scale",
                 map = m => { Set(m, 3, 1, 'S'); },
                 run = c => AudioBoostCase(c) },
@@ -4475,6 +4478,47 @@ namespace Gloomdelve
             Villagers.testRescued = null;
             c.dir.cameraFollow.SetBounds(new Rect(0, 0, c.world.Grid.Width, c.world.Grid.Height));
             yield return c.Frames(4);
+        }
+
+        static IEnumerator OcarinaPlayCase(Ctx c)
+        {
+            var dir = GameDirector.Instance;
+            var oc = dir != null ? dir.ocarina : null;
+            c.Expect(oc != null && oc.noteClip != null, "the ocarina's screen is there, with its note");
+            if (oc == null) yield break;
+            IEnumerator Wait(int n) { for (int i = 0; i < n; i++) yield return null; }
+            // the press that chose Play is still held as it opens: it is not a note until it has been let go
+            oc.testHeld = new bool[8]; oc.testHeld[4] = true;
+            oc.Open();
+            yield return Wait(3);
+            c.Expect(oc.Sounding == -1, "the button that opened it, still held, plays nothing");
+            oc.testHeld[4] = false;
+            yield return Wait(3);
+            c.Expect(oc.IsOpen && Time.timeScale == 0f && oc.Sounding == -1, "open: the game stands still, nothing sounds yet");
+            c.Expect(AudioManager.Instance != null && AudioManager.Instance.MusicHushed, "and the music falls silent: only the ocarina is heard");
+            bool Near(float a, float b) => Mathf.Abs(a - b) < 0.001f;
+            oc.testHeld[0] = true; yield return Wait(3);
+            c.Expect(oc.Sounding == 0 && Near(oc.SoundingPitch, 1f), $"C held: C sounds ({oc.Sounding}, {oc.SoundingPitch:0.000})");
+            oc.testHeld[4] = true; yield return Wait(3);
+            c.Expect(oc.Sounding == 4 && Near(oc.SoundingPitch, Mathf.Pow(2f, 7f / 12f)), $"G pressed too: it slurs up to G ({oc.Sounding}, {oc.SoundingPitch:0.000})");
+            oc.testHeld[4] = false; yield return Wait(3);
+            c.Expect(oc.Sounding == 0, "G let go: back to the C still held");
+            oc.testHeld[0] = false; oc.testHeld[2] = true; oc.testSharp = true; yield return Wait(3);
+            c.Expect(oc.Sounding == 2 && Near(oc.SoundingPitch, Mathf.Pow(2f, 5f / 12f)), $"E with Shift: F, a half step up ({oc.SoundingPitch:0.000})");
+            oc.testHeld[2] = false; oc.testSharp = false; oc.testHeld[7] = true; oc.testLow = true; yield return Wait(3);
+            c.Expect(oc.Sounding == 7 && Near(oc.SoundingPitch, 1f), $"high C with Ctrl: an octave down ({oc.SoundingPitch:0.000})");
+            oc.testLow = false;
+            for (int k = 0; k < 6; k++) { oc.testHeld[7] = false; oc.testHeld[k] = true; yield return Wait(8); oc.testHeld[k] = false; yield return Wait(4); }
+            oc.testHeld[5] = true; yield return Wait(4);
+            c.Expect(oc.NotesWritten >= 8, "every note played is written on the staff (" + oc.NotesWritten + ")");
+            yield return new WaitForSecondsRealtime(0.25f);
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "ocarina_play.png"));
+            yield return new WaitForSecondsRealtime(0.2f);
+            oc.testHeld[5] = false; yield return Wait(3);
+            c.Expect(oc.Sounding == -1, "all let go: silence");
+            oc.Close();
+            yield return Wait(2);
+            c.Expect(!oc.IsOpen && Time.timeScale > 0f && AudioManager.Instance != null && !AudioManager.Instance.MusicHushed, "put away: the game goes on, and the music comes back");
         }
 
         static IEnumerator AudioBoostCase(Ctx c)

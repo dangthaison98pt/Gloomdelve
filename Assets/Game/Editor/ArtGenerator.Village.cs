@@ -59,6 +59,7 @@ namespace Gloomdelve.EditorTools
             StreetArt(d);
             KennelRoomArt(d);
             DollsArt(d);
+            OcarinaUiArt();
             {
                 // the glint that marks something worth a closer look
                 var p = new Px(7, 7);
