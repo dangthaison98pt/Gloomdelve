@@ -59,6 +59,9 @@ namespace Gloomdelve
         [NonSerialized] public MotorState motor;
         [NonSerialized] public Item held;
         [NonSerialized] public bool godMode;
+        /// <summary>Lying in something (Tam's hammock): it holds the player where it likes and lays them down at restAngle; no control meanwhile.</summary>
+        [NonSerialized] public Entity restingIn;
+        [NonSerialized] public float restAngle;
         [NonSerialized] public IFrameInputSource bot;
 
         public bool IsDead { get; private set; }
@@ -67,6 +70,8 @@ namespace Gloomdelve
         public string Prompt { get; private set; }
         /// <summary>The prompt is the writing on a sign (the screen shows it as a notice, not as something to do).</summary>
         public bool PromptIsSign { get; private set; }
+        /// <summary>What Enter would use now (in reach, the nearest; null = nothing): it is outlined (InReach).</summary>
+        public IInteractable Focus { get; private set; }
         public float InvulnTime => invuln;
         public bool IsStunned => stunTimer > 0f;
         /// <summary>Encased in ice (snowball without a fur coat): cannot act until it wears off.</summary>
@@ -140,6 +145,11 @@ namespace Gloomdelve
         public override void Tick(float dt)
         {
             if (IsDead) { TickCorpse(dt); return; }
+            if (restingIn != null)
+            {
+                if (restingIn.Dead) { restingIn = null; restAngle = 0f; }
+                else { vel = Vector2.zero; Prompt = null; Focus = null; interactable = false; return; }      // (whatever holds them moves them)
+            }
 
             FrameInput fi = bot != null ? bot.Next() : (input != null ? input.Consume() : default);
             invuln -= dt; stunTimer -= dt; whipCooldown -= dt; throwAnimTimer -= dt; frozen -= dt; slowTimer -= dt; confused -= dt;
@@ -497,6 +507,7 @@ namespace Gloomdelve
                 float d = Mathf.Abs(e.pos.x - pos.x);
                 if (d < bd) { bd = d; best = (IInteractable)e; }
             }
+            Focus = best;
             // nobody in reach any more: up and down are the player's again (they were moving the chosen row of whoever
             // was here - left set, up would not climb a ladder until something else came in reach)
             if (best == null) { choiceOf = null; choiceIndex = 0; }
@@ -850,11 +861,13 @@ namespace Gloomdelve
             {
                 squash = Vector2.Lerp(squash, Vector2.one, 1f - Mathf.Exp(-14f * Time.deltaTime));
                 sr.transform.localScale = new Vector3(squash.x, squash.y, 1f);
+                sr.transform.localRotation = restingIn != null ? Quaternion.Euler(0f, 0f, restAngle) : Quaternion.identity;      // lying down in a hammock
             }
             if (anim == null) return;
             SpriteAnim a;
             anim.speed = 1f;
             if (IsDead) a = animDead;
+            else if (restingIn != null) a = animIdle;
             else if (stunTimer > 0f) a = animStunned;
             else if (motor.mode == MotorMode.Hang) a = animHang;
             else if (motor.mode == MotorMode.PullUp) a = animClimb;

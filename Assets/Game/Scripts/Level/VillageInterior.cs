@@ -19,76 +19,99 @@ namespace Gloomdelve
         [Tooltip("The fire (a child object with its flames and light): put in the hearth of the rooms that have one.")] public Transform fire;
         [Tooltip("What hangs close to the eye in a room, by building number (null = nothing): drawn in front of the people in it.")] public Sprite[] foregrounds;
         [Tooltip("The renderer of that foreground (a child, in front of everyone).")] public SpriteRenderer foreground;
+        [Tooltip("Home with its lamps put out, at night, dawn, day and dusk: lit by the windows and the fire alone.")] public Sprite[] homeLampsOut;
 
         /// <summary>Where the fire burns in each room, in floor-space pixels of the picture (-1 = no fire): the forge's
         /// furnace, the hearths of the hall and of the player's house. Same numbers as ArtGenerator.Village, Room.</summary>
         /// <summary>
-        /// Things worth a closer look, room by room: cell across (0-13, the door is 1), storey (0 = street level,
-        /// 1 = upstairs), what it is called, what the player notices. Each says something about who lives here - and,
-        /// read together, about this winter.
+        /// Things to read, room by room (Curio): where it lies (floor-space pixels across), storey (0 = street level,
+        /// 1 = upstairs), how high it lies (pixels above that floor: a table is 15, a mantel 46; a pinned note: its
+        /// foot), what it is, what it is called, what is written. Each says something about who lives here - and,
+        /// read together, about this winter. Same places as the furniture in ArtGenerator.Village, Room.
         /// </summary>
-        static readonly (int cell, int storey, string label, string text)[][] Curios =
+        static readonly (float x, int storey, int lift, Curio.Form form, string label, string text)[][] Curios =
         {
             new[]   // the forge - Hilde
             {
-                (12, 0, "the furnace", "The coals are banked the way Hilde always leaves them at dusk. They have not burned down at all."),
-                (4, 0, "the rack of blades", "Six blades, each stamped with the day it was finished. All six carry the same day."),
-                (10, 1, "her bed", "Under the pillow: a ring too small for Hilde's hand, and a letter that begins 'When the sun comes back...'"),
-                (6, 1, "the crates", "Horseshoes, hinges, nails - a whole season's orders, packed and labelled. Nobody has come to collect them."),
+                (141f, 0, 56, Curio.Form.Pinned, "a note by the furnace", "In Hilde's hand: 'Bank the coals at dusk.' Under it, newer, pressed hard into the paper: 'They have not burned down. Not once.'"),
+                (84f, 0, 16, Curio.Form.Book, "the order book", "Horseshoes, hinges, nails: a whole season of orders, every one marked 'done', none collected. The last six lines are blades, and all six are dated the same day."),
+                (165f, 1, 16, Curio.Form.Letter, "a letter under the pillow", "Wrapped round a ring too small for Hilde's hand: 'When the sun comes back, ask me again.' The fold is worn soft. It has been opened a great many times."),
             },
             new[]   // the ropewalk - Tam
             {
-                (11, 0, "the ledger", "Rope sold. The last entry: 'To the Elder, forty fathoms, for the mountain.' It is written on every line of the page."),
-                (6, 1, "the old loom", "A climbing harness hangs on it, cut through. Not frayed. Cut."),
-                (8, 1, "the window", "From here you can see the mountain path. Someone has scratched a tally into the sill: more marks than a winter has days."),
-                (11, 1, "his bed", "Two pillows. Only one of them has been slept on for a long time."),
+                (184f, 0, 23, Curio.Form.Book, "the ledger", "Rope sold, fathom by fathom. The last entry: 'To the Elder, forty fathoms, for the mountain.' It is written on every line of the page, in the same hand, in the same ink."),
+                (137f, 1, 0, Curio.Form.Chest, "Tam's chest", "Under the tools, a climbing harness, cut through - not frayed, cut. Tucked in with it, a board scratched with a tally: more marks than a winter has days."),
+                (162f, 1, 16, Curio.Form.Note, "a note on the pillow", "On the second pillow, in a woman's hand: 'Back before the snow.' This is the third winter of snow since."),
             },
             new[]   // the apothecary - Maren
             {
-                (12, 0, "the cauldron", "Maren's tonic simmers. The recipe pinned above it is in two hands: hers, and an older one that looks just like hers."),
-                (6, 1, "the cabinet", "Jars labelled by night, not by herb: 'the first night', 'the cold night', 'the night he did not come back'."),
-                (8, 1, "the window", "A candle stub on the sill, burned down to the same height as the stub beside it, and the one beside that."),
-                (11, 1, "her bed", "A man's coat is folded at the foot of the bed, brushed clean. It has not been worn this winter."),
+                (185f, 0, 37, Curio.Form.Pinned, "the recipe", "Maren's tonic. The recipe is in two hands: hers, and an older one that looks just like hers. In the margin, in the older hand: 'Do not let her go up the mountain.'"),
+                (176f, 1, 15, Curio.Form.Book, "Maren's night-book", "Her remedies, listed by night instead of by herb: 'the first night', 'the cold night', 'the night he did not come back'. Then the same night, over and over, to the foot of the page."),
+                (201f, 1, 17, Curio.Form.Letter, "a note on the coat", "Pinned to a man's coat, folded at the foot of the bed: 'Brushed. Mended. Waiting.' The coat has not been worn this winter."),
             },
             new[]   // the map room - Oswin
             {
-                (12, 0, "the globe", "A hole is burned clean through Oswin's globe, exactly where Brindlemoor should be."),
-                (7, 1, "the chart table", "A map of the caverns. Then another. Then another. No two agree, and all of them are in Oswin's hand."),
-                (11, 1, "the telescope", "It is fixed on the mountain's peak. Through it: a light, where no one lives."),
-                (5, 1, "his bed", "The blankets are drawn tight, unslept in. A note on them: 'If I am asleep I will not remember. Do not let me sleep.'"),
+                (183f, 0, 17, Curio.Form.Note, "a note by the globe", "A hole is burned clean through Oswin's globe, exactly where Brindlemoor should be. His note beside it: 'Not a fault in the globe.'"),
+                (126f, 1, 17, Curio.Form.Book, "the chart book", "Map after map of the caverns, all in Oswin's hand, and no two agree. The last page is a sketch through the telescope: a light on the peak, where no one lives."),
+                (106f, 1, 15, Curio.Form.Note, "a note on the bed", "Pinned to blankets drawn tight and never slept in: 'If I am asleep I will not remember. Do not let me sleep.'"),
             },
             new[]   // Pip's Oddments
             {
-                (11, 0, "the crates", "Things Pip swears he has never sold: three compasses, none of them pointing north. All of them point at the mountain."),
-                (5, 0, "the rug on the wall", "Woven into the border, very small: a village in the snow, and a sun that has been unpicked, thread by thread."),
-                (6, 1, "the crates upstairs", "A peddler's licence from a town called Harrowmere. You have never heard of it. Neither, it seems, has any map in Oswin's room."),
-                (11, 1, "his bed", "A packed bag, by the bed. It is always packed. Pip never leaves."),
+                (131f, 1, 14, Curio.Form.Note, "a peddler's licence", "Issued in a town called Harrowmere. You have never heard of it, and neither has any map in Oswin's room. Folded inside: three compasses Pip swears he never sold. All three point at the mountain."),
+                (217f, 1, 11, Curio.Form.Letter, "a note on the bag", "Pip's bag, packed, as it always is. On top, in his hand: 'Leave tomorrow.' The paper has gone yellow."),
             },
             new[]   // the lamp house - Bera
             {
-                (12, 0, "the oil barrels", "Lamp oil, enough for one long night. The barrels are full. Bera says they are always full."),
-                (8, 1, "the great lamp", "Scratched into the brass, in Bera's hand: 'While this burns, it cannot see us.'"),
-                (5, 1, "the barrel", "A list is nailed to the lid: every lamp in Brindlemoor, each with a tick beside it. And a last line: 'the one on the mountain - not mine.'"),
-                (11, 1, "her bed", "Bera sleeps in her boots. There is soot on the blanket in the shape of a hand that is not hers."),
+                (71f, 1, 25, Curio.Form.Book, "the lamp log", "Every lamp in Brindlemoor, every night, each with its tick. The last line: 'the one on the mountain - not mine.' Scratched in the margin: 'While the great lamp burns, it cannot see us.'"),
+                (196f, 0, 17, Curio.Form.Note, "a note on the barrel", "'Oil delivered: none. Oil burned: every night. Oil left: all of it.' Bera has underlined the last line twice."),
             },
             new[]   // the village hall - the Elder
             {
-                (12, 0, "the hearth", "Carved above it: the names of everyone who went up the mountain for the Sunstone. Yours is among them. The cut is old and weathered."),
-                (9, 0, "the long table", "The Elder's cup is still warm. So is the one set across from it, though no one sits there."),
-                (6, 1, "the bookcase", "A book of village winters. Every page after tonight is blank. Every page before it reads the same."),
-                (8, 1, "the writing table", "A letter the Elder never sent: 'Forgive me. I did not know what the stone would ask of them.'"),
-                (11, 1, "his bed", "The Elder does not seem to use his bed. The pillow is dusty. The candle beside it is new."),
+                (152f, 0, 15, Curio.Form.Book, "the book of winters", "A book of village winters, a page for each. Every page after tonight is blank. Every page before it reads the same."),
+                (186f, 0, 46, Curio.Form.Note, "a list on the mantel", "Names to be carved over the hearth: everyone who went up for the Sunstone. The last is yours. It has been crossed out, and written in again, and crossed out."),
+                (128f, 1, 17, Curio.Form.Letter, "an unsent letter", "In the Elder's hand: 'Forgive me. I did not know what the stone would ask of them.' It is addressed to no one. There are many copies in the drawer."),
             },
             new[]   // home
             {
-                (7, 0, "the painting", "Your mother, at this window. She is not looking at the painter. She is looking at the mountain."),
-                (12, 0, "the hearth", "Your boots by the fire, dry and warm. You do not remember taking them off."),
-                (9, 0, "the armchair", "Your father's chair. The lantern he carried up the mountain, the winter you were small, is the one in your hand."),
-                (5, 1, "the chest", "Your own handwriting, on a scrap at the bottom: 'The gate. Then down. Do not trust the first way down.' You do not remember writing it."),
-                (12, 1, "the wardrobe", "Coats for a winter that should have ended by now. One sleeve is singed, as if by something very bright."),
-                (8, 1, "your bed", "The blankets are thrown back the way you always leave them. Exactly the way. Every time."),
+                (95f, 1, 0, Curio.Form.Chest, "your chest", "At the bottom, a scrap of paper in your own handwriting: 'The gate. Then down. Do not trust the first way down.' You do not remember writing it."),
+                (190f, 0, 46, Curio.Form.Book, "father's journal", "Your father's journal, open at its last page: the winter he carried the lantern up the mountain. The lantern in your hand is the same one. So is the date."),
             },
         };
+
+        /// <summary>
+        /// Things in a room that answer when touched (RoomToy): room, kind, where it stands (floor-space pixels across),
+        /// storey. The cat by the fire and the lamps at home, Tam's rope wheel and hammock, Maren's cauldron.
+        /// </summary>
+        static readonly (int room, RoomToy.Kind kind, float x, int storey)[] Toys =
+        {
+            (7, RoomToy.Kind.Cat, 171f, 0), (7, RoomToy.Kind.Lamps, 136f, 0),
+            (1, RoomToy.Kind.Wheel, 200f, 0), (1, RoomToy.Kind.Hammock, 71f, 1),
+            (2, RoomToy.Kind.Cauldron, 200f, 0),
+        };
+
+        /// <summary>The player's own house (its lamps can be put out).</summary>
+        public const int Home = 7;
+        static bool homeLampsAreOut;
+        /// <summary>The lamps of this room are out (only at home; it stays so until they are lit again).</summary>
+        public bool LampsOut => Index == Home && homeLampsAreOut;
+
+        public void SetLampsOut(bool value)
+        {
+            if (Index != Home) return;
+            homeLampsAreOut = value;
+            ShowLamps();
+        }
+
+        void ShowLamps()
+        {
+            if (sr == null) return;
+            var part = VillageClock.PartOf(VillageClock.Hour);
+            Sprite pic = RoomPicture(Index, part);
+            if (LampsOut && homeLampsOut != null && homeLampsOut.Length == 4 && homeLampsOut[(int)part] != null) pic = homeLampsOut[(int)part];
+            if (pic != null) sr.sprite = pic;
+            // the lamplight on whoever is in the room goes out with them
+            foreach (var n in new[] { "RoomLight", "UpstairsLight" }) { var l = transform.Find(n); if (l != null) l.gameObject.SetActive(!LampsOut); }
+        }
 
         static readonly int[] FireX = { 193, -1, 200, -1, -1, -1, 196, 198 };
         static readonly int[] FireY = { 8, 0, 5, 0, 0, 0, 4, 4 };
@@ -155,6 +178,7 @@ namespace Gloomdelve
         {
             base.OnSpawn();
             if (sr != null) { var room = RoomPicture(Index, VillageClock.PartOf(VillageClock.Hour)); if (room != null) sr.sprite = room; }
+            if (Index == Home) ShowLamps();
             if (fire != null)
             {
                 bool lit = Index >= 0 && Index < FireX.Length && FireX[Index] >= 0;
@@ -179,13 +203,22 @@ namespace Gloomdelve
                 var cell = new Vector2Int(cx + 5, cy);
                 if (prefab != null) World.Spawn(prefab, new Vector2(cell.x + 0.5f, cell.y), new SpawnPoint("villagerhome", cell, 0, Index));
             }
-            // the things worth a closer look
+            // the things to read
             var curio = cfg.prefabs.Get("curio");
             if (curio != null && Index >= 0 && Index < Curios.Length)
                 foreach (var c in Curios[Index])
                 {
-                    var cell = new Vector2Int(cx - 1 + c.cell, cy + c.storey * 7);
-                    World.Spawn(curio, new Vector2(cell.x + 0.5f, cell.y), new SpawnPoint("curio", cell, 0, 0, c.label + "|" + c.text));
+                    var at = At(c.x, c.storey * UpperYPx);
+                    World.Spawn(curio, at, new SpawnPoint("curio", new Vector2Int(Mathf.FloorToInt(at.x), Mathf.RoundToInt(at.y)), c.lift, (int)c.form, c.label + "|" + c.text));
+                }
+            // the things that answer when touched
+            var toy = cfg.prefabs.Get("roomtoy");
+            if (toy != null)
+                foreach (var t in Toys)
+                {
+                    if (t.room != Index) continue;
+                    var at = At(t.x, t.storey * UpperYPx);
+                    World.Spawn(toy, at, new SpawnPoint("roomtoy", new Vector2Int(Mathf.FloorToInt(at.x), Mathf.RoundToInt(at.y)), 0, (int)t.kind));
                 }
             if (Index == VillageBuilding.Hall)
             {
@@ -200,7 +233,7 @@ namespace Gloomdelve
         float steamT, moteT, bubbleT;
 
         /// <summary>A spot of the room picture (floor-space pixels: x across, y up from the ground floor) in the world.</summary>
-        Vector2 At(float x, float y) => new Vector2(transform.position.x + (x - 24f) / 16f, transform.position.y + y / 16f);
+        public Vector2 At(float x, float y) => new Vector2(pos.x + (x - 24f) / 16f, pos.y + y / 16f);
 
         /// <summary>
         /// What moves in a room while the player is in it (purely to be looked at): in the apothecary the brew
@@ -240,7 +273,7 @@ namespace Gloomdelve
         static readonly int[] WinX = { 100, 118, 120, 160, 128, 0, 124, 128 }, WinY = { 46, 46, 46, 40, 50, 0, 50, 46 }, WinW = { 18, 18, 18, 28, 16, 0, 16, 22 };
 
         /// <summary>Height of the upstairs floor in the room picture (pixels; ArtGenerator.Village, UpperY).</summary>
-        const float UpperYPx = 112f;
+        public const float UpperYPx = 112f;
 
         public string GetPrompt(PlayerController p) => "[enter]  Leave";
 

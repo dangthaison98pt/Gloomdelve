@@ -435,6 +435,11 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 0061b7f0505eb48448ac11d0f2a1ce7d, type: 3}
   - {fileID: 21300000, guid: 953496bc5c7c850428785201dee8d500, type: 3}
   foreground: {fileID: 1193333261257364493}
+  homeLampsOut:
+  - {fileID: 21300000, guid: e1cc0b7e689e9f145b4c0402f2740607, type: 3}
+  - {fileID: 21300000, guid: aba8b1f4ee5a25e4dbc8917d4d9d7312, type: 3}
+  - {fileID: 21300000, guid: 48b2ff28e16235a409bf2acedc3a7fac, type: 3}
+  - {fileID: 21300000, guid: 277cb1e75d434354e832bda23f944854, type: 3}
 --- !u!1 &8412754232817605695
 GameObject:
   m_ObjectHideFlags: 0

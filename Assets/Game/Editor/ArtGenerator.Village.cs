@@ -37,6 +37,18 @@ namespace Gloomdelve.EditorTools
                 Save(House(Room(k, 3)), d + "room_" + k + "_dusk", PCenter);
                 Save(House(RoomForeground(k)), d + "room_fg_" + k, PCenter);        // what hangs close to the eye, drawn in front of everyone
             }
+            // home with its lamps put out (the lamps can be put out there): the windows and the fire alone light it
+            roomLampsOut = true;
+            try
+            {
+                Save(House(Room(7)), d + "room_7_out", PCenter);
+                Save(House(Room(7, 1)), d + "room_7_out_dawn", PCenter);
+                Save(House(Room(7, 2)), d + "room_7_out_day", PCenter);
+                Save(House(Room(7, 3)), d + "room_7_out_dusk", PCenter);
+            }
+            finally { roomLampsOut = false; }
+            RoomToyArt(d);
+            ReadableArt(d);
             {
                 // the dark that surrounds a room, hiding the rock the house is cut into: stretched to RoomPxW x RoomPxH
                 var p = new Px(4, 4);
@@ -607,6 +619,10 @@ namespace Gloomdelve.EditorTools
         // room upstairs, a ladder between them. 544 x 304 px: the house (16 x 15 tiles with its walls) in the middle
         // of a dark surround. Floor space of each storey is 224 x 96 px; the upper floor is 112 px above the lower.
         const int RoomPxW = 544, RoomPxH = 304, RX = 144, RY = 32, UpperY = 112;
+        /// <summary>Paint the rooms with their lamps put out (unlit glass, no lamplight).</summary>
+        static bool roomLampsOut;
+        /// <summary>Leave one painted thing out of the room ("cauldron", "lamp"): the difference is its shape (RoomToyArt, the outlines).</summary>
+        static string roomSkip;
         /// <summary>Where the ladder stands, in floor-space pixels (the fourth cell).</summary>
         const int LadderX = 48;
 
@@ -718,7 +734,7 @@ namespace Gloomdelve.EditorTools
             }
             void Crate(int x, int y, int s) { R(x, y, s, s, wood); R(x, y, s, 1, woodD); R(x, y + s - 1, s, 1, woodL); R(x, y, 1, s, woodD); R(x + s - 1, y, 1, s, woodD); for (int i = 2; i < s - 2; i++) { Dot(x + i, y + i, woodD); Dot(x + s - 1 - i, y + i, woodD); } }
             void Barrel(int x, int y) { R(x, y, 12, 16, C(134, 90, 54)); R(x + 1, y + 16, 10, 1, woodD); R(x, y + 3, 12, 2, C(90, 92, 104)); R(x, y + 11, 12, 2, C(90, 92, 104)); R(x, y, 1, 16, woodD); R(x + 11, y, 1, 16, woodD); }
-            void Lamp(int x, int y) { R(x, y + 7, 1, 96 - y - 7, VBeam); R(x - 3, y, 7, 7, VBeam); R(x - 2, y + 1, 5, 5, VGlow); R(x - 1, y + 2, 3, 3, VGlowL); lights.Add(new Vector4(ix + x, iy + oy + y + 3, 112f, 1f)); }
+            void Lamp(int x, int y) { if (roomSkip == "lamp" && kind == 7 && oy == 0 && x == 128) { lights.Add(new Vector4(ix + x, iy + oy + y + 3, 112f, 1f)); return; } R(x, y + 7, 1, 96 - y - 7, VBeam); R(x - 3, y, 7, 7, VBeam); if (roomLampsOut) { R(x - 2, y + 1, 5, 5, C(58, 52, 50)); R(x - 1, y + 3, 3, 1, C(84, 78, 74)); return; } R(x - 2, y + 1, 5, 5, VGlow); R(x - 1, y + 2, 3, 3, VGlowL); lights.Add(new Vector4(ix + x, iy + oy + y + 3, 112f, 1f)); }
             void NightWindow(int x, int y, int w, int h)
             {
                 // curtains drawn back to either side, a rail above them
@@ -819,18 +835,9 @@ namespace Gloomdelve.EditorTools
                     // coils hanging from pegs under the shelf, a pulley block, and the ledger on its stand
                     for (int i = 0; i < 3; i++) { int cx = 88 + i * 22; R(cx, 52, 2, 4, woodD); p.Ellipse(ix + cx + 1, iy + oy + 44, 7f, 6f, C(206, 176, 112)); p.Ellipse(ix + cx + 1, iy + oy + 44, 4f, 3f, C(150, 120, 70)); p.Ellipse(ix + cx + 1, iy + oy + 44, 2f, 1.5f, C(70, 50, 38)); }
                     p.Disc(ix + 158.5f, iy + oy + 76.5f, 4f, woodD); p.Disc(ix + 158.5f, iy + oy + 76.5f, 1.5f, C(190, 196, 210)); R(158, 81, 1, 15, C(150, 120, 70));
-                    R(183, 0, 3, 20, woodD); R(176, 20, 17, 3, woodL); R(177, 23, 7, 2, cream); R(185, 23, 7, 2, cream); R(184, 22, 1, 3, creamD);
-                    // the great wheel the strands are twisted on: rim, spokes, a hub, its stand
+                    R(183, 0, 3, 20, woodD); R(176, 20, 17, 3, woodL);          // the ledger's stand (the ledger on it is a Curio)
+                    // the stand of the great wheel the strands are twisted on (the wheel itself turns: RoomToy)
                     {
-                        float wx = ix + 200.5f, wy = iy + oy + 70.5f;
-                        for (int a = 0; a < 360; a += 1)
-                        {
-                            float an = a * Mathf.Deg2Rad;
-                            p.Set(ix + 200 + Mathf.RoundToInt(Mathf.Cos(an) * 14.5f), iy + oy + 70 + Mathf.RoundToInt(Mathf.Sin(an) * 14.5f), woodD);
-                            p.Set(ix + 200 + Mathf.RoundToInt(Mathf.Cos(an) * 13.5f), iy + oy + 70 + Mathf.RoundToInt(Mathf.Sin(an) * 13.5f), wood);
-                        }
-                        for (int k = 0; k < 8; k++) { float an = k * 45f * Mathf.Deg2Rad; p.Line(ix + 200, iy + oy + 70, ix + 200 + Mathf.RoundToInt(Mathf.Cos(an) * 13f), iy + oy + 70 + Mathf.RoundToInt(Mathf.Sin(an) * 13f), woodD); }
-                        p.Disc(wx, wy, 3f, woodL); p.Set(ix + 200, iy + oy + 70, C(190, 196, 210));
                         R(198, 44, 4, 26, woodD); R(192, 44, 16, 3, woodD);
                         for (int k = 0; k < 18; k++) Dot(186 - k, 70 - k / 3, C(206, 176, 112));      // three strands running from it
                     }
@@ -879,6 +886,7 @@ namespace Gloomdelve.EditorTools
                     R(176, 0, 46, 5, VStone); R(176, 4, 46, 1, VStoneD); for (int x = 180; x < 222; x += 9) R(x, 0, 1, 4, VStoneD);
                     R(180, 5, 40, 44, C(52, 44, 44)); R(180, 5, 40, 2, C(70, 60, 58));                                  // the sooted wall behind it
                     Color32 iron = C(54, 54, 64), ironL = C(96, 98, 112);
+                    if (roomSkip != "cauldron") {
                     R(186, 5, 2, 12, iron); R(212, 5, 2, 12, iron); R(199, 5, 2, 9, iron);
                     p.Disc(ix + 200.5f, iy + oy + 22.5f, 12.6f, iron); p.Disc(ix + 200.5f, iy + oy + 22.5f, 11.4f, C(40, 40, 48));
                     p.Rect(ix + 186, iy + oy + 26, 30, 10, C(52, 44, 44));                                             // the pot is open at the top
@@ -888,13 +896,14 @@ namespace Gloomdelve.EditorTools
                     R(188, 29, 25, 1, iron);
                     for (int k = 0; k < 4; k++) Dot(195 + k * 4, 31 + k % 2, C(170, 250, 180));
                     Dot(189, 18, ironL); Dot(190, 15, ironL); Dot(191, 13, ironL);
+                    }
                     lights.Add(new Vector4(ix + 200, iy + oy + 34, 58f, 0.55f));                                      // the brew glows
                     lights.Add(new Vector4(ix + 200, iy + oy + 6, 92f, 0.9f));                                        // and the fire under it
                     Color32 copper = C(196, 116, 64), copperD = C(140, 76, 40), copperL = C(232, 160, 100);
                     for (int k = 0; k < 14; k++) { int w = 40 - k * 2; R(200 - w / 2, 54 + k, w, 1, k == 0 ? copperD : copper); Dot(200 - w / 2, 54 + k, copperD); Dot(200 + w / 2 - 1, 54 + k, copperD); }
                     R(181, 54, 38, 1, copperL); R(194, 68, 12, 28, copperD); R(196, 68, 3, 28, copper); for (int y = 74; y < 96; y += 8) R(194, y, 12, 1, C(110, 60, 30));
                     // her recipe, pinned to the wall beside the hood
-                    R(178, 36, 14, 14, cream); R(178, 36, 14, 1, creamD); for (int y = 39; y < 48; y += 3) R(180, y, 10, 1, C(120, 96, 76)); Dot(184, 49, red);
+                    // (her recipe, pinned to the wall beside the hood, is a Curio)
                     // herbs drying from the beam, all along the room; a cord of flowers across
                     Herbs(76, 88, 11, green, lav); Herbs(88, 86, 13, sage, C(240, 220, 120)); Herbs(101, 89, 10, C(120, 150, 70), red);
                     Herbs(114, 85, 14, green, lav); Herbs(128, 88, 11, sage, lav); Herbs(142, 86, 13, C(100, 160, 100), C(240, 220, 120)); Herbs(156, 89, 10, green, red);
@@ -980,9 +989,8 @@ namespace Gloomdelve.EditorTools
                     p.Disc(ix + 106.5f, iy + oy + 86.5f, 5f, woodD); p.Disc(ix + 106.5f, iy + oy + 86.5f, 3.5f, cream); R(106, 86, 1, 3, C(40, 30, 30)); R(106, 86, 2, 1, C(40, 30, 30));
                     R(166, 0, 12, 8, C(170, 130, 70)); for (int i = 0; i < 4; i++) R(167 + i * 3, 8, 3, 3, C(120, 80, 50));
                     R(92, 15, 5, 7, C(176, 96, 60)); R(98, 15, 3, 3, cream); R(120, 15, 3, 3, cream);
-                    // a coat and a scarf on hooks by the door, a cat asleep by the fire
+                    // a coat and a scarf on hooks by the door (the cat asleep by the fire is RoomToy's)
                     R(38, 40, 2, 3, woodD); R(34, 18, 10, 22, C(90, 70, 60)); R(34, 18, 10, 1, C(60, 46, 40)); R(44, 40, 2, 3, woodD); R(44, 28, 3, 12, C(176, 62, 64)); R(43, 26, 5, 2, C(176, 62, 64));
-                    p.Ellipse(ix + 170.5f, iy + oy + 2.5f, 6f, 3f, C(70, 60, 60)); R(165, 3, 4, 3, C(70, 60, 60)); Dot(165, 6, C(70, 60, 60)); Dot(168, 6, C(70, 60, 60)); for (int k = 0; k < 6; k++) Dot(176 + k / 2, 1 + k % 2, C(70, 60, 60));
                     break;
             }
 
@@ -1005,8 +1013,8 @@ namespace Gloomdelve.EditorTools
                     // a fishing net hung to dry along the wall, a hammock rolled up, a chest of tools
                     for (int y = 64; y < 92; y++) for (int x = 150; x < 176; x++) if ((x + y) % 6 == 0 || (x - y + 300) % 6 == 0) Dot(x, y, C(190, 170, 120));
                     R(150, 91, 26, 2, woodD);
-                    R(60, 40, 22, 5, C(170, 150, 110)); R(60, 40, 22, 1, C(140, 120, 80)); R(59, 42, 2, 2, woodD); R(81, 42, 2, 2, woodD);
-                    Chest(126);
+                    R(59, 42, 2, 2, woodD); R(81, 42, 2, 2, woodD);          // (the hammock between the hooks is RoomToy's)
+                    // (Tam's chest, by the bed, is a Curio)
                     Lamp(140, 82); break;
                 case 2:     // Maren's own room: the cabinet of jars kept by night, the window with its candle stubs, her bed and a coat on it
                 {
@@ -1057,7 +1065,7 @@ namespace Gloomdelve.EditorTools
                     lights.Add(new Vector4(ix + 130, iy + oy + 36, 150f, 1.2f));
                     R(104, 66, 52, 4, VStoneD); Bed(164 - 4, C(96, 100, 150)); Barrel(84, 0);
                     // the night's logbook on a stand, oil-stained boards, a chair by the lamp
-                    R(70, 0, 3, 22, woodD); R(64, 22, 15, 3, woodL); R(65, 25, 6, 2, cream); R(72, 25, 6, 2, cream);
+                    R(70, 0, 3, 22, woodD); R(64, 22, 15, 3, woodL);            // (the logbook on the stand is a Curio)
                     p.Ellipse(ix + 130.5f, iy + oy + 1.5f, 10f, 1.5f, C(60, 46, 36));
                     R(100, 0, 2, 14, woodD); R(110, 0, 2, 8, woodD); R(100, 8, 12, 2, woodL); R(100, 14, 2, 10, woodD);
                     break;
@@ -1069,11 +1077,10 @@ namespace Gloomdelve.EditorTools
                     R(150, 44, 2, 3, woodD); R(146, 22, 12, 22, C(110, 40, 50)); R(146, 22, 12, 1, C(80, 28, 36));
                     Lamp(170, 84); break;
                 default:    // home, upstairs: the bed the player wakes up in
-                    Bed(110, C(176, 62, 64)); Wardrobe(184); Chest(84);
+                    Bed(110, C(176, 62, 64)); Wardrobe(184);                    // (the chest at the foot of the bed is a Curio)
                     NightWindow(128, 46, 22, 24); Rug(104, 72, C(84, 110, 150)); Lamp(96, 82);
                     R(176, 60, 5, 5, VBeam);
-                    // a candle on the chest, a child's drawing pinned over the bed
-                    R(94, 16, 3, 6, cream); Dot(95, 22, C(255, 220, 120)); lights.Add(new Vector4(ix + 95.5f, iy + oy + 22, 40f, 0.65f));
+                    // a child's drawing pinned over the bed
                     R(112, 44, 14, 11, cream); p.Disc(ix + 119.5f, iy + oy + 51.5f, 2.5f, C(240, 190, 70)); R(113, 45, 12, 2, C(240, 240, 250)); for (int k = 0; k < 4; k++) Dot(115 + k * 2, 47, C(60, 60, 60));
                     break;
             }
@@ -1161,6 +1168,265 @@ namespace Gloomdelve.EditorTools
                 }
             }
             return p;
+        }
+
+        /// <summary>
+        /// The things in the houses that answer when touched (RoomToy), painted the way the room around them is lit:
+        /// the cat (asleep, stretching, sitting up, walking; it faces left), Tam's rope wheel, his hammock rolled up
+        /// and hung (hung: its top row is the line of the hooks).
+        /// </summary>
+        static void RoomToyArt(string d)
+        {
+            // a colour as the room's lamps light it (lit 0..1), the way Room lights its picture by night
+            Color32 W(Color32 c, float lit) => new Color32(
+                (byte)Mathf.Clamp(Mathf.Lerp(c.r * 0.34f, c.r * 1.1f + 6f, lit), 0, 255),
+                (byte)Mathf.Clamp(Mathf.Lerp(c.g * 0.4f, c.g + 2f, lit), 0, 255),
+                (byte)Mathf.Clamp(Mathf.Lerp(c.b * 0.58f + 6f, c.b * 0.84f, lit), 0, 255), 255);
+            // the cat is drawn with a dark line round it (it has to be seen against the dark of the room), 2 pixels of room all round
+            void SaveCat(Px cat, string name)
+            {
+                var q = Padded(cat, 2);
+                q.Outline(C(24, 16, 18));
+                SaveWithRing(q, d + "toy_cat_" + name, new Vector2(0.5f, 2f / q.h));
+            }
+            {
+                // the cat: a ginger tabby, by the fire - drawn pixel by pixel (top row first; the dark line round it
+                // is added after): f fur, d its stripes, l the pale muzzle, chest and paws, p nose and ears, e eyes, k a dark line
+                var pal = new Dictionary<char, Color32> { { 'f', W(C(226, 140, 62), 0.95f) }, { 'd', W(C(176, 94, 40), 0.95f) }, { 'l', W(C(250, 214, 160), 0.95f) },
+                    { 'p', W(C(232, 140, 150), 0.95f) }, { 'e', C(120, 200, 90) }, { 'k', C(34, 22, 20) } };
+                Px Map(string[] rows)
+                {
+                    int mw = 0; foreach (var r in rows) mw = Mathf.Max(mw, r.Length);
+                    var m = new Px(mw, rows.Length);
+                    for (int y = 0; y < rows.Length; y++)
+                        for (int x = 0; x < rows[y].Length; x++)
+                            if (pal.TryGetValue(rows[y][x], out var col)) m.Set(x, rows.Length - 1 - y, col);
+                    return m;
+                }
+                SaveCat(Map(new[]
+                {
+                    "..f...f.............",
+                    ".fpf.fpf............",
+                    ".fffffff..dffdff....",
+                    "ffffffffffffffffdf..",
+                    "fkkffkkfffdffffffff.",
+                    "fffpfffffffdffffffff",
+                    ".lllllfffffffdffffff",
+                    "..llldfdfffffffffff.",
+                    "....ffdfdfdfdfdfdl..",
+                }), "sleep");
+                SaveCat(Map(new[]
+                {
+                    "...................f",
+                    "..................fd",
+                    "..................f.",
+                    "...............fffd.",
+                    ".f...f.......ffdfff.",
+                    ".fp.fp.....ffdffdff.",
+                    ".ffffff..ffdffdffff.",
+                    "fkkffkkfffffffffff..",
+                    "fffpfffdffdffffff...",
+                    ".lllllllfffff.ff....",
+                    "llllll.......lff....",
+                    "lll..........ll.ll..",
+                }), "stretch");
+                SaveCat(Map(new[]
+                {
+                    ".f....f.......",
+                    ".pf..fp.......",
+                    ".ffffff.......",
+                    "ffdffdff......",
+                    "fefffeff......",
+                    "fffpffff......",
+                    ".lkkkll.......",
+                    "..llllff......",
+                    "..llfffff.....",
+                    "..llffdfff....",
+                    "..llfffdff....",
+                    "..llffffdff...",
+                    "..lkfffffff...",
+                    "..lkffffffffd.",
+                    ".llkffffffdfff",
+                    ".ll.llffffffl.",
+                }), "sit");
+                SaveCat(Map(new[]
+                {
+                    ".f....f.............",
+                    ".pf..fp...........f.",
+                    ".ffffff...........fd",
+                    "ffdffdff..........f.",
+                    "fefffefffffffffffdf.",
+                    "fffpfffffdffffdffff.",
+                    ".lkkllffffdffffdfff.",
+                    "..llllffffffffffff..",
+                    "...lff.lff..ff.ff...",
+                    "..ff....ff..ff..ff..",
+                    ".ff......ff.ff...ff.",
+                    ".ll......ll.ll...ll.",
+                }), "walk_0");
+                SaveCat(Map(new[]
+                {
+                    ".f....f.............",
+                    ".pf..fp...........f.",
+                    ".ffffff...........fd",
+                    "ffdffdff..........f.",
+                    "fefffefffffffffffdf.",
+                    "fffpfffffdffffdffff.",
+                    ".lkkllffffdffffdfff.",
+                    "..llllffffffffffff..",
+                    "....lffff....ffff...",
+                    "....ff.ff....ff.ff..",
+                    "....ff.ff....ff.ff..",
+                    "....ll.ll....ll.ll..",
+                }), "walk_1");
+            }
+            {
+                // Tam's great wheel: rim, spokes (one lighter, so the turning shows), the hub
+                Color32 wd = W(C(84, 54, 34), 0.9f), wo = W(C(120, 82, 52), 0.9f), wl = W(C(160, 116, 74), 0.9f), metal = W(C(190, 196, 210), 0.9f), rope = W(C(206, 176, 112), 0.9f);
+                var p = new Px(31, 31);
+                for (int a = 0; a < 360; a++)
+                {
+                    float an = a * Mathf.Deg2Rad;
+                    p.Set(15 + Mathf.RoundToInt(Mathf.Cos(an) * 14.5f), 15 + Mathf.RoundToInt(Mathf.Sin(an) * 14.5f), wd);
+                    p.Set(15 + Mathf.RoundToInt(Mathf.Cos(an) * 13.5f), 15 + Mathf.RoundToInt(Mathf.Sin(an) * 13.5f), a % 40 < 20 ? wo : rope);
+                }
+                for (int k = 0; k < 8; k++) { float an = k * 45f * Mathf.Deg2Rad; p.Line(15, 15, 15 + Mathf.RoundToInt(Mathf.Cos(an) * 12.5f), 15 + Mathf.RoundToInt(Mathf.Sin(an) * 12.5f), k == 0 ? wl : wd); }
+                p.Disc(15.5f, 15.5f, 3f, wl); p.Set(15, 15, metal);
+                SaveWithRing(Padded(p, 1), d + "toy_wheel", PCenter);
+            }
+            {
+                // the hammock: rolled up between its hooks; hung, sagging, its ropes to the hooks
+                Color32 cv = W(C(176, 156, 116), 0.62f), cvD = W(C(140, 120, 84), 0.62f), cvL = W(C(206, 190, 150), 0.62f), rope = W(C(150, 120, 70), 0.62f);
+                var r = new Px(24, 7);
+                r.Rect(1, 1, 22, 5, cv); r.Rect(1, 5, 22, 1, cvL); r.Rect(1, 1, 22, 1, cvD);
+                r.Rect(6, 0, 1, 7, rope); r.Rect(17, 0, 1, 7, rope);
+                SaveWithRing(Padded(r, 1), d + "toy_hammock_rolled", PCenter);
+                var h = new Px(27, 18);
+                for (int x = 3; x <= 23; x++)
+                {
+                    float t = (x - 13f) / 10f;
+                    int bot = 2 + Mathf.RoundToInt(6f * t * t);
+                    for (int y = bot; y <= Mathf.Min(16, bot + 5); y++)
+                        h.Set(x, y, y == bot ? cvD : y >= bot + 5 ? cvL : (x % 4 == 0 ? cvD : cv));
+                }
+                h.Line(2, 17, 3, 15, rope); h.Line(24, 17, 23, 15, rope);
+                Save(Padded(h, 1), d + "toy_hammock", new Vector2(14.5f / 29f, 18.5f / 20f));
+            }
+            // the outlines of things painted into the room (Maren's cauldron, the lamp at home): the room painted with
+            // and without it, and the line round where they differ - a sheet the size of the room picture
+            BakedRing(2, "cauldron", d + "toy_hl_cauldron");
+            BakedRing(7, "lamp", d + "toy_hl_lamp");
+        }
+
+        static void BakedRing(int kind, string skip, string path)
+        {
+            var with = House(Room(kind));
+            roomSkip = skip;
+            Px without;
+            try { without = House(Room(kind)); }
+            finally { roomSkip = null; }
+            var mask = new Px(with.w, with.h);
+            for (int i = 0; i < with.c.Length; i++)
+                if (!with.c[i].Equals(without.c[i])) mask.c[i] = C(255, 255, 255);
+            Save(RingOf(mask), path, PCenter);
+        }
+
+        /// <summary>The same drawing with n empty pixels all round it.</summary>
+        static Px Padded(Px p, int n)
+        {
+            var q = new Px(p.w + n * 2, p.h + n * 2);
+            for (int y = 0; y < p.h; y++)
+                for (int x = 0; x < p.w; x++) q.c[(y + n) * q.w + x + n] = p.c[y * p.w + x];
+            return q;
+        }
+
+        /// <summary>Only the line just outside a drawing, in white: shown round a thing while the player can use it.</summary>
+        static Px RingOf(Px p)
+        {
+            var q = new Px(p.w, p.h);
+            for (int y = 0; y < p.h; y++)
+                for (int x = 0; x < p.w; x++)
+                {
+                    if (p.c[y * p.w + x].a > 0) continue;
+                    bool n = (x > 0 && p.c[y * p.w + x - 1].a > 0) || (x < p.w - 1 && p.c[y * p.w + x + 1].a > 0) ||
+                             (y > 0 && p.c[(y - 1) * p.w + x].a > 0) || (y < p.h - 1 && p.c[(y + 1) * p.w + x].a > 0);
+                    if (n) q.c[y * p.w + x] = C(255, 255, 255);
+                }
+            return q;
+        }
+
+        /// <summary>A drawing, and its outline as name_hl (same size and pivot).</summary>
+        static void SaveWithRing(Px p, string path, Vector2 pivot)
+        {
+            Save(p, path, pivot);
+            Save(RingOf(p), path + "_hl", pivot);
+        }
+
+        /// <summary>
+        /// The things to read in the houses (Curio), each with its outline: a note lying flat, a note pinned to the
+        /// wall, an open book, a sealed letter, a chest shut and open (a scrap of paper inside). Painted the way the
+        /// rooms are lit; the foot of each is its pivot (1 pixel of room all round).
+        /// </summary>
+        static void ReadableArt(string d)
+        {
+            Color32 W(Color32 c) => new Color32((byte)Mathf.Clamp(c.r * 1.02f + 4f, 0, 255), (byte)Mathf.Clamp(c.g * 0.96f + 2f, 0, 255), (byte)Mathf.Clamp(c.b * 0.84f, 0, 255), 255);
+            Color32 paper = W(C(240, 230, 204)), paperD = W(C(196, 180, 146)), paperL = W(C(252, 246, 228)), ink = W(C(84, 64, 56)), red = W(C(190, 54, 54)), redD = W(C(130, 34, 36));
+            Color32 wood = W(C(132, 90, 56)), woodD = W(C(88, 58, 36)), woodL = W(C(172, 124, 80)), gold = W(C(222, 178, 84)), dark = W(C(40, 28, 24));
+            void Out(Px p, string name) { var q = Padded(p, 1); SaveWithRing(q, d + "read_" + name, new Vector2(0.5f, 1f / q.h)); }
+            {
+                // a note lying flat (seen a little from above), two lines of writing, a corner turned
+                var p = new Px(12, 4);
+                p.Rect(0, 0, 12, 4, paper); p.Rect(0, 0, 12, 1, paperD);
+                for (int x = 1; x < 9; x++) if (x != 5) p.Set(x, 2, ink);
+                for (int x = 1; x < 6; x++) p.Set(x, 1, ink);
+                p.Set(11, 3, paperD);
+                Out(p, "note");
+            }
+            {
+                // a note pinned to the wall: lines of writing, a red pin, the foot curling
+                var p = new Px(10, 12);
+                p.Rect(0, 0, 10, 12, paper); p.Rect(0, 0, 1, 12, paperD); p.Rect(0, 0, 10, 1, paperD);
+                for (int y = 2; y < 10; y += 2) for (int x = 2; x < 8; x++) if ((x + y) % 5 != 0) p.Set(x, y, ink);
+                p.Set(5, 11, red); p.Set(5, 10, redD); p.Set(9, 0, Px.Clear); p.Set(8, 0, paperD);
+                Out(p, "pinned");
+            }
+            {
+                // an open book: the cover, two pages with writing, the spine, a ribbon hanging out
+                var p = new Px(14, 6);
+                p.Rect(0, 0, 14, 2, redD); p.Rect(0, 1, 14, 1, red);
+                p.Rect(1, 1, 6, 4, paper); p.Rect(7, 1, 6, 4, paper); p.Rect(1, 5, 5, 1, paperL); p.Rect(8, 5, 5, 1, paperL);
+                p.Rect(6, 1, 2, 5, paperD);
+                for (int x = 2; x < 6; x++) { p.Set(x, 3, ink); if (x < 5) p.Set(x, 2, ink); }
+                for (int x = 9; x < 12; x++) { p.Set(x, 3, ink); p.Set(x, 2, ink); }
+                p.Set(10, 0, gold);
+                Out(p, "book");
+            }
+            {
+                // a sealed letter
+                var p = new Px(11, 7);
+                p.Rect(0, 0, 11, 7, paperL); p.Rect(0, 0, 11, 1, paperD);
+                p.Line(0, 6, 5, 3, paperD); p.Line(10, 6, 5, 3, paperD);
+                p.Disc(5.5f, 3f, 1.6f, red); p.Set(5, 3, redD);
+                Out(p, "letter");
+            }
+            {
+                // a chest, shut: boards, a band, a brass lock
+                var p = new Px(22, 16);
+                p.Rect(0, 0, 22, 12, wood); for (int x = 5; x < 22; x += 6) p.Rect(x, 1, 1, 10, woodD);
+                p.Rect(0, 12, 22, 4, woodL); p.Rect(0, 15, 22, 1, woodD); p.Rect(0, 11, 22, 1, woodD);
+                p.Rect(0, 0, 1, 16, woodD); p.Rect(21, 0, 1, 16, woodD); p.Rect(0, 0, 22, 1, woodD);
+                p.Rect(9, 8, 4, 5, gold); p.Set(10, 9, dark); p.Set(11, 9, dark);
+                Out(p, "chest");
+                // open: the lid thrown back, the dark inside, a scrap of paper in it
+                var o = new Px(22, 22);
+                o.Rect(0, 0, 22, 12, wood); for (int x = 5; x < 22; x += 6) o.Rect(x, 1, 1, 10, woodD);
+                o.Rect(0, 0, 1, 12, woodD); o.Rect(21, 0, 1, 12, woodD); o.Rect(0, 0, 22, 1, woodD);
+                o.Rect(1, 10, 20, 3, dark); o.Rect(0, 12, 22, 1, woodL);
+                o.Rect(1, 13, 20, 8, woodD); o.Rect(1, 20, 20, 1, woodL); o.Rect(0, 13, 1, 9, wood); o.Rect(21, 13, 1, 9, wood);
+                o.Rect(8, 11, 7, 3, paperL); o.Set(9, 12, ink); o.Set(10, 12, ink); o.Set(12, 12, ink);
+                o.Rect(9, 7, 4, 3, gold);
+                Out(o, "chest_open");
+            }
         }
 
         /// <summary>

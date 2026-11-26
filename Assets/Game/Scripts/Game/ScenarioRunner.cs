@@ -269,6 +269,9 @@ namespace Gloomdelve
                 run = c => MoreWaresCase(c) },
             new Scenario { name = "village rooms: the apothecary has its foreground, its little fire under the cauldron, and Maren behind the counter; every room has its foreground", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => ApothecaryCase(c) },
+            new Scenario { name = "room toys: the cat wakes when petted and moves to the armchair at the tenth poke, the lamps at home go out and on, Tam's wheel spins and slows, his hammock tips the player out, Maren's brew can be stirred",
+                map = m => { Set(m, 3, 1, 'S'); for (int x = 4; x <= 14; x++) Set(m, x, 7, '#'); },
+                run = c => RoomToysCase(c) },
             new Scenario { name = "ladder grab: standing half beside a ladder, up climbs it; a step away, up only looks up",
                 map = m => { Set(m, 3, 1, 'S'); for (int y = 1; y <= 7; y++) Set(m, 10, y, 'H'); },
                 run = c => LadderGrabCase(c) },
@@ -2010,7 +2013,7 @@ namespace Gloomdelve
                 int curios = 0; Curio near = null;
                 foreach (var e in c.world.Entities) if (e is Curio cu && !cu.Dead) { curios++; if (near == null || Mathf.Abs(cu.pos.x - c.p.pos.x) < Mathf.Abs(near.pos.x - c.p.pos.x)) near = cu; }
                 c.Expect(curios >= 3, $"the room has things to look at ({curios})");
-                c.Expect(near != null && near.GetPrompt(c.p).Contains("Look") && !string.IsNullOrEmpty(near.text), "each offers a closer look and has something to say");
+                c.Expect(near != null && (near.GetPrompt(c.p).Contains("Read") || near.GetPrompt(c.p).Contains("Open")) && !string.IsNullOrEmpty(near.text), "each is something to read and has something to say");
                 if (near != null) near.Interact(c.p);
                 yield return c.Frames(20);
                 ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "village_room.png"));
@@ -4154,7 +4157,7 @@ namespace Gloomdelve
             yield return new WaitForSecondsRealtime(1.5f);          // (the steam rising, the dust in the moonlight)
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "room_apothecary.png"));
             yield return new WaitForSecondsRealtime(0.3f);
-            foreach (var e in c.world.Entities) if (!e.Dead && (e is VillagerHome || e is Curio || e is VillageInterior)) e.Despawn();
+            foreach (var e in c.world.Entities) if (!e.Dead && (e is VillagerHome || e is Curio || e is VillageInterior || e is RoomToy)) e.Despawn();
             // every other room has its foreground too; a picture of each
             for (int k = 0; k < 8; k++)
             {
@@ -4169,8 +4172,130 @@ namespace Gloomdelve
                 c.Expect(r.foreground != null && r.foreground.enabled, $"room {k} has its foreground");
                 ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, $"room_{k}.png"));
                 yield return new WaitForSecondsRealtime(0.3f);
-                foreach (var e in c.world.Entities) if (!e.Dead && (e is VillagerHome || e is Curio || e is VillageInterior || e is Elder)) e.Despawn();
+                foreach (var e in c.world.Entities) if (!e.Dead && (e is VillagerHome || e is Curio || e is VillageInterior || e is Elder || e is RoomToy)) e.Despawn();
             }
+            Villagers.ResetTestState();
+            Villagers.testRescued = null;
+            c.dir.cameraFollow.SetBounds(new Rect(0, 0, c.world.Grid.Width, c.world.Grid.Height));
+            yield return c.Frames(4);
+        }
+
+        static IEnumerator RoomToysCase(Ctx c)
+        {
+            c.p.godMode = true;
+            Villagers.testRescued = new HashSet<string> { Villagers.All[1].id, Villagers.All[2].id };
+            Villagers.ResetTestState();
+            RoomToy Toy(RoomToy.Kind k) { foreach (var e in c.world.Entities) if (e is RoomToy t && !t.Dead && t.kind == k) return t; return null; }
+            void Clear() { foreach (var e in c.world.Entities) if (!e.Dead && (e is VillagerHome || e is Curio || e is VillageInterior || e is RoomToy)) e.Despawn(); }
+
+            // home: the cat, the lamps
+            var home = c.Spawn<VillageInterior>("interior", 4, 1, VillageInterior.Home);
+            yield return c.Frames(4);
+            if (home == null) { c.Expect(false, "home is there"); yield break; }
+            home.Enter(c.p);
+            yield return c.Frames(20);
+            var cat = Toy(RoomToy.Kind.Cat); var lamps = Toy(RoomToy.Kind.Lamps);
+            c.Expect(cat != null && lamps != null, "home has its cat and its lamps");
+            // no glints anywhere: what can be used is outlined while the player is by it, and only then
+            Curio chest = null;
+            foreach (var e in c.world.Entities) if (e is Curio cu && !cu.Dead && cu.form == Curio.Form.Chest) chest = cu;
+            c.Expect(chest != null && !chest.IsOpen, "home has a chest to open");
+            if (cat != null)
+            {
+                c.Expect(!cat.glow.enabled, "away from the cat, it has no outline");
+                c.Teleport(cat.pos.x, 1f);
+                yield return c.Frames(15);
+                c.Expect(cat.glow.enabled && cat.glow.sprite != null, "standing by the cat, it is outlined");
+                ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "toys_cat_outline.png"));
+                yield return c.Frames(3);
+            }
+            if (chest != null)
+            {
+                c.Teleport(chest.pos.x, chest.pos.y + 0.2f);
+                yield return c.Frames(30);
+                c.Expect(chest.glow.enabled && chest.GetPrompt(c.p).Contains("Open"), "by the chest upstairs: outlined, it offers to be opened");
+                chest.Interact(c.p);
+                yield return c.Frames(20);
+                c.Expect(chest.IsOpen && c.dir.hud.NoteUp && chest.GetPrompt(c.p).Contains("Read"), "opened, the scrap inside is read, and it stays open");
+                ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "read_chest_open.png"));
+                yield return c.Frames(3);
+                c.dir.hud.DismissHeld();
+                c.Teleport(home.pos.x + 1f, 1f);
+                yield return c.Frames(30);
+            }
+            if (cat != null)
+            {
+                cat.Interact(c.p);
+                yield return c.Frames(10);
+                c.Expect(cat.Busy, "petted, the cat wakes up");
+                for (int i = 0; i < 300 && cat.Busy; i++) yield return c.Frames(1);
+                c.Expect(!cat.Busy && cat.CatSpot == 0, "then it goes back to sleep by the fire");
+                float y0 = cat.pos.y;
+                cat.pokes = 9;
+                cat.Interact(c.p);
+                for (int i = 0; i < 400 && cat.Busy; i++) yield return c.Frames(1);
+                c.Expect(cat.CatSpot == 1 && cat.pos.y > y0 + 0.8f, $"the tenth poke: it moves to the armchair (up {cat.pos.y - y0:0.00}; player grounded {c.p.motor.grounded}, {c.p.motor.mode}, at {c.p.pos})");
+            }
+            if (lamps != null)
+            {
+                var lit = home.Picture;
+                lamps.Interact(c.p);
+                yield return c.Frames(4);
+                c.Expect(home.LampsOut && home.Picture != lit && home.Picture != null, "the lamps go out: the room is the dark picture");
+                yield return new WaitForSecondsRealtime(0.6f);
+                ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "toys_home_dark.png"));
+                yield return new WaitForSecondsRealtime(0.3f);
+                lamps.Interact(c.p);
+                yield return c.Frames(4);
+                c.Expect(!home.LampsOut && home.Picture == lit, "and lit again");
+            }
+            Clear();
+            yield return c.Frames(4);
+
+            // the ropewalk: the wheel, the hammock
+            var rope = c.Spawn<VillageInterior>("interior", 4, 1, 1);
+            yield return c.Frames(4);
+            rope.Enter(c.p);
+            yield return c.Frames(20);
+            var wheel = Toy(RoomToy.Kind.Wheel); var ham = Toy(RoomToy.Kind.Hammock);
+            c.Expect(wheel != null && ham != null, "the ropewalk has its wheel and its hammock");
+            if (wheel != null)
+            {
+                wheel.Interact(c.p);
+                yield return c.Frames(25);
+                float a1 = wheel.Angle;
+                c.Expect(a1 > 60f, $"the wheel spins ({a1:0} degrees)");
+                yield return new WaitForSecondsRealtime(0.5f);
+                ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "toys_ropewalk.png"));
+                yield return new WaitForSecondsRealtime(6f);
+                float a2 = wheel.Angle;
+                yield return c.Frames(20);
+                c.Expect(Mathf.Abs(wheel.Angle - a2) < 0.5f, "and slows to a stop");
+            }
+            if (ham != null)
+            {
+                c.Teleport(ham.pos.x, ham.pos.y + 0.2f);
+                yield return c.Frames(30);
+                ham.Interact(c.p);
+                yield return c.Frames(40);
+                c.Expect(c.p.restingIn == ham && c.p.pos.y > ham.pos.y + 1.2f, "the player lies in the hammock, off the floor");
+                ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "toys_hammock.png"));
+                for (int i = 0; i < 400 && c.p.restingIn != null; i++) yield return c.Frames(1);
+                yield return c.Frames(80);
+                c.Expect(c.p.restingIn == null && c.p.motor.grounded && Mathf.Abs(c.p.pos.y - ham.pos.y) < 0.2f, "and is tipped out onto the floor");
+            }
+            Clear();
+            yield return c.Frames(4);
+
+            // the apothecary: the brew
+            var apo = c.Spawn<VillageInterior>("interior", 4, 1, 2);
+            yield return c.Frames(4);
+            apo.Enter(c.p);
+            yield return c.Frames(20);
+            var pot = Toy(RoomToy.Kind.Cauldron);
+            c.Expect(pot != null, "Maren's cauldron can be stirred");
+            if (pot != null) { pot.Interact(c.p); yield return c.Frames(4); c.Expect(pot.Stirring, "stirred, it bubbles up"); }
+            Clear();
             Villagers.ResetTestState();
             Villagers.testRescued = null;
             c.dir.cameraFollow.SetBounds(new Rect(0, 0, c.world.Grid.Width, c.world.Grid.Height));
@@ -5625,7 +5750,7 @@ namespace Gloomdelve
         /// <summary>Called by GameDirector instead of the normal level creation.</summary>
         public static LevelData BuildLevel()
         {
-            int height = all[index].name.StartsWith("bosses: the rot heart") ? 12 : all[index].name.StartsWith("long fall") || all[index].name.StartsWith("new wares") || all[index].name.StartsWith("rope into open air") || all[index].name.StartsWith("gliding down") || all[index].name.StartsWith("rope hook visibly") ? 16 : H;
+            int height = all[index].name.StartsWith("bosses: the rot heart") ? 12 : all[index].name.StartsWith("long fall") || all[index].name.StartsWith("new wares") || all[index].name.StartsWith("rope into open air") || all[index].name.StartsWith("gliding down") || all[index].name.StartsWith("rope hook visibly") || all[index].name.StartsWith("room toys") ? 16 : H;
             W = all[index].name.StartsWith("waypoint") ? 64 : 26;
             var m = new char[W, height];
             for (int y = 0; y < height; y++)

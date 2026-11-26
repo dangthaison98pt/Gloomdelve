@@ -253,6 +253,30 @@ MonoBehaviour:
     volume: 0.8
     pitchJitter: 0.06
     minInterval: 0.03
+  - id: meow
+    clips:
+    - {fileID: 8300000, guid: 73a4e342ed1796a4988ca1c7378821b0, type: 3}
+    volume: 0.8
+    pitchJitter: 0.06
+    minInterval: 0.03
+  - id: bubble
+    clips:
+    - {fileID: 8300000, guid: ebed4d3f3ac2dab4890394e43bf95122, type: 3}
+    volume: 0.8
+    pitchJitter: 0.06
+    minInterval: 0.03
+  - id: creak
+    clips:
+    - {fileID: 8300000, guid: 6ac9ed129a5632646be5cef4a48709dc, type: 3}
+    volume: 0.8
+    pitchJitter: 0.06
+    minInterval: 0.03
+  - id: switch
+    clips:
+    - {fileID: 8300000, guid: d645edc1a76f41b48bf454bc388f57a1, type: 3}
+    volume: 0.8
+    pitchJitter: 0.06
+    minInterval: 0.03
   - id: pot_break
     clips:
     - {fileID: 8300000, guid: 0b28b56f3740f83468165074586aaeb2, type: 3}

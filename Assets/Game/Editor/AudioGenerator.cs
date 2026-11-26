@@ -132,6 +132,11 @@ namespace Gloomdelve.EditorTools
             Sfx("victory", 1.2f, b => { int[] n = { 3, 7, 10, 15, 10, 15 }; float[] st = { 0, 0.12f, 0.24f, 0.36f, 0.6f, 0.72f }; for (int i = 0; i < n.Length; i++) Tone(b, st[i], i == n.Length - 1 ? 0.45f : 0.14f, NoteHz(n[i]), NoteHz(n[i]), p => Sq(p, 0.25f), 0.4f); });
             Sfx("menu_select", 0.06f, b => Tone(b, 0, 0.06f, 660, 700, p => Sq(p, 0.25f), 0.4f), 0.5f);
             Sfx("idol", 0.6f, b => { float[] f = { 784, 988, 1175, 1568, 1976 }; for (int i = 0; i < f.Length; i++) Tone(b, i * 0.07f, 0.25f, f[i], f[i], Sin, 0.35f); }, 0.7f);
+            // the things in the houses: a cat, a brew stirred, an old wooden wheel, a lamp put out
+            Sfx("meow", 0.44f, b => { Tone(b, 0, 0.17f, 520, 800, p => Tri(p) * 0.6f + Sq(p, 0.3f) * 0.4f, 0.5f, 0.03f, 0.02f, 7f); Tone(b, 0.13f, 0.3f, 800, 430, p => Tri(p) * 0.6f + Sq(p, 0.3f) * 0.4f, 0.5f, 0.02f, 0.03f, 6f); }, 0.5f);
+            Sfx("bubble", 0.42f, b => { float[] st = { 0f, 0.07f, 0.15f, 0.22f, 0.31f }; for (int i = 0; i < st.Length; i++) Tone(b, st[i], 0.07f, 240 + i * 60, 520 + i * 80, Sin, 0.5f); }, 0.6f);
+            Sfx("creak", 0.28f, b => { Tone(b, 0, 0.28f, 170, 128, p => Saw(p) * (0.6f + 0.4f * Sq(p * 0.11f)), 0.45f, 0.03f, 0.06f, 35f); NoiseBurst(b, 0, 0.1f, 0.15f, 0.2f, 0.1f); }, 0.45f);
+            Sfx("switch", 0.07f, b => { NoiseBurst(b, 0, 0.02f, 0.6f, 0.9f, 0.7f); Tone(b, 0.01f, 0.05f, 1400, 900, p => Sq(p), 0.25f); }, 0.5f);
             Sfx("pot_break", 0.22f, b => { NoiseBurst(b, 0, 0.18f, 0.8f, 0.7f, 0.3f); for (int i = 0; i < 3; i++) Tone(b, 0.02f + i * 0.04f, 0.03f, 1800 - i * 300, 1500, Tri, 0.2f); });
             Sfx("crate_break", 0.25f, b => { NoiseBurst(b, 0, 0.2f, 0.8f, 0.4f, 0.1f); Tone(b, 0, 0.12f, 160, 90, Sin, 0.5f); });
 

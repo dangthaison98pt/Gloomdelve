@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.SceneManagement;
@@ -1416,6 +1417,16 @@ namespace Gloomdelve.EditorTools
             ["Flare"] = (new Color(1f, 0.42f, 0.3f), 7.5f, 1.5f, 0.35f, false, true, new Vector2(0f, 0.3f)),
         };
 
+        /// <summary>The outline round a thing in a house while the player can use it (InReach): a child just in front of it.</summary>
+        static SpriteRenderer InReachGlow(GameObject g, Material mat)
+        {
+            var go = new GameObject("InReach");
+            go.transform.SetParent(g.transform, false);
+            var r = go.AddComponent<SpriteRenderer>();
+            r.sharedMaterial = mat; r.sortingOrder = 7; r.enabled = false;
+            return r;
+        }
+
         static T Make<T>(string id, string folder, string display, Vector2 size, Sprite sprite, SpriteAnim anim, int order, Action<T, GameObject, SpriteRenderer> setup = null)
             where T : Entity
         {
@@ -1993,11 +2004,35 @@ namespace Gloomdelve.EditorTools
                         GroundShadow(g, Vector2.zero, s.sprite != null ? s.sprite.rect.width / 16f * 0.9f : 1f, 2);       // it stands on the snow: a shadow under it
                         if (pid == "firtree") Lamp(g, "Candles", new Vector2(0f, 1.8f), 3.2f, 0.4f, 0.25f);
                     }));
-                Reg("curio", Make<Curio>("Curio", "Level", "something to look at", new Vector2(1.1f, 1.5f), ArtGenerator.S("Sprites/Village/glint"), null, 4, (e, g, s) =>
+                Reg("curio", Make<Curio>("Curio", "Level", "something to read", new Vector2(1.1f, 1.5f), null, null, 6, (e, g, s) =>
                 {
                     e.flipWithFacing = false;
-                    s.sharedMaterial = unlitMat;
-                    s.transform.localPosition = new Vector3(0f, 1.75f, 0f);       // the glint floats just above head height
+                    s.sharedMaterial = unlitMat;          // painted in the light of the room, like the room itself
+                    var looks = new[] { "note", "pinned", "book", "letter", "chest", "chest_open" };
+                    e.looks = looks.Select(n => ArtGenerator.S("Sprites/Village/read_" + n)).ToArray();
+                    e.outlines = looks.Select(n => ArtGenerator.S("Sprites/Village/read_" + n + "_hl")).ToArray();
+                    e.glow = InReachGlow(g, unlitMat);
+                }));
+                // things in the houses that answer when touched (VillageInterior puts them out; RoomToy)
+                Reg("roomtoy", Make<RoomToy>("RoomToy", "Level", "plaything", new Vector2(1f, 1.4f), null, null, 6, (e, g, s) =>
+                {
+                    e.flipWithFacing = false;
+                    s.sharedMaterial = unlitMat;          // painted in the light of the room, like the room itself
+                    e.cat = new[] { "sleep", "stretch", "sit", "walk_0", "walk_1" }.Select(n => ArtGenerator.S("Sprites/Village/toy_cat_" + n)).ToArray();
+                    e.wheel = ArtGenerator.S("Sprites/Village/toy_wheel");
+                    e.hammockRolled = ArtGenerator.S("Sprites/Village/toy_hammock_rolled");
+                    e.hammockHung = ArtGenerator.S("Sprites/Village/toy_hammock");
+                    e.catOutline = new[] { "sleep", "stretch", "sit", "walk_0", "walk_1" }.Select(n => ArtGenerator.S("Sprites/Village/toy_cat_" + n + "_hl")).ToArray();
+                    e.wheelOutline = ArtGenerator.S("Sprites/Village/toy_wheel_hl");
+                    e.hammockOutline = ArtGenerator.S("Sprites/Village/toy_hammock_rolled_hl");
+                    e.cauldronOutline = ArtGenerator.S("Sprites/Village/toy_hl_cauldron");
+                    e.lampOutline = ArtGenerator.S("Sprites/Village/toy_hl_lamp");
+                    e.glow = InReachGlow(g, unlitMat);
+                    var xg = new GameObject("Extra");
+                    xg.transform.SetParent(g.transform, false);
+                    var xs = xg.AddComponent<SpriteRenderer>();
+                    xs.sharedMaterial = unlitMat; xs.sortingOrder = 30; xs.enabled = false;     // the hammock is in front of whoever lies in it
+                    e.extra = xs;
                 }));
                 Reg("kennel", Make<Kennel>("Kennel", "Level", "kennel", new Vector2(1f, 1f), ArtGenerator.S("Sprites/Village/kennel"), null, 3, (e, g, s) =>
                 {
@@ -2019,6 +2054,7 @@ namespace Gloomdelve.EditorTools
                 Reg("interior", Make<VillageInterior>("VillageInterior", "Level", "door", new Vector2(1.2f, 1.7f), rooms[0], null, 2, (e, g, s) =>
                 {
                     e.flipWithFacing = false; e.rooms = rooms; e.roomsByHour = roomsByHour;
+                    e.homeLampsOut = new[] { "", "_dawn", "_day", "_dusk" }.Select(h => ArtGenerator.S("Sprites/Village/room_7_out" + h)).ToArray();
                     // what hangs close to the eye in a room: in front of everyone (only the rooms that have one)
                     var fgs = new Sprite[8];
                     for (int k = 0; k < 8; k++) fgs[k] = AssetDatabase.LoadAssetAtPath<Sprite>(G + "Art/Sprites/Village/room_fg_" + k + ".png");
