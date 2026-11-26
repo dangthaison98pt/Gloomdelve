@@ -142,21 +142,9 @@ namespace Gloomdelve
             {
                 int cx = Mathf.FloorToInt(s.pos.x);
                 float off = Mathf.Abs(s.pos.x - (cx + 0.5f));
-                // up: a ladder or rope anywhere the body touches is taken hold of (the one nearest first), not only the
-                // one under the middle of the body - standing half beside a ladder, up climbs it rather than looking up
-                int ladder = int.MinValue; float best = float.MaxValue;
-                if (i.up)
+                if (i.up && off < 0.45f && g.IsClimbable(cx, Mathf.FloorToInt(s.pos.y + 0.3f)))
                 {
-                    int ly = Mathf.FloorToInt(s.pos.y + 0.3f);
-                    for (int col = cx - 1; col <= cx + 1; col++)
-                    {
-                        float d = Mathf.Abs(s.pos.x - (col + 0.5f));
-                        if (d < 0.5f + hw - 0.05f && d < best && g.IsClimbable(col, ly)) { best = d; ladder = col; }
-                    }
-                }
-                if (ladder != int.MinValue)
-                {
-                    if (EnterClimb(ref s, g, st, ladder)) return;
+                    if (EnterClimb(ref s, g, st, cx)) return;
                 }
                 else if (i.down && s.grounded && off < 0.4f)
                 {

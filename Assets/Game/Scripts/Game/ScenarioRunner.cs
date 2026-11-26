@@ -275,7 +275,7 @@ namespace Gloomdelve
             new Scenario { name = "room toys 2: bellows and anvil, globe and telescope, Pip's owl, clock and bird, Bera's lamps, the hall's candles, cup and banner, a nap in the bed at home, Tam's coil",
                 map = m => { Set(m, 3, 1, 'S'); for (int x = 4; x <= 20; x++) Set(m, x, 7, '#'); },
                 run = c => RoomToys2Case(c) },
-            new Scenario { name = "ladder grab: standing half beside a ladder, up climbs it; a step away, up only looks up",
+            new Scenario { name = "ladder grab: standing at a ladder, up climbs it; after a word with a keeper, up still climbs it",
                 map = m => { Set(m, 3, 1, 'S'); for (int y = 1; y <= 7; y++) Set(m, 10, y, 'H'); },
                 run = c => LadderGrabCase(c) },
             new Scenario { name = "hearth wisp: worn, it flies at the shoulder; a death is turned away once - up with 5 health - and the wisp is gone", map = m => { Set(m, 3, 1, 'S'); },
@@ -4439,11 +4439,9 @@ namespace Gloomdelve
                 c.Teleport(4.5f, 1f);
                 yield return c.Frames(20);
             }
-            float yTouch = 0f, xTouch = 0f, yAway = 0f;
-            yield return Try(10.5f + 0.68f, (y, x) => { yTouch = y; xTouch = x; });      // the body overlaps the ladder by a little
-            yield return Try(10.5f + 1.1f, (y, x) => { yAway = y; });                   // a step away: not touching it
-            c.Expect(yTouch > 2f && Mathf.Abs(xTouch - 10.5f) < 0.05f, $"half beside the ladder, up climbs it (up to {yTouch:0.00}, drawn onto it at x {xTouch:0.00})");
-            c.Expect(yAway < 1.2f, $"a step away from it, up does not climb (height {yAway:0.00})");
+            float yOn = 0f;
+            yield return Try(10.5f, (y, x) => { yOn = y; });
+            c.Expect(yOn > 2f, $"standing at the ladder, up climbs it (up to {yOn:0.00})");
             // a word with a keeper first (up and down choose the row while beside them): walked away, up climbs again
             Villagers.testRescued = new HashSet<string> { Villagers.All[2].id };
             Villagers.ResetTestState();

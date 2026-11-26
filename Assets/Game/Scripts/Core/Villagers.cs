@@ -69,7 +69,7 @@ namespace Gloomdelve
                 wares = new[] { "ironwhip", "blastpowder", "hobnailboots", "magnetcharm" } },
             new VillagerDef { id = "roper", name = "Tam", role = "the Ropemaker", place = "The ropewalk is open again",
                 cagedLine = "I tied my own rope too short. Get me out!", homeLine = "Boots with a spring in them. Climb well.",
-                wares = new[] { "springboots", "grapplinghook", "climbgloves", "iceboots", "sandstriders" } },       // (no rope: every climb sets out with its bags full)
+                wares = new[] { "springboots", "grapplinghook", "climbgloves", "iceboots", "sandstriders" } },       // (no ropes here: Pip sells every consumable)
             new VillagerDef { id = "healer", name = "Maren", role = "the Healer", place = "The apothecary is open again",
                 cagedLine = "Careful - but please hurry.", homeLine = "One draught and your heart beats stronger till you sleep.",
                 wares = new[] { "wisp", "mendingcharm", "antidote", "dampener" } },
@@ -81,7 +81,7 @@ namespace Gloomdelve
                 wares = new[] { "bombs", "ropes", "pebbles", "lampoil", FlareGear.OfferId, "vigor", Story.Paper }, blueprints = false },       // every consumable for a climb, in sparks (and paper for the old signs - Story)
             new VillagerDef { id = "lamplighter", name = "Bera", role = "the Lamplighter", place = "The lamp tower burns again",
                 cagedLine = "My lamp went out. Then it came for me.", homeLine = "Take oil. While your lamp burns, the dark is slow to find you.",
-                wares = new[] { "lantern", "firecloak" } },       // (no bombs: every climb sets out with its bags full)
+                wares = new[] { "lantern", "firecloak" } },       // (no bombs here: Pip sells every consumable)
         };
 
         // ------------------------------------------------------------------ tests keep their own state
