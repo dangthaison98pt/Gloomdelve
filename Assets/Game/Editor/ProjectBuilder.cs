@@ -3098,8 +3098,8 @@ namespace Gloomdelve.EditorTools
                 UIBuilder.Stretch(ocRoot.rectTransform);
                 oc.root = ocRoot.gameObject;
                 var ocPanel = UIBuilder.Panel(ocRoot.transform, "Panel", new Vector2(0.5f, 0.5f), new Vector2(0, -20), new Vector2(1120, 600));
-                UIBuilder.Label(ocPanel.transform, "Title", "Blue Ocarina", 46, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -56), new Vector2(800, 64), true, FontStyle.Bold);
-                var ocPic = UIBuilder.Img(ocPanel.transform, "Picture", ArtGenerator.S("Sprites/Village/ocarina"), Color.white, new Vector2(0f, 1f), new Vector2(120, -60), new Vector2(110, 80));
+                UIBuilder.Label(ocPanel.transform, "Title", "Blue Ocarina", 46, gold, TextAnchor.MiddleCenter, new Vector2(0.5f, 1f), new Vector2(0, -34), new Vector2(800, 64), true, FontStyle.Bold);
+                var ocPic = UIBuilder.Img(ocPanel.transform, "Picture", ArtGenerator.S("Sprites/Village/ocarina"), Color.white, new Vector2(0f, 1f), new Vector2(120, -26), new Vector2(110, 80));      // (level with the title: both centred 66 below the top)
                 ocPic.preserveAspect = true;
                 // the staff: five lines, the notes scroll along it from the right
                 const float gap = 16f;
