@@ -229,7 +229,7 @@ namespace Gloomdelve
                 {
                     e.price = Bags.Price(e.bag);
                     int holds = Bags.Holds(e.bag, run);
-                    e.offer.description = blocked == null ? $"holds {holds} now, {holds + Bags.Step} after - for good" : $"holds {holds}";
+                    e.offer.description = blocked == null ? $"holds {holds} now, {holds + Bags.StepOf(e.bag)} after - for good" : $"holds {holds}";
                 }
                 if (icons != null && i < icons.Length && icons[i] != null)
                 {

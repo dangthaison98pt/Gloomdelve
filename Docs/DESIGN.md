@@ -104,7 +104,7 @@ Lúc nó hở (bị kẹt ở dạng vỏ, mở ngực ở dạng lõi), đòn c
 ## 4. Nhân vật & đồ
 **Khởi đầu:** 10 máu (cũng là máu tối đa), 0 vàng. Đồ tiêu hao lấy từ **kho của save** (`Supplies.cs`): bom, dây, đá, Flare và giấy mà lượt trước còn lại khi kết thúc (chết, bỏ cuộc hay thắng đều giữ). Túi **không tự đổ đầy**; muốn thêm thì mua ở Pip bằng spark hoặc nhặt, mua trên núi. Lượt đầu tiên của một save được một túi đầy (5 bom, 5 dây, 10 đá). Màn hướng dẫn, Challenge và các lượt test tự động vẫn đổ đầy túi như cũ. Đồ dùng: ná (cầm sẵn trên tay), bom, dây, Recall Charm (`PlayerConfig.startingGear`). `startBombs` / `startRopes` (4) chỉ còn dùng cho các bài test, lượt chơi thật không dùng.
 
-**Túi** (`Bags.cs`): bom 5, dây 5, viên đá 10, Ember Pouch 5. Trưởng làng Aldous nới mỗi túi +5, giá 1, rồi 2, rồi 3 ember, tối đa 3 lần (mỗi túi tối đa 20 / 20 / 25 / 20). Nới xong là vĩnh viễn; túi không được đổ thêm gì. Đồ nhặt chỉ lấy phần vừa túi, phần dư nằm lại dưới đất; túi đầy thì shop không bán món đó.
+**Túi** (`Bags.cs`): bom 5, dây 5, viên đá 10, Ember Pouch 5. Trưởng làng Aldous nới túi bom và túi dây +2 mỗi lần, túi đá và Ember Pouch +5 mỗi lần; giá 1, rồi 2, rồi 3 ember, tối đa 3 lần (mỗi túi tối đa 11 / 11 / 25 / 20). Nới xong là vĩnh viễn; túi không được đổ thêm gì. Đồ nhặt chỉ lấy phần vừa túi, phần dư nằm lại dưới đất; túi đầy thì shop không bán món đó.
 
 **Kiếm** (trường `whip*` trong code giữ tên cũ): 1 sát thương, vung 0,3 s, có hitbox phía sau lúc vung. Tempered Blade: +1 sát thương, tầm +0,45.
 

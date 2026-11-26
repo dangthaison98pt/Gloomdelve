@@ -408,7 +408,7 @@ namespace Gloomdelve
             new Scenario { name = "a heart pickup heals 1", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => HeartCase(c) },
 
-            new Scenario { name = "bags: five bombs and five ropes can be carried, what does not fit stays; the elder lets a bag out by five for embers, dearer each time, three times", map = m => { Set(m, 3, 1, 'S'); },
+            new Scenario { name = "bags: five bombs and five ropes can be carried, what does not fit stays; the elder lets a bag out for embers (bombs and ropes by two, pebbles and embers by five), dearer each time, three times", map = m => { Set(m, 3, 1, 'S'); },
                 run = c => BagsCase(c) },
 
             new Scenario { name = "slingshot: carried from the start, it shoots pebbles that pots and crates give up; ten can be carried, twenty with the pouch", map = m => { Set(m, 3, 1, 'S'); },
@@ -5619,16 +5619,16 @@ namespace Gloomdelve
             Villagers.AddEmbers(5);
             int bombs0 = run.bombs, ropes0 = run.ropes, pebbles0 = run.Pebbles;
             ui.Buy(Row(Bags.Bombs));
-            c.Expect(run.BombCap == 10 && run.bombs == bombs0 && Villagers.Embers == 4 && Bags.Price(Bags.Bombs) == 2, $"the first enlarging costs 1 ember and the bag holds ten - but nothing is put in it (holds {run.BombCap}, bombs {bombs0} -> {run.bombs}, embers {Villagers.Embers}, next {Bags.Price(Bags.Bombs)})");
+            c.Expect(run.BombCap == 7 && run.bombs == bombs0 && Villagers.Embers == 4 && Bags.Price(Bags.Bombs) == 2, $"the first enlarging costs 1 ember and the bag holds seven - but nothing is put in it (holds {run.BombCap}, bombs {bombs0} -> {run.bombs}, embers {Villagers.Embers}, next {Bags.Price(Bags.Bombs)})");
             ui.Buy(Row(Bags.Bombs));
-            c.Expect(run.BombCap == 15 && Villagers.Embers == 2 && Bags.Price(Bags.Bombs) == 3, $"the second costs 2 and it holds fifteen (holds {run.BombCap}, embers {Villagers.Embers})");
+            c.Expect(run.BombCap == 9 && Villagers.Embers == 2 && Bags.Price(Bags.Bombs) == 3, $"the second costs 2 and it holds nine (holds {run.BombCap}, embers {Villagers.Embers})");
             bool refused = !ui.Buy(Row(Bags.Bombs));
-            c.Expect(refused && run.BombCap == 15 && Villagers.Embers == 2, "with too few embers left nothing is enlarged, and none are taken");
+            c.Expect(refused && run.BombCap == 9 && Villagers.Embers == 2, "with too few embers left nothing is enlarged, and none are taken");
             Villagers.AddEmbers(5);
             ui.Buy(Row(Bags.Bombs));
             bool atMost = !ui.Buy(Row(Bags.Bombs));
-            c.Expect(run.BombCap == 20 && Villagers.Embers == 2 && !Bags.CanEnlarge(Bags.Bombs) && atMost,
-                $"the third costs 3, it holds twenty, and that is as large as it gets (holds {run.BombCap}, embers {Villagers.Embers})");
+            c.Expect(run.BombCap == 11 && Villagers.Embers == 2 && !Bags.CanEnlarge(Bags.Bombs) && atMost,
+                $"the third costs 3, it holds eleven, and that is as large as it gets (holds {run.BombCap}, embers {Villagers.Embers})");
 
             // the pouch itself, the ropes and the pebbles go the same way
             Villagers.AddEmbers(5);
@@ -5639,7 +5639,7 @@ namespace Gloomdelve
             ui.Buy(Row(Bags.Pebbles));
             var pouchItem = c.world.config.shop.Find("pebblepouch");
             if (pouchItem != null && !run.HasUpgrade("pebblepouch")) ShopItem.Apply(run, pouchItem);
-            c.Expect(run.RopeCap == 10 && run.PebbleCap == 25, $"ropes ten; pebbles fifteen from the elder and ten more from the Pebble Pouch worn on top (ropes {run.RopeCap}, pebbles {run.PebbleCap})");
+            c.Expect(run.RopeCap == 7 && run.PebbleCap == 25, $"ropes seven; pebbles fifteen from the elder and ten more from the Pebble Pouch worn on top (ropes {run.RopeCap}, pebbles {run.PebbleCap})");
             yield return new WaitForSecondsRealtime(0.2f);
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "elder_bags_after.png"));
             yield return new WaitForSecondsRealtime(0.3f);
@@ -5666,10 +5666,10 @@ namespace Gloomdelve
                 Supplies.ResetTestState();
             }
             // and with room again, what was left lying is picked up
-            run.bombs = 18; run.ropes = 7;
+            run.bombs = 9; run.ropes = 4;
             c.Teleport(6.5f, 1f);
             yield return c.Frames(20);
-            c.Expect(run.bombs == 20 && run.ropes == 10, $"with room in the bags the bombs and ropes left behind are picked up (bombs {run.bombs}, ropes {run.ropes})");
+            c.Expect(run.bombs == 11 && run.ropes == 7, $"with room in the bags the bombs and ropes left behind are picked up (bombs {run.bombs}, ropes {run.ropes})");
 
             // a Challenge fight is the same for every save: none of the elder's work goes into it (this is the
             // last thing the scenario does - it leaves that fight as the run in hand)
