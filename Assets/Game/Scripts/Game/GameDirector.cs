@@ -500,6 +500,7 @@ namespace Gloomdelve
             if (b != Boss) return;
             bool final = Stage != null && Stage.kind == LevelKind.Final;
             if (!final && exitDoor != null) exitDoor.SetLocked(false);
+            Achievements.BossDefeated(Run, b.displayName);       // (the first time on a run; never a Challenge fight)
             if (Run != null && !Run.bossPractice && !final)
             {
                 Run.bossDownStage = Run.stageIndex;

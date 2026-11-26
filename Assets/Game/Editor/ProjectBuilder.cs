@@ -2341,7 +2341,7 @@ namespace Gloomdelve.EditorTools
             menu.tutorialButton = null;
             menu.bossButton = Entry("BossTest", "Challenge", 1);
             menu.settingsButton = Entry("Settings", "Settings", 2);
-            menu.recordsButton = null;          // (the records are a tab of the Achievements screen)
+            menu.recordsButton = null;          // (the records are on the Achievements screen)
             menu.achievementsButton = Entry("Achievements", "Achievements", 3);
             menu.quitButton = Entry("Quit", "Quit", 4);
             var ptrImg = UIBuilder.Img(t, "Pointer", ArtGenerator.S("UI/menu_pointer"), Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(42, 33));
@@ -2377,46 +2377,96 @@ namespace Gloomdelve.EditorTools
                 menu.slotPanel = sp.gameObject;
             }
             menu.settingsPanel = UIBuilder.Settings(t);
-            menu.recordsPanel = null;               // (the records are a tab of the Achievements screen, below)
+            menu.recordsPanel = null;               // (the records are on the Achievements screen, below)
             {
-                // Achievements: one row each - picture (a lock over it while not earned), name, what earned it
-                var ap = UIBuilder.Panel(t, "AchievementsPanel", new Vector2(0.5f, 0.5f), new Vector2(0, -20), new Vector2(1180, 820));
+                // Achievements, on one page: the overall statistics at the top, then a grid of tiles (one for each
+                // achievement: its picture in a frame, a lock over it while not earned); a tile pressed shows its
+                // name and what earns it in a box beside it
+                var ap = UIBuilder.Panel(t, "AchievementsPanel", new Vector2(0.5f, 0.5f), new Vector2(0, -10), new Vector2(1180, 900));
                 var ach = ap.gameObject.AddComponent<AchievementsPanel>();
-                // the two tabs: the achievements, the records
-                ach.tabAchievements = UIBuilder.TextButton(ap.transform, "TabAchievements", "Achievements", new Vector2(0.5f, 1f), new Vector2(-170, -44), new Vector2(320, 60), 40, out ach.tabAchievementsLabel);
-                ach.tabRecords = UIBuilder.TextButton(ap.transform, "TabRecords", "Records", new Vector2(0.5f, 1f), new Vector2(170, -44), new Vector2(320, 60), 40, out ach.tabRecordsLabel);
-                var listGo = UIBuilder.Node(ap.transform, "List"); UIBuilder.Stretch(UIBuilder.Rect(listGo)); ach.listGroup = listGo;
-                var recGo = UIBuilder.Node(ap.transform, "Records"); UIBuilder.Stretch(UIBuilder.Rect(recGo)); ach.recordsGroup = recGo; recGo.SetActive(false);
+                var dimGold = new Color(1f, 0.84f, 0.38f, 0.75f);
+                TMPro.TMP_Text TopLeft(string name, string text, int size, Color c, float x, float y, float w, float h, FontStyle style = FontStyle.Normal)
                 {
-                    // the records: the runs of this save on the left, the Challenge times on the right
-                    var rt = recGo.transform;
-                    menu.recordsText = UIBuilder.Label(rt, "Body", "", 28, Color.white, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(-270, -196), new Vector2(520, 460));
-                    UIBuilder.Label(rt, "RunsHead", "RUNS", 24, new Color(1f, 0.84f, 0.38f), TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(-270, -146), new Vector2(520, 34), true, FontStyle.Bold);
-                    UIBuilder.Label(rt, "BossHead", "CHALLENGE  -  best time against each boss", 24, new Color(1f, 0.84f, 0.38f), TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(290, -146), new Vector2(520, 34), true, FontStyle.Bold);
-                    menu.bossRecordsText = UIBuilder.Label(rt, "Bosses", "", 28, Color.white, TextAnchor.UpperLeft, new Vector2(0.5f, 1f), new Vector2(290, -196), new Vector2(520, 460));
-                    menu.bossRecordsText.lineSpacing = 35f;
-                    menu.recordsText.lineSpacing = 20f;
+                    var l = UIBuilder.Label(ap.transform, name, text, size, c, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(x, y), new Vector2(w, h), true, style);
+                    return l;
                 }
-                ach.count = UIBuilder.Label(listGo.transform, "Count", "", 26, new Color(1f, 1f, 1f, 0.7f), TextAnchor.MiddleRight, new Vector2(1f, 1f), new Vector2(-60, -50), new Vector2(200, 40));
+                TopLeft("StatsHead", "Overall Statistics", 36, gold, 80, -40, 700, 50);
+                TopLeft("RunsHead", "RUNS", 20, dimGold, 110, -112, 440, 30, FontStyle.Bold);
+                TopLeft("BossHead", "CHALLENGE  -  best time against each boss", 20, dimGold, 620, -112, 520, 30, FontStyle.Bold);
+                menu.recordsText = TopLeft("Stats", "", 24, Color.white, 110, -152, 480, 300);
+                menu.recordsText.lineSpacing = 30f;
+                menu.bossRecordsText = TopLeft("Bosses", "", 22, Color.white, 620, -152, 520, 330);
+                menu.bossRecordsText.lineSpacing = 14f;
+                TopLeft("AchHead", "Achievements", 36, gold, 80, -484, 700, 50);
+                ach.count = UIBuilder.Label(ap.transform, "Count", "", 26, new Color(1f, 1f, 1f, 0.7f), TextAnchor.MiddleRight, new Vector2(1f, 1f), new Vector2(-80, -508), new Vector2(200, 40));
                 ach.count.rectTransform.pivot = new Vector2(1f, 0.5f);
+                // the grid: eight to a row, each tile 26 px shown at four times (104) over its 24 px picture (96)
                 int n = Achievements.All.Length;
-                ach.icons = new Image[n]; ach.locks = new Image[n]; ach.titles = new TMPro.TMP_Text[n]; ach.lines = new TMPro.TMP_Text[n]; ach.pictures = new Sprite[n];
+                const float tile = 104f, gap = 22f, pad = 12f; const int perRow = 8, rowsShown = 2;
+                // the window the grid is seen through: two rows; more are reached with the scrollbar, the wheel, or by
+                // moving the selection down (ScrollToSelected). BACK sits below it, so the grid never reaches it.
+                int rows = Mathf.Max(1, (n + perRow - 1) / perRow);
+                float viewW = pad * 2 + perRow * tile + (perRow - 1) * gap, viewH = pad * 2 + rowsShown * tile + (rowsShown - 1) * gap;
+                var gridView = UIBuilder.Img(ap.transform, "GridView", null, new Color(0f, 0f, 0f, 0f), new Vector2(0f, 1f), new Vector2(98, -538), new Vector2(viewW, viewH));
+                gridView.raycastTarget = true;                           // (so the wheel works between the tiles too)
+                gridView.gameObject.AddComponent<RectMask2D>();
+                var grid = UIBuilder.Node(gridView.transform, "Grid");
+                var grt = UIBuilder.Rect(grid);
+                grt.anchorMin = new Vector2(0f, 1f); grt.anchorMax = new Vector2(1f, 1f); grt.pivot = new Vector2(0.5f, 1f);
+                grt.anchoredPosition = Vector2.zero; grt.sizeDelta = new Vector2(0f, pad * 2 + rows * tile + (rows - 1) * gap);
+                var gscroll = gridView.gameObject.AddComponent<ScrollRect>();
+                gscroll.content = grt; gscroll.viewport = gridView.rectTransform;
+                gscroll.horizontal = false; gscroll.vertical = true;
+                gscroll.movementType = ScrollRect.MovementType.Clamped; gscroll.scrollSensitivity = 40f; gscroll.inertia = false;
+                gridView.gameObject.AddComponent<ScrollToSelected>().margin = pad;
+                ach.scroll = gscroll;
+                if (rows > rowsShown)
+                {
+                    var track = UIBuilder.Img(ap.transform, "GridScrollbar", null, new Color(1f, 1f, 1f, 0.1f), new Vector2(0f, 1f), new Vector2(98 + viewW + 14, -538 - 8), new Vector2(10, viewH - 16));
+                    track.raycastTarget = true;
+                    var handle = UIBuilder.Img(track.transform, "Handle", null, new Color(1f, 0.84f, 0.38f, 0.85f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+                    UIBuilder.Stretch(handle.rectTransform);
+                    handle.raycastTarget = true;
+                    var bar = track.gameObject.AddComponent<Scrollbar>();
+                    bar.direction = Scrollbar.Direction.BottomToTop;
+                    bar.handleRect = handle.rectTransform; bar.targetGraphic = handle;
+                    var nav = bar.navigation; nav.mode = Navigation.Mode.None; bar.navigation = nav;      // the keys go from tile to tile, never onto the bar
+                    gscroll.verticalScrollbar = bar;
+                    gscroll.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
+                }
+                ach.icons = new Image[n]; ach.frames = new Image[n]; ach.locks = new Image[n]; ach.tiles = new Button[n]; ach.pictures = new Sprite[n];
                 for (int i = 0; i < n; i++)
                 {
-                    float y = -150 - i * 124;
-                    var row = UIBuilder.Img(listGo.transform, "Row" + i, ArtGenerator.S("UI/tag_fade"), new Color(0.05f, 0.06f, 0.11f, 0.7f), new Vector2(0.5f, 1f), new Vector2(0, y), new Vector2(1060, 112));
+                    var go = UIBuilder.Node(grid.transform, "Tile" + i);
+                    UIBuilder.Place(UIBuilder.Rect(go), new Vector2(0f, 1f), new Vector2(pad + tile / 2 + (i % perRow) * (tile + gap), -pad - tile / 2 - (i / perRow) * (tile + gap)), new Vector2(tile, tile), new Vector2(0.5f, 0.5f));
+                    var hit = go.AddComponent<Image>(); hit.color = new Color(0f, 0f, 0f, 0f);      // (only so the mouse can find it)
+                    var b = go.AddComponent<Button>(); b.transition = Selectable.Transition.None;
+                    var at = go.AddComponent<AchievementTile>(); at.panel = ach; at.index = i;
+                    at.focus = UIBuilder.Img(go.transform, "Focus", UIBuilder.softSlotSprite != null ? UIBuilder.softSlotSprite : UIBuilder.slotSprite, new Color(1f, 0.82f, 0.4f, 0.6f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(tile + 20, tile + 20), true);
+                    at.focus.enabled = false;
+                    ach.tiles[i] = b;
                     ach.pictures[i] = ArtGenerator.S("UI/" + Achievements.All[i].Icon);
-                    ach.icons[i] = UIBuilder.Img(row.transform, "Icon", ach.pictures[i], Color.white, new Vector2(0f, 0.5f), new Vector2(56, 0), new Vector2(72, 72));
-                    ach.icons[i].rectTransform.pivot = new Vector2(0.5f, 0.5f);
-                    ach.locks[i] = UIBuilder.Img(row.transform, "Lock", ArtGenerator.S("UI/ach_lock"), Color.white, new Vector2(0f, 0.5f), new Vector2(86, -24), new Vector2(24, 30));
-                    ach.locks[i].rectTransform.pivot = new Vector2(0.5f, 0.5f);
-                    ach.titles[i] = UIBuilder.Label(row.transform, "Name", "", 30, gold, TextAnchor.MiddleLeft, new Vector2(0f, 1f), new Vector2(132, -30), new Vector2(890, 40), true, FontStyle.Bold);
-                    ach.titles[i].rectTransform.pivot = new Vector2(0f, 0.5f);
-                    ach.lines[i] = UIBuilder.Label(row.transform, "Line", "", 22, Color.white, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(132, -52), new Vector2(890, 54));
-                    ach.lines[i].rectTransform.pivot = new Vector2(0f, 1f);
+                    ach.icons[i] = UIBuilder.Img(go.transform, "Icon", ach.pictures[i], Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(96, 96));
+                    ach.frames[i] = UIBuilder.Img(go.transform, "Frame", ArtGenerator.S("UI/ach_frame"), Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(tile, tile));
+                    ach.locks[i] = UIBuilder.Img(go.transform, "Lock", ArtGenerator.S("UI/ach_lock"), Color.white, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(32, 40));
                 }
+                ach.frameEarned = ArtGenerator.S("UI/ach_frame_gold");
+                ach.frameLocked = ArtGenerator.S("UI/ach_frame");
                 ach.secretPicture = ArtGenerator.S("UI/ach_secret");
-                ach.back = UIBuilder.Button(ap.transform, "Back", "BACK", new Vector2(0.5f, 0f), new Vector2(0, 50), new Vector2(320, 70));
+                ach.back = UIBuilder.Button(ap.transform, "Back", "BACK", new Vector2(0.5f, 0f), new Vector2(0, 26), new Vector2(280, 58));
+                {
+                    // the box beside the tile pressed (anchored at the middle of the panel, its pivot at its top left)
+                    var tip = UIBuilder.Panel(ap.transform, "Tip", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(380, 150));
+                    tip.rectTransform.pivot = new Vector2(0f, 1f);
+                    tip.color = new Color(0.8f, 0.85f, 1f, 1f);
+                    ach.tip = tip.rectTransform;
+                    // a solid back under the frame, so the tiles behind it do not show through
+                    var solid = UIBuilder.Img(tip.transform, "Back", ArtGenerator.S("Center/pixel"), new Color(0.06f, 0.07f, 0.13f, 1f), new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+                    UIBuilder.Stretch(solid.rectTransform, 6f);
+                    ach.tipTitle = UIBuilder.Label(tip.transform, "Name", "", 26, gold, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(18, -18), new Vector2(344, 36), true, FontStyle.Bold);
+                    ach.tipText = UIBuilder.Label(tip.transform, "Line", "", 22, Color.white, TextAnchor.UpperLeft, new Vector2(0f, 1f), new Vector2(18, -58), new Vector2(344, 90));
+                    tip.gameObject.SetActive(false);
+                }
                 menu.achievementsPanel = ach;
                 ap.gameObject.SetActive(false);
             }

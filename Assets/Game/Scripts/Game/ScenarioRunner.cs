@@ -1224,6 +1224,8 @@ namespace Gloomdelve
                 c.Expect(ghost != null, "the warden spawned for the trap check");
             }
             c.Expect(Mathf.Abs(b.HealthFraction - b.health / (float)b.maxHealth) < 0.001f && b.HealthFraction < 1f, "health fraction feeds the bar");
+            bool wasTutorial = c.run.isTutorial;
+            c.run.isTutorial = false;           // (the tests play in a tutorial run, which earns no achievements: this fall is on a real one)
             for (int i = 0; i < 40 && !b.Dead; i++)
             {
                 b.TakeDamage(new DamageInfo(99, DamageType.Whip, c.p, Vector2.zero, "test"));
@@ -1231,7 +1233,26 @@ namespace Gloomdelve
             }
             c.Expect(b.Dead && !c.dir.BossAlive, "the boss dies and the director knows");
             yield return c.Frames(10);
+            c.Expect(Achievements.IsEarned(Achievements.BossId("Broodmother")), "the first Broodmother to fall on a run earns its achievement");
             ClearFight(c);
+            {
+                // a Challenge fight earns nothing, and neither does a Challenge "win"
+                bool wasPractice = c.run.bossPractice;
+                // (the fall is reported as the director does; a real Challenge win would end the scene)
+                c.run.bossPractice = true;
+                Achievements.BossDefeated(c.run, "Forge Brute");
+                c.Expect(!Achievements.IsEarned(Achievements.BossId("Forge Brute")), "a boss beaten in a Challenge fight earns nothing");
+                bool won = c.run.victory; c.run.victory = true;
+                Achievements.RunEnded(c.run);
+                c.Expect(!Achievements.IsEarned(Achievements.FirstVictory), "a Challenge win is not First Light");
+                c.run.bossPractice = wasPractice;
+                Achievements.RunEnded(c.run);
+                c.Expect(Achievements.IsEarned(Achievements.FirstVictory), "a run won earns First Light");
+                c.run.victory = won;
+                ClearFight(c);
+            }
+            Achievements.ResetTestState();
+            c.run.isTutorial = wasTutorial;
             c.p.godMode = false;
         }
 

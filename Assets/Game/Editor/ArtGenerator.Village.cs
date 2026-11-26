@@ -1538,6 +1538,35 @@ namespace Gloomdelve.EditorTools
                     for (int x = 0; x < mark[y].Length; x++)
                         if (mark[y][x] == '#') q.Rect(6 + x * 2, 19 - y * 2, 2, 2, C(196, 200, 220));
                 Save(q, "UI/ach_secret", PCenter);
+                // the frame of a tile on the Achievements screen (26 px, shown at four times over a 24 px picture: its
+                // ring covers the picture's own edge): gold round one earned, grey round one not yet earned
+                void Frame(string rel, Color32 light, Color32 mid, Color32 dark)
+                {
+                    var f = new Px(26, 26);
+                    f.Rect(0, 0, 26, 26, C(12, 14, 30));
+                    f.Rect(1, 1, 24, 24, mid);
+                    f.Rect(1, 24, 24, 1, light); f.Rect(1, 1, 1, 24, light);          // light from the top left
+                    f.Rect(1, 1, 24, 1, dark); f.Rect(24, 1, 1, 24, dark);
+                    f.Rect(1, 24, 1, 1, light); f.Rect(24, 1, 1, 1, dark);
+                    for (int y = 2; y < 24; y++) for (int x = 2; x < 24; x++) f.Set(x, y, new Color32(0, 0, 0, 0));
+                    // a stud in each corner
+                    foreach (var (cx, cy) in new[] { (0, 0), (24, 0), (0, 24), (24, 24) }) { f.Rect(cx, cy, 2, 2, light); f.Set(cx + 1, cy, dark); }
+                    Save(f, rel, PCenter);
+                }
+                Frame("UI/ach_frame_gold", C(255, 230, 150), C(214, 170, 76), C(140, 98, 40));
+                // First Light and the bosses' achievements: their pictures are files of their own (UI/ach_<id>.png,
+                // a symbol for each, drawn by hand); a plain tile stands in only for one that is missing
+                {
+                    var ids = new List<string> { Achievements.FirstVictory };
+                    foreach (var bl in Achievements.BossList) ids.Add(bl.id);
+                    foreach (var id in ids)
+                    {
+                        var v = new Px(24, 24);
+                        v.Rect(0, 0, 24, 24, C(170, 60, 50)); v.Rect(1, 1, 22, 22, C(30, 22, 40));
+                        Save(v, "UI/ach_" + id, PCenter);
+                    }
+                }
+                Frame("UI/ach_frame", C(176, 182, 198), C(118, 124, 142), C(70, 74, 92));
             }
         }
 

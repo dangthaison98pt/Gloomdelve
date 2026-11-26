@@ -46,9 +46,55 @@ namespace Gloomdelve
     public static class Achievements
     {
         public const string OcarinaOfGoat = "ocarina_of_goat";
+        public const string FirstVictory = "first_victory";
 
-        /// <summary>Every achievement, in the order the menu lists them.</summary>
-        public static readonly AchievementDef[] All =
+        /// <summary>
+        /// The bosses that have an achievement of their own (the first time each falls on a run - a Challenge fight
+        /// does not count): the name it goes by in the game (Boss.displayName), its id here, its prefab (its picture
+        /// is drawn from it), the achievement's name.
+        /// </summary>
+        public static readonly (string boss, string id, string prefab, string title)[] BossList =
+        {
+            ("Broodmother", "boss_broodmother", "broodmother", "Pest Control"),
+            ("Rot Heart", "boss_rot_heart", "sporeheart", "Heartbreaker"),
+            ("Forge Brute", "boss_forge_brute", "forgebrute", "Quenched"),
+            ("Yeti King", "boss_yeti_king", "yetiking", "Cold Feet"),
+            ("Storm Hawk", "boss_storm_hawk", "stormhawk", "Clipped Wings"),
+            ("Cogwyrm", "boss_cogwyrm", "gearwyrm", "Stripped Gears"),
+            ("Dune Queen", "boss_dune_queen", "dunequeen", "Dethroned"),
+            ("The Facet", "boss_the_facet", "facet", "Shattered"),
+            ("Eclipse King", "boss_eclipse_king", "eclipseking", "Totality"),
+        };
+
+        /// <summary>The id of a boss's achievement (by its displayName), or null when it has none.</summary>
+        public static string BossId(string boss)
+        {
+            foreach (var b in BossList) if (b.boss == boss) return b.id;
+            return null;
+        }
+
+        static AchievementDef[] BuildList()
+        {
+            var list = new List<AchievementDef>
+            {
+                new AchievementDef
+                {
+                    id = FirstVictory, steamId = "ACH_FIRST_VICTORY", title = "First Light",
+                    description = "Win a run for the first time.",
+                },
+            };
+            foreach (var b in BossList)
+                list.Add(new AchievementDef
+                {
+                    id = b.id, steamId = "ACH_" + b.id.ToUpperInvariant(), title = b.title,
+                    description = "Defeat " + b.boss + " on a run (Challenge fights do not count).",
+                });
+            list.AddRange(Extras);
+            return list.ToArray();
+        }
+
+        /// <summary>The secrets and the rest, after the victory and the bosses.</summary>
+        static readonly AchievementDef[] Extras =
         {
             new AchievementDef
             {
@@ -57,6 +103,23 @@ namespace Gloomdelve
                 hint = "Somewhere in Brindlemoor, something wants a good shake.",
             },
         };
+
+        /// <summary>Every achievement, in the order the menu lists them (after Extras: static fields are set in order).</summary>
+        public static readonly AchievementDef[] All = BuildList();
+
+        /// <summary>A run has ended: one won (not a Challenge fight, not the tutorial) earns First Light.</summary>
+        public static void RunEnded(RunState run)
+        {
+            if (run != null && run.victory && !run.bossPractice && !run.isTutorial) Unlock(FirstVictory);
+        }
+
+        /// <summary>A boss has fallen: the first time on a run (never in a Challenge fight) earns its achievement.</summary>
+        public static void BossDefeated(RunState run, string boss)
+        {
+            if (run == null || run.bossPractice || run.isTutorial) return;
+            var id = BossId(boss);
+            if (id != null) Unlock(id);
+        }
 
         /// <summary>Earned now (the toast listens).</summary>
         public static event Action<AchievementDef> Earned;

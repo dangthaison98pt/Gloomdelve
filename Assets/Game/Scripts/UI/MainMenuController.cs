@@ -55,7 +55,7 @@ namespace Gloomdelve
             UIUtil.Wire(tutorialButton, StartTutorial);
             UIUtil.Wire(settingsButton, () => Open(settingsPanel.gameObject, settingsPanel.First));
             UIUtil.Wire(recordsButton, () => { RefreshRecords(); Open(recordsPanel, recordsBack); });
-            if (achievementsPanel != null) achievementsPanel.onRecords = RefreshRecords;
+            if (achievementsPanel != null) achievementsPanel.onStats = RefreshRecords;
             UIUtil.Wire(quitButton, GameDirector.QuitGame);
             UIUtil.Wire(recordsBack, ShowMain);
             UIUtil.Wire(achievementsButton, OpenAchievements);
@@ -266,11 +266,15 @@ namespace Gloomdelve
             yield return new WaitForSecondsRealtime(0.3f);
             if (achievementsPanel != null)
             {
-                achievementsPanel.ShowTab(true);
+                // the same with every achievement earned (only for this test: it is forgotten right after)
+                foreach (var a in Achievements.All) Achievements.Unlock(a.id);
+                achievementsPanel.Refresh();
+                achievementsPanel.ToggleTip(0);         // (as if the first tile were pressed)
                 yield return new WaitForSecondsRealtime(0.3f);
-                ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_records.png"));
-                Layout("achievements: records tab");
-                yield return new WaitForSecondsRealtime(0.3f);
+                ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(ScenarioRunner.OutDir, "menu_achievements_earned.png"));
+                yield return new WaitForSecondsRealtime(0.3f);          // (the picture is taken at the end of the frame: the box is hidden after it)
+                achievementsPanel.HideTip(0);
+                Achievements.ResetTestState();
             }
             RunSession.NewRun(1, true, config.player);
             SceneManager.LoadScene(GameConst.SceneGame);
@@ -425,8 +429,8 @@ namespace Gloomdelve
         public void OpenAchievements()
         {
             if (achievementsPanel == null) return;
-            achievementsPanel.ShowTab(false);
-            Open(achievementsPanel.gameObject, achievementsPanel.tabAchievements != null ? achievementsPanel.tabAchievements : achievementsPanel.back);
+            achievementsPanel.Refresh();
+            Open(achievementsPanel.gameObject, achievementsPanel.First);
         }
 
         void ShowMain()
@@ -444,18 +448,20 @@ namespace Gloomdelve
 
         void RefreshRecords()
         {
+            // "name: value", the value in gold
+            const string V = "<color=#FFD661>", E = "</color>";
             var r = SaveSystem.Totals;      // (all saves together, since the game was first played)
             recordsText.text =
-                $"Runs played        {r.runs}\n" +
-                $"Victories          {r.wins}\n" +
-                $"Deaths             {r.deaths}\n" +
-                $"Fastest victory    {(r.fastestWin < 0 ? "--" : UIUtil.FormatTime(r.fastestWin))}\n" +
-                $"Creatures killed   {r.kills}\n" +
-                $"Bosses defeated    {r.bossKills}";
+                $"Runs played: {V}{r.runs}{E}\n" +
+                $"Victories: {V}{r.wins}{E}\n" +
+                $"Deaths: {V}{r.deaths}{E}\n" +
+                $"Fastest victory: {V}{(r.fastestWin < 0 ? "--" : UIUtil.FormatTime(r.fastestWin))}{E}\n" +
+                $"Creatures killed: {V}{r.kills}{E}\n" +
+                $"Bosses defeated: {V}{r.bossKills}{E}";
             if (bossRecordsText != null && bossNames != null)
             {
                 var sb = new System.Text.StringBuilder();
-                foreach (var n in bossNames) sb.Append(n).Append("     ").Append(BossBest(n, "--")).Append((char)10);
+                foreach (var n in bossNames) sb.Append(n).Append(": ").Append(V).Append(BossBest(n, "--")).Append(E).Append((char)10);
                 bossRecordsText.text = sb.ToString();
             }
         }

@@ -409,6 +409,7 @@ namespace Gloomdelve
         public static string RecordRunEnd(RunState run, bool givenUp = false)
         {
             if (run == null || run.bossPractice) return "";      // a Challenge fight is not a night on the mountain: never counted
+            Achievements.RunEnded(run);
             EnsureLoaded();
             var r = Records;
             var t = Totals;
