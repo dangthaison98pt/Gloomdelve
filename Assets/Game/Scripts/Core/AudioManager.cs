@@ -34,8 +34,21 @@ namespace Gloomdelve
             }
         }
 
+        AudioListener boosted;
+
+        /// <summary>The listener of the scene gets the loudness boost (LoudnessBoost: the files are mixed quiet).</summary>
+        void BoostListener()
+        {
+            if (boosted != null && boosted.isActiveAndEnabled) return;
+            var l = FindAnyObjectByType<AudioListener>();
+            if (l == null) return;
+            if (l.GetComponent<LoudnessBoost>() == null) l.gameObject.AddComponent<LoudnessBoost>();
+            boosted = l;
+        }
+
         void Update()
         {
+            BoostListener();
             var s = SaveSystem.Settings;
             duck = Mathf.MoveTowards(duck, 1f, Time.unscaledDeltaTime * 0.6f);
             musicSource.volume = s.masterVolume * s.musicVolume * musicBaseVolume * duck;

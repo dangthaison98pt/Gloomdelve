@@ -275,6 +275,9 @@ namespace Gloomdelve
             new Scenario { name = "room toys 2: bellows and anvil, globe and telescope, Pip's owl, clock and bird, Bera's lamps, the hall's candles, cup and banner, a nap in the bed at home, Tam's coil",
                 map = m => { Set(m, 3, 1, 'S'); for (int x = 4; x <= 20; x++) Set(m, x, 7, '#'); },
                 run = c => RoomToys2Case(c) },
+            new Scenario { name = "audio: the listener makes the whole mix louder (about +13 dB: 75% on the sliders is the old 2.5 times at 100%), and the limiter keeps the loudest sounds under full scale",
+                map = m => { Set(m, 3, 1, 'S'); },
+                run = c => AudioBoostCase(c) },
             new Scenario { name = "kennel: standing at its door, nothing; crouched there, Crawl in leads into the warm room inside, the dog asleep in its basket (petted, it grumbles), a little chest holds two dolls that earn It Takes Two; at its little door, Crawl out",
                 map = m => { Set(m, 3, 1, 'S'); },
                 run = c => KennelCase(c) },
@@ -4472,6 +4475,19 @@ namespace Gloomdelve
             Villagers.testRescued = null;
             c.dir.cameraFollow.SetBounds(new Rect(0, 0, c.world.Grid.Width, c.world.Grid.Height));
             yield return c.Frames(4);
+        }
+
+        static IEnumerator AudioBoostCase(Ctx c)
+        {
+            yield return c.Frames(10);
+            var l = UnityEngine.Object.FindAnyObjectByType<AudioListener>();
+            var boost = l != null ? l.GetComponent<LoudnessBoost>() : null;
+            c.Expect(boost != null && boost.gain > 2f, "the listener carries the loudness boost (gain " + (boost != null ? boost.gain : 0f) + ")");
+            float gain = boost != null ? boost.gain : 1f;
+            float at75 = LoudnessBoost.Shape(0.1f * 0.75f * 0.75f, gain, 0.7f);
+            c.Expect(Mathf.Abs(at75 - 0.25f) < 0.005f, $"a quiet sound at 75% master and 75% sound comes out as the old 2.5 times at 100% ({at75:0.000})");
+            float loud = LoudnessBoost.Shape(1f, gain, 0.7f), neg = LoudnessBoost.Shape(-1f, gain, 0.7f);
+            c.Expect(loud <= 1f && loud > 0.9f && neg >= -1f && neg < -0.9f && LoudnessBoost.Shape(3f, gain, 0.7f) <= 1f, $"the loudest never goes past full scale ({loud:0.000}, {neg:0.000})");
         }
 
         static IEnumerator KennelCase(Ctx c)

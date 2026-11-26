@@ -7,9 +7,9 @@ namespace Gloomdelve
     [Serializable]
     public class GameSettings
     {
-        public float masterVolume = 0.8f;
-        public float musicVolume = 0.6f;
-        public float sfxVolume = 0.8f;
+        public float masterVolume = 0.75f;      // (75% is where the game is meant to be heard: LoudnessBoost)
+        public float musicVolume = 0.75f;
+        public float sfxVolume = 0.75f;
         public bool fullscreen = false;
         [Tooltip("Window size: an index into GameServices.WindowSizes (1280x720 .. 3840x2160). -1 = the largest that fits the screen.")] public int windowSize = -1;
         public bool screenShake = true;
