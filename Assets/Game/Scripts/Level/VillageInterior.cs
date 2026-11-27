@@ -40,7 +40,7 @@ namespace Gloomdelve
             new[]   // the ropewalk - Tam
             {
                 (184f, 0, 23, Curio.Form.Book, "the ledger", "Rope sold, fathom by fathom. The last entry: 'To the Elder, forty fathoms, for the mountain.' It is written on every line of the page, in the same hand, in the same ink."),
-                (137f, 1, 0, Curio.Form.Chest, "Tam's chest", "Under the tools, a climbing harness, cut through - not frayed, cut. Tucked in with it, a board scratched with a tally: more marks than a winter has days."),
+                (24f, 1, 30, Curio.Form.Pinned, "a note on the wall", "Pinned up in Tam's hand: 'The strap of the harness was cut. Not frayed. Cut.' Under it, a tally scratched into the plaster: more marks than a winter has days."),
                 (162f, 1, 16, Curio.Form.Note, "a note on the pillow", "On the second pillow, in a woman's hand: 'Back before the snow.' This is the third winter of snow since."),
             },
             new[]   // the apothecary - Maren
@@ -73,7 +73,7 @@ namespace Gloomdelve
             },
             new[]   // home
             {
-                (95f, 1, 0, Curio.Form.Chest, "your chest", "At the bottom, a scrap of paper in your own handwriting: 'The gate. Then down. Do not trust the first way down.' You do not remember writing it."),
+                (24f, 1, 30, Curio.Form.Pinned, "a note on the wall", "Pinned up by the ladder, a scrap of paper in your own handwriting: 'The gate. Then down. Do not trust the first way down.' You do not remember writing it."),
                 (190f, 0, 46, Curio.Form.Book, "father's journal", "Your father's journal, open at its last page: the winter he carried the lantern up the mountain. The lantern in your hand is the same one. So is the date."),
             },
         };
@@ -94,6 +94,15 @@ namespace Gloomdelve
             (6, RoomToy.Kind.Cup, 83f, 0), (6, RoomToy.Kind.Banner, 100f, 0), (6, RoomToy.Kind.Candles, 212f, 1),
             (7, RoomToy.Kind.Bed, 140f, 1),
             (1, RoomToy.Kind.Coil, 160f, 0),
+        };
+
+        /// <summary>
+        /// The chests filled every real day (SupplyChest): room, where it stands (floor-space pixels across), storey,
+        /// what it holds - a rope in Tam's ropewalk, a bomb in the player's own house. Both upstairs.
+        /// </summary>
+        static readonly (int room, float x, int storey, SupplyChest.Kind kind)[] Chests =
+        {
+            (1, 118f, 1, SupplyChest.Kind.Rope), (7, 95f, 1, SupplyChest.Kind.Bomb),
         };
 
         /// <summary>The player's own house (its lamps can be put out).</summary>
@@ -226,6 +235,15 @@ namespace Gloomdelve
                     if (t.room != Index) continue;
                     var at = At(t.x, t.storey * UpperYPx);
                     World.Spawn(toy, at, new SpawnPoint("roomtoy", new Vector2Int(Mathf.FloorToInt(at.x), Mathf.RoundToInt(at.y)), 0, (int)t.kind));
+                }
+            // the chests filled every day
+            var chest = cfg.prefabs.Get("supplychest");
+            if (chest != null)
+                foreach (var ch in Chests)
+                {
+                    if (ch.room != Index) continue;
+                    var at = At(ch.x, ch.storey * UpperYPx);
+                    World.Spawn(chest, at, new SpawnPoint("supplychest", new Vector2Int(Mathf.FloorToInt(at.x), Mathf.RoundToInt(at.y)), 0, (int)ch.kind));
                 }
             if (Index == VillageBuilding.Hall)
             {

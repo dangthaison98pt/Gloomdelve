@@ -268,6 +268,8 @@ MonoBehaviour:
     prefab: {fileID: 5531563528195445306, guid: d0dc5c5480e663d439ff9c1cf6d8abeb, type: 3}
   - id: dolls
     prefab: {fileID: 72281688789013152, guid: f14b9f44e77e26c4a881dcf7b1df70c4, type: 3}
+  - id: supplychest
+    prefab: {fileID: 3025842848608473170, guid: 51ac24694bbd3754cb6cc953aa8d5386, type: 3}
   - id: dollschest
     prefab: {fileID: 8783956233057124323, guid: d0d18b6f75ae60f49bda590b4e6d1b08, type: 3}
   - id: kennel

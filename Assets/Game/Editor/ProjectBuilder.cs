@@ -2073,6 +2073,15 @@ namespace Gloomdelve.EditorTools
                     e.glow = InReachGlow(g, unlitMat);
                     e.glow.sortingOrder = 23;
                 }));
+                Reg("supplychest", Make<SupplyChest>("SupplyChest", "Level", "chest", new Vector2(1.4f, 1.2f), ArtGenerator.S("Sprites/Village/read_chest"), null, 6, (e, g, s) =>
+                {
+                    e.flipWithFacing = false;
+                    s.sharedMaterial = unlitMat;          // painted in the light of the room, like the room itself
+                    e.closed = ArtGenerator.S("Sprites/Village/read_chest");
+                    e.open = ArtGenerator.S("Sprites/Village/read_chest_open");
+                    e.outline = ArtGenerator.S("Sprites/Village/read_chest_hl");
+                    e.glow = InReachGlow(g, unlitMat);
+                }));
                 Reg("dollschest", Make<DollsChest>("DollsChest", "Level", "little chest", new Vector2(1.4f, 1.2f), ArtGenerator.S("Sprites/Village/read_chest"), null, 6, (e, g, s) =>
                 {
                     e.flipWithFacing = false;

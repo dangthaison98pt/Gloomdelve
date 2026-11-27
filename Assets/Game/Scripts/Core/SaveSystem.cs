@@ -68,6 +68,8 @@ namespace Gloomdelve
         public bool tutorialDone;
         [Tooltip("The scene of the first death has been seen in this save (EndingScene): Brann wakes in bed, on the same day, and knows it.")]
         public bool loopSeen;
+        [Tooltip("The chests in the houses that are filled every day (SupplyChest): \"rope|2026-11-27\" = the day each was last emptied.")]
+        public System.Collections.Generic.List<string> supplyDays = new System.Collections.Generic.List<string>();
         [Tooltip("Quests begun and done (see QuestLog).")]
         public System.Collections.Generic.List<QuestState> quests = new System.Collections.Generic.List<QuestState>();
         [Tooltip("Creatures killed, by kind (the Field Guide opens a creature's page with the first, and counts them).")]

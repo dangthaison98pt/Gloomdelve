@@ -281,6 +281,9 @@ namespace Gloomdelve
             new Scenario { name = "achievement toasts: two earned at once come one after the other - the second only once the first is out of sight, a breath between, sliding smoothly",
                 map = m => { Set(m, 3, 1, 'S'); },
                 run = c => ToastQueueCase(c) },
+            new Scenario { name = "supply chests: Tam's holds a rope, the player's a bomb; opened, into the bag; then open and empty, saying so; full again the next real day; a full bag leaves it shut; no paper left in a chest",
+                map = m => { Set(m, 3, 1, 'S'); for (int x = 4; x <= 20; x++) Set(m, x, 7, '#'); },      // (the upstairs floor: both chests are up there)
+                run = c => SupplyChestCase(c) },
             new Scenario { name = "audio: the listener makes the whole mix louder (about +13 dB: 75% on the sliders is the old 2.5 times at 100%), and the limiter keeps the loudest sounds under full scale",
                 map = m => { Set(m, 3, 1, 'S'); },
                 run = c => AudioBoostCase(c) },
@@ -4204,7 +4207,7 @@ namespace Gloomdelve
             yield return new WaitForSecondsRealtime(1.5f);          // (the steam rising, the dust in the moonlight)
             ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "room_apothecary.png"));
             yield return new WaitForSecondsRealtime(0.3f);
-            foreach (var e in c.world.Entities) if (!e.Dead && (e is VillagerHome || e is Curio || e is VillageInterior || e is RoomToy)) e.Despawn();
+            foreach (var e in c.world.Entities) if (!e.Dead && (e is VillagerHome || e is Curio || e is VillageInterior || e is RoomToy || e is SupplyChest)) e.Despawn();
             // every other room has its foreground too; a picture of each
             for (int k = 0; k < 8; k++)
             {
@@ -4219,7 +4222,7 @@ namespace Gloomdelve
                 c.Expect(r.foreground != null && r.foreground.enabled, $"room {k} has its foreground");
                 ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, $"room_{k}.png"));
                 yield return new WaitForSecondsRealtime(0.3f);
-                foreach (var e in c.world.Entities) if (!e.Dead && (e is VillagerHome || e is Curio || e is VillageInterior || e is Elder || e is RoomToy)) e.Despawn();
+                foreach (var e in c.world.Entities) if (!e.Dead && (e is VillagerHome || e is Curio || e is VillageInterior || e is Elder || e is RoomToy || e is SupplyChest)) e.Despawn();
             }
             Villagers.ResetTestState();
             Villagers.testRescued = null;
@@ -4233,7 +4236,7 @@ namespace Gloomdelve
             Villagers.testRescued = new HashSet<string> { Villagers.All[1].id, Villagers.All[2].id };
             Villagers.ResetTestState();
             RoomToy Toy(RoomToy.Kind k) { foreach (var e in c.world.Entities) if (e is RoomToy t && !t.Dead && t.kind == k) return t; return null; }
-            void Clear() { foreach (var e in c.world.Entities) if (!e.Dead && (e is VillagerHome || e is Curio || e is VillageInterior || e is RoomToy)) e.Despawn(); }
+            void Clear() { foreach (var e in c.world.Entities) if (!e.Dead && (e is VillagerHome || e is Curio || e is VillageInterior || e is RoomToy || e is SupplyChest)) e.Despawn(); }
 
             // home: the cat, the lamps
             var home = c.Spawn<VillageInterior>("interior", 4, 1, VillageInterior.Home);
@@ -4244,9 +4247,10 @@ namespace Gloomdelve
             var cat = Toy(RoomToy.Kind.Cat); var lamps = Toy(RoomToy.Kind.Lamps);
             c.Expect(cat != null && lamps != null, "home has its cat and its lamps");
             // no glints anywhere: what can be used is outlined while the player is by it, and only then
-            Curio chest = null;
-            foreach (var e in c.world.Entities) if (e is Curio cu && !cu.Dead && cu.form == Curio.Form.Chest) chest = cu;
-            c.Expect(chest != null && !chest.IsOpen, "home has a chest to open");
+            // the scrap of paper is pinned up on the wall now (the chest is one that is filled every day: SupplyChestCase)
+            Curio note = null; int chests = 0;
+            foreach (var e in c.world.Entities) if (e is Curio cu && !cu.Dead) { if (cu.form == Curio.Form.Chest) chests++; if (cu.form == Curio.Form.Pinned && cu.text.Contains("first way down")) note = cu; }
+            c.Expect(chests == 0 && note != null, "home's scrap of paper is pinned on the wall, not hidden in a chest");
             if (cat != null)
             {
                 c.Expect(!cat.glow.enabled, "away from the cat, it has no outline");
@@ -4255,20 +4259,6 @@ namespace Gloomdelve
                 c.Expect(cat.glow.enabled && cat.glow.sprite != null, "standing by the cat, it is outlined");
                 ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "toys_cat_outline.png"));
                 yield return c.Frames(3);
-            }
-            if (chest != null)
-            {
-                c.Teleport(chest.pos.x, chest.pos.y + 0.2f);
-                yield return c.Frames(30);
-                c.Expect(chest.glow.enabled && chest.GetPrompt(c.p).Contains("Open"), "by the chest upstairs: outlined, it offers to be opened");
-                chest.Interact(c.p);
-                yield return c.Frames(20);
-                c.Expect(chest.IsOpen && c.dir.hud.NoteUp && chest.GetPrompt(c.p).Contains("Read"), "opened, the scrap inside is read, and it stays open");
-                ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "read_chest_open.png"));
-                yield return c.Frames(3);
-                c.dir.hud.DismissHeld();
-                c.Teleport(home.pos.x + 1f, 1f);
-                yield return c.Frames(30);
             }
             if (cat != null)
             {
@@ -4355,7 +4345,7 @@ namespace Gloomdelve
             Villagers.testRescued = new HashSet<string>(); foreach (var v in Villagers.All) Villagers.testRescued.Add(v.id);
             Villagers.ResetTestState();
             RoomToy Toy(RoomToy.Kind k) { foreach (var e in c.world.Entities) if (e is RoomToy t && !t.Dead && t.kind == k) return t; return null; }
-            void Clear() { foreach (var e in c.world.Entities) if (!e.Dead && (e is VillagerHome || e is Curio || e is VillageInterior || e is RoomToy || e is Elder)) e.Despawn(); }
+            void Clear() { foreach (var e in c.world.Entities) if (!e.Dead && (e is VillagerHome || e is Curio || e is VillageInterior || e is RoomToy || e is Elder || e is SupplyChest)) e.Despawn(); }
             VillageInterior room = null;
             IEnumerator Enter(int k) { Clear(); yield return c.Frames(3); room = c.Spawn<VillageInterior>("interior", 4, 1, k); yield return c.Frames(4); room.Enter(c.p); yield return c.Frames(25); }
             IEnumerator StandBy(RoomToy t) { c.Teleport(t.pos.x, t.pos.y + 0.2f); yield return c.Frames(30); }
@@ -4576,6 +4566,73 @@ namespace Gloomdelve
                 "each board fits its words, not a fixed size: " + string.Join(", ", sizes.ConvertAll(v => $"{v.x:0} x {v.y:0}")));
             c.Expect(maxStep < 0.25f, $"it slides smoothly, never jumping (at most {maxStep:0.00} of the way in one frame, a frame of {stepDt * 1000f:0} ms)");
             Achievements.ResetTestState();
+        }
+
+        static IEnumerator SupplyChestCase(Ctx c)
+        {
+            c.p.godMode = true;
+            SupplyChest.ResetTestState();
+            var day = new System.DateTime(2026, 11, 27, 20, 0, 0);
+            SupplyChest.Today = () => day;
+            void Clear() { foreach (var e in c.world.Entities) if (!e.Dead && (e is VillagerHome || e is Curio || e is VillageInterior || e is RoomToy || e is SupplyChest || e is Elder)) e.Despawn(); }
+            foreach (var (room, kind) in new[] { (VillageInterior.Home, SupplyChest.Kind.Bomb), (1, SupplyChest.Kind.Rope) })
+            {
+                Clear(); yield return c.Frames(3);
+                var house = c.Spawn<VillageInterior>("interior", 4, 1, room);
+                yield return c.Frames(4);
+                house.Enter(c.p);
+                yield return c.Frames(10);
+                SupplyChest chest = null; int paperChests = 0;
+                foreach (var e in c.world.Entities)
+                {
+                    if (e is SupplyChest sc && !sc.Dead) chest = sc;
+                    if (e is Curio cu && !cu.Dead && cu.form == Curio.Form.Chest) paperChests++;
+                }
+                string what = kind == SupplyChest.Kind.Bomb ? "bomb" : "rope";
+                // nothing else to read close to it: standing by the chest, the chest is what the button does
+            foreach (var e in c.world.Entities)
+                if (chest != null && (e is Curio || e is RoomToy) && !e.Dead && e != chest && Mathf.Abs(e.pos.y - chest.pos.y) < 1f)
+                    c.Expect(Mathf.Abs(e.pos.x - chest.pos.x) >= 2f, $"'{(e is Curio cu ? cu.label : ((RoomToy)e).kind.ToString())}' is well away from the chest ({Mathf.Abs(e.pos.x - chest.pos.x):0.0} cells)");
+            c.Expect(chest != null && chest.kind == kind && chest.Full && paperChests == 0, $"{(room == 1 ? "Tam's" : "home's")} chest is a {what} chest, full; no paper hidden in a chest");
+                if (chest == null) continue;
+                int Count() => kind == SupplyChest.Kind.Bomb ? c.run.bombs : c.run.ropes;
+                // a full bag: it stays shut
+                if (kind == SupplyChest.Kind.Bomb) c.run.bombs = c.run.BombCap; else c.run.ropes = c.run.RopeCap;
+                c.Teleport(chest.pos.x, chest.pos.y + 0.2f);
+                yield return c.Frames(30);
+                c.Expect(c.p.Focus == (IInteractable)chest && c.p.Prompt != null && c.p.Prompt.Contains("Open the chest") && chest.glow.enabled, "standing by it: outlined, Open the chest");
+                chest.Interact(c.p);
+                yield return c.Frames(5);
+                c.Expect(chest.Full, "with the bag already full, it stays shut and full");
+                // room in the bag: one goes in
+                if (kind == SupplyChest.Kind.Bomb) c.run.bombs = 0; else c.run.ropes = 0;
+                c.Bot(Seq((1, F(act: true)), (10, F())));
+                yield return c.Frames(20);
+                c.Expect(Count() == 1 && !chest.Full, $"opened: one {what} into the bag ({Count()}), the chest empty");
+                yield return c.Frames(20);
+                c.Expect(c.p.Prompt != null && c.p.Prompt.Contains("empty") && c.p.Prompt.Contains("tomorrow") && !chest.glow.enabled, "by the empty chest: it says it is empty until tomorrow (" + c.p.Prompt + "), no outline");
+                if (room == VillageInterior.Home) { yield return new WaitForSecondsRealtime(0.3f); ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "supply_chest_empty.png")); yield return new WaitForSecondsRealtime(0.2f); }
+                chest.Interact(c.p);
+                yield return c.Frames(5);
+                c.Expect(Count() == 1, "opened again the same day: nothing more");
+                // the same day, later on, a run given up and back home: still empty
+                day = day.AddHours(3);
+                yield return c.Frames(3);
+                c.Expect(!chest.Full, "later the same day: still empty");
+                day = day.AddHours(2);          // past midnight
+                yield return c.Frames(5);
+                c.Expect(chest.Full, "the next day: full again");
+                c.Expect(c.p.Prompt != null && c.p.Prompt.Contains("Open the chest"), "and it offers to be opened");
+                if (room == 1) { yield return new WaitForSecondsRealtime(0.3f); ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(OutDir, "supply_chest_full.png")); yield return new WaitForSecondsRealtime(0.2f); }
+                day = day.AddHours(-5);
+            }
+            // the paper that was in Tam's chest hangs on his wall
+            Curio harness = null;
+            foreach (var e in c.world.Entities) if (e is Curio cu && !cu.Dead && cu.text.Contains("harness")) harness = cu;
+            c.Expect(harness != null && harness.form == Curio.Form.Pinned, "what Tam knows of the cut harness is pinned on his wall, to be read");
+            Clear();
+            SupplyChest.ResetTestState();
+            c.p.godMode = false;
         }
 
         static IEnumerator AudioBoostCase(Ctx c)
