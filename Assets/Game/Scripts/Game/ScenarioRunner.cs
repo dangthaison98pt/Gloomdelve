@@ -39,6 +39,8 @@ namespace Gloomdelve
         static readonly StringBuilder report = new StringBuilder();
 
         static int W = 26;
+        /// <summary>The map of the scenarios that test rooms: wide, with the start out of sight of the rooms at its left.</summary>
+        const int RoomsWidth = 56, RoomsStart = 52;      // (the exit goes in by itself at the second cell from the right: keep clear of it)
         const int H = 10;
 
         public class Ctx
@@ -86,6 +88,9 @@ namespace Gloomdelve
             public string name;
             public Action<char[,]> map;
             public Func<Ctx, IEnumerator> run;
+            /// <summary>Width of its map in cells (0 = the usual 26). The rooms are tested in a wide one, the start far
+            /// off to the right: the entrance's arch is not in the pictures of the rooms.</summary>
+            public int width;
         }
 
         static List<FrameInput> Seq(params (int frames, FrameInput input)[] parts)
@@ -267,13 +272,13 @@ namespace Gloomdelve
             new Scenario { name = "more wares: the fire cloak, the antidote vial, the climbing gloves and the grappling hook each do what the stall says",
                 map = m => { Set(m, 3, 1, 'S'); for (int y = 1; y <= 7; y++) Set(m, 16, y, 'H'); },
                 run = c => MoreWaresCase(c) },
-            new Scenario { name = "village rooms: the apothecary has its foreground, its little fire under the cauldron, and Maren behind the counter; every room has its foreground", map = m => { Set(m, 3, 1, 'S'); },
+            new Scenario { width = RoomsWidth, name = "village rooms: the apothecary has its foreground, its little fire under the cauldron, and Maren behind the counter; every room has its foreground", map = m => { Set(m, RoomsStart, 1, 'S'); },
                 run = c => ApothecaryCase(c) },
-            new Scenario { name = "room toys: the cat wakes when petted and moves to the armchair at the tenth poke, the lamps at home go out and on, Tam's wheel spins and slows, his hammock tips the player out, Maren's brew can be stirred",
-                map = m => { Set(m, 3, 1, 'S'); for (int x = 4; x <= 14; x++) Set(m, x, 7, '#'); },
+            new Scenario { width = RoomsWidth, name = "room toys: the cat wakes when petted and moves to the armchair at the tenth poke, the lamps at home go out and on, Tam's wheel spins and slows, his hammock tips the player out, Maren's brew can be stirred",
+                map = m => { Set(m, RoomsStart, 1, 'S'); for (int x = 4; x <= 14; x++) Set(m, x, 7, '#'); },
                 run = c => RoomToysCase(c) },
-            new Scenario { name = "room toys 2: bellows and anvil, globe and telescope, Pip's owl, clock and bird, Bera's lamps, the hall's candles, cup and banner, a nap in the bed at home, Tam's coil",
-                map = m => { Set(m, 3, 1, 'S'); for (int x = 4; x <= 20; x++) Set(m, x, 7, '#'); },
+            new Scenario { width = RoomsWidth, name = "room toys 2: bellows and anvil, globe and telescope, Pip's owl, clock and bird, Bera's lamps, the hall's candles, cup and banner, a nap in the bed at home, Tam's coil",
+                map = m => { Set(m, RoomsStart, 1, 'S'); for (int x = 4; x <= 20; x++) Set(m, x, 7, '#'); },
                 run = c => RoomToys2Case(c) },
             new Scenario { name = "ocarina: played from the bag (the press that opened it plays nothing), a held key sounds its note at its pitch, a second slurs and letting go goes back, Shift a half step up, Ctrl an octave down; the notes are written on the staff; the music falls silent while it is out; Pause puts it away",
                 map = m => { Set(m, 3, 1, 'S'); },
@@ -281,14 +286,14 @@ namespace Gloomdelve
             new Scenario { name = "achievement toasts: two earned at once come one after the other - the second only once the first is out of sight, a breath between, sliding smoothly",
                 map = m => { Set(m, 3, 1, 'S'); },
                 run = c => ToastQueueCase(c) },
-            new Scenario { name = "supply chests: Tam's holds a rope, the player's a bomb; opened, into the bag; then open and empty, saying so; full again the next real day; a full bag leaves it shut; no paper left in a chest",
-                map = m => { Set(m, 3, 1, 'S'); for (int x = 4; x <= 20; x++) Set(m, x, 7, '#'); },      // (the upstairs floor: both chests are up there)
+            new Scenario { width = RoomsWidth, name = "supply chests: Tam's holds a rope, the player's a bomb; opened, into the bag; then open and empty, saying so; full again the next real day; a full bag leaves it shut; no paper left in a chest",
+                map = m => { Set(m, RoomsStart, 1, 'S'); for (int x = 4; x <= 20; x++) Set(m, x, 7, '#'); },      // (the upstairs floor: both chests are up there)
                 run = c => SupplyChestCase(c) },
             new Scenario { name = "audio: the listener makes the whole mix louder (about +13 dB: 75% on the sliders is the old 2.5 times at 100%), and the limiter keeps the loudest sounds under full scale",
                 map = m => { Set(m, 3, 1, 'S'); },
                 run = c => AudioBoostCase(c) },
-            new Scenario { name = "kennel: standing at its door, nothing; crouched there, Crawl in leads into the warm room inside, the dog asleep in its basket (petted, it grumbles), a little chest holds two dolls that earn It Takes Two; at its little door, Crawl out",
-                map = m => { Set(m, 3, 1, 'S'); },
+            new Scenario { width = RoomsWidth, name = "kennel: standing at its door, nothing; crouched there, Crawl in leads into the warm room inside, the dog asleep in its basket (petted, it grumbles), a little chest holds two dolls that earn It Takes Two; at its little door, Crawl out",
+                map = m => { Set(m, RoomsStart, 1, 'S'); },
                 run = c => KennelCase(c) },
             new Scenario { name = "achievements: shaking the fir by the hall five times running drops the Blue Ocarina; picked up, it goes into KEY ITEMS and earns Ocarina of GOAT once, and the toast slides down",
                 map = m => { Set(m, 3, 1, 'S'); },
@@ -6239,7 +6244,7 @@ namespace Gloomdelve
         public static LevelData BuildLevel()
         {
             int height = all[index].name.StartsWith("bosses: the rot heart") ? 12 : all[index].name.StartsWith("long fall") || all[index].name.StartsWith("new wares") || all[index].name.StartsWith("rope into open air") || all[index].name.StartsWith("gliding down") || all[index].name.StartsWith("rope hook visibly") || all[index].name.StartsWith("room toys") ? 16 : H;
-            W = all[index].name.StartsWith("waypoint") ? 64 : 26;
+            W = all[index].width > 0 ? all[index].width : all[index].name.StartsWith("waypoint") ? 64 : 26;
             var m = new char[W, height];
             for (int y = 0; y < height; y++)
                 for (int x = 0; x < W; x++)
